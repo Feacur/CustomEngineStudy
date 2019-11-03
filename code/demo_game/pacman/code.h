@@ -154,9 +154,9 @@ namespace utils {
 		}
 
 		uint8 preset_index = min(level, LEVEL_PRESETS_COUNT);
-		result.fright_tile_steps =  LEVELS_PRESETS.fright_tile_steps[preset_index];
-		result.fright_flashes    =  LEVELS_PRESETS.fright_flashes[preset_index];
-		result.fast_dots_left    =  LEVELS_PRESETS.fast_dots_left[preset_index];
+		result.fright_tile_steps = LEVELS_PRESETS.fright_tile_steps[preset_index];
+		result.fright_flashes    = LEVELS_PRESETS.fright_flashes[preset_index];
+		result.fast_dots_left    = LEVELS_PRESETS.fast_dots_left[preset_index];
 
 		return result;
 	}
@@ -451,12 +451,12 @@ namespace character {
 }
 
 namespace ai {
-	#define AI_GET_MOVE_FUNC(ROUTINE_NAME) Vector2i ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move)
-	typedef AI_GET_MOVE_FUNC(get_move_func);
+	#define AI_GET_ACTION_FUNC(ROUTINE_NAME) Vector2i ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move)
+	typedef AI_GET_ACTION_FUNC(get_action_func);
 
-	AI_GET_MOVE_FUNC(get_move_none) { return {0, 0}; }
+	AI_GET_ACTION_FUNC(get_action_none) { return {0, 0}; }
 
-	AI_GET_MOVE_FUNC(get_move_player) {
+	AI_GET_ACTION_FUNC(get_action_player) {
 		// if (!finished_move) { return {0, 0}; } // @Note: always allow user input for responsiveness
 		if (mode == Mode::None) { return {0, 0}; }
 
@@ -470,7 +470,7 @@ namespace ai {
 		return input_move;
 	}
 
-	AI_GET_MOVE_FUNC(get_move_blinky) {
+	AI_GET_ACTION_FUNC(get_action_blinky) {
 		if (!finished_move) { return {0, 0}; }
 		if (mode == Mode::Scatter) {
 			return game_data->map_dimensions * CHARACTER_CORNER_MUL[character_index]
@@ -486,7 +486,7 @@ namespace ai {
 		return game_data->characters[character_index].position;
 	}
 
-	AI_GET_MOVE_FUNC(get_move_pinky) {
+	AI_GET_ACTION_FUNC(get_action_pinky) {
 		if (!finished_move) { return {0, 0}; }
 		if (mode == Mode::Scatter) {
 			return game_data->map_dimensions * CHARACTER_CORNER_MUL[character_index]
@@ -503,7 +503,7 @@ namespace ai {
 		return game_data->characters[character_index].position;
 	}
 
-	AI_GET_MOVE_FUNC(get_move_inky) {
+	AI_GET_ACTION_FUNC(get_action_inky) {
 		if (!finished_move) { return {0, 0}; }
 		if (mode == Mode::Scatter) {
 			return game_data->map_dimensions * CHARACTER_CORNER_MUL[character_index]
@@ -526,7 +526,7 @@ namespace ai {
 		return game_data->characters[character_index].position;
 	}
 
-	AI_GET_MOVE_FUNC(get_move_clyde) {
+	AI_GET_ACTION_FUNC(get_action_clyde) {
 		if (!finished_move) { return {0, 0}; }
 		if (mode == Mode::Scatter) {
 			return game_data->map_dimensions * CHARACTER_CORNER_MUL[character_index]
@@ -551,26 +551,26 @@ namespace ai {
 		return game_data->characters[character_index].position;
 	}
 	
-	AI_GET_MOVE_FUNC(get_move_pointer) {
+	AI_GET_ACTION_FUNC(get_action_pointer) {
 		Vector2i pointer = input::get_pointer();
 		return pointer / TILE_SIZE;
 	}
-	#undef AI_GET_MOVE_FUNC
+	#undef AI_GET_ACTION_FUNC
 }
 
 namespace ai {	
-	#define AI_DO_MOVE_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move, Vector2i value)
-	typedef AI_DO_MOVE_FUNC(do_move_func);
+	#define AI_DO_ACTION_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move, Vector2i value)
+	typedef AI_DO_ACTION_FUNC(do_action_func);
 
-	AI_DO_MOVE_FUNC(do_move_none) { }
+	AI_DO_ACTION_FUNC(do_action_none) { }
 
-	AI_DO_MOVE_FUNC(do_move_set_position) {
+	AI_DO_ACTION_FUNC(do_action_set_position) {
 		Character * character = &game_data->characters[character_index];
 		value = clamp(value, {0, 0}, game_data->map_dimensions - 1);
 		character->position = value;
 	}
 
-	AI_DO_MOVE_FUNC(do_move_follow_direction) {
+	AI_DO_ACTION_FUNC(do_action_follow_direction) {
 		// if (!finished_move) { return; } // @Note: always allow user input for responsiveness
 		if (mode == Mode::None) { return; }
 
@@ -594,7 +594,7 @@ namespace ai {
 		}
 	}
 
-	AI_DO_MOVE_FUNC(do_move_follow_path) {
+	AI_DO_ACTION_FUNC(do_action_follow_path) {
 		if (!finished_move) { return; }
 		if (mode == Mode::None) { return; }
 
@@ -606,7 +606,7 @@ namespace ai {
 		}
 	}
 
-	AI_DO_MOVE_FUNC(do_move_follow_target) {
+	AI_DO_ACTION_FUNC(do_action_follow_target) {
 		if (!finished_move) { return; }
 		if (mode == Mode::None) { return; }
 
@@ -617,16 +617,16 @@ namespace ai {
 
 		character->direction = direction;
 	}
-	#undef AI_DO_MOVE_FUNC
+	#undef AI_DO_ACTION_FUNC
 }
 
 namespace ai {
-	#define AI_PRE_MOVE_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, uint8 character_index, bool finished_move)
-	typedef AI_PRE_MOVE_FUNC(pre_move_func);
+	#define AI_MOVE_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, uint8 character_index, bool finished_move)
+	typedef AI_MOVE_FUNC(move_func);
 
-	AI_PRE_MOVE_FUNC(pre_move_none) { }
+	AI_MOVE_FUNC(move_none) { }
 
-	AI_PRE_MOVE_FUNC(pre_move_direction) {
+	AI_MOVE_FUNC(move_direction) {
 		if (!finished_move) { return; }
 		Character * character = &game_data->characters[character_index];
 		if (character->direction == vec2i(0, 0)) { return; }
@@ -637,7 +637,7 @@ namespace ai {
 			character->position = next_position;
 		}
 	}
-	#undef AI_PRE_MOVE_FUNC
+	#undef AI_MOVE_FUNC
 }
 
 namespace game {
@@ -704,40 +704,40 @@ namespace game {
 		}
 	}
 	
-	// typedef ai::get_move_func * get_move_func_pointer;
-	using get_move_func_pointer = ai::get_move_func *;
-	static get_move_func_pointer const type_to_get_move[CHARACTERS_TYPES_COUNT] = {
-		&ai::get_move_none,
-		&ai::get_move_player,
-		&ai::get_move_blinky,
-		&ai::get_move_pinky,
-		&ai::get_move_inky,
-		&ai::get_move_clyde,
-		&ai::get_move_pointer,
+	// typedef ai::get_action_func * get_action_func_pointer;
+	using get_action_func_pointer = ai::get_action_func *;
+	static get_action_func_pointer const type_to_get_action[CHARACTERS_TYPES_COUNT] = {
+		&ai::get_action_none,
+		&ai::get_action_player,
+		&ai::get_action_blinky,
+		&ai::get_action_pinky,
+		&ai::get_action_inky,
+		&ai::get_action_clyde,
+		&ai::get_action_pointer,
 	};
 	
-	// typedef ai::do_move_func * do_move_func_pointer;
-	using do_move_func_pointer = ai::do_move_func *;
-	static do_move_func_pointer const type_to_do_move[CHARACTERS_TYPES_COUNT] = {
-		&ai::do_move_none,
-		&ai::do_move_follow_direction,
-		&ai::do_move_follow_target,
-		&ai::do_move_follow_target,
-		&ai::do_move_follow_target,
-		&ai::do_move_follow_target,
-		&ai::do_move_set_position,
+	// typedef ai::do_action_func * do_action_func_pointer;
+	using do_action_func_pointer = ai::do_action_func *;
+	static do_action_func_pointer const type_to_do_action[CHARACTERS_TYPES_COUNT] = {
+		&ai::do_action_none,
+		&ai::do_action_follow_direction,
+		&ai::do_action_follow_target,
+		&ai::do_action_follow_target,
+		&ai::do_action_follow_target,
+		&ai::do_action_follow_target,
+		&ai::do_action_set_position,
 	};
 	
-	// typedef ai::pre_move_func * do_pre_move_func_pointer;
-	using do_pre_move_func_pointer = ai::pre_move_func *;
-	static do_pre_move_func_pointer const type_to_do_pre_move[CHARACTERS_TYPES_COUNT] = {
-		&ai::pre_move_none,
-		&ai::pre_move_direction,
-		&ai::pre_move_direction,
-		&ai::pre_move_direction,
-		&ai::pre_move_direction,
-		&ai::pre_move_direction,
-		&ai::pre_move_none,
+	// typedef ai::move_func * move_func_pointer;
+	using move_func_pointer = ai::move_func *;
+	static move_func_pointer const type_to_move[CHARACTERS_TYPES_COUNT] = {
+		&ai::move_none,
+		&ai::move_direction,
+		&ai::move_direction,
+		&ai::move_direction,
+		&ai::move_direction,
+		&ai::move_direction,
+		&ai::move_none,
 	};
 
 	// mode: chase
@@ -858,19 +858,19 @@ namespace game {
 			}
 		}
 		
-		// move characters forward
+		// move characters
 		for (uint8 i = 0; i < game_data->characters.length; ++i) {
 			uint8 type = CHARACTER_TYPES[i];
-			(*game::type_to_do_pre_move[type])(game_data, i, finished_move[i]);
+			(*game::type_to_move[type])(game_data, i, finished_move[i]);
 		}
 
-		// update movement direction:
+		// do AI actions:
 		// - towards target position or simply set
 		// - reverse direction upon game mode change
 		for (uint8 i = 0; i < game_data->characters.length; ++i) {
 			uint8 type = CHARACTER_TYPES[i];
-			Vector2i move = (*game::type_to_get_move[type])(game_data, mode, i, finished_move[i]);
-			(*game::type_to_do_move[type])(game_data, mode, i, finished_move[i], move);
+			Vector2i action = (*game::type_to_get_action[type])(game_data, mode, i, finished_move[i]);
+			(*game::type_to_do_action[type])(game_data, mode, i, finished_move[i], action);
 		}
 		
 		// for (uint8 i = 0; i < game_data->characters.length; ++i) {
