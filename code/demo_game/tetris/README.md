@@ -1,8 +1,6 @@
 # Summary
 Basic version of Tetris  
 
-See "demo_game/main.cpp" and "platform_windows/main.cpp"  
-
 ### Algorithm
 1) a random figure tries to spawn
 2) if it can't then clear the field

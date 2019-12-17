@@ -19,7 +19,7 @@ pacman .......... WIP basic mechanics
 sound_test ...... toying with DSound
 study_raymarch .. basic raymarching and SDF
 study_raytrace .. basic raytracing
-entity_system .   toying with ECS
+entity_system ... toying with ECS
 ```
 
 ```
@@ -39,11 +39,6 @@ list ............ testing intrusive linked list
 Standalone console application test bed, C
 
 test ............ testing C code
-```
-
-```
-> code/demo_glsl
-VSCode glsl extensions test bed
 ```
 
 ### __Project setup and build__

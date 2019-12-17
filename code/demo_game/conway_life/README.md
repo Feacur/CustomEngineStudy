@@ -2,8 +2,6 @@
 Basic version of Conway's Game of Life  
 Data structure is based on "demo/tetris" initially  
 
-See "demo_game/main.cpp" and "platform_windows/main.cpp"  
-
 ### Thoughts
 * What if I display cells changing their color with interpolation?
 

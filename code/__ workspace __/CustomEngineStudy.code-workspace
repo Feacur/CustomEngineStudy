@@ -20,9 +20,6 @@
 			"path": "..\\platform_windows"
 		},
 		{
-			"path": "..\\demo_glsl"
-		},
-		{
 			"path": "..\\demo_console"
 		},
 		{
@@ -67,10 +64,6 @@
 			// c, c++
 			"ms-vscode.cpptools",
 			"vadimcn.vscode-lldb",
-			// shaders
-			"circledev.glsl-canvas",
-			"slevesque.shader",
-			"stevensona.shader-toy",
 		]
 	}
 }
