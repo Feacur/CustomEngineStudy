@@ -48,8 +48,8 @@ typedef char const * cstring;
 	#define API_C_BLOCK_END
 #endif //  defined(__cplusplus) // platform
 
-#ifdef _WIN32
-	#ifdef _WIN64
+#if defined(_WIN32)
+	#if defined(_WIN64)
 		#define PLATFORM_WINDOWS
 	#else
 		#define PLATFORM_WINDOWS
@@ -61,13 +61,11 @@ typedef char const * cstring;
 	 * to ensure that we're running on MAC
 	 * and not some other Apple platform */
 	#if TARGET_IPHONE_SIMULATOR == 1
-		#error "IOS simulator is not supported!"
+		#define PLATFORM_IOS_SIMULATOR
 	#elif TARGET_OS_IPHONE == 1
 		#define PLATFORM_IOS
-		#error "IOS is not supported!"
 	#elif TARGET_OS_MAC == 1
 		#define PLATFORM_MACOS
-		#error "MacOS is not supported!"
 	#else
 		#error "Unknown Apple platform!"
 	#endif
@@ -76,10 +74,8 @@ typedef char const * cstring;
  * it has __linux__ defined */
 #elif defined(__ANDROID__)
 	#define PLATFORM_ANDROID
-	#error "Android is not supported!"
 #elif defined(__linux__)
 	#define PLATFORM_LINUX
-	#error "Linux is not supported!"
 #else
 	#error "Unknown compiler/platform!"
 #endif
