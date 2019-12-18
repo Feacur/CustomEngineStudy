@@ -10,7 +10,7 @@
 
             "includePath": ["${default}"],
             "defines": [
-                "PLATFORM_WINDOWS",
+                "${default}",
                 "WIN32_LEAN_AND_MEAN"
             ]
         }

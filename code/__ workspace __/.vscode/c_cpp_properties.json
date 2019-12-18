@@ -8,7 +8,10 @@
             "compilerPath": "${default}",
             "intelliSenseMode": "${default}",
 
-            "includePath": ["${default}"]
+            "includePath": ["${default}"],
+            "defines": [
+                "${default}"
+            ]
         }
     ],
     "version": 4

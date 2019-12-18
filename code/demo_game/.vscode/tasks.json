@@ -16,7 +16,8 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Shipping",
-                "-DPLATFORM_WINDOWS -DBUILD_DLL",
+                "-DBUILD_DLL",
+                // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -33,7 +34,8 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Development",
-                "-DPLATFORM_WINDOWS -DBUILD_DLL",
+                "-DBUILD_DLL",
+                // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -50,7 +52,8 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Debug",
-                "-DPLATFORM_WINDOWS -DBUILD_DLL",
+                "-DBUILD_DLL",
+                // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",

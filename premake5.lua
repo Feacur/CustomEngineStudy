@@ -87,7 +87,6 @@ project "demo_game"
 
 	filter "system:windows"
 		defines {
-			"PLATFORM_WINDOWS",
 			"BUILD_DLL",
 		}
 
@@ -118,7 +117,6 @@ project "platform_windows"
 
 	filter "system:windows"
 		defines {
-			"PLATFORM_WINDOWS",
 			"WIN32_LEAN_AND_MEAN",
 		}
 
@@ -153,7 +151,7 @@ project "demo_console"
 
 	filter "system:windows"
 		defines {
-			"PLATFORM_WINDOWS",
+			--
 		}
 
 -- project: demo c
@@ -179,5 +177,5 @@ project "demo_c"
 
 	filter "system:windows"
 		defines {
-			"PLATFORM_WINDOWS",
+			--
 		}
