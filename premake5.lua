@@ -1,6 +1,6 @@
 workspace "CustomEngineStudy"
 	-- toolset ("msc")
-	architecture "x64"
+	architecture "x86_64"
 	systemversion "latest"
 	startproject "platform_windows"
 	warnings "Extra"
