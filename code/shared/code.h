@@ -6,6 +6,7 @@
 #include <stdio.h>  // printf
 #include <string.h> // memset, memcpy
 #include <math.h>   // sqrtf, sinf, cosf
+// #include <memory>   // std::unique_ptr, std::shared_ptr
 
 // basic types
 typedef int8_t   int8;  // signed char
@@ -32,13 +33,8 @@ typedef char const * cstring;
 #undef min
 #undef max
 
-#if !defined(__cplusplus) // hide cpp stuff
-	#define constexpr
-	#define thread_local
-#endif // defined(__cplusplus) // hide cpp stuff
-
-// platform
-#if defined(__cplusplus) // platform
+// language-specific
+#if defined(__cplusplus)
 	#define API_C extern "C"
 	#define API_C_BLOCK_START extern "C" {
 	#define API_C_BLOCK_END }
@@ -46,8 +42,11 @@ typedef char const * cstring;
 	#define API_C
 	#define API_C_BLOCK_START
 	#define API_C_BLOCK_END
-#endif //  defined(__cplusplus) // platform
+	#define constexpr
+	#define thread_local
+#endif
 
+// platform-specific
 #if defined(_WIN32)
 	#if defined(_WIN64)
 		#define PLATFORM_WINDOWS
@@ -80,14 +79,20 @@ typedef char const * cstring;
 	#error "Unknown compiler/platform!"
 #endif
 
-#if defined(PLATFORM_WINDOWS)
+// compiler-specific
+#if defined(_MSC_VER)
 	#define CODE_BREAK() __debugbreak()
-	#if defined(BUILD_DLL)
-		#define API_DLL __declspec(dllexport)
-		#define API_TEMPLATE
+	#if defined(API_SHARED)
+		#if defined(BUILD_DLL)
+			#define API_DLL __declspec(dllexport)
+			#define API_TEMPLATE
+		#else
+			#define API_DLL __declspec(dllimport)
+			#define API_TEMPLATE extern
+		#endif
 	#else
-		#define API_DLL __declspec(dllimport)
-		#define API_TEMPLATE extern
+		#define API_DLL
+		#define API_TEMPLATE
 	#endif
 #else
 	#error supported platforms: Windows
@@ -106,7 +111,7 @@ typedef char const * cstring;
 	#define LOG_TRACE(MESSAGE)   logger_message("TRACE",   FILE_AND_LINE, MESSAGE)
 	#define LOG_WARNING(MESSAGE) logger_message("WARNING", FILE_AND_LINE, MESSAGE)
 	#define LOG_ERROR(MESSAGE)   logger_message("ERROR",   FILE_AND_LINE, MESSAGE)
-	#define ASSERT_TRUE(STATEMENT, MESSAGE) { if(!(STATEMENT)) { LOG_ERROR(MESSAGE); CODE_BREAK(); } }
+	#define ASSERT_TRUE(STATEMENT, MESSAGE) { if(STATEMENT) { /**/ } else { LOG_ERROR(MESSAGE); CODE_BREAK(); } }
 #endif
 
 // traits
