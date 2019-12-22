@@ -6,8 +6,8 @@
             "cStandard": "${default}",
             "cppStandard": "${default}",
             "compilerPath": "${default}",
-			"intelliSenseMode": "${default}",
-			
+            "intelliSenseMode": "${default}",
+            
             "includePath": ["${default}"],
             "defines": [
                 "${default}"

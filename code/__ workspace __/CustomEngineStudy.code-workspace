@@ -48,7 +48,7 @@
 		"C_Cpp.default.intelliSenseMode": "msvc-x64",
 		"C_Cpp.default.includePath": [".."],
 		"C_Cpp.default.defines": [
-			//
+			"API_SHARED",
 		],
 		"C_Cpp.intelliSenseCachePath": "${workspaceFolder}\\..\\..\\bin-int",
 		// files

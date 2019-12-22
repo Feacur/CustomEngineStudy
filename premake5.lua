@@ -87,6 +87,7 @@ project "demo_game"
 
 	filter "system:windows"
 		defines {
+			"API_SHARED",
 			"BUILD_DLL",
 		}
 
@@ -117,6 +118,7 @@ project "platform_windows"
 
 	filter "system:windows"
 		defines {
+			"API_SHARED",
 			"WIN32_LEAN_AND_MEAN",
 		}
 

@@ -80,22 +80,46 @@ typedef char const * cstring;
 #endif
 
 // compiler-specific
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__clang__)
 	#define CODE_BREAK() __debugbreak()
-	#if defined(API_SHARED)
-		#if defined(BUILD_DLL)
-			#define API_DLL __declspec(dllexport)
-			#define API_TEMPLATE
-		#else
-			#define API_DLL __declspec(dllimport)
-			#define API_TEMPLATE extern
-		#endif
+	//
+	#define API_DLL_EXPORT __declspec(dllexport)
+	#define API_DLL_IMPORT __declspec(dllimport)
+	#define API_DLL_LOCAL
+#elif defined(__GNUC__)
+	#define CODE_BREAK() __asm volatile ("int3")
+	// https://gcc.gnu.org/wiki/Visibility
+	#if __GNUC__ >= 4
+		#define API_DLL_EXPORT __attribute__((visibility("default")))
+		#define API_DLL_IMPORT __attribute__((visibility("default")))
+		#define API_DLL_LOCAL __attribute__((visibility("hidden")))
 	#else
-		#define API_DLL
+		#define API_DLL_EXPORT
+		#define API_DLL_IMPORT
+		#define API_DLL_LOCAL
+	#endif
+#elif defined(__MINGW32__) || defined(__MINGW64__)
+	#define CODE_BREAK() __asm volatile ("int3")
+	//
+	#define API_DLL_EXPORT
+	#define API_DLL_IMPORT
+	#define API_DLL_LOCAL
+#else
+	#error unsupported compiler
+#endif
+
+// dll-specific
+#if defined(API_SHARED)
+	#if defined(BUILD_DLL)
 		#define API_TEMPLATE
+		#define API_DLL API_DLL_EXPORT
+	#else
+		#define API_TEMPLATE extern
+		#define API_DLL API_DLL_IMPORT
 	#endif
 #else
-	#error supported platforms: Windows
+	#define API_TEMPLATE
+	#define API_DLL
 #endif
 
 // logging
