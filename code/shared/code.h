@@ -84,12 +84,16 @@ typedef char const * cstring;
 // compiler-specific
 #if defined(_MSC_VER) || defined(__clang__)
 	#define CODE_BREAK() __debugbreak()
+	#define FUNCTION_NAME __FUNCTION__
+	// __FUNCSIG__
 	//
 	#define API_DLL_EXPORT __declspec(dllexport)
 	#define API_DLL_IMPORT __declspec(dllimport)
 	#define API_DLL_LOCAL
 #elif defined(__GNUC__)
 	#define CODE_BREAK() __asm volatile ("int3")
+	#define FUNCTION_NAME __func__
+	// __PRETTY_FUNCTION__
 	// https://gcc.gnu.org/wiki/Visibility
 	#if __GNUC__ >= 4
 		#define API_DLL_EXPORT __attribute__((visibility("default")))
@@ -102,6 +106,8 @@ typedef char const * cstring;
 	#endif
 #elif defined(__MINGW32__) || defined(__MINGW64__)
 	#define CODE_BREAK() __asm volatile ("int3")
+	#define FUNCTION_NAME __FUNCTION__
+	// ?
 	//
 	#define API_DLL_EXPORT
 	#define API_DLL_IMPORT

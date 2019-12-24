@@ -126,9 +126,9 @@ rem // >> COMPILER: debug, slow compile times
 rem //
 set debug=
 if %configuration% == Development (
-	set debug=%debug% -Zi -Zf -FC -JMC -Zo
+	set debug=%debug% -Zi -Zf -JMC -Zo
 ) else if %configuration% == Debug (
-	set debug=%debug% -Zi -Zf -FC -JMC
+	set debug=%debug% -Zi -Zf -JMC
 )
 
 rem Program Database File Name

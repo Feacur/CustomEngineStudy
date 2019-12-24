@@ -1,9 +1,12 @@
+include "./premake5_customizations.lua"
+
 workspace "CustomEngineStudy"
 	-- toolset ("msc")
 	architecture "x86_64"
 	systemversion "latest"
 	startproject "platform_windows"
 	warnings "Extra"
+	editandcontinue "Off"
 	flags { "FatalWarnings", "NoMinimalRebuild", "MultiProcessorCompile" }
 	floatingpoint "Fast"
 	floatingpointexceptions "off"
@@ -44,14 +47,14 @@ workspace "CustomEngineStudy"
 		staticruntime "Off"
 		runtime "Debug"
 		symbols "On"
-		optimize "Off"
+		optimize "Off" -- Off, Debug
 
 	filter "configurations:Development"
 		defines "DEVELOPMENT"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "On"
-		optimize "On"
+		optimize "On" -- On, Debug
 
 	filter "configurations:Shipping"
 		-- either bundle CRT (vcruntime140.dll, etc.)
@@ -60,7 +63,7 @@ workspace "CustomEngineStudy"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "Off"
-		optimize "On"
+		optimize "On" -- On, Size, Speed, Full
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -92,7 +95,7 @@ project "demo_game"
 		}
 
 		postbuildcommands {
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/platform_windows")
+			("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/platform_windows\"")
 		}
 
 -- project: platform windows
