@@ -10,7 +10,7 @@
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\solution_build.bat",
+            "command": "${workspaceFolder}\\..\\solution_build.bat",
             "args": [
                 "x64",
                 "Shipping",
@@ -18,13 +18,13 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": ".."
             },
         },
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\solution_build.bat",
+            "command": "${workspaceFolder}\\..\\solution_build.bat",
             "args": [
                 "x64",
                 "Development",
@@ -32,13 +32,13 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": ".."
             },
         },
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\solution_build.bat",
+            "command": "${workspaceFolder}\\..\\solution_build.bat",
             "args": [
                 "x64",
                 "Debug",
@@ -46,7 +46,7 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": ".."
             },
         },
     ]

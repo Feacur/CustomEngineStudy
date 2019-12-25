@@ -4,7 +4,7 @@ Study on C/C++, custom engines, games and stuff
 # How to work with this stuff
 ### __See sub-projects inside folder__
 ```
-> code/__ workspace __
+> __ workspace __
 VSCode workspace, because it doesn't support nested projects
 ```
 

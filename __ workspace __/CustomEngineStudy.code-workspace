@@ -5,25 +5,25 @@
 		},
 		// {
 		// 	"name": "root, messes intellisense",
-		// 	"path": "..\\.."
+		// 	"path": ".."
 		// },
 		{
-			"path": "..\\demo_game"
+			"path": "..\\code\\demo_game"
 		},
 		{
-			"path": "..\\shared"
+			"path": "..\\code\\shared"
 		},
 		{
-			"path": "..\\platform_api"
+			"path": "..\\code\\platform_api"
 		},
 		{
-			"path": "..\\platform_windows"
+			"path": "..\\code\\platform_windows"
 		},
 		{
-			"path": "..\\demo_console"
+			"path": "..\\code\\demo_console"
 		},
 		{
-			"path": "..\\demo_c"
+			"path": "..\\code\\demo_c"
 		},
 	],
 	"settings": {
@@ -46,11 +46,13 @@
 		"C_Cpp.default.cppStandard": "c++17",
 		"C_Cpp.default.compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Tools\\MSVC\\14.16.27023\\bin\\Hostx64\\x64\\cl.exe",
 		"C_Cpp.default.intelliSenseMode": "msvc-x64",
-		"C_Cpp.default.includePath": [".."],
+		"C_Cpp.default.includePath": [
+			"${workspaceFolder:__ workspace __}\\..\\code"
+		],
 		"C_Cpp.default.defines": [
 			"API_SHARED",
 		],
-		"C_Cpp.intelliSenseCachePath": "${workspaceFolder}\\..\\..\\bin-int",
+		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace __}\\..\\bin-int",
 		// files
 		"files.exclude": {
 			"**/ipch/" : true,
