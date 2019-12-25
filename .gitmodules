@@ -1,4 +1,4 @@
 [submodule "premake"]
 	path = premake
-	url = ../premake.git
+	url = ../premake.git # https://github.com/feacur/premake
 	branch = master

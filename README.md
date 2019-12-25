@@ -45,6 +45,22 @@ test ............ testing C code
 Initial  
 * Call git submodule update --init --recursive
 * Call git submodule update -f
+* See some notes below regarding SSH keys
+
+In case of using SSH key passphrases  
+```
+# on Windows you might want to modify your .gitconfig with
+[credential]
+	helper = manager
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+
+# also see
+# - https://help.github.com/en/github/authenticating-to-github/working-with-ssh-key-passphrases
+
+# hm, I didn't figure out how to use them with submodules differently
+# - https://support.microsoft.com/en-us/help/4026814/windows-accessing-credential-manager
+```
 
 VSCode  
 * See "**/.vscode/tasks.json" for build commands

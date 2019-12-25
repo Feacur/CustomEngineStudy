@@ -1,0 +1,8 @@
+# proper file path and name: ~/.ssh/config
+# "~" is "%userprofile%"
+
+# GitHub
+Host github.com
+    HostName github.com
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/ssh_key_file
