@@ -20,6 +20,6 @@
 # credential
 [credential]
 	helper = manager
-# [url "https://github.com/"]
+# [url "https://github.com/"] # might help in case of problems during git submodules initialization
 # 	insteadOf = git@github.com:
 #

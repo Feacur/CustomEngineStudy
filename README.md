@@ -50,6 +50,7 @@ Initial
 In case of using SSH key passphrases  
 ```
 # on Windows you might want to modify your .gitconfig with
+# (at least during git submodules initialization)
 [credential]
 	helper = manager
 [url "https://github.com/"]
