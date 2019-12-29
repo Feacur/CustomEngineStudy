@@ -1,5 +1,5 @@
-static cstring const build_library_name   = "demo_game.dll";
-static cstring const runtime_library_name = "demo_game_runtime.dll";
+static LPCWSTR const build_library_name   = L"demo_game.dll";
+static LPCWSTR const runtime_library_name = L"demo_game_runtime.dll";
 
 typedef GAME_UPDATE(game_update_type);
 typedef GAME_RENDER(game_render_type);
@@ -35,8 +35,8 @@ if (!code->ROUTINE_NAME) {\
 	code->ROUTINE_NAME = &ROUTINE_NAME##_stub;\
 }
 
-void load_game_code(Game_Code * code, cstring file_name) {
-	code->library = LoadLibraryA(file_name);
+void load_game_code(Game_Code * code, LPCWSTR file_name) {
+	code->library = LoadLibraryW(file_name);
 	LOAD_PROCEDURE(game_update)
 	LOAD_PROCEDURE(game_render)
 	LOAD_PROCEDURE(game_output_sound)
@@ -45,8 +45,8 @@ void load_game_code(Game_Code * code, cstring file_name) {
 #undef LOAD_PROCEDURE
 
 void reinit_game_code(Game_Code * code) {
-	WIN32_FIND_DATAA find_data;
-	HANDLE file = FindFirstFileA(build_library_name, &find_data);
+	WIN32_FIND_DATAW find_data;
+	HANDLE file = FindFirstFileW(build_library_name, &find_data);
 	ASSERT_TRUE(file != INVALID_HANDLE_VALUE, "Can't find game code library");
 
 	auto creation_time = find_data.ftLastWriteTime;
@@ -54,7 +54,7 @@ void reinit_game_code(Game_Code * code) {
 
 	if (CompareFileTime(&code->creation_time, &creation_time) != 0) {
 		FreeLibrary(code->library);
-		while (!CopyFileA(build_library_name, runtime_library_name, 0)) {
+		while (!CopyFileW(build_library_name, runtime_library_name, 0)) {
 			log_last_error();
 			Sleep(100);
 		}
@@ -67,5 +67,5 @@ void reinit_game_code(Game_Code * code) {
 
 void remove_runtime_game_code(Game_Code * code) {
 	FreeLibrary(code->library);
-	DeleteFileA(runtime_library_name);
+	DeleteFileW(runtime_library_name);
 }

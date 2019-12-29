@@ -15,7 +15,7 @@ set kind=%3
 set architecture=%4
 set configuration=%5
 set defines=%6
-set links=%7
+set libraries=%7
 
 if [%compilation_unit%] == [] (
 	echo provide compilation unit [*.cpp]
@@ -44,8 +44,8 @@ if [%defines%] == [] (
 	set defines=""
 )
 
-if [%links%] == [] (
-	set links=""
+if [%libraries%] == [] (
+	set libraries=""
 )
 
 rem clean batch file arguments
@@ -55,46 +55,55 @@ set kind=%kind:"=%
 set architecture=%architecture:"=%
 set configuration=%configuration:"=%
 set defines=%defines:"=%
-set links=%links:"=%
-
-rem declare names
-set extra_name=%target_name%_extra
+set libraries=%libraries:"=%
 
 rem declare paths
 set rootdir=%~dp0.
-set sourcedir=%rootdir%\code
-set targetdir=%rootdir%\bin\custom
-set objdir=%rootdir%\bin-int\custom
+set sourcedir=.\code
+set target_location=.\bin\custom\%target_name%
+set intermediate_location=.\bin-int\custom\%target_name%
 
 rem //
 rem // >> COMPILER
 rem //
 set compiler=-std:c++17
 set compiler=%compiler% -I%sourcedir%
-set compiler=%compiler% %defines%
+
+rem Name EXE File
+set compiler=%compiler% -Fe"%target_location%\%target_name%"
+rem Program Database File Name
+set compiler=%compiler% -Fd"%intermediate_location%\\"
+rem Object File Name
+set compiler=%compiler% -Fo"%intermediate_location%\\"
+rem Name Mapfile
+rem set compiler=%compiler% -Fm"%intermediate_location%\\"
+
+set defines=%defines% -D _UNICODE -D UNICODE
+rem _UNICODE and UNICODE, _MBCS
+set defines=%defines% -D _HAS_EXCEPTIONS=0
 
 if %kind% == WindowedApp (
-	set compiler=%compiler% -DWIN_MAIN
+	set defines=%defines% -D WIN_MAIN
 )
 
 if %configuration% == Shipping (
-	set compiler=%compiler% -DSHIPPING
+	set defines=%defines% -D SHIPPING
 ) else if %configuration% == Development (
-	set compiler=%compiler% -DDEVELOPMENT
+	set defines=%defines% -D DEVELOPMENT
 ) else if %configuration% == Debug (
-	set compiler=%compiler% -DDEBUG
+	set defines=%defines% -D DEBUG
 )
 
-set compiler=%compiler% -Fe.\%target_name%
+set compiler=%compiler% %defines%
 
 rem //
 rem // >> COMPILER: optimization
 rem //
 set optimization=
 if %configuration% == Shipping (
-	set optimization=%optimization% -Ox -Oi -GF -Gy
+	set optimization=%optimization% -Ox -Oi -GF -Gy -GL
 ) else if %configuration% == Development (
-	set optimization=%optimization% -Ox -Oi -GF -Gy
+	set optimization=%optimization% -Ox -Oi -GF -Gy -GL
 ) else if %configuration% == Debug (
 	set optimization=%optimization% -Od -Gs
 )
@@ -113,6 +122,7 @@ rem -Oi: Generate Intrinsic Functions
 rem -GF: Eliminate Duplicate Strings
 rem -Gs: Control Stack Checking Calls
 rem -Gy: Enable Function-Level Linking
+rem -GL: Whole Program Optimization
 
 rem -Od: Disable (Debug)
 rem -O1: Minimize Size: -Og -Os -Oy -Ob2 -Gs -GF -Gy
@@ -130,9 +140,6 @@ if %configuration% == Development (
 ) else if %configuration% == Debug (
 	set debug=%debug% -Zi -Zf -JMC
 )
-
-rem Program Database File Name
-set debug=%debug% -Fd%extra_name%_vc_%random%.pdb
 
 rem -Zo:  Enhance Optimized Debugging
 rem -Z7:  Produces an .obj file containing full symbolic debugging information
@@ -220,13 +227,22 @@ rem //
 rem // >> COMPILER: intermediate
 rem //
 
-set obj=-Fo%objdir%\%extra_name%
-set map=-Fm%objdir%\%extra_name%
+rem -LD: Creates a DLL
+rem -LDd: Creates a debug DLL. Defines _MT and _DEBUG.
+if %kind% == SharedLib (
+	if %configuration% == Shipping (
+		set compiler=%compiler% -LD
+	) else if %configuration% == Development (
+		set compiler=%compiler% -LD
+	) else if %configuration% == Debug (
+		set compiler=%compiler% -LDd
+	)
+)
 
 rem //
 rem // >> COMPILER: diagnostics
 rem //
-set diagnostics=
+set diags=
 
 rem -Bt+:          build throughput, verbose
 rem -time+:        some linker switch, verbose
@@ -242,40 +258,67 @@ rem -errorReport:prompt: Prompts you to send a report when you receive an intern
 rem -errorReport:queue:  Queues the error report. When you log in with administrator privileges, a window is displayed so that you can report any failures since the last time you were logged in (you will not be prompted to send reports for failures more than once every three days)
 rem -errorReport:send:   Automatically sends reports of internal compiler errors to Microsoft if reporting is enabled by the Windows Error Reporting system settings
 
-set compiler=%compiler% %diagnostics%
+set compiler=%compiler% %diags%
 
 rem //
 rem // >> LINKER
 rem //
-set linker=-link
+set linker=-link -NOLOGO
+
+rem -DLL: Build a DLL
+rem if %kind% == SharedLib (
+rem 	set linker=%linker% -DLL
+rem )
+
+rem set linker=%linker% -MACHINE:%architecture:x=X%
+rem set linker=%linker% -MANIFEST:EMBED
+rem set linker=%linker% -MANIFESTUAC:"level='asInvoker' uiAccess='false'"
+rem set linker=%linker% -TLBID:1
+rem set linker=%linker% -DYNAMICBASE
+rem set linker=%linker% -NXCOMPAT
+
+rem Output File Name
+rem if %kind% == SharedLib (
+rem 	set linker=%linker% -OUT:"%target_location%\%target_name%.dll"
+rem ) else (
+rem 	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
+rem )
 
 rem Use Program Database
-set linker=%linker% -pdb:.\%extra_name%_%random%.pdb
-
-if %kind% == SharedLib (
-	rem Name Import Library
-	set linker=%linker% -implib:%objdir%\%extra_name%.lib
-)
+set linker=%linker% -PDB:"%target_location%\%target_name%.pdb"
+rem Name Import Library
+set linker=%linker% -IMPLIB:"%intermediate_location%\%target_name%.lib"
 
 if %configuration% == Shipping (
-	set linker=%linker% -incremental:no -opt:ref -opt:icf -debug:none
+	set linker=%linker% -INCREMENTAL:NO -OPT:REF -OPT:ICF -DEBUG:NONE
 ) else if %configuration% == Development (
-	set linker=%linker% -incremental:no -opt:ref -opt:icf -debug:fastlink
+	set linker=%linker% -INCREMENTAL:NO -OPT:REF -OPT:ICF -DEBUG:FASTLINK
 ) else if %configuration% == Debug (
-	set linker=%linker% -opt:noref -opt:noicf -debug:full
+	set linker=%linker% -INCREMENTAL:NO -OPT:NOREF -OPT:NOICF -DEBUG:FULL
 )
 
-rem -incremental:no: Link Incrementally (disabled)
-rem -opt:ref:        Optimizations (eliminates functions and data that are never referenced)
-rem -opt:icf:        Optimizations (perform identical COMDAT folding)
-rem -debug:####:     Generate Debug Info (none, full, fastlink)
+rem -INCREMENTAL:NO: Link Incrementally (disabled)
+rem -OPT:REF:        Optimizations (eliminates functions and data that are never referenced)
+rem -OPT:ICF:        Optimizations (perform identical COMDAT folding)
+rem -DEBUG:####:     Generate Debug Info (NONE|FULL|FASTLINK)
+rem -LTCG:           Link-time Code Generation
+rem                  > (NO|INCREMENTAL)
+rem -MACHINE:####:   Specify Target Platform (ARM|EBC|X64|X86)
+rem -MANIFEST:       Create Side-by-Side Assembly Manifest
+rem                  > EMBED: option specifies that the linker should embed the manifest file in the image as a resource of type RT_MANIFEST
+rem -MANIFESTUAC:    Embeds UAC information in manifest
+rem                  > level:(asInvoker|highestAvailable|requireAdministrator)
+rem                  > uiAccess:(false|true)
+rem -TLBID:####:     Specify Resource ID for TypeLib
+rem -DYNAMICBASE:    Use address space layout randomization
+rem -NXCOMPAT:       Compatible with Data Execution Prevention
+rem -IMPLIB:####:    Name Import Library
 
 rem //
 rem // >> LINKER: libs
 rem //
-set libs=
 
-set libs=%libs% %links%
+set linker=%linker% %libraries%
 
 rem //
 rem // >> LINKER: subsystem
@@ -284,20 +327,22 @@ rem //
 if %kind% == ConsoleApp (
 	rem use int main(...) { }
 	if %architecture% == x64 (
-		set subsystem=-SUBSYSTEM:CONSOLE,5.02
+		set linker=%linker% -SUBSYSTEM:CONSOLE,5.02
 	) else if %architecture% == x86 (
-		set subsystem=-SUBSYSTEM:CONSOLE,5.01
+		set linker=%linker% -SUBSYSTEM:CONSOLE,5.01
 	) else (
+		rem set linker=%linker% -SUBSYSTEM:CONSOLE
 		echo unexpected architecture %architecture%
 		exit /b 0
 	)
 ) else if %kind% == WindowedApp (
 	rem use int CALLBACK WinMain(...) { }
 	if %architecture% == x64 (
-		set subsystem=-SUBSYSTEM:WINDOWS,5.02
+		set linker=%linker% -SUBSYSTEM:WINDOWS,5.02
 	) else if %architecture% == x86 (
-		set subsystem=-SUBSYSTEM:WINDOWS,5.01
+		set linker=%linker% -SUBSYSTEM:WINDOWS,5.01
 	) else (
+		rem set linker=%linker% -SUBSYSTEM:WINDOWS
 		echo unexpected architecture %architecture%
 		exit /b 0
 	)
@@ -306,26 +351,16 @@ if %kind% == ConsoleApp (
 rem //
 rem // >> CL
 rem //
-rem -LD: Creates a DLL
-rem -LDd: Creates a debug DLL. Defines _MT and _DEBUG.
-rem -DLL: Build a DLL
-set compiler=%compiler% %obj% %map%
-
-if %kind% == SharedLib (
-	set compiler=%compiler% -LD -DLL
-)
 
 rem prepare folders, clean up, build
-if not exist %targetdir% mkdir %targetdir%
-if not exist %objdir% mkdir %objdir%
+if not exist %target_location% mkdir %target_location%
+if not exist %intermediate_location% mkdir %intermediate_location%
 
-pushd %targetdir%
-if exist %extra_name%* del /q %extra_name%*
-popd
+rem pushd %target_location%
+rem popd
 
-pushd %objdir%
-if exist %extra_name%* del /q %extra_name%*
-popd
+rem pushd %intermediate_location%
+rem popd
 
 pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 call "vcvarsall.bat" %architecture%
@@ -334,8 +369,15 @@ popd
 rem -showIncludes: List Include Files
 rem -E: Preprocess to stdout (with "> %target_name%.cpp" at the end)
 
+echo ClCompile:
+echo %compiler%
+echo Link:
+echo %linker%
+
 echo ---- BUILD ---- %time%
-pushd %targetdir%
-cl "%compilation_unit%" %compiler% %linker% %libs% %subsystem%
-popd
+cl "%compilation_unit%" %compiler% %linker%
 echo ---- DONE ---- %time%
+
+if %target_name% == demo_game (
+	xcopy /Q /E /Y /I "%target_location%\demo_game*" "%target_location%\..\platform_windows"
+)

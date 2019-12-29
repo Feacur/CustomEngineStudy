@@ -7,7 +7,15 @@ workspace "CustomEngineStudy"
 	startproject "platform_windows"
 	warnings "Extra"
 	editandcontinue "Off"
-	flags { "FatalWarnings", "NoMinimalRebuild", "MultiProcessorCompile" }
+	flags {
+		"FatalWarnings",
+		"NoMinimalRebuild",
+		"MultiProcessorCompile",
+		"NoIncrementalLink",
+		-- "LinkTimeOptimization",
+		-- "Maps",
+		"NoPCH",
+	}
 	floatingpoint "Fast"
 	floatingpointexceptions "off"
 	exceptionhandling "Off"
@@ -46,14 +54,14 @@ workspace "CustomEngineStudy"
 		defines "DEBUG"
 		staticruntime "Off"
 		runtime "Debug"
-		symbols "On"
+		symbols "On" -- On, Full
 		optimize "Off" -- Off, Debug
 
 	filter "configurations:Development"
 		defines "DEVELOPMENT"
 		staticruntime "Off"
 		runtime "Release"
-		symbols "On"
+		symbols "FastLink" -- On, FastLink
 		optimize "On" -- On, Debug
 
 	filter "configurations:Shipping"
@@ -66,18 +74,29 @@ workspace "CustomEngineStudy"
 		optimize "On" -- On, Size, Speed, Full
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+target_location = ("bin/" .. outputdir)
+intermediate_location = ("bin-int/" .. outputdir)
+enginename = "code"
+
+-- Include directories relative to the root folder (solution directory)
+include_directories = {}
+include_directories["engine"] = enginename
+
+root_directory = os.getcwd()
 
 -- project: demo game
 project "demo_game"
+	-- targetname "demo_game"
 	location "code"
 	kind "SharedLib"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("MBCS")
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
+	
+	targetdir (target_location .. "/%{prj.name}")
+	objdir (intermediate_location .. "/%{prj.name}")
+	implibdir (intermediate_location .. "/%{prj.name}")
 
 	files {
 		"code/%{prj.name}/**.h",
@@ -85,7 +104,7 @@ project "demo_game"
 	}
 
 	includedirs {
-		"code",
+		"%{include_directories.engine}",
 	}
 
 	filter "system:windows"
@@ -95,20 +114,22 @@ project "demo_game"
 		}
 
 		postbuildcommands {
-			("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/platform_windows\"")
+			("{COPY} \"%{cfg.buildtarget.directory}%{prj.name}*\" \"../" .. target_location .. "/platform_windows\"")
 		}
 
 -- project: platform windows
 project "platform_windows"
+	-- targetname "demo_windows"
 	location "code"
 	kind "ConsoleApp"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("MBCS")
+	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (target_location .. "/%{prj.name}")
+	objdir (intermediate_location .. "/%{prj.name}")
+	implibdir (intermediate_location .. "/%{prj.name}")
 
 	files {
 		"code/%{prj.name}/**.h",
@@ -116,7 +137,7 @@ project "platform_windows"
 	}
 
 	includedirs {
-		"code",
+		"%{include_directories.engine}",
 	}
 
 	filter "system:windows"
@@ -135,15 +156,17 @@ project "platform_windows"
 
 -- project: demo console
 project "demo_console"
+	-- targetname "demo_console"
 	location "code"
 	kind "ConsoleApp"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("MBCS")
+	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (target_location .. "/%{prj.name}")
+	objdir (intermediate_location .. "/%{prj.name}")
+	implibdir (intermediate_location .. "/%{prj.name}")
 
 	files {
 		"code/%{prj.name}/**.h",
@@ -151,7 +174,7 @@ project "demo_console"
 	}
 
 	includedirs {
-		"code",
+		"%{include_directories.engine}",
 	}
 
 	filter "system:windows"
@@ -161,15 +184,17 @@ project "demo_console"
 
 -- project: demo c
 project "demo_c"
+	-- targetname "demo_c"
 	location "code"
 	kind "ConsoleApp"
 	language "C"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("MBCS")
+	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir (target_location .. "/%{prj.name}")
+	objdir (intermediate_location .. "/%{prj.name}")
+	implibdir (intermediate_location .. "/%{prj.name}")
 
 	files {
 		"code/%{prj.name}/**.h",
@@ -177,7 +202,7 @@ project "demo_c"
 	}
 
 	includedirs {
-		"code",
+		"%{include_directories.engine}",
 	}
 
 	filter "system:windows"

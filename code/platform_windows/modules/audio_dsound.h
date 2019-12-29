@@ -20,7 +20,7 @@ static Sound_Buffer sound_buffer;
 typedef DIRECT_SOUND_CREATE(direct_sound_create_type);
 
 void setup_sound_buffer(HWND window) {
-	HMODULE library = LoadLibraryA("dsound.dll");
+	HMODULE library = LoadLibraryW(L"dsound.dll");
 	ASSERT_TRUE(library, "Can't load \"dsound.dll\"");
 	
 	auto DirectSoundCreate = (direct_sound_create_type *)(

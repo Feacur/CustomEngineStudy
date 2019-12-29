@@ -7,11 +7,27 @@ premake.override(premake.vstudio.vc2010, "project", function(base, prj)
 end)
 
 premake.override(premake.vstudio.vc2010.elements, "clCompile", function(base, prj)
-	local function setUseFullPathsFalse(prj)
+	local function addMissingFeatures(prj)
 		premake.w('<UseFullPaths>false</UseFullPaths>')
+		-- premake.w('<DiagnosticsFormat>Caret</DiagnosticsFormat>')
 	end
 	
 	local calls = base(prj)
-	table.insert(calls, setUseFullPathsFalse)
+	table.insert(calls, addMissingFeatures)
+	return calls
+end)
+
+premake.override(premake.vstudio.vc2010.elements, "link", function(base, prj)
+	local function addMissingFeatures(prj)
+		if (prj.project.kind ~= 'SharedLib') then
+			local prj_to_obj = path.getrelative(prj.location, prj.objdir)
+			prj_to_obj = string.gsub(prj_to_obj, '/', '\\')
+			local file_name = prj_to_obj .. '\\' .. prj.project.name .. '.lib'
+			premake.w('<ImportLibrary>' .. file_name .. '</ImportLibrary>')
+		end
+	end
+	
+	local calls = base(prj)
+	table.insert(calls, addMissingFeatures)
 	return calls
 end)

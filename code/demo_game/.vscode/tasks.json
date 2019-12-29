@@ -16,7 +16,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Shipping",
-                "-DAPI_SHARED -DBUILD_DLL",
+                "-D API_SHARED -D BUILD_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",
@@ -34,7 +34,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Development",
-                "-DAPI_SHARED -DBUILD_DLL",
+                "-D API_SHARED -D BUILD_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",
@@ -52,7 +52,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Debug",
-                "-DAPI_SHARED -DBUILD_DLL",
+                "-D API_SHARED -D BUILD_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",

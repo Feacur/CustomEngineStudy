@@ -21,18 +21,24 @@ void log_last_error() {
 	auto error = GetLastError();
 	if (!error) { return; }
 	
-	LPSTR messageBuffer = NULL;
-	size_t size = FormatMessageA(
+	LPWSTR messageBuffer = NULL;
+	size_t size = FormatMessageW(
 		FORMAT_MESSAGE_FROM_SYSTEM
 		| FORMAT_MESSAGE_ALLOCATE_BUFFER
 		| FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, error,
 		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-		(LPTSTR)&messageBuffer, 0,
+		(LPWSTR)&messageBuffer, 0,
 		NULL
 	);
-	printf("0x%x: %s\n", error, messageBuffer);
-	LocalFree(messageBuffer);
+
+	if (size) {
+		printf("0x%x: %S\n", error, messageBuffer);
+		LocalFree(messageBuffer);
+		return;
+	}
+
+	printf("0x%x\n", error);
 }
 
 void win_main_show_console() {
