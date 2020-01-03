@@ -43,7 +43,7 @@ inline bool keyboard_test_value(
 if (keyboard_test_value(Keyboard_Keys::VALUE, is_pressed, virtual_key_code, EXPECTED)) { return; }
 
 inline void keyboard_set_key(WPARAM virtual_key_code, bool is_pressed) {
-	KEYBOARD_TEST_RANGE(N1,      '0', '9')
+	KEYBOARD_TEST_RANGE(N0,      '0', '9')
 	KEYBOARD_TEST_RANGE(F1,      VK_F1, VK_F12)
 	KEYBOARD_TEST_RANGE(A,       'A', 'Z')
 
