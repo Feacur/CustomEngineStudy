@@ -4,7 +4,7 @@
         {
             "name": "Launch Custom",
             "request": "launch",
-            "program": "${workspaceFolderBasename}.exe",
+            "program": "${workspaceFolderBasename}.exe\\${workspaceFolderBasename}",
             "args": [],
             "cwd": "${workspaceFolder}\\..\\..\\bin\\custom",
             "stopAtEntry": false,

@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${workspaceFolderBasename}.exe",
             "args": [],
-            "cwd": "${workspaceFolder}\\..\\..\\bin\\custom",
+            "cwd": "${workspaceFolder}\\..\\..\\bin\\custom\\${workspaceFolderBasename}",
             "stopAtEntry": false,
             "externalConsole": true,
             "type": "cppvsdbg",
