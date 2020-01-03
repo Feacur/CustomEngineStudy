@@ -6,10 +6,10 @@
 
 #include "shared/shapes.h"
 
-// Reimplementation of:
-// https://github.com/aras-p/dod-playground
 #include "data.h"
 #include "code.h"
+
+// https://github.com/aras-p/dod-playground
 
 API_C API_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);

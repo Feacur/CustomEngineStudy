@@ -16,6 +16,8 @@
 #include "routines_scene.h"
 #include "routines_draw.h"
 
+// https://raytracing.github.io/
+
 API_C API_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
