@@ -37,6 +37,7 @@ void init_opengl(HDC device_context) {
 	pfd.iPixelType   = PFD_TYPE_RGBA;
 	pfd.cColorBits   = (BYTE)(8 * 4);
 	// pfd.cDepthBits   = (BYTE)(8 * 3);
+	// pfd.cStencilBits = (BYTE)(8 * 1);
 	
 	int format = ChoosePixelFormat(device_context, &pfd);
 	if (!format) {
