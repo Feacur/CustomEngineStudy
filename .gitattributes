@@ -9,4 +9,5 @@
 *.glsl text diff=cpp
 *.png  binary
 
+*.lua text diff=cpp
 *.bat text eol=crlf
