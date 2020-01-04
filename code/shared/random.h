@@ -27,6 +27,7 @@ inline uint32 hash_lehmer32(uint32 * state) {
 inline float hash_01(uint32 * state) {
 	union { uint32 x; float xf; };  // local unionized values
 	x = (*state = *state * 16807U); // hash
+	// @Note: might well mask fractional part with [0x007fffffU]
 	x = (x >> 9) | 0x3f800000U;     // clamp to [1 .. 2) * (2^0)
 	return xf - 1;                  // return [1 .. 2) - 1
 }
@@ -34,6 +35,7 @@ inline float hash_01(uint32 * state) {
 inline float hash_radius01(uint32 * state) {
 	union { uint32 x; float xf; };  // local unionized values
 	x = (*state = *state * 16807U); // hash
+	// @Note: might well mask fractional part with [0x007fffffU]
 	x = (x >> 9) | 0x40000000U;     // clamp to [1 .. 2) * (2^1)
 	return xf - 3;                  // return [2 .. 4) - 3
 }
