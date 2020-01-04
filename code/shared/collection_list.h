@@ -1,5 +1,7 @@
 // https://github.com/webcoyote/coho/blob/master/Base/List.h
 // https://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists
+// https://gpfault.net/posts/intrusive-lists-doom3.txt.html
+// http://fabiensanglard.net/doom3_documentation/DOOM-3-BFG-Technical-Note.pdf
 
 /*
 Intrusive linked list
