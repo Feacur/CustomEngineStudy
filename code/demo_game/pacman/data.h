@@ -33,6 +33,7 @@ enum struct Tile_Type : uint8 {
 };
 UNDERLYING_TYPE_META(Tile_Type, uint8)
 IS_ENUM_META(Tile_Type)
+ENUM_FLAG_OPERATORS_IMPL(Tile_Type)
 
 struct Spawn_Point {
 	uint8 team;

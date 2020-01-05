@@ -40,6 +40,32 @@ BITS_ARE_SET_IMPL(uint48)
 //
 //
 
+#define BITS_TO_ZERO(container, bits)\
+bits_to_zero_impl(container, (decltype(container))bits)
+
+#define BITS_TO_ZERO_IMPL(T)\
+constexpr inline T bits_to_zero_impl(T container, T bits) {\
+	return container & ~bits;\
+}
+
+BITS_TO_ZERO_IMPL(int8)
+BITS_TO_ZERO_IMPL(int16)
+BITS_TO_ZERO_IMPL(int32)
+BITS_TO_ZERO_IMPL(int64)
+BITS_TO_ZERO_IMPL(uint8)
+BITS_TO_ZERO_IMPL(uint16)
+BITS_TO_ZERO_IMPL(uint32)
+BITS_TO_ZERO_IMPL(uint64)
+
+BITS_TO_ZERO_IMPL(int48)
+BITS_TO_ZERO_IMPL(uint48)
+
+#undef BITS_TO_ZERO_IMPL
+
+//
+//
+//
+
 #define GET_BIT_AT_INDEX(T)\
 constexpr inline bool get_bit_at_index(T container, uint8 index) {\
 	ASSERT_TRUE(index < 8 * sizeof(T), "Bit index overflow");\
@@ -59,59 +85,3 @@ GET_BIT_AT_INDEX(int48)
 GET_BIT_AT_INDEX(uint48)
 
 #undef GET_BIT_AT_INDEX
-
-//
-//
-//
-
-#if defined(__cplusplus) // enum struct
-template<typename T>
-constexpr inline T flag_set(T container, T bits) {
-	if constexpr (!meta::is_enum<T>::value) { return T; }
-	using U = meta::underlying_type<T>::type;
-	return static_cast<T>(static_cast<U>(container) | static_cast<U>(bits));
-}
-
-template<typename T>
-constexpr inline T flag_intersect(T container, T bits) {
-	if constexpr (!meta::is_enum<T>::value) { return T; }
-	using U = meta::underlying_type<T>::type;
-	return static_cast<T>(static_cast<U>(container) & static_cast<U>(bits));
-}
-
-template<typename T>
-constexpr inline T flag_negate(T value) {
-	if constexpr (!meta::is_enum<T>::value) { return T; }
-	using U = meta::underlying_type<T>::type;
-	return static_cast<T>(~static_cast<U>(value));
-}
-
-template<typename T>
-constexpr inline T flag_remove(T container, T bits) {
-	if constexpr (!meta::is_enum<T>::value) { return T; }
-	using U = meta::underlying_type<T>::type;
-	return static_cast<T>(static_cast<U>(container) & ~static_cast<U>(bits));
-}
-
-template<typename T>
-constexpr inline bool flag_has(T container, T bits) {
-	if constexpr (!meta::is_enum<T>::value) { return T; }
-	using U = meta::underlying_type<T>::type;
-	return BITS_ARE_SET(static_cast<U>(container), static_cast<U>(bits));
-}
-
-template<typename T>
-constexpr inline T operator|(T container, T bits) {
-	return flag_set(container, bits);
-}
-
-template<typename T>
-constexpr inline T operator&(T container, T bits) {
-	return flag_intersect(container, bits);
-}
-
-template<typename T>
-constexpr inline T operator~(T value) {
-	return flag_negate(value);
-}
-#endif // defined(__cplusplus) // enum struct

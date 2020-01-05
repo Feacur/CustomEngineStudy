@@ -3,10 +3,10 @@
 //
 
 namespace entities {	
-	template<typename T> inline Component_Type get_type() { return Component_Type::None; }
+	template<typename T> constexpr inline Component_Type get_type() { return Component_Type::None; }
 	
 	#define REGISTER_COMPONENT(TYPE, FIELD)\
-	template<> inline Component_Type get_type<TYPE##_Component>() { return Component_Type::TYPE; }\
+	template<> constexpr inline Component_Type get_type<TYPE##_Component>() { return Component_Type::TYPE; }\
 	inline void component_set(Game_Data * game_data, Entity entity, TYPE##_Component const & component) {\
 		Array_Dynamic<Component_Type>   & flags      = game_data->entities.flags;\
 		Array_Dynamic<TYPE##_Component> & components = game_data->entities.FIELD;\
@@ -24,13 +24,13 @@ namespace entities {
 	template<typename T>
 	inline void component_remove(Game_Data * game_data, Entity entity) {
 		Array_Dynamic<Component_Type> & flags = game_data->entities.flags;
-		flags[entity] = flag_remove(flags[entity], get_type<T>());
+		flags[entity] = bits_to_zero(flags[entity], get_type<T>());
 	}
 
 	template<typename T>
 	inline bool component_has(Game_Data * game_data, Entity entity) {
 		Array_Dynamic<Component_Type> & flags = game_data->entities.flags;
-		return flag_has(flags[entity], get_type<T>());
+		return bits_are_set(flags[entity], get_type<T>());
 	}
 
 	inline Entity add(Game_Data * game_data) {

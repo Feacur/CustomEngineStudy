@@ -61,13 +61,13 @@ API_C API_DLL GAME_RENDER(game_render) {
 				draw_rectangle_over(globals::render_buffer, position, tile_size, tile_color);
 			}
 
-			if (flag_has(TILE_FLAGS[tile_type], Tile_Type::Dot)) {
+			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Dot)) {
 				Vector2i xy = base_xy + dot_offset;
 				Vector2 position = {(float)xy.x, (float)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, dot_size, DOT_COLOR);
 			}
 
-			if (flag_has(TILE_FLAGS[tile_type], Tile_Type::Energy)) {
+			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Energy)) {
 				Vector2i xy = base_xy + energy_offset;
 				Vector2 position = {(float)xy.x, (float)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, energy_size, ENERGY_COLOR);

@@ -23,9 +23,10 @@ IS_ENUM_META(Raw_Input_Device_Usage)
 
 RAWINPUTDEVICE raw_input_device(HWND window, USHORT usage, DWORD flags);
 void register_raw_input(HWND window) {
+	using U = meta::underlying_type<Raw_Input_Device_Usage>::type;
 	RAWINPUTDEVICE devices[] = {
-		raw_input_device(window, (USHORT)Raw_Input_Device_Usage::keyboard, 0),
-		raw_input_device(window, (USHORT)Raw_Input_Device_Usage::mouse, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::keyboard, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::mouse, 0),
 	};
 	RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE));
 }

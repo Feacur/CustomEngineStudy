@@ -16,6 +16,7 @@ enum struct Component_Type : uint8 {
 };
 UNDERLYING_TYPE_META(Component_Type, uint8)
 IS_ENUM_META(Component_Type)
+ENUM_FLAG_OPERATORS_IMPL(Component_Type)
 
 struct Position_Component {
 	Vector2 value;

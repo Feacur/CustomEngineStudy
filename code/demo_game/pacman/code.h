@@ -174,22 +174,22 @@ namespace map {
 
 	bool is_walkable(Game_Data * game_data, Vector2i position) {
 		Tile tile = map::get_tile(game_data, position);
-		return flag_has(TILE_FLAGS[tile], Tile_Type::Floor);
+		return bits_are_set(TILE_FLAGS[tile], Tile_Type::Floor);
 	}
 
 	bool is_walkable(Game_Data * game_data, size_t index) {
 		Tile tile = map::get_tile(game_data, index);
-		return flag_has(TILE_FLAGS[tile], Tile_Type::Floor);
+		return bits_are_set(TILE_FLAGS[tile], Tile_Type::Floor);
 	}
 
 	bool is_slow(Game_Data * game_data, Vector2i position) {
 		Tile tile = map::get_tile(game_data, position);
-		return flag_has(TILE_FLAGS[tile], Tile_Type::Slow);
+		return bits_are_set(TILE_FLAGS[tile], Tile_Type::Slow);
 	}
 
 	bool is_no_turn(Game_Data * game_data, Vector2i position) {
 		Tile tile = map::get_tile(game_data, position);
-		return flag_has(TILE_FLAGS[tile], Tile_Type::NoTurn);
+		return bits_are_set(TILE_FLAGS[tile], Tile_Type::NoTurn);
 	}
 
 	Vector2i get_spawn_point(Game_Data * game_data, uint8 character_index) {
@@ -224,7 +224,7 @@ namespace path_finding {
 		}
 		for (uint8 i = 0; i < 4; ++i) {
 			Tile tile = tiles[i];
-			walls.data[i] = !flag_has(TILE_FLAGS[tile], Tile_Type::Floor);
+			walls.data[i] = !bits_are_set(TILE_FLAGS[tile], Tile_Type::Floor);
 		}
 		for (uint8 i = 0; i < 4; ++i) {
 			walls.count += walls.data[i];
@@ -777,18 +777,18 @@ namespace game {
 		size_t index = character.position.y * game_data->map_dimensions.x + character.position.x;
 		Tile tile = game_data->map[index];
 
-		if (flag_has(TILE_FLAGS[tile], Tile_Type::Dot)) {
+		if (bits_are_set(TILE_FLAGS[tile], Tile_Type::Dot)) {
 			game_data->dots_count -= 1;
 			is_dot = true;
 		}
 		
-		if (flag_has(TILE_FLAGS[tile], Tile_Type::Energy)) {
+		if (bits_are_set(TILE_FLAGS[tile], Tile_Type::Energy)) {
 			game_data->fright_tile_steps += level_fright_tile_steps;
 			game_data->dots_count -= 1;
 			is_dot = true;
 		}
 		
-		Tile_Type type = flag_remove(TILE_FLAGS[tile], to_collect);
+		Tile_Type type = bits_to_zero(TILE_FLAGS[tile], to_collect);
 		game_data->map[index] = utils::get_tile_by_type(type, tile);
 
 		return is_dot;
