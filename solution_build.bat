@@ -24,10 +24,11 @@ rem clean batch file arguments
 set architecture=%architecture:"=%
 set configuration=%configuration:"=%
 
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
 call "vcvarsall.bat" %architecture%
 popd
 
 echo ---- BUILD ---- %time%
-msbuild -p:Configuration=%configuration%
+msbuild -m -p:Configuration=%configuration%
 echo ---- DONE ---- %time%

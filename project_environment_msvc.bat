@@ -18,6 +18,7 @@ rem clean batch file arguments
 set architecture=%architecture:"=%
 
 rem init
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
 call "vcvarsall.bat" %architecture%
 popd

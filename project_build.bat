@@ -362,7 +362,8 @@ rem popd
 rem pushd %intermediate_location%
 rem popd
 
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
+pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
 call "vcvarsall.bat" %architecture%
 popd
 
