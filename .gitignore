@@ -1,9 +1,7 @@
 # IDE
-/.vs/
 *.sln
 *.vcxproj*
 *.user
-/ipch/
 
 # Custom project caches
 /bin/
