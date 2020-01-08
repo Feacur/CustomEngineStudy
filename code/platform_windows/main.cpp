@@ -52,7 +52,7 @@ int CALLBACK WinMain(
 	win_main_show_console();
 	
 	char exe_path[MAX_PATH];
-	GetModuleFileNameW(NULL, exe_path, MAX_PATH);
+	GetModuleFileName(NULL, exe_path, MAX_PATH);
 
 	return platform_windows_main(hInstance, exe_path);
 }
@@ -99,15 +99,15 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	// Register the window class
 	//
 	
-	WNDCLASSW window_class = {};
+	WNDCLASS window_class = {};
 	window_class.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	window_class.lpfnWndProc   = window_procedure;
 	window_class.hInstance     = hInstance;
 	window_class.hIcon         = 0;
 	window_class.hCursor       = LoadCursor(0, IDC_ARROW);
-	window_class.lpszClassName = L"Platform window class";
+	window_class.lpszClassName = "Platform window class";
 
-	ATOM window_class_atom = RegisterClassW(&window_class);
+	ATOM window_class_atom = RegisterClass(&window_class);
 	if (!window_class_atom) {
 		log_last_error();
 		ASSERT_TRUE(false, "Can't register the window class");
@@ -118,9 +118,9 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	// Create a window
 	//
 	
-	HWND window = CreateWindowExW(
+	HWND window = CreateWindowEx(
 		0,
-		window_class.lpszClassName, L"Platform",
+		window_class.lpszClassName, "Platform",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, 0,

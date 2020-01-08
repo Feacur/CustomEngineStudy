@@ -20,20 +20,20 @@ inline void free_memory(LPVOID memory) {
 void log_last_error() {
 	auto error = GetLastError();
 	if (!error) { return; }
-	
-	LPWSTR messageBuffer = NULL;
-	size_t size = FormatMessageW(
+
+	LPTSTR messageBuffer = NULL;
+	size_t size = FormatMessage(
 		FORMAT_MESSAGE_FROM_SYSTEM
 		| FORMAT_MESSAGE_ALLOCATE_BUFFER
 		| FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, error,
 		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-		(LPWSTR)&messageBuffer, 0,
+		(LPTSTR)&messageBuffer, 0,
 		NULL
 	);
 
 	if (size) {
-		printf("0x%x: %S\n", error, messageBuffer);
+		printf("0x%x: %s\n", error, messageBuffer);
 		LocalFree(messageBuffer);
 		return;
 	}

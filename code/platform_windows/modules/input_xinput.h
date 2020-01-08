@@ -25,10 +25,10 @@ if (!ROUTINE_NAME) {\
 void load_xinput()
 {
 	HMODULE library = 0;
-	LPCWSTR libraries[] = {L"xinput1_4.dll", L"xinput9_1_0.dll", L"xinput1_3.dll"};
+	cstring libraries[] = {"xinput1_4.dll", "xinput9_1_0.dll", "xinput1_3.dll"};
 	const int32 elements_in_libraries = C_ARRAY_LENGTH(libraries);
 	for (int32 i = 0; i < elements_in_libraries; ++i) {
-		library = LoadLibraryW(libraries[i]);
+		library = LoadLibrary(libraries[i]);
 		if (library) { break; }
 	}
 

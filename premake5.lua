@@ -92,7 +92,7 @@ project "demo_game"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
+	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 	
 	targetdir (target_location .. "/%{prj.name}")
 	objdir (intermediate_location .. "/%{prj.name}")
@@ -125,7 +125,7 @@ project "platform_windows"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
+	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 
 	targetdir (target_location .. "/%{prj.name}")
 	objdir (intermediate_location .. "/%{prj.name}")
@@ -162,7 +162,7 @@ project "demo_console"
 	language "C++"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
+	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 
 	targetdir (target_location .. "/%{prj.name}")
 	objdir (intermediate_location .. "/%{prj.name}")
@@ -190,7 +190,7 @@ project "demo_c"
 	language "C"
 	cdialect "C11"
 	cppdialect "C++17"
-	characterset ("Unicode") -- Default, Unicode, MBCS, ASCII
+	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 
 	targetdir (target_location .. "/%{prj.name}")
 	objdir (intermediate_location .. "/%{prj.name}")
