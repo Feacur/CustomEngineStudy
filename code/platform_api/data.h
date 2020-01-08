@@ -44,6 +44,9 @@ typedef PLATFORM_READ_FILE(platform_read_file_func);
 #define PLATFORM_ALLOCATE_MEMORY(ROUTINE_NAME) void * ROUTINE_NAME(size_t size_in_bytes)
 typedef PLATFORM_ALLOCATE_MEMORY(platform_allocate_memory_func);
 
+#define PLATFORM_REALLOCATE_MEMORY(ROUTINE_NAME) void * ROUTINE_NAME(void * memory, size_t size_in_bytes)
+typedef PLATFORM_REALLOCATE_MEMORY(platform_reallocate_memory_func);
+
 #define PLATFORM_FREE_MEMORY(ROUTINE_NAME) void ROUTINE_NAME(void * memory)
 typedef PLATFORM_FREE_MEMORY(platform_free_memory_func);
 
@@ -63,9 +66,10 @@ struct Platform_Data {
 	Image_Data       render_buffer_image_f;
 	Sound_Data       sound_buffer_sound;
 	// platform-specific routines
-	platform_read_file_func       * read_file;
-	platform_allocate_memory_func * allocate_memory;
-	platform_free_memory_func     * free_memory;
+	platform_read_file_func         * read_file;
+	platform_allocate_memory_func   * allocate_memory;
+	platform_reallocate_memory_func * reallocate_memory;
+	platform_free_memory_func       * free_memory;
 };
 
 #define GAME_UPDATE(ROUTINE_NAME)       void ROUTINE_NAME(Platform_Data * platform_data)
