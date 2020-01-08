@@ -86,7 +86,7 @@ void display_render_buffer_any(HDC device_context) {
 }
 
 int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
-	normalize_directory(exe_path);
+	// normalize_directory(exe_path);
 
 	SetConsoleOutputCP(1252);
 	// code page 1250: Windows Central Europe
