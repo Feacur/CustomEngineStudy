@@ -39,7 +39,7 @@ L1 = (-b + square_root(b * b - 4 * a * c)) / (2 * a)
 L2 = (-b - square_root(b * b - 4 * a * c)) / (2 * a)
 */
 
-inline Raytrace_Result raytrace_sphere(Sphere sphere, Ray3 ray) {
+Raytrace_Result raytrace_sphere(Sphere sphere, Ray3 ray) {
 	Raytrace_Result result = {};
 
 	Vector3 vector_to_centre = ray.origin - sphere.xyz;

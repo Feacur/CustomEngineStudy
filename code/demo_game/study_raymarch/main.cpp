@@ -6,7 +6,7 @@
 #include "demo_game/main_common.h"
 #include "demo_game/platform_globals.h"
 
-#include "shared/shapes.h"
+#include "shared/math_shapes.h"
 
 #include "data.h"
 #include "code.h"
@@ -18,7 +18,7 @@
 #include "scene_common_sdf.h"
 #include "scene_common_raymarch.h"
 
-inline Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, float specular_power) {
+Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, float specular_power) {
 	static Vector3 const ambient = {0.1f, 0.1f, 0.1f};
 	static Vector3 const light = normalize(vec3(1.0f, 2.0f, 1.0f));
 	static Vector3 const light_color = {1, 1, 1};
@@ -41,7 +41,7 @@ inline Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 norm
 	return min(result, {1, 1, 1});
 }
 
-inline Vector4 raymarch_color(Ray3 ray) {
+Vector4 raymarch_color(Ray3 ray) {
 	static float const depth_limit = 1000;
 	Raymarch_Result raymarch_result = raymarch_scene(ray, 256, depth_limit);
 

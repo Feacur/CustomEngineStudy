@@ -3,7 +3,7 @@ struct Disc {
 	float radius;
 };
 
-inline Raytrace_Result raytrace_disc(Disc disc, Ray3 ray) {
+Raytrace_Result raytrace_disc(Disc disc, Ray3 ray) {
 	auto raytrace_result = raytrace_plane(disc.plane, ray);
 	if (raytrace_result.depth == too_far) {
 		return raytrace_result;

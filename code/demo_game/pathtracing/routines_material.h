@@ -1,10 +1,11 @@
-inline float schlick(float cosine, float factor) {
+constexpr inline float schlick(float one_minus_cosine, float factor) {
 	// approximates reflectivity
 	float r = (factor - 1) / (factor + 1);
-	return interpolate(powf(1 - cosine, 5), 1.0f, r * r);
+	float c = one_minus_cosine * one_minus_cosine;
+	return interpolate(c * c * one_minus_cosine, 1.0f, r * r);
 }
 
-inline Vector3 material_scatter(Game_Data * game_data, Material material, Vector3 incident, Vector3 normal) {
+Vector3 material_scatter(Game_Data * game_data, Material material, Vector3 incident, Vector3 normal) {
 	static float const factor = 2;
 	
 	normal = normalize(normal + random3_radius01(&game_data->random_state) * material.roughness);
@@ -26,7 +27,7 @@ inline Vector3 material_scatter(Game_Data * game_data, Material material, Vector
 		}
 
 		// decide between refraction and reflection paths
-		if (random_01(&game_data->random_state) >= schlick(cosine, refraction_factor)) {
+		if (random_01(&game_data->random_state) >= schlick(1 - cosine, refraction_factor)) {
 			Vector3 scattered = refract(incident, normal, refraction_factor);
 			if (scattered != vec3(0, 0, 0)) { return scattered; }
 		}

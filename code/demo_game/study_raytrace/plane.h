@@ -30,7 +30,7 @@ struct Plane {
 	Vector3 normal;
 };
 
-inline Raytrace_Result raytrace_plane(Plane plane, Ray3 ray) {
+Raytrace_Result raytrace_plane(Plane plane, Ray3 ray) {
 	Raytrace_Result result = {};
 	float cosine_between_ray_and_normal = dot_product(ray.direction, plane.normal);
 	if (cosine_between_ray_and_normal <= -0.0001f) {

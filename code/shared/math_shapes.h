@@ -1,7 +1,7 @@
-#define SHARED_SHAPES
+#define SHARED_MATH_SHAPES
 
-#if !defined(SHARED_MATH)
-	#error include "shared/math.h"
+#if !defined(SHARED_MATH_LINEAR)
+	#error include "shared/math_linear.h"
 #endif
 
 struct Ray2 { Vector2 origin, direction; };
@@ -58,13 +58,13 @@ constexpr inline float hit_aabb(Aabb2 aabb, Ray2 ray) {
 	Vector2 position = aabb.position - ray.origin;
 	Vector2 fraction1 = (position - aabb.extents) / ray.direction;
 	Vector2 fraction2 = (position + aabb.extents) / ray.direction;
-	Vector2 minFractions = min(fraction1, fraction2);
-	Vector2 maxFractions = max(fraction1, fraction2);
-	float minFraction = max(minFractions);
-	float maxFraction = min(maxFractions);
-	if (minFraction < 0) { return -1; }
-	if (minFraction >= maxFraction) { return -1; }
-	return minFraction;
+	Vector2 min_fractions = min(fraction1, fraction2);
+	Vector2 max_fractions = max(fraction1, fraction2);
+	float min_fraction = max(min_fractions);
+	float max_fraction = min(max_fractions);
+	if (min_fraction < 0) { return -1; }
+	if (min_fraction >= max_fraction) { return -1; }
+	return min_fraction;
 }
 
 constexpr inline bool is_hit_aabb(Aabb2 aabb, Ray2 ray) {
@@ -73,15 +73,15 @@ constexpr inline bool is_hit_aabb(Aabb2 aabb, Ray2 ray) {
 		float position = aabb.position[i] - ray.origin[i];
 		float fraction1 = (position - aabb.extents[i]) / ray.direction[i];
 		float fraction2 = (position + aabb.extents[i]) / ray.direction[i];
-		float minFraction = min(fraction1, fraction2);
-		float maxFraction = max(fraction1, fraction2);
-		// before = before || (minFraction >= 0);
-		if (minFraction >= maxFraction) { return false; }
+		float min_fraction = min(fraction1, fraction2);
+		float max_fraction = max(fraction1, fraction2);
+		// before = before || (min_fraction >= 0);
+		if (min_fraction >= max_fraction) { return false; }
 	}
 	return true;
 }
 
-inline Vector2 get_aabb_normal(Aabb2 aabb, Vector2 hit) {
+constexpr inline Vector2 get_aabb_normal(Aabb2 aabb, Vector2 hit) {
 	Vector2 offset = hit - aabb.position;
 	Vector2 offset_squared = offset * offset;
 	offset_squared = offset_squared - max(offset_squared);
@@ -114,13 +114,13 @@ constexpr inline float hit_aabb(Aabb3 aabb, Ray3 ray) {
 	Vector3 position = aabb.position - ray.origin;
 	Vector3 fraction1 = (position - aabb.extents) / ray.direction;
 	Vector3 fraction2 = (position + aabb.extents) / ray.direction;
-	Vector3 minFractions = min(fraction1, fraction2);
-	Vector3 maxFractions = max(fraction1, fraction2);
-	float minFraction = max(minFractions);
-	float maxFraction = min(maxFractions);
-	if (minFraction < 0) { return -1; }
-	if (minFraction >= maxFraction) { return -1; }
-	return minFraction;
+	Vector3 min_fractions = min(fraction1, fraction2);
+	Vector3 max_fractions = max(fraction1, fraction2);
+	float min_fraction = max(min_fractions);
+	float max_fraction = min(max_fractions);
+	if (min_fraction < 0) { return -1; }
+	if (min_fraction >= max_fraction) { return -1; }
+	return min_fraction;
 }
 
 constexpr inline bool is_hit_aabb(Aabb3 aabb, Ray3 ray) {
@@ -129,15 +129,15 @@ constexpr inline bool is_hit_aabb(Aabb3 aabb, Ray3 ray) {
 		float position = aabb.position[i] - ray.origin[i];
 		float fraction1 = (position - aabb.extents[i]) / ray.direction[i];
 		float fraction2 = (position + aabb.extents[i]) / ray.direction[i];
-		float minFraction = min(fraction1, fraction2);
-		float maxFraction = max(fraction1, fraction2);
-		// before = before || (minFraction >= 0);
-		if (minFraction >= maxFraction) { return false; }
+		float min_fraction = min(fraction1, fraction2);
+		float max_fraction = max(fraction1, fraction2);
+		// before = before || (min_fraction >= 0);
+		if (min_fraction >= max_fraction) { return false; }
 	}
 	return true;
 }
 
-inline Vector3 get_aabb_normal(Aabb3 aabb, Vector3 hit) {
+constexpr inline Vector3 get_aabb_normal(Aabb3 aabb, Vector3 hit) {
 	Vector3 offset = hit - aabb.position;
 	Vector3 offset_squared = offset * offset;
 	offset_squared = offset_squared - max(offset_squared);
@@ -162,6 +162,6 @@ inline float hit_sphere(Sphere sphere, Ray3 ray) {
 	return (-b - square_root(discriminant)) / (2 * a);
 }
 
-inline Vector3 get_sphere_normal(Sphere sphere, Vector3 hit) {
+constexpr inline Vector3 get_sphere_normal(Sphere sphere, Vector3 hit) {
 	return (hit - sphere.xyz) / sphere.w;
 }

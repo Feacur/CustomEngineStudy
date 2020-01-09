@@ -21,6 +21,6 @@ inline float sdf_cylinder(Vector3 point, float radius, float height) {
 	return max(distance);
 }
 
-float sdf_plane(Vector3 point, Vector3 normal) {
+inline float sdf_plane(Vector3 point, Vector3 normal) {
 	return dot_product(point, normal);
 }

@@ -4,7 +4,7 @@ struct Square {
 	Vector2 size;
 };
 
-inline Raytrace_Result raytrace_square(Square square, Ray3 ray) {
+Raytrace_Result raytrace_square(Square square, Ray3 ray) {
 	auto raytrace_result = raytrace_plane(square.plane, ray);
 	if (raytrace_result.depth == too_far) {
 		return raytrace_result;

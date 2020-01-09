@@ -1,4 +1,4 @@
-inline Ray3 camera_sample_ray(Game_Data * game_data, Vector3 position, Quaternion rotation, Vector3 direction, float focus, float aperture) {
+Ray3 camera_sample_ray(Game_Data * game_data, Vector3 position, Quaternion rotation, Vector3 direction, float focus, float aperture) {
 	// anti-alias
 	direction.xy = direction.xy + random2_radius01(&game_data->random_state);
 	direction = normalize(direction);

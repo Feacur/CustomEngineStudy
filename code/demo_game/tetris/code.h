@@ -3,7 +3,7 @@
 //
 
 namespace field {
-	inline void imprint_figure(Game_Data * game_data) {
+	void imprint_figure(Game_Data * game_data) {
 		Array_Dynamic<Field_Cell> & field  = game_data->field;
 		Array_Dynamic<Vector2i>   & figure = game_data->figure;
 		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
@@ -20,13 +20,13 @@ namespace field {
 		figure.length = 0;
 	}
 
-	inline void reset(Game_Data * game_data) {
+	void reset(Game_Data * game_data) {
 		Array_Dynamic<Field_Cell> & field = game_data->field;
 		memset(field.data, 0, field.capacity * sizeof(Field_Cell));
 		field.length = field.capacity;
 	}
 
-	inline bool get_line_is_value(Game_Data * game_data, int32 y, Field_Cell value) {
+	bool get_line_is_value(Game_Data * game_data, int32 y, Field_Cell value) {
 		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
 		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
@@ -40,7 +40,7 @@ namespace field {
 		return true;
 	}
 
-	inline void copy_line(Game_Data * game_data, int32 from, int32 to) {
+	void copy_line(Game_Data * game_data, int32 from, int32 to) {
 		if (from == to) { return; }
 
 		Array_Dynamic<Field_Cell> & field = game_data->field;
@@ -51,7 +51,7 @@ namespace field {
 		memcpy(destination, source, FIELD_WIDTH * sizeof(Field_Cell));
 	}
 
-	inline void collapse(Game_Data * game_data) {
+	void collapse(Game_Data * game_data) {
 		Array_Dynamic<Field_Cell> & field = game_data->field;
 		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
 		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
@@ -128,7 +128,7 @@ namespace game {
 		return is_valid;
 	}
 
-	inline void set_figure(Game_Data * game_data, Array_Dynamic<Vector2i> source) {
+	void set_figure(Game_Data * game_data, Array_Dynamic<Vector2i> source) {
 		if (game::move_is_valid(game_data, source, {0, 0})) {
 			Array_Dynamic<Vector2i> & figure = game_data->figure;
 			memcpy(figure.data, source.data, figure.capacity * sizeof(Vector2i));
@@ -136,7 +136,7 @@ namespace game {
 		}
 	}
 
-	inline void rotate_the_figure(Game_Data * game_data) {
+	void rotate_the_figure(Game_Data * game_data) {
 		static Complexi const ROTATION = {0, 1};
 
 		Array_Dynamic<Vector2i> & figure = game_data->figure;

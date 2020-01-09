@@ -1,4 +1,4 @@
-#define SHARED_BITWISE
+#define SHARED_MATH_BITWISE
 
 #if !defined(SHARED_CODE)
 	#error include "shared/code.h"

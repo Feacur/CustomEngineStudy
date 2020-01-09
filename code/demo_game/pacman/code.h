@@ -24,7 +24,7 @@ namespace utils {
 		return {direction.x, 0};
 	}
 	
-	inline Vector2i wrap_position(Vector2i value, Vector2i dimensions) {
+	constexpr inline Vector2i wrap_position(Vector2i value, Vector2i dimensions) {
 		return (value + dimensions) % dimensions;
 	}
 
@@ -233,7 +233,7 @@ namespace path_finding {
 		return walls;
 	}
 	
-	inline int32 estimate_distance(Vector2i value) {
+	constexpr inline int32 estimate_distance(Vector2i value) {
 		// return abs(value.x) + abs(value.y);
 		return magnitude_squared(value);
 	}

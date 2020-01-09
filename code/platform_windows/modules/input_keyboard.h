@@ -10,7 +10,7 @@ static bool input_keyboard_enable = true;
 
 static Keyboard_Mode keyboard_mode = Keyboard_Mode::Raw;
 
-inline bool keyboard_test_range(
+bool keyboard_test_range(
 	Keyboard_Keys base,
 	bool is_pressed,
 	WPARAM virtual_key_code,
@@ -28,7 +28,7 @@ inline bool keyboard_test_range(
 #define KEYBOARD_TEST_RANGE(VALUE_BASE, MIN, MAX)\
 if (keyboard_test_range(Keyboard_Keys::VALUE_BASE, is_pressed, virtual_key_code, MIN, MAX)) { return; }
 
-inline bool keyboard_test_value(
+bool keyboard_test_value(
 	Keyboard_Keys key,
 	bool is_pressed,
 	WPARAM virtual_key_code,
@@ -42,7 +42,7 @@ inline bool keyboard_test_value(
 #define KEYBOARD_TEST_VALUE(VALUE, EXPECTED)\
 if (keyboard_test_value(Keyboard_Keys::VALUE, is_pressed, virtual_key_code, EXPECTED)) { return; }
 
-inline void keyboard_set_key(WPARAM virtual_key_code, bool is_pressed) {
+void keyboard_set_key(WPARAM virtual_key_code, bool is_pressed) {
 	KEYBOARD_TEST_RANGE(N0,      '0', '9')
 	KEYBOARD_TEST_RANGE(F1,      VK_F1, VK_F12)
 	KEYBOARD_TEST_RANGE(A,       'A', 'Z')
@@ -70,7 +70,7 @@ inline void keyboard_update_previous_state() {
 	memcpy(input_keyboard.was_pressed, input_keyboard.is_pressed, KEYBOARD_KEYS_BYTES);
 }
 
-inline void process_message_keyboard(HWND window, WPARAM wParam, LPARAM lParam) {
+void process_message_keyboard(HWND window, WPARAM wParam, LPARAM lParam) {
 	if (keyboard_mode == Keyboard_Mode::Message) {
 		bool is_an_extended_key = get_bit_at_index(lParam, 24);
 		bool alt_key_is_pressed = get_bit_at_index(lParam, 29);

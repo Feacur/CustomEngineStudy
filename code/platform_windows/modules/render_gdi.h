@@ -19,7 +19,7 @@ inline Vector2i get_window_size(HWND window) {
 	return {client_rect.right, client_rect.bottom};
 }
 
-Vector2i transform_window_to_render(Vector2i point) {
+inline Vector2i transform_window_to_render(Vector2i point) {
 	return (point - render_buffer.offset)
 		* render_buffer.scaler_mul
 		/ render_buffer.scaler_div;

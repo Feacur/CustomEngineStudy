@@ -1,5 +1,5 @@
 static float fraction = 0;
-inline float sdf_blob_test_1(Vector3 point) {
+float sdf_blob_test_1(Vector3 point) {
 	// Early out if we are too far even from the largest bounds
 	float distance = sdf_sphere(point, 10);
 	if (distance > 1.0f) { return distance; }
@@ -9,7 +9,7 @@ inline float sdf_blob_test_1(Vector3 point) {
 	);
 }
 
-inline float sdf_blob_test_2(Vector3 point) {
+float sdf_blob_test_2(Vector3 point) {
 	// Early out if we are too far even from the largest bounds
 	float distance = sdf_sphere(point, 10);
 	if (distance > 1.0f) { return distance; }
@@ -24,7 +24,7 @@ inline float sdf_blob_test_2(Vector3 point) {
 	);
 }
 
-inline float sdf_scene(Vector3 point) {
+float sdf_scene(Vector3 point) {
 	// return sdf_union(
 	// 	sdf_sphere(point - vec3(0.0f, 6.0f, 0.0f), 10),
 	// 	sdf_plane(point, {0, 1, 0})

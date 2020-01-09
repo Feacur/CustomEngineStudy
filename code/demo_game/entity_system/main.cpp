@@ -4,7 +4,7 @@
 #include "shared/software_renderer_rect.h"
 #include "shared/software_renderer_simd.h"
 
-#include "shared/shapes.h"
+#include "shared/math_shapes.h"
 
 #include "data.h"
 #include "code.h"

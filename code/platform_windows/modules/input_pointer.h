@@ -12,6 +12,10 @@ static bool input_pointer_enable = true;
 static Pointer_Mode pointer_position_mode = Pointer_Mode::Raw;
 static Pointer_Mode pointer_keys_mode     = Pointer_Mode::Raw;
 
+inline void pointer_set_key(Pointer_Keys key, bool is_pressed) {
+	input_pointer.is_pressed[(int32)key] = is_pressed;
+}
+
 inline void pointer_reset_state() {
 	memset(input_pointer.was_pressed, 0, POINTER_KEYS_BYTES);
 	memset(input_pointer.is_pressed, 0, POINTER_KEYS_BYTES);
@@ -21,10 +25,6 @@ inline void pointer_update_previous_state() {
 	input_pointer.raw_delta = {};
 	input_pointer.wheel = {};
 	memcpy(input_pointer.was_pressed, input_pointer.is_pressed, POINTER_KEYS_BYTES);
-}
-
-inline void pointer_set_key(Pointer_Keys key, bool is_pressed) {
-	input_pointer.is_pressed[(int32)key] = is_pressed;
 }
 
 #define POINTER_SET_MESSAGE_VALUE(VALUE, EXPECTED)\
@@ -38,13 +38,13 @@ if (BITS_ARE_SET(flags, EXPECTED)) {\
 #define POINTER_SET_DIRECT_VALUE(VALUE, EXPECTED)\
 pointer_set_key(Pointer_Keys::VALUE, BITS_ARE_SET(GetKeyState(EXPECTED), 0x4000))
 
-inline void pointer_set_message_key(WPARAM virtual_key_code) {
+void pointer_set_message_key(WPARAM virtual_key_code) {
 	POINTER_SET_MESSAGE_VALUE(Key1, MK_LBUTTON);
 	POINTER_SET_MESSAGE_VALUE(Key2, MK_MBUTTON);
 	POINTER_SET_MESSAGE_VALUE(Key3, MK_RBUTTON);
 }
 
-inline void pointer_set_raw_key(USHORT flags) {
+void pointer_set_raw_key(USHORT flags) {
 	if (pointer_is_inside()) {
 		POINTER_TEST_RAW_VALUE(Key1, RI_MOUSE_BUTTON_1_DOWN, true);
 		POINTER_TEST_RAW_VALUE(Key2, RI_MOUSE_BUTTON_2_DOWN, true);
@@ -55,13 +55,13 @@ inline void pointer_set_raw_key(USHORT flags) {
 	POINTER_TEST_RAW_VALUE(Key3, RI_MOUSE_BUTTON_3_UP, false);
 }
 
-inline void pointer_set_direct_key() {
+void pointer_set_direct_key() {
 	POINTER_SET_DIRECT_VALUE(Key1, VK_LBUTTON);
 	POINTER_SET_DIRECT_VALUE(Key2, VK_MBUTTON);
 	POINTER_SET_DIRECT_VALUE(Key3, VK_RBUTTON);
 }
 
-inline void update_current_pointer(POINT const & screen_position, POINT const & client_position) {
+void update_current_pointer(POINT const & screen_position, POINT const & client_position) {
 	os_input_pointer_screen = screen_position;
 	os_input_pointer_client = client_position;
 	input_pointer.pixel_position = transform_window_to_render(
@@ -69,7 +69,7 @@ inline void update_current_pointer(POINT const & screen_position, POINT const & 
 	);
 }
 
-inline void update_raw_delta_pointer(int48 x, int48 y) {
+void update_raw_delta_pointer(int48 x, int48 y) {
 	input_pointer.raw_delta = {
 		x - os_input_pointer_screen.x,
 		os_input_pointer_screen.y - y

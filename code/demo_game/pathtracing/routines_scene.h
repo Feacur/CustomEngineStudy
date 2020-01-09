@@ -1,4 +1,4 @@
-inline Hit_Data scene_trace_shapes(Game_Data * game_data, Ray3 ray, float near, float far) {
+Hit_Data scene_trace_shapes(Game_Data * game_data, Ray3 ray, float near, float far) {
 	Hit_Data result = { -1, far };
 	for (int32 i = 0; i < game_data->shapes.length; ++i) {
 		float distance_test = shape_get_distance(game_data->shapes[i], ray);
@@ -9,7 +9,7 @@ inline Hit_Data scene_trace_shapes(Game_Data * game_data, Ray3 ray, float near, 
 	return result;
 }
 
-inline Hit_Data scene_trace_nodes(Game_Data * game_data, int32 node_index, Ray3 ray, float near, float far) {
+Hit_Data scene_trace_nodes(Game_Data * game_data, int32 node_index, Ray3 ray, float near, float far) {
 	Scene_Node const & node = scene_nodes[node_index];
 	
 	// AABB helps us to exit out early before tracing anything complicated
@@ -32,7 +32,7 @@ inline Hit_Data scene_trace_nodes(Game_Data * game_data, int32 node_index, Ray3 
 	return result;
 }
 
-inline Vector3 scene_sample_color(Game_Data * game_data, Ray3 ray, int depth) {
+Vector3 scene_sample_color(Game_Data * game_data, Ray3 ray, int depth) {
 	Vector3 color = {};
 	Vector3 attenuation = {1, 1, 1};
 	for (int32 i = 0; i < depth; ++i) {

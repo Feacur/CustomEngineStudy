@@ -98,7 +98,7 @@ __m128i masked_out = _mm_or_si128(_mm_and_si128(inside_mask, out), _mm_andnot_si
 _mm_storeu_si128((__m128i *)destination_start, masked_out);
 
 
-inline void draw_rectangle_over(RGBA_Data image, Vector2 position, Vector2 size, Vector4 color) {
+void draw_rectangle_over(RGBA_Data image, Vector2 position, Vector2 size, Vector4 color) {
 	Rendering_Rect rect = create_rendering_rect(position, size);
 	rect = align_rendering_rect(rect, image.size);
 	rect = restrict_rendering_rect_to_image(rect, image.size);
@@ -119,7 +119,7 @@ inline void draw_rectangle_over(RGBA_Data image, Vector2 position, Vector2 size,
 	}
 }
 
-inline void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Vector4 color) {
+void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Vector4 color) {
 	Rendering_Rect rect = create_rendering_rect(position, size);
 	rect = align_rendering_rect(rect, image.size);
 	rect = restrict_rendering_rect_to_image(rect, image.size);
@@ -144,7 +144,7 @@ inline void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Vect
 	}
 }
 
-inline void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex orientation, Vector4 color) {
+void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex orientation, Vector4 color) {
 	Rendering_Rect rect = create_rendering_rect(position, size, orientation);
 	rect = align_rendering_rect(rect, image.size);
 	rect = restrict_rendering_rect_to_image(rect, image.size);
@@ -169,7 +169,7 @@ inline void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Comp
 	}
 }
 
-inline void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex orientation, RGBA_Data texture) {
+void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex orientation, RGBA_Data texture) {
 	Rendering_Rect rect = create_rendering_rect(position, size, orientation);
 	rect = align_rendering_rect(rect, image.size);
 	rect = restrict_rendering_rect_to_image(rect, image.size);

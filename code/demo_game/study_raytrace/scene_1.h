@@ -1,7 +1,7 @@
 static Plane const plane = {{0, 0, 0}, {0, 1, 0}};
 static Sphere const sphere = {0, 6, 0, 10};
 
-inline Raytrace_Result raytrace_scene(Ray3 ray) {
+Raytrace_Result raytrace_scene(Ray3 ray) {
 	auto raytrace_result_plane = raytrace_plane(plane, ray);
 	raytrace_result_plane.id = 1;
 

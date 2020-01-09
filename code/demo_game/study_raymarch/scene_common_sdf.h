@@ -1,4 +1,4 @@
-inline Vector3 sdf_normal(Vector3 point) {
+Vector3 sdf_normal(Vector3 point) {
 	static float const gradient_step = 0.1f;
 	Vector3 normal = {
 		sdf_scene({point.x + gradient_step, point.y, point.z}) - sdf_scene({point.x - gradient_step, point.y, point.z}),

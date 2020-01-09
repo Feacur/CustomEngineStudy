@@ -1,7 +1,10 @@
 #include "shared/code.h"
-#include "shared/math.h"
-#include "shared/bitwise.h"
-#include "shared/random.h"
+#include "shared/math_scalar.h"
+#include "shared/math_hashing.h"
+#include "shared/math_random.h"
+#include "shared/math_bitwise.h"
+#include "shared/math_linear.h"
+#include "shared/math_linear_random.h"
 
 #include "shared/collection_array_dynamic.h"
 

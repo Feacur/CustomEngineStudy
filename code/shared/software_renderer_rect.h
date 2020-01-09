@@ -2,14 +2,14 @@ struct Rendering_Rect {
 	int32 left, right, bottom, top;
 };
 
-inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size) {
+constexpr inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size) {
 	return {
 		(int32)position.x, (int32)(position.x + size.x),
 		(int32)position.y, (int32)(position.y + size.y)
 	};
 }
 
-inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size, Complex orientation) {
+constexpr inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size, Complex orientation) {
 	Complex axis_x = orientation;
 	Complex axis_y = {-axis_x.y, axis_x.x};
 	
@@ -37,7 +37,7 @@ inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size, Comp
 	};
 }
 
-inline Rendering_Rect align_rendering_rect(Rendering_Rect rect, Vector2i size) {
+constexpr inline Rendering_Rect align_rendering_rect(Rendering_Rect rect, Vector2i size) {
 	rect.left   = ((rect.left - 3) / 4) * 4;
 	rect.right  = ((rect.right + 3) / 4) * 4;
 	rect.bottom = rect.bottom - 1;
@@ -46,7 +46,7 @@ inline Rendering_Rect align_rendering_rect(Rendering_Rect rect, Vector2i size) {
 	return rect;
 }
 
-inline Rendering_Rect restrict_rendering_rect_to_image(Rendering_Rect rect, Vector2i size) {
+constexpr inline Rendering_Rect restrict_rendering_rect_to_image(Rendering_Rect rect, Vector2i size) {
 	rect.left   = clamp(rect.left,   0, size.x);
 	rect.right  = clamp(rect.right,  0, size.x);
 	rect.bottom = clamp(rect.bottom, 0, size.y);

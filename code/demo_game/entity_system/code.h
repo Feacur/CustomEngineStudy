@@ -7,7 +7,7 @@ namespace entities {
 	
 	#define REGISTER_COMPONENT(TYPE, FIELD)\
 	template<> constexpr inline Component_Type get_type<TYPE##_Component>() { return Component_Type::TYPE; }\
-	inline void component_set(Game_Data * game_data, Entity entity, TYPE##_Component const & component) {\
+	void component_set(Game_Data * game_data, Entity entity, TYPE##_Component const & component) {\
 		Array_Dynamic<Component_Type>   & flags      = game_data->entities.flags;\
 		Array_Dynamic<TYPE##_Component> & components = game_data->entities.FIELD;\
 		components[entity] = component;\
@@ -22,18 +22,18 @@ namespace entities {
 	#undef COMPONENT_SET
 
 	template<typename T>
-	inline void component_remove(Game_Data * game_data, Entity entity) {
+	void component_remove(Game_Data * game_data, Entity entity) {
 		Array_Dynamic<Component_Type> & flags = game_data->entities.flags;
 		flags[entity] = bits_to_zero(flags[entity], get_type<T>());
 	}
 
 	template<typename T>
-	inline bool component_has(Game_Data * game_data, Entity entity) {
+	bool component_has(Game_Data * game_data, Entity entity) {
 		Array_Dynamic<Component_Type> & flags = game_data->entities.flags;
 		return bits_are_set(flags[entity], get_type<T>());
 	}
 
-	inline Entity add(Game_Data * game_data) {
+	Entity add(Game_Data * game_data) {
 		Array_Dynamic<Component_Type>     & components_flags    = game_data->entities.flags;
 		Array_Dynamic<Position_Component> & position_components = game_data->entities.position;
 		Array_Dynamic<Rotation_Component> & rotation_components = game_data->entities.rotation;

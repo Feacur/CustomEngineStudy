@@ -3,7 +3,7 @@
 //
 
 namespace field {
-	inline void set_cell(Game_Data * game_data, Vector2i cell, Field_Cell value) {
+	void set_cell(Game_Data * game_data, Vector2i cell, Field_Cell value) {
 		Array_Dynamic<Field_Cell> & field = game_data->field;
 		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
 		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
@@ -38,7 +38,7 @@ namespace field {
 	}
 	#undef GET_CELL_FUNC
 
-	inline bool get_cell_will_be_alive(Game_Data * game_data, int32 x, int32 y) {
+	bool get_cell_will_be_alive(Game_Data * game_data, int32 x, int32 y) {
 		Array_Dynamic<Field_Cell> & field = game_data->field;
 		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
 		int32 FIELD_HEIGHT = game_data->field_dimensions.y;

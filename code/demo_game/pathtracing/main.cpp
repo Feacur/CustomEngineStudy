@@ -1,7 +1,7 @@
 #include "demo_game/main_common.h"
 #include "demo_game/platform_globals.h"
 
-#include "shared/shapes.h"
+#include "shared/math_shapes.h"
 
 #include "data.h"
 #include "code.h"

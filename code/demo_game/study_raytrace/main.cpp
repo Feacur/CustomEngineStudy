@@ -18,7 +18,7 @@ Let's lay out steps we need:
 #include "demo_game/main_common.h"
 #include "demo_game/platform_globals.h"
 
-#include "shared/shapes.h"
+#include "shared/math_shapes.h"
 
 #include "data.h"
 #include "code.h"
@@ -36,7 +36,7 @@ struct Raytrace_Result {
 #include "square.h"
 #include "sphere.h"
 
-inline float fresnel_schlick(Vector3 incident, Vector3 normal, float n1, float n2) {
+float fresnel_schlick(Vector3 incident, Vector3 normal, float n1, float n2) {
 	float incident_cosine = -dot_product(incident, normal);
 	if (n1 > n2) {
 		float factor = n1 / n2;
@@ -68,7 +68,7 @@ static Vector3 const absorption_glass = {0.4f, 0.05f, 0.2f};
 #include "scene_1.h"
 #include "scene_common_raytrace.h"
 
-inline Vector3 get_albedo_color(Raytrace_Result raytrace_result) {
+Vector3 get_albedo_color(Raytrace_Result raytrace_result) {
 	if (raytrace_result.id == 1) {
 		float pattern = fmodf(floorf(raytrace_result.point.x * 0.2f) + floorf(raytrace_result.point.z * 0.2f), 2.0f);
 		float brightness = (absolute(pattern) < 1) ? 1.0f : 0.4f;
@@ -81,7 +81,7 @@ inline Vector3 get_albedo_color(Raytrace_Result raytrace_result) {
 	return {0.8f, 0.8f, 0.8f};
 }
 
-inline Vector3 apply_light(Vector3 albedo, Raytrace_Result raytrace_result, Vector3 view_direction) {
+Vector3 apply_light(Vector3 albedo, Raytrace_Result raytrace_result, Vector3 view_direction) {
 	auto result = (albedo * ambient);
 
 	auto attenuation = raytrace_attenuation(raytrace_result.point, raytrace_result.normal, light);
@@ -103,7 +103,7 @@ inline Vector3 apply_light(Vector3 albedo, Raytrace_Result raytrace_result, Vect
 	return result;
 }
 
-inline Vector3 raytrace_scene_color(Ray3 ray, int id, int reflection_limit, int refraction_limit) {
+Vector3 raytrace_scene_color(Ray3 ray, int id, int reflection_limit, int refraction_limit) {
 	auto raytrace_result = raytrace_scene(ray);
 	auto albedo = get_albedo_color(raytrace_result);
 	if (raytrace_result.id == 0) { return albedo; }
