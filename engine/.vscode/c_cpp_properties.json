@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Custom",
+
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "compilerPath": "${default}",
+            "intelliSenseMode": "${default}",
+            
+            "includePath": ["${default}"],
+            "defines": [
+                "${default}",
+                "GES_BUILD_DLL"
+            ]
+        }
+    ],
+    "version": 4
+}

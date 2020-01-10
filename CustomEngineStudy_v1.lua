@@ -1,6 +1,6 @@
 include "./premake5_customizations.lua"
 
-workspace "CustomEngineStudy"
+workspace "CustomEngineStudy_v1"
 	-- toolset ("msc")
 	architecture "x86_64"
 	systemversion "latest"
@@ -33,7 +33,10 @@ workspace "CustomEngineStudy"
 			"4189", -- local variable is initialized but not referenced
 			"4100", -- unreferenced formal parameter
 			-- "4530", -- C++ exception handling was used but -EHsc was not selected
+			-- "4702", -- unreachable code
 			-- "4521", -- 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2'
+			-- "4312", -- 'operation' : conversion from 'type1' to 'type2' of greater size
+			-- "4127", -- conditional expression is constant
 		}
 		-- buildoptions {
 		-- 	"-Bt+",

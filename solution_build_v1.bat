@@ -30,5 +30,5 @@ call "vcvarsall.bat" %architecture%
 popd
 
 echo ---- BUILD ---- %time%
-msbuild CustomEngineStudy.sln -m -p:Configuration=%configuration%
+msbuild CustomEngineStudy_v1.sln -m -p:Configuration=%configuration%
 echo ---- DONE ---- %time%
