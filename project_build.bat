@@ -60,8 +60,9 @@ set libraries=%libraries:"=%
 rem declare paths
 set rootdir=%~dp0.
 set sourcedir=.\code
-set target_location=.\bin\custom\%target_name%
-set intermediate_location=.\bin-int\custom\%target_name%
+set outputdir=v1\custom\%target_name%
+set target_location=.\bin\%outputdir%
+set intermediate_location=.\bin-int\%outputdir%
 
 rem //
 rem // >> COMPILER

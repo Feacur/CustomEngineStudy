@@ -76,7 +76,7 @@ workspace "CustomEngineStudy_v1"
 		symbols "Off"
 		optimize "On" -- On, Size, Speed, Full
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+outputdir = "v1/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)
 enginename = "code"
