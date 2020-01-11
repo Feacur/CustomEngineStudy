@@ -27,10 +27,11 @@ typedef char const * cstring;
 // macros
 #define STRINGIFY_A_VALUE(VALUE) #VALUE
 #define STRINGIFY_A_MACRO(MACRO) STRINGIFY_A_VALUE(MACRO)
-#define FILE_AND_LINE __FILE__ ":" STRINGIFY_A_MACRO(__LINE__)
-#define C_ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 #define TOKENIZE_A_VALUE(a, b) a ## b
 #define TOKENIZE_A_MACRO(a, b) TOKENIZE_A_VALUE(a, b)
+
+#define FILE_AND_LINE __FILE__ ":" STRINGIFY_A_MACRO(__LINE__)
+#define C_ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
 #undef min
 #undef max
