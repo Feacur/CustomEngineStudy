@@ -1,11 +1,11 @@
 struct Rendering_Rect {
-	int32 left, right, bottom, top;
+	s32 left, right, bottom, top;
 };
 
 constexpr inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 size) {
 	return {
-		(int32)position.x, (int32)(position.x + size.x),
-		(int32)position.y, (int32)(position.y + size.y)
+		(s32)position.x, (s32)(position.x + size.x),
+		(s32)position.y, (s32)(position.y + size.y)
 	};
 }
 
@@ -16,14 +16,14 @@ constexpr inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 
 	Vector2 edge_x = axis_x * size.x;
 	Vector2 edge_y = axis_y * size.y;
 	
-	float left   =  INFINITY;
-	float bottom =  INFINITY;
-	float right  = -INFINITY;
-	float top    = -INFINITY;
+	r32 left   =  INFINITY;
+	r32 bottom =  INFINITY;
+	r32 right  = -INFINITY;
+	r32 top    = -INFINITY;
 	
 	Vector2 local_vertices[] = {{0, 0}, edge_x, edge_y, edge_x + edge_y};
-	int32 elements_in_local_vertices = C_ARRAY_LENGTH(local_vertices);
-	for (int32 i = 0; i < elements_in_local_vertices; ++i) {
+	s32 elements_in_local_vertices = C_ARRAY_LENGTH(local_vertices);
+	for (s32 i = 0; i < elements_in_local_vertices; ++i) {
 		Vector2 vertex = position + local_vertices[i];
 		if (left   > vertex.x) { left   = vertex.x; }
 		if (bottom > vertex.y) { bottom = vertex.y; }
@@ -32,8 +32,8 @@ constexpr inline Rendering_Rect create_rendering_rect(Vector2 position, Vector2 
 	}
 	
 	return {
-		(int32)left, (int32)right,
-		(int32)bottom, (int32)top
+		(s32)left, (s32)right,
+		(s32)bottom, (s32)top
 	};
 }
 

@@ -43,25 +43,25 @@ Raytrace_Result raytrace_sphere(Sphere sphere, Ray3 ray) {
 	Raytrace_Result result = {};
 
 	Vector3 vector_to_centre = ray.origin - sphere.xyz;
-	float cosine_between_ray_and_vector_from_sphere_to_origin = dot_product(ray.direction, vector_to_centre);
+	r32 cosine_between_ray_and_vector_from_sphere_to_origin = dot_product(ray.direction, vector_to_centre);
 	if (cosine_between_ray_and_vector_from_sphere_to_origin > 0) {
 		result.depth = too_far;
 		return result;
 	}
 
-	float a = dot_product(ray.direction, ray.direction);
-	float b = 2 * cosine_between_ray_and_vector_from_sphere_to_origin;
-	float c = dot_product(vector_to_centre, vector_to_centre) - sphere.w * sphere.w;
+	r32 a = dot_product(ray.direction, ray.direction);
+	r32 b = 2 * cosine_between_ray_and_vector_from_sphere_to_origin;
+	r32 c = dot_product(vector_to_centre, vector_to_centre) - sphere.w * sphere.w;
 
-	float D = b * b - 4 * a * c;
+	r32 D = b * b - 4 * a * c;
 	if (D < 0) {
 		result.depth = too_far;
 		return result;
 	}
-	float square_root_of_D = square_root(D);
+	r32 square_root_of_D = square_root(D);
 
-	float double_a = 2 * a;
-	float normal_direction = 1;
+	r32 double_a = 2 * a;
+	r32 normal_direction = 1;
 	result.depth = (-b - square_root_of_D) / double_a;
 	if (result.depth < 0) {
 		normal_direction = -1;

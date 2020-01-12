@@ -100,8 +100,8 @@ void display_render_buffer_opengl(HDC device_context) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	Vector2 opengl_size = {
-		(float)render_buffer.destination_size.x / window_size.x,
-		(float)render_buffer.destination_size.y / window_size.y
+		(r32)render_buffer.destination_size.x / window_size.x,
+		(r32)render_buffer.destination_size.y / window_size.y
 	};
 	glBegin(GL_TRIANGLES);
 	glTexCoord2f(0, 0); glVertex2f(-opengl_size.x, -opengl_size.y);

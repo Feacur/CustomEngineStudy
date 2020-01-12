@@ -22,17 +22,17 @@ constexpr inline bool bits_are_set_impl(T container, T bits) {\
 	return (container & bits) == bits;\
 }
 
-BITS_ARE_SET_IMPL(int8)
-BITS_ARE_SET_IMPL(int16)
-BITS_ARE_SET_IMPL(int32)
-BITS_ARE_SET_IMPL(int64)
-BITS_ARE_SET_IMPL(uint8)
-BITS_ARE_SET_IMPL(uint16)
-BITS_ARE_SET_IMPL(uint32)
-BITS_ARE_SET_IMPL(uint64)
+BITS_ARE_SET_IMPL(s8)
+BITS_ARE_SET_IMPL(s16)
+BITS_ARE_SET_IMPL(s32)
+BITS_ARE_SET_IMPL(s64)
+BITS_ARE_SET_IMPL(u8)
+BITS_ARE_SET_IMPL(u16)
+BITS_ARE_SET_IMPL(u32)
+BITS_ARE_SET_IMPL(u64)
 
-BITS_ARE_SET_IMPL(int48)
-BITS_ARE_SET_IMPL(uint48)
+BITS_ARE_SET_IMPL(s48)
+BITS_ARE_SET_IMPL(u48)
 
 #undef BITS_ARE_SET_IMPL
 
@@ -48,17 +48,17 @@ constexpr inline T bits_to_zero_impl(T container, T bits) {\
 	return container & ~bits;\
 }
 
-BITS_TO_ZERO_IMPL(int8)
-BITS_TO_ZERO_IMPL(int16)
-BITS_TO_ZERO_IMPL(int32)
-BITS_TO_ZERO_IMPL(int64)
-BITS_TO_ZERO_IMPL(uint8)
-BITS_TO_ZERO_IMPL(uint16)
-BITS_TO_ZERO_IMPL(uint32)
-BITS_TO_ZERO_IMPL(uint64)
+BITS_TO_ZERO_IMPL(s8)
+BITS_TO_ZERO_IMPL(s16)
+BITS_TO_ZERO_IMPL(s32)
+BITS_TO_ZERO_IMPL(s64)
+BITS_TO_ZERO_IMPL(u8)
+BITS_TO_ZERO_IMPL(u16)
+BITS_TO_ZERO_IMPL(u32)
+BITS_TO_ZERO_IMPL(u64)
 
-BITS_TO_ZERO_IMPL(int48)
-BITS_TO_ZERO_IMPL(uint48)
+BITS_TO_ZERO_IMPL(s48)
+BITS_TO_ZERO_IMPL(u48)
 
 #undef BITS_TO_ZERO_IMPL
 
@@ -67,21 +67,21 @@ BITS_TO_ZERO_IMPL(uint48)
 //
 
 #define GET_BIT_AT_INDEX(T)\
-constexpr inline bool get_bit_at_index(T container, uint8 index) {\
+constexpr inline bool get_bit_at_index(T container, u8 index) {\
 	CUSTOM_ASSERT(index < 8 * sizeof(T), "Bit index overflow");\
 	return bits_are_set_impl(container, BIT(T, index));\
 }
 
-GET_BIT_AT_INDEX(int8)
-GET_BIT_AT_INDEX(int16)
-GET_BIT_AT_INDEX(int32)
-GET_BIT_AT_INDEX(int64)
-GET_BIT_AT_INDEX(uint8)
-GET_BIT_AT_INDEX(uint16)
-GET_BIT_AT_INDEX(uint32)
-GET_BIT_AT_INDEX(uint64)
+GET_BIT_AT_INDEX(s8)
+GET_BIT_AT_INDEX(s16)
+GET_BIT_AT_INDEX(s32)
+GET_BIT_AT_INDEX(s64)
+GET_BIT_AT_INDEX(u8)
+GET_BIT_AT_INDEX(u16)
+GET_BIT_AT_INDEX(u32)
+GET_BIT_AT_INDEX(u64)
 
-GET_BIT_AT_INDEX(int48)
-GET_BIT_AT_INDEX(uint48)
+GET_BIT_AT_INDEX(s48)
+GET_BIT_AT_INDEX(u48)
 
 #undef GET_BIT_AT_INDEX

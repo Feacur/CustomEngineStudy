@@ -1,4 +1,4 @@
-static uint8 const checksum[8] = {'p', 'h', 'y', 's', 'i', 'c', 's', ' '};
+static u8 const checksum[8] = {'p', 'h', 'y', 's', 'i', 'c', 's', ' '};
 
 //
 // data layout
@@ -13,8 +13,8 @@ struct Entity {
 };
 
 struct Game_Data {
-	uint8                 checksum[8];
-	uint32                random_state;
+	u8                 checksum[8];
+	u32                random_state;
 	// actual data
 	Array_Dynamic<Entity> entities;
 };
@@ -23,7 +23,7 @@ struct Game_Data {
 // game settings
 //
 
-static uint8 const ENTITIES_COUNT = 1;
+static u8 const ENTITIES_COUNT = 1;
 
 //
 // rendering settings

@@ -15,7 +15,7 @@ PLATFORM_READ_FILE(platform_read_file) {
 	}
 	
 	DWORD dword_file_size = (DWORD)file_size.QuadPart;
-	uint8 * bytes = allocate_data(memory, dword_file_size);
+	u8 * bytes = allocate_data(memory, dword_file_size);
 	if (!bytes) {
 		log_last_error();
 		CloseHandle(file);

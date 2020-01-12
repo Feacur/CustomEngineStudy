@@ -1,9 +1,9 @@
-static int32 const trace_depth_limit = 10;
-static int32 const samples_count = 4;
-static float const camera_focus_distance = 1.0f;
-static float const camera_aperture = 0.001f;
+static s32 const trace_depth_limit = 10;
+static s32 const samples_count = 4;
+static r32 const camera_focus_distance = 1.0f;
+static r32 const camera_aperture = 0.001f;
 
-static float const air_refractive_index = 1;
+static r32 const air_refractive_index = 1;
 
 static Shape const shapes[] = {
 	// floor
@@ -21,7 +21,7 @@ static Shape const shapes[] = {
 	// light
 	sphere({-1.5f, 2.0f,  0.5f, 0.3f}),
 };
-static int32 const shapes_count = C_ARRAY_LENGTH(shapes);
+static s32 const shapes_count = C_ARRAY_LENGTH(shapes);
 
 static Material const materials[] = {
 	// floor

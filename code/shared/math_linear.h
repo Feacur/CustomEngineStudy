@@ -6,69 +6,69 @@
 
 struct Vector2 {
 	union {
-		struct { float x, y; };
-		float data[2];
+		struct { r32 x, y; };
+		r32 data[2];
 	};
 
 #if defined(__cplusplus) // Vector2
-	constexpr inline float operator[](size_t i) { return data[i]; }
-	constexpr inline float const & operator[](size_t i) const { return data[i]; }
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // Vector2
 };
 
 struct Vector3 {
 	union {
-		struct { Vector2 xy; float z; };
-		struct { float x; Vector2 yz; };
-		struct { float x, y, z; };
-		float data[3];
+		struct { Vector2 xy; r32 z; };
+		struct { r32 x; Vector2 yz; };
+		struct { r32 x, y, z; };
+		r32 data[3];
 	};
 
 #if defined(__cplusplus) // Vector3
-	constexpr inline float operator[](size_t i) { return data[i]; }
-	constexpr inline float const & operator[](size_t i) const { return data[i]; }
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // Vector3
 };
 
 struct Vector4 {
 	union {
-		struct { Vector3 xyz; float w; };
-		struct { float x; Vector3 yzw; };
+		struct { Vector3 xyz; r32 w; };
+		struct { r32 x; Vector3 yzw; };
 		struct { Vector2 xy; Vector2 zw; };
-		struct { float x; Vector2 yz; float w; };
-		struct { float x, y, z, w; };
-		float data[4];
+		struct { r32 x; Vector2 yz; r32 w; };
+		struct { r32 x, y, z, w; };
+		r32 data[4];
 	};
 
 #if defined(__cplusplus) // Vector4
-	constexpr inline float operator[](size_t i) { return data[i]; }
-	constexpr inline float const & operator[](size_t i) const { return data[i]; }
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // Vector4
 };
 
 struct Vector2i {
 	union {
-		struct { int32 x, y; };
-		int32 data[2];
+		struct { s32 x, y; };
+		s32 data[2];
 	};
 	
 #if defined(__cplusplus) // Vector2i
-	constexpr inline int32 & operator[](size_t i) { return data[i]; }
-	constexpr inline int32 const & operator[](size_t i) const { return data[i]; }
+	constexpr inline s32 & operator[](size_t i) { return data[i]; }
+	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // Vector2i
 };
 
 struct Vector3i {
 	union {
-		struct { Vector2i xy; int32 z; };
-		struct { int32 x; Vector2i yz; };
-		struct { int32 x, y, z; };
-		int32 data[3];
+		struct { Vector2i xy; s32 z; };
+		struct { s32 x; Vector2i yz; };
+		struct { s32 x, y, z; };
+		s32 data[3];
 	};
 	
 #if defined(__cplusplus) // Vector3i
-	constexpr inline int32 & operator[](size_t i) { return data[i]; }
-	constexpr inline int32 const & operator[](size_t i) const { return data[i]; }
+	constexpr inline s32 & operator[](size_t i) { return data[i]; }
+	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // Vector3i
 };
 
@@ -81,12 +81,12 @@ using Complex = Vector2;
 // typedef Vector4 Quaternion;
 using Quaternion = Vector4;
 
-constexpr inline Vector2i vec2i(int32 x, int32 y) { return {x, y}; }
-constexpr inline Vector3i vec3i(int32 x, int32 y, int32 z) { return {x, y, z}; }
+constexpr inline Vector2i vec2i(s32 x, s32 y) { return {x, y}; }
+constexpr inline Vector3i vec3i(s32 x, s32 y, s32 z) { return {x, y, z}; }
 
-constexpr inline Vector2 vec2(float x, float y) { return {x, y}; }
-constexpr inline Vector3 vec3(float x, float y, float z) { return {x, y, z}; }
-constexpr inline Vector4 vec4(float x, float y, float z, float w) { return {x, y, z, w}; }
+constexpr inline Vector2 vec2(r32 x, r32 y) { return {x, y}; }
+constexpr inline Vector3 vec3(r32 x, r32 y, r32 z) { return {x, y, z}; }
+constexpr inline Vector4 vec4(r32 x, r32 y, r32 z, r32 w) { return {x, y, z, w}; }
 
 // @Note
 // vector structs have duplicate names in them
@@ -97,7 +97,7 @@ constexpr inline Vector4 vec4(float x, float y, float z, float w) { return {x, y
 //
 //
 
-constexpr inline int32 cross_product(Vector2i first, Vector2i second) {
+constexpr inline s32 cross_product(Vector2i first, Vector2i second) {
 	return first.x * second.y - first.y * second.x;
 }
 
@@ -109,7 +109,7 @@ constexpr inline Vector3i cross_product(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline float cross_product(Vector2 first, Vector2 second) {
+constexpr inline r32 cross_product(Vector2 first, Vector2 second) {
 	return first.x * second.y - first.y * second.x;
 }
 
@@ -144,7 +144,7 @@ constexpr inline Vector2i operator+(Vector2i first, Vector2i second) {
 	};
 }
 
-constexpr inline Vector2i operator+(Vector2i first, int32 second) {
+constexpr inline Vector2i operator+(Vector2i first, s32 second) {
 	return {
 		first.x + second,
 		first.y + second
@@ -158,7 +158,7 @@ constexpr inline Vector2i operator-(Vector2i first, Vector2i second) {
 	};
 }
 
-constexpr inline Vector2i operator-(Vector2i first, int32 second) {
+constexpr inline Vector2i operator-(Vector2i first, s32 second) {
 	return {
 		first.x - second,
 		first.y - second
@@ -172,7 +172,7 @@ constexpr inline Vector2i operator-(Vector2i value) {
 	};
 }
 
-constexpr inline Vector2i operator*(Vector2i first, int32 second) {
+constexpr inline Vector2i operator*(Vector2i first, s32 second) {
 	return {
 		first.x * second,
 		first.y * second
@@ -186,7 +186,7 @@ constexpr inline Vector2i operator*(Vector2i first, Vector2i second) {
 	};
 }
 
-constexpr inline Vector2i operator/(Vector2i first, int32 second) {
+constexpr inline Vector2i operator/(Vector2i first, s32 second) {
 	return {
 		first.x / second,
 		first.y / second
@@ -200,7 +200,7 @@ constexpr inline Vector2i operator/(Vector2i first, Vector2i second) {
 	};
 }
 
-constexpr inline Vector2i operator%(Vector2i first, int32 second) {
+constexpr inline Vector2i operator%(Vector2i first, s32 second) {
 	return {
 		first.x % second,
 		first.y % second
@@ -220,7 +220,7 @@ constexpr inline Vector2i & operator+=(Vector2i & first, Vector2i const & second
 	return first;
 }
 
-constexpr inline Vector2i & operator+=(Vector2i & first, int32 second) {
+constexpr inline Vector2i & operator+=(Vector2i & first, s32 second) {
 	first.x += second;
 	first.y += second;
 	return first;
@@ -232,7 +232,7 @@ constexpr inline Vector2i & operator-=(Vector2i & first, Vector2i const & second
 	return first;
 }
 
-constexpr inline Vector2i & operator-=(Vector2i & first, int32 second) {
+constexpr inline Vector2i & operator-=(Vector2i & first, s32 second) {
 	first.x -= second;
 	first.y -= second;
 	return first;
@@ -244,7 +244,7 @@ constexpr inline Vector2i & operator*=(Vector2i & first, Vector2i const & second
 	return first;
 }
 
-constexpr inline Vector2i & operator*=(Vector2i & first, int32 second) {
+constexpr inline Vector2i & operator*=(Vector2i & first, s32 second) {
 	first.x *= second;
 	first.y *= second;
 	return first;
@@ -256,7 +256,7 @@ constexpr inline Vector2i & operator/=(Vector2i & first, Vector2i const & second
 	return first;
 }
 
-constexpr inline Vector2i & operator/=(Vector2i & first, int32 second) {
+constexpr inline Vector2i & operator/=(Vector2i & first, s32 second) {
 	first.x /= second;
 	first.y /= second;
 	return first;
@@ -268,14 +268,14 @@ constexpr inline Vector2i & operator%=(Vector2i & first, Vector2i const & second
 	return first;
 }
 
-constexpr inline Vector2i & operator%=(Vector2i & first, int32 second) {
+constexpr inline Vector2i & operator%=(Vector2i & first, s32 second) {
 	first.x %= second;
 	first.y %= second;
 	return first;
 }
 #endif // defined(__cplusplus) // operator Vector2i
 
-constexpr inline int32 dot_product(Vector2i first, Vector2i second) {
+constexpr inline s32 dot_product(Vector2i first, Vector2i second) {
 	return first.x * second.x
 	     + first.y * second.y;
 }
@@ -294,11 +294,11 @@ constexpr inline Vector2i max(Vector2i first, Vector2i second) {
 	};
 }
 
-constexpr inline int32 min(Vector2i value) {
+constexpr inline s32 min(Vector2i value) {
 	return min(value.x, value.y);
 }
 
-constexpr inline int32 max(Vector2i value) {
+constexpr inline s32 max(Vector2i value) {
 	return max(value.x, value.y);
 }
 
@@ -316,7 +316,7 @@ constexpr inline Vector2i sign(Vector2i value) {
 	};
 }
 
-constexpr inline Vector2i interpolate(Vector2i from, Vector2i to, int32 mul, int32 div) {
+constexpr inline Vector2i interpolate(Vector2i from, Vector2i to, s32 mul, s32 div) {
 	return {
 		interpolate(from.x, to.x, mul, div),
 		interpolate(from.y, to.y, mul, div)
@@ -349,7 +349,7 @@ constexpr inline Vector3i operator+(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline Vector3i operator+(Vector3i first, int32 second) {
+constexpr inline Vector3i operator+(Vector3i first, s32 second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -365,7 +365,7 @@ constexpr inline Vector3i operator-(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline Vector3i operator-(Vector3i first, int32 second) {
+constexpr inline Vector3i operator-(Vector3i first, s32 second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -381,7 +381,7 @@ constexpr inline Vector3i operator-(Vector3i value) {
 	};
 }
 
-constexpr inline Vector3i operator*(Vector3i first, int32 second) {
+constexpr inline Vector3i operator*(Vector3i first, s32 second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -397,7 +397,7 @@ constexpr inline Vector3i operator*(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline Vector3i operator/(Vector3i first, int32 second) {
+constexpr inline Vector3i operator/(Vector3i first, s32 second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -413,7 +413,7 @@ constexpr inline Vector3i operator/(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline Vector3i operator%(Vector3i first, int32 second) {
+constexpr inline Vector3i operator%(Vector3i first, s32 second) {
 	return {
 		first.x % second,
 		first.y % second,
@@ -436,7 +436,7 @@ constexpr inline Vector3i & operator+=(Vector3i & first, Vector3i const & second
 	return first;
 }
 
-constexpr inline Vector3i & operator+=(Vector3i & first, int32 second) {
+constexpr inline Vector3i & operator+=(Vector3i & first, s32 second) {
 	first.x += second;
 	first.y += second;
 	first.z += second;
@@ -450,7 +450,7 @@ constexpr inline Vector3i & operator-=(Vector3i & first, Vector3i const & second
 	return first;
 }
 
-constexpr inline Vector3i & operator-=(Vector3i & first, int32 second) {
+constexpr inline Vector3i & operator-=(Vector3i & first, s32 second) {
 	first.x -= second;
 	first.y -= second;
 	first.z -= second;
@@ -464,7 +464,7 @@ constexpr inline Vector3i & operator*=(Vector3i & first, Vector3i const & second
 	return first;
 }
 
-constexpr inline Vector3i & operator*=(Vector3i & first, int32 second) {
+constexpr inline Vector3i & operator*=(Vector3i & first, s32 second) {
 	first.x *= second;
 	first.y *= second;
 	first.z *= second;
@@ -478,7 +478,7 @@ constexpr inline Vector3i & operator/=(Vector3i & first, Vector3i const & second
 	return first;
 }
 
-constexpr inline Vector3i & operator/=(Vector3i & first, int32 second) {
+constexpr inline Vector3i & operator/=(Vector3i & first, s32 second) {
 	first.x /= second;
 	first.y /= second;
 	first.z /= second;
@@ -492,7 +492,7 @@ constexpr inline Vector3i & operator%=(Vector3i & first, Vector3i const & second
 	return first;
 }
 
-constexpr inline Vector3i & operator%=(Vector3i & first, int32 second) {
+constexpr inline Vector3i & operator%=(Vector3i & first, s32 second) {
 	first.x %= second;
 	first.y %= second;
 	first.z %= second;
@@ -500,7 +500,7 @@ constexpr inline Vector3i & operator%=(Vector3i & first, int32 second) {
 }
 #endif // defined(__cplusplus) // operator Vector3i
 
-constexpr inline int32 dot_product(Vector3i first, Vector3i second) {
+constexpr inline s32 dot_product(Vector3i first, Vector3i second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z;
@@ -522,11 +522,11 @@ constexpr inline Vector3i max(Vector3i first, Vector3i second) {
 	};
 }
 
-constexpr inline int32 min(Vector3i value) {
+constexpr inline s32 min(Vector3i value) {
 	return min(min(value.x, value.y), value.z);
 }
 
-constexpr inline int32 max(Vector3i value) {
+constexpr inline s32 max(Vector3i value) {
 	return max(max(value.x, value.y), value.z);
 }
 
@@ -546,7 +546,7 @@ constexpr inline Vector3i sign(Vector3i value) {
 	};
 }
 
-constexpr inline Vector3i interpolate(Vector3i from, Vector3i to, int32 mul, int32 div) {
+constexpr inline Vector3i interpolate(Vector3i from, Vector3i to, s32 mul, s32 div) {
 	return {
 		interpolate(from.x, to.x, mul, div),
 		interpolate(from.y, to.y, mul, div),
@@ -577,7 +577,7 @@ constexpr inline Vector2 operator+(Vector2 first, Vector2 second) {
 	};
 }
 
-constexpr inline Vector2 operator+(Vector2 first, float second) {
+constexpr inline Vector2 operator+(Vector2 first, r32 second) {
 	return {
 		first.x + second,
 		first.y + second
@@ -591,7 +591,7 @@ constexpr inline Vector2 operator-(Vector2 first, Vector2 second) {
 	};
 }
 
-constexpr inline Vector2 operator-(Vector2 first, float second) {
+constexpr inline Vector2 operator-(Vector2 first, r32 second) {
 	return {
 		first.x - second,
 		first.y - second
@@ -605,7 +605,7 @@ constexpr inline Vector2 operator-(Vector2 value) {
 	};
 }
 
-constexpr inline Vector2 operator*(Vector2 first, float second) {
+constexpr inline Vector2 operator*(Vector2 first, r32 second) {
 	return {
 		first.x * second,
 		first.y * second
@@ -619,7 +619,7 @@ constexpr inline Vector2 operator*(Vector2 first, Vector2 second) {
 	};
 }
 
-constexpr inline Vector2 operator/(Vector2 first, float second) {
+constexpr inline Vector2 operator/(Vector2 first, r32 second) {
 	return {
 		first.x / second,
 		first.y / second
@@ -639,7 +639,7 @@ constexpr inline Vector2 & operator+=(Vector2 & first, Vector2 const & second) {
 	return first;
 }
 
-constexpr inline Vector2 & operator+=(Vector2 & first, float second) {
+constexpr inline Vector2 & operator+=(Vector2 & first, r32 second) {
 	first.x += second;
 	first.y += second;
 	return first;
@@ -651,7 +651,7 @@ constexpr inline Vector2 & operator-=(Vector2 & first, Vector2 const & second) {
 	return first;
 }
 
-constexpr inline Vector2 & operator-=(Vector2 & first, float second) {
+constexpr inline Vector2 & operator-=(Vector2 & first, r32 second) {
 	first.x -= second;
 	first.y -= second;
 	return first;
@@ -663,7 +663,7 @@ constexpr inline Vector2 & operator*=(Vector2 & first, Vector2 const & second) {
 	return first;
 }
 
-constexpr inline Vector2 & operator*=(Vector2 & first, float second) {
+constexpr inline Vector2 & operator*=(Vector2 & first, r32 second) {
 	first.x *= second;
 	first.y *= second;
 	return first;
@@ -675,14 +675,14 @@ constexpr inline Vector2 & operator/=(Vector2 & first, Vector2 const & second) {
 	return first;
 }
 
-constexpr inline Vector2 & operator/=(Vector2 & first, float second) {
+constexpr inline Vector2 & operator/=(Vector2 & first, r32 second) {
 	first.x /= second;
 	first.y /= second;
 	return first;
 }
 #endif // defined(__cplusplus) // operator Vector2
 
-constexpr inline float dot_product(Vector2 first, Vector2 second) {
+constexpr inline r32 dot_product(Vector2 first, Vector2 second) {
 	return first.x * second.x
 	     + first.y * second.y;
 }
@@ -701,11 +701,11 @@ constexpr inline Vector2 max(Vector2 first, Vector2 second) {
 	};
 }
 
-constexpr inline float min(Vector2 value) {
+constexpr inline r32 min(Vector2 value) {
 	return min(value.x, value.y);
 }
 
-constexpr inline float max(Vector2 value) {
+constexpr inline r32 max(Vector2 value) {
 	return max(value.x, value.y);
 }
 
@@ -723,7 +723,7 @@ constexpr inline Vector2 sign(Vector2 value) {
 	};
 }
 
-constexpr inline Vector2 interpolate(Vector2 from, Vector2 to, float fraction) {
+constexpr inline Vector2 interpolate(Vector2 from, Vector2 to, r32 fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction)
@@ -777,7 +777,7 @@ constexpr inline Vector3 operator+(Vector3 first, Vector3 second) {
 	};
 }
 
-constexpr inline Vector3 operator+(Vector3 first, float second) {
+constexpr inline Vector3 operator+(Vector3 first, r32 second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -793,7 +793,7 @@ constexpr inline Vector3 operator-(Vector3 first, Vector3 second) {
 	};
 }
 
-constexpr inline Vector3 operator-(Vector3 first, float second) {
+constexpr inline Vector3 operator-(Vector3 first, r32 second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -809,7 +809,7 @@ constexpr inline Vector3 operator-(Vector3 value) {
 	};
 }
 
-constexpr inline Vector3 operator*(Vector3 first, float second) {
+constexpr inline Vector3 operator*(Vector3 first, r32 second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -825,7 +825,7 @@ constexpr inline Vector3 operator*(Vector3 first, Vector3 second) {
 	};
 }
 
-constexpr inline Vector3 operator/(Vector3 first, float second) {
+constexpr inline Vector3 operator/(Vector3 first, r32 second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -848,7 +848,7 @@ constexpr inline Vector3 & operator+=(Vector3 & first, Vector3 const & second) {
 	return first;
 }
 
-constexpr inline Vector3 & operator+=(Vector3 & first, float second) {
+constexpr inline Vector3 & operator+=(Vector3 & first, r32 second) {
 	first.x += second;
 	first.y += second;
 	first.z += second;
@@ -862,7 +862,7 @@ constexpr inline Vector3 & operator-=(Vector3 & first, Vector3 const & second) {
 	return first;
 }
 
-constexpr inline Vector3 & operator-=(Vector3 & first, float second) {
+constexpr inline Vector3 & operator-=(Vector3 & first, r32 second) {
 	first.x -= second;
 	first.y -= second;
 	first.z -= second;
@@ -876,7 +876,7 @@ constexpr inline Vector3 & operator*=(Vector3 & first, Vector3 const & second) {
 	return first;
 }
 
-constexpr inline Vector3 & operator*=(Vector3 & first, float second) {
+constexpr inline Vector3 & operator*=(Vector3 & first, r32 second) {
 	first.x *= second;
 	first.y *= second;
 	first.z *= second;
@@ -890,7 +890,7 @@ constexpr inline Vector3 & operator/=(Vector3 & first, Vector3 const & second) {
 	return first;
 }
 
-constexpr inline Vector3 & operator/=(Vector3 & first, float second) {
+constexpr inline Vector3 & operator/=(Vector3 & first, r32 second) {
 	first.x /= second;
 	first.y /= second;
 	first.z /= second;
@@ -898,7 +898,7 @@ constexpr inline Vector3 & operator/=(Vector3 & first, float second) {
 }
 #endif // defined(__cplusplus) // operator Vector3
 
-constexpr inline float dot_product(Vector3 first, Vector3 second) {
+constexpr inline r32 dot_product(Vector3 first, Vector3 second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z;
@@ -920,11 +920,11 @@ constexpr inline Vector3 max(Vector3 first, Vector3 second) {
 	};
 }
 
-constexpr inline float min(Vector3 value) {
+constexpr inline r32 min(Vector3 value) {
 	return min(min(value.x, value.y), value.z);
 }
 
-constexpr inline float max(Vector3 value) {
+constexpr inline r32 max(Vector3 value) {
 	return max(max(value.x, value.y), value.z);
 }
 
@@ -944,7 +944,7 @@ constexpr inline Vector3 sign(Vector3 value) {
 	};
 }
 
-constexpr inline Vector3 interpolate(Vector3 from, Vector3 to, float fraction) {
+constexpr inline Vector3 interpolate(Vector3 from, Vector3 to, r32 fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -1005,7 +1005,7 @@ constexpr inline Vector4 operator+(Vector4 first, Vector4 second) {
 	};
 }
 
-constexpr inline Vector4 operator+(Vector4 first, float second) {
+constexpr inline Vector4 operator+(Vector4 first, r32 second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -1023,7 +1023,7 @@ constexpr inline Vector4 operator-(Vector4 first, Vector4 second) {
 	};
 }
 
-constexpr inline Vector4 operator-(Vector4 first, float second) {
+constexpr inline Vector4 operator-(Vector4 first, r32 second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -1041,7 +1041,7 @@ constexpr inline Vector4 operator-(Vector4 value) {
 	};
 }
 
-constexpr inline Vector4 operator*(Vector4 first, float second) {
+constexpr inline Vector4 operator*(Vector4 first, r32 second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -1059,7 +1059,7 @@ constexpr inline Vector4 operator*(Vector4 first, Vector4 second) {
 	};
 }
 
-constexpr inline Vector4 operator/(Vector4 first, float second) {
+constexpr inline Vector4 operator/(Vector4 first, r32 second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -1085,7 +1085,7 @@ constexpr inline Vector4 & operator+=(Vector4 & first, Vector4 const & second) {
 	return first;
 }
 
-constexpr inline Vector4 & operator+=(Vector4 & first, float second) {
+constexpr inline Vector4 & operator+=(Vector4 & first, r32 second) {
 	first.x += second;
 	first.y += second;
 	first.z += second;
@@ -1101,7 +1101,7 @@ constexpr inline Vector4 & operator-=(Vector4 & first, Vector4 const & second) {
 	return first;
 }
 
-constexpr inline Vector4 & operator-=(Vector4 & first, float second) {
+constexpr inline Vector4 & operator-=(Vector4 & first, r32 second) {
 	first.x -= second;
 	first.y -= second;
 	first.z -= second;
@@ -1117,7 +1117,7 @@ constexpr inline Vector4 & operator*=(Vector4 & first, Vector4 const & second) {
 	return first;
 }
 
-constexpr inline Vector4 & operator*=(Vector4 & first, float second) {
+constexpr inline Vector4 & operator*=(Vector4 & first, r32 second) {
 	first.x *= second;
 	first.y *= second;
 	first.z *= second;
@@ -1133,7 +1133,7 @@ constexpr inline Vector4 & operator/=(Vector4 & first, Vector4 const & second) {
 	return first;
 }
 
-constexpr inline Vector4 & operator/=(Vector4 & first, float second) {
+constexpr inline Vector4 & operator/=(Vector4 & first, r32 second) {
 	first.x /= second;
 	first.y /= second;
 	first.z /= second;
@@ -1142,7 +1142,7 @@ constexpr inline Vector4 & operator/=(Vector4 & first, float second) {
 }
 #endif // defined(__cplusplus) // operator Vector4
 
-constexpr inline float dot_product(Vector4 first, Vector4 second) {
+constexpr inline r32 dot_product(Vector4 first, Vector4 second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z
@@ -1167,11 +1167,11 @@ constexpr inline Vector4 max(Vector4 first, Vector4 second) {
 	};
 }
 
-constexpr inline float min(Vector4 value) {
+constexpr inline r32 min(Vector4 value) {
 	return min(min(min(value.x, value.y), value.z), value.w);
 }
 
-constexpr inline float max(Vector4 value) {
+constexpr inline r32 max(Vector4 value) {
 	return max(max(max(value.x, value.y), value.z), value.w);
 }
 
@@ -1193,7 +1193,7 @@ constexpr inline Vector4 sign(Vector4 value) {
 	};
 }
 
-constexpr inline Vector4 interpolate(Vector4 from, Vector4 to, float fraction) {
+constexpr inline Vector4 interpolate(Vector4 from, Vector4 to, r32 fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -1266,7 +1266,7 @@ Rotation formula (by angle A)
 > > V' = e^(A*i) * V
 */
 
-inline Complex complex_from_radians(float radians) {
+inline Complex complex_from_radians(r32 radians) {
 	return {cosine(radians), sine(radians)};
 }
 
@@ -1340,10 +1340,10 @@ Quaternion rotation formula (by angle A around axis N)
 > > also that's why we specifically use (half_radians = euler_radians / 2) in the code
 */
 
-inline Quaternion quaternion_from_axis(Vector3 axis, float radians) {
-	float half_radians = radians / 2;
-	float s = sine(half_radians);
-	float c = cosine(half_radians);
+inline Quaternion quaternion_from_axis(Vector3 axis, r32 radians) {
+	r32 half_radians = radians / 2;
+	r32 s = sine(half_radians);
+	r32 c = cosine(half_radians);
 	return {axis.x * s, axis.y * s, axis.z * s, c};
 }
 
@@ -1474,7 +1474,7 @@ constexpr inline S magnitude_squared(T value) {\
 }
 
 #define VECTOR_MAGNITUDE_IMPL(T)\
-inline float magnitude(T value) {\
+inline r32 magnitude(T value) {\
 	return square_root(magnitude_squared(value));\
 }
 
@@ -1484,60 +1484,60 @@ inline T normalize(T value) {\
 }
 
 #define VECTOR_REFLECT_IMPL(T)\
-constexpr inline T reflect(T incident, T normal, float factor) {\
-	float incident_cosine = dot_product(incident, normal);\
-	float normal_factor   = incident_cosine * factor;\
+constexpr inline T reflect(T incident, T normal, r32 factor) {\
+	r32 incident_cosine = dot_product(incident, normal);\
+	r32 normal_factor   = incident_cosine * factor;\
 	return incident - normal * normal_factor;\
 }
 
 #define VECTOR_REFRACT_IMPL(T)\
-inline T refract(T incident, T normal, float factor) {\
-	float incident_cosine = dot_product(incident, normal);\
-	float incident_sine_squared = 1 - incident_cosine * incident_cosine;\
-	float refracted_sine_squared = factor * factor * incident_sine_squared;\
+inline T refract(T incident, T normal, r32 factor) {\
+	r32 incident_cosine = dot_product(incident, normal);\
+	r32 incident_sine_squared = 1 - incident_cosine * incident_cosine;\
+	r32 refracted_sine_squared = factor * factor * incident_sine_squared;\
 	if (refracted_sine_squared < 1) {\
-		float refracted_cosine = square_root(1 - refracted_sine_squared);\
-		float normal_factor = incident_cosine * factor + refracted_cosine;\
+		r32 refracted_cosine = square_root(1 - refracted_sine_squared);\
+		r32 normal_factor = incident_cosine * factor + refracted_cosine;\
 		return incident * factor - normal * normal_factor;\
 	}\
 	return {};\
 }
 
 #define VECTOR_MOVE_TOWARDS_CLAMPED_IMPL(T)\
-inline T move_towards_clamped(T from, T to, float delta) {\
+inline T move_towards_clamped(T from, T to, r32 delta) {\
 	T direction = to - from;\
-	float distance = magnitude(direction);\
+	r32 distance = magnitude(direction);\
 	if (delta <= 0) { return from; }\
 	if (delta >= distance) { return to; }\
 	return from + (direction / distance) * delta;\
 }
 
 #define VECTOR_CLAMP_MAGNITUDE_IMPL(T)\
-inline T clamp_magnitude(T value, float low, float high) {\
-	float length = magnitude(value);\
+inline T clamp_magnitude(T value, r32 low, r32 high) {\
+	r32 length = magnitude(value);\
 	if (length < low) { return (value / length) * low; }\
 	if (length > high) { return (value / length) * high; }\
 	return value;\
 }
 
-CLAMP_IMPL(int32)
+CLAMP_IMPL(s32)
 CLAMP_IMPL(Vector2i)
 CLAMP_IMPL(Vector3i)
 
-CLAMP_IMPL(float)
+CLAMP_IMPL(r32)
 CLAMP_IMPL(Vector2)
 CLAMP_IMPL(Vector3)
 CLAMP_IMPL(Vector4)
 
-MOVE_TOWARDS_CLAMPED_IMPL(int32);
-MOVE_TOWARDS_CLAMPED_IMPL(float);
+MOVE_TOWARDS_CLAMPED_IMPL(s32);
+MOVE_TOWARDS_CLAMPED_IMPL(r32);
 
-VECTOR_MAGNITUDE_SQUARED_IMPL(Vector2i, int32)
-VECTOR_MAGNITUDE_SQUARED_IMPL(Vector3i, int32)
+VECTOR_MAGNITUDE_SQUARED_IMPL(Vector2i, s32)
+VECTOR_MAGNITUDE_SQUARED_IMPL(Vector3i, s32)
 
-VECTOR_MAGNITUDE_SQUARED_IMPL(Vector2, float)
-VECTOR_MAGNITUDE_SQUARED_IMPL(Vector3, float)
-VECTOR_MAGNITUDE_SQUARED_IMPL(Vector4, float)
+VECTOR_MAGNITUDE_SQUARED_IMPL(Vector2, r32)
+VECTOR_MAGNITUDE_SQUARED_IMPL(Vector3, r32)
+VECTOR_MAGNITUDE_SQUARED_IMPL(Vector4, r32)
 
 VECTOR_MAGNITUDE_IMPL(Vector2)
 VECTOR_MAGNITUDE_IMPL(Vector3)

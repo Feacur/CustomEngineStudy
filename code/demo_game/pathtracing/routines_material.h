@@ -1,12 +1,12 @@
-constexpr inline float schlick(float one_minus_cosine, float factor) {
+constexpr inline r32 schlick(r32 one_minus_cosine, r32 factor) {
 	// approximates reflectivity
-	float r = (factor - 1) / (factor + 1);
-	float c = one_minus_cosine * one_minus_cosine;
+	r32 r = (factor - 1) / (factor + 1);
+	r32 c = one_minus_cosine * one_minus_cosine;
 	return interpolate(c * c * one_minus_cosine, 1.0f, r * r);
 }
 
 Vector3 material_scatter(Game_Data * game_data, Material material, Vector3 incident, Vector3 normal) {
-	static float const factor = 2;
+	static r32 const factor = 2;
 	
 	normal = normalize(normal + random3_radius01(&game_data->random_state) * material.roughness);
 
@@ -15,8 +15,8 @@ Vector3 material_scatter(Game_Data * game_data, Material material, Vector3 incid
 	}
 
 	if (material.type == Material::Type::Dielectric) {
-		float refraction_factor;
-		float cosine = dot_product(incident, normal);
+		r32 refraction_factor;
+		r32 cosine = dot_product(incident, normal);
 		if (cosine < 0) {
 			refraction_factor = air_refractive_index / material.refractive_index;
 			cosine = -cosine;

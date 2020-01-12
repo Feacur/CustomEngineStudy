@@ -1,4 +1,4 @@
-inline float shape_get_distance(Shape shape, Ray3 ray) {
+inline r32 shape_get_distance(Shape shape, Ray3 ray) {
 	if (shape.type == Shape::Type::Sphere) {
 		return hit_sphere(shape.sphere, ray);
 	}

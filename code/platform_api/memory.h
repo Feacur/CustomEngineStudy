@@ -1,5 +1,5 @@
 struct Memory_Chunk {
-	uint8 * data;
+	u8 * data;
 	size_t  capacity, length;
 };
 
@@ -9,8 +9,8 @@ inline void reset_memory_chunk(Memory_Chunk * memory) {
 	// memset(memory->data, 0, memory->length);
 }
 
-inline uint8 * allocate_data(Memory_Chunk * memory, size_t size_in_bytes) {
-	uint8 * result = 0;
+inline u8 * allocate_data(Memory_Chunk * memory, size_t size_in_bytes) {
+	u8 * result = 0;
 	if (memory->length + size_in_bytes <= memory->capacity) {
 		result = memory->data + memory->length;
 		memory->length += size_in_bytes;

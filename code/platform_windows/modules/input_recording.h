@@ -1,11 +1,11 @@
 #define FEATURE_INPUT_RECORDING
 
-enum struct Input_Recording_State : uint8 {
+enum struct Input_Recording_State : u8 {
 	Stop   = 0,
 	Record = 1,
 	Play   = 2,
 };
-UNDERLYING_TYPE_META(Input_Recording_State, uint8)
+UNDERLYING_TYPE_META(Input_Recording_State, u8)
 IS_ENUM_META(Input_Recording_State)
 
 static Input_Recording_State input_recording_state = Input_Recording_State::Stop;
@@ -30,10 +30,10 @@ void load_state(Memory_Chunk * permanent_memory) {
 	}
 }
 
-void process_input_recording(Memory_Chunk *permanent_memory, int32 input) {
+void process_input_recording(Memory_Chunk *permanent_memory, s32 input) {
 	static Input_Recording_State previous_state    = Input_Recording_State::Stop;
 	static HANDLE                input_file        = {};
-	static DWORD const           input_memory_size = sizeof(int32);
+	static DWORD const           input_memory_size = sizeof(s32);
 	
 	// MARK: stop
 	if ((previous_state != input_recording_state) && (previous_state != Input_Recording_State::Stop)) {

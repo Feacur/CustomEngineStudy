@@ -8,18 +8,21 @@
 #include <math.h>   // non-trivial math functions
 
 // basic types
-typedef int8_t   int8;  // signed char
-typedef int16_t  int16; // short
-typedef int32_t  int32; // int
-typedef int64_t  int64; // long long
+typedef int8_t   s8;  // signed char
+typedef int16_t  s16; // short
+typedef int32_t  s32; // int
+typedef int64_t  s64; // long long
 
-typedef uint8_t  uint8;  // unsigned char
-typedef uint16_t uint16; // unsigned short
-typedef uint32_t uint32; // unsigned int
-typedef uint64_t uint64; // unsigned long long
+typedef uint8_t  u8;  // unsigned char
+typedef uint16_t u16; // unsigned short
+typedef uint32_t u32; // unsigned int
+typedef uint64_t u64; // unsigned long long
 
-typedef long          int48;  // witty (32 + 64) / 2
-typedef unsigned long uint48; // witty (32 + 64) / 2
+typedef long          s48; // witty (32 + 64) / 2
+typedef unsigned long u48; // witty (32 + 64) / 2
+
+typedef float  r32;
+typedef double r64;
 
 typedef char const * cstring;
 
@@ -83,10 +86,10 @@ typedef char const * cstring;
 #if defined(__cplusplus)
 namespace meta {
 	template<size_t S> struct uint_for_size;
-	template<> struct uint_for_size<1> { typedef uint8  type; };
-	template<> struct uint_for_size<2> { typedef uint16 type; };
-	template<> struct uint_for_size<4> { typedef uint32 type; };
-	template<> struct uint_for_size<8> { typedef uint64 type; };
+	template<> struct uint_for_size<1> { typedef u8  type; };
+	template<> struct uint_for_size<2> { typedef u16 type; };
+	template<> struct uint_for_size<4> { typedef u32 type; };
+	template<> struct uint_for_size<8> { typedef u64 type; };
 
 	template<typename T>
 	struct uint_for_type {

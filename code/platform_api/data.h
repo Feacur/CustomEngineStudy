@@ -1,25 +1,25 @@
 struct Time {
-	uint64 frame_timestamp;
-	int64  precision;
-	int64  target_frame_duration;
-	int64  last_frame_duration;
-	int64  since_start;
+	u64 frame_timestamp;
+	s64  precision;
+	s64  target_frame_duration;
+	s64  last_frame_duration;
+	s64  since_start;
 };
 
 struct Sound_Data {
-	int16  * data;
-	uint32   size;
-	int32    channels;
-	int32    samples_per_second;
+	s16  * data;
+	u32   size;
+	s32    channels;
+	s32    samples_per_second;
 };
 
 struct Render_Settings {
-	enum struct Size_Mode : uint8 {
+	enum struct Size_Mode : u8 {
 		Game,
 		Window,
 	};
 
-	enum struct Stretch_Mode : uint8 {
+	enum struct Stretch_Mode : u8 {
 		None,
 		Fractional,
 	};
@@ -29,16 +29,16 @@ struct Render_Settings {
 	Stretch_Mode stretch_mode;
 	bool         fullscreen;
 };
-UNDERLYING_TYPE_META(Render_Settings::Size_Mode, uint8)
+UNDERLYING_TYPE_META(Render_Settings::Size_Mode, u8)
 IS_ENUM_META(Render_Settings::Size_Mode)
-UNDERLYING_TYPE_META(Render_Settings::Stretch_Mode, uint8)
+UNDERLYING_TYPE_META(Render_Settings::Stretch_Mode, u8)
 IS_ENUM_META(Render_Settings::Stretch_Mode)
 
 //
 //
 //
 
-#define PLATFORM_READ_FILE(ROUTINE_NAME) uint8 * ROUTINE_NAME(Memory_Chunk * memory, cstring file_name)
+#define PLATFORM_READ_FILE(ROUTINE_NAME) u8 * ROUTINE_NAME(Memory_Chunk * memory, cstring file_name)
 typedef PLATFORM_READ_FILE(platform_read_file_func);
 
 #define PLATFORM_ALLOCATE_MEMORY(ROUTINE_NAME) void * ROUTINE_NAME(size_t size_in_bytes)
@@ -74,4 +74,4 @@ struct Platform_Data {
 
 #define GAME_UPDATE(ROUTINE_NAME)       void ROUTINE_NAME(Platform_Data * platform_data)
 #define GAME_RENDER(ROUTINE_NAME)       void ROUTINE_NAME(Platform_Data * platform_data)
-#define GAME_OUTPUT_SOUND(ROUTINE_NAME) void ROUTINE_NAME(Platform_Data * platform_data, int32 samples_count)
+#define GAME_OUTPUT_SOUND(ROUTINE_NAME) void ROUTINE_NAME(Platform_Data * platform_data, s32 samples_count)

@@ -31,7 +31,7 @@ extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	};
 	
 	// draw entities
-	for (uint8 i = 0; i < game_data->entities.length; ++i) {
+	for (u8 i = 0; i < game_data->entities.length; ++i) {
 		Entity entity = game_data->entities[i];
 		
 		Vector2 axis_x = entity.rotation;

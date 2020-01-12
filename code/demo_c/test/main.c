@@ -1,11 +1,11 @@
 #include "demo_c/main_common.h"
 
 typedef struct {
-	int32 a;
-	int32 b;
-	int32 c;
-	int32 d;
-	int32 e;
+	s32 a;
+	s32 b;
+	s32 c;
+	s32 d;
+	s32 e;
 } Some_Struct;
 
 int main(int argc, char * argv[]) {

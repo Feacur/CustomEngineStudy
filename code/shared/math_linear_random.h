@@ -4,12 +4,12 @@
 	#error include "shared/math_random.h"
 #endif
 
-inline Vector2 random2_01(uint32 * state) { return {random_01(state), random_01(state)}; }
-inline Vector3 random3_01(uint32 * state) { return {random_01(state), random_01(state), random_01(state)}; }
-inline Vector4 random4_01(uint32 * state) { return {random_01(state), random_01(state), random_01(state), random_01(state)}; }
+inline Vector2 random2_01(u32 * state) { return {random_01(state), random_01(state)}; }
+inline Vector3 random3_01(u32 * state) { return {random_01(state), random_01(state), random_01(state)}; }
+inline Vector4 random4_01(u32 * state) { return {random_01(state), random_01(state), random_01(state), random_01(state)}; }
 
 #define RANDOM_RADIUS_IMPL(T, name)\
-inline T name##_radius01(uint32 * state) {\
+inline T name##_radius01(u32 * state) {\
 	T point;\
 	do {\
 		point = name##_01(state) * 2 - 1;\

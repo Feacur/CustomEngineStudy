@@ -8,8 +8,8 @@
 
 struct Sound_Buffer {
 	Sound_Data sound;
-	int32      bytes_per_sample;
-	float      buffer_length_in_seconds;
+	s32      bytes_per_sample;
+	r32      buffer_length_in_seconds;
 	DWORD      running_sample_byte;
 	LPDIRECTSOUNDBUFFER secondary_buffer;
 };
@@ -70,7 +70,7 @@ void setup_sound_buffer(HWND window) {
 	
 	// allocate memory
 	sound_buffer.sound.size = secondary_buffer_description.dwBufferBytes;
-	sound_buffer.sound.data = (int16 *)allocate_memory(secondary_buffer_description.dwBufferBytes);
+	sound_buffer.sound.data = (s16 *)allocate_memory(secondary_buffer_description.dwBufferBytes);
 	CUSTOM_ASSERT(sound_buffer.sound.data, "Can't allocate sound buffer memory");
 }
 
@@ -104,7 +104,7 @@ void reinit_sound_buffer(HWND window) {
 	}
 
 	sound_buffer.sound.channels = 2;
-	sound_buffer.bytes_per_sample = sizeof(int16);
+	sound_buffer.bytes_per_sample = sizeof(s16);
 	sound_buffer.sound.samples_per_second = 48000;
 	sound_buffer.buffer_length_in_seconds = 1;
 	
@@ -146,9 +146,9 @@ void play_sound_buffer() {
 }
 
 void fill_sound_buffer(DWORD bytes_to_write) {
-	int32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
-	int32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
-	int32 bytes_for_buffer  = (int32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
+	s32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
+	s32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
+	s32 bytes_for_buffer  = (s32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
 
 	// lock buffer's regions
 	VOID *region1, *region2;
@@ -162,8 +162,8 @@ void fill_sound_buffer(DWORD bytes_to_write) {
 	CUSTOM_ASSERT(result_Lock == DS_OK, "Can't lock sound buffer");
 
 	// fill buffer's regions
-	int8 *region1_in = (int8 *)sound_buffer.sound.data;
-	int8 *region2_in = region1_in + region1_size;
+	s8 *region1_in = (s8 *)sound_buffer.sound.data;
+	s8 *region2_in = region1_in + region1_size;
 	
 	memcpy(region1, region1_in, region1_size);		
 	memcpy(region2, region2_in, region2_size);

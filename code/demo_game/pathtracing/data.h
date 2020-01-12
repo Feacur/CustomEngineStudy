@@ -1,16 +1,16 @@
-static uint8 const checksum[8] = {'p', 'a', 't', 'h', 't', 'r', 'a', 'c'};
+static u8 const checksum[8] = {'p', 'a', 't', 'h', 't', 'r', 'a', 'c'};
 
 //
 //
 //
 
 struct Hit_Data {
-	int32 index;
-	float distance;
+	s32 index;
+	r32 distance;
 };
 
 struct Material {
-	enum struct Type : uint8 {
+	enum struct Type : u8 {
 		Diffuse,
 		Metal,
 		Dielectric,
@@ -19,19 +19,19 @@ struct Material {
 	Type type;
 	Vector3 albedo;
 	Vector3 emission;
-	float roughness;
-	float refractive_index;
+	r32 roughness;
+	r32 refractive_index;
 	
 	Material & set_albedo(Vector3 value);
 	Material & set_emission(Vector3 value);
-	Material & set_roughness(float value);
-	Material & set_refractive_index(float value);
+	Material & set_roughness(r32 value);
+	Material & set_refractive_index(r32 value);
 };
-UNDERLYING_TYPE_META(Material::Type, uint8)
+UNDERLYING_TYPE_META(Material::Type, u8)
 IS_ENUM_META(Material::Type)
 
 struct Shape {
-	enum struct Type : uint8
+	enum struct Type : u8
 	{
 		Sphere,
 		Aabb,
@@ -43,12 +43,12 @@ struct Shape {
 		Vector4 sphere;
 	};
 };
-UNDERLYING_TYPE_META(Shape::Type, uint8)
+UNDERLYING_TYPE_META(Shape::Type, u8)
 IS_ENUM_META(Shape::Type)
 
 struct Game_Data {
-	uint8 checksum[8];
-	uint32 random_state;
+	u8 checksum[8];
+	u32 random_state;
 	Vector3 camera_position;
 	Quaternion camera_rotation;
 	Array_Dynamic<Shape> shapes;
@@ -62,8 +62,8 @@ struct Game_Data {
 Material mat0(Material::Type type) { return { type, 0 }; }
 Material & Material::set_albedo(Vector3 value) { albedo = value; return *this; }
 Material & Material::set_emission(Vector3 value) { emission = value; return *this; }
-Material & Material::set_roughness(float value) { roughness = value; return *this; }
-Material & Material::set_refractive_index(float value) { refractive_index = value; return *this; }
+Material & Material::set_roughness(r32 value) { roughness = value; return *this; }
+Material & Material::set_refractive_index(r32 value) { refractive_index = value; return *this; }
 
 Shape aabb(Aabb3 value) { Shape s = {Shape::Type::Aabb, 0}; s.aabb = value; return s; }
 Shape sphere(Vector4 value) { Shape s = {Shape::Type::Sphere, 0}; s.sphere = value; return s; }
@@ -91,7 +91,7 @@ namespace camera {
 		game_data->camera_rotation = quaternion_multiply(
 			game_data->camera_rotation,
 			quaternion_from_radians(
-				vec3((float)-pointer_delta.y, (float)pointer_delta.x, 0) * deg_to_rad
+				vec3((r32)-pointer_delta.y, (r32)pointer_delta.x, 0) * deg_to_rad
 			)
 		);
 	}
@@ -101,16 +101,16 @@ namespace camera {
 			return;
 		}
 
-		float delta_time = globals::get_delta_seconds();
+		r32 delta_time = globals::get_delta_seconds();
 
-		float speed   = input::get_current(Keyboard_Keys::Shift) * 3 + 1.0f;
+		r32 speed   = input::get_current(Keyboard_Keys::Shift) * 3 + 1.0f;
 		
-		float left    = input::get_current(Keyboard_Keys::A) * speed;
-		float right   = input::get_current(Keyboard_Keys::D) * speed;
-		float forward = input::get_current(Keyboard_Keys::W) * speed;
-		float back    = input::get_current(Keyboard_Keys::S) * speed;
-		float down    = input::get_current(Keyboard_Keys::Q) * speed;
-		float up      = input::get_current(Keyboard_Keys::E) * speed;
+		r32 left    = input::get_current(Keyboard_Keys::A) * speed;
+		r32 right   = input::get_current(Keyboard_Keys::D) * speed;
+		r32 forward = input::get_current(Keyboard_Keys::W) * speed;
+		r32 back    = input::get_current(Keyboard_Keys::S) * speed;
+		r32 down    = input::get_current(Keyboard_Keys::Q) * speed;
+		r32 up      = input::get_current(Keyboard_Keys::E) * speed;
 
 		Vector3 offset = {right - left, up - down, forward - back};
 		offset = quaternion_rotate_vector(game_data->camera_rotation, offset);

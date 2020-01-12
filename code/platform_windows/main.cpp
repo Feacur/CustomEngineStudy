@@ -146,11 +146,11 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	//
 	
 	platform_data.permanent_memory.capacity = 100 * 1024 * 1024;
-	platform_data.permanent_memory.data = (uint8 *)allocate_memory(platform_data.permanent_memory.capacity);
+	platform_data.permanent_memory.data = (u8 *)allocate_memory(platform_data.permanent_memory.capacity);
 	CUSTOM_ASSERT(platform_data.permanent_memory.data, "Can't allocate permanent memory");
 	
 	platform_data.transient_memory.capacity = 100 * 1024 * 1024;
-	platform_data.transient_memory.data = (uint8 *)allocate_memory(platform_data.transient_memory.capacity);
+	platform_data.transient_memory.data = (u8 *)allocate_memory(platform_data.transient_memory.capacity);
 	CUSTOM_ASSERT(platform_data.transient_memory.data, "Can't allocate transient memory");
 	
 	CUSTOM_TRACE("Allocated general memory");
@@ -161,7 +161,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	initialize_time();
 
-	int64 monitor_hz = (int64)GetDeviceCaps(device_context, VREFRESH);
+	s64 monitor_hz = (s64)GetDeviceCaps(device_context, VREFRESH);
 	if (monitor_hz <= 0) { monitor_hz = 60; }
 
 	platform_data.time.precision = 1000000000;
@@ -169,8 +169,8 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	// GetSystemMetrics with SM_CXSCREEN and SM_CYSCREEN
 	monitor_size = {
-		(int32)GetDeviceCaps(device_context, HORZRES),
-		(int32)GetDeviceCaps(device_context, VERTRES)
+		(s32)GetDeviceCaps(device_context, HORZRES),
+		(s32)GetDeviceCaps(device_context, VERTRES)
 	};
 	
 	CUSTOM_TRACE("Initialized performance counters");
@@ -288,12 +288,12 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 		DWORD write_cursor;
 		HRESULT result_GetCurrentPosition = sound_buffer.secondary_buffer->GetCurrentPosition(&play_cursor, &write_cursor);
 		if (result_GetCurrentPosition == DS_OK) {
-			int32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
-			int32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
-			int32 bytes_for_buffer  = (int32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
+			s32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
+			s32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
+			s32 bytes_for_buffer  = (s32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
 			
-			int64 time_ahead  = platform_data.time.target_frame_duration * 4;
-			int32 bytes_ahead = (int32)mul_div((int64)bytes_for_second, time_ahead, platform_data.time.precision);
+			s64 time_ahead  = platform_data.time.target_frame_duration * 4;
+			s32 bytes_ahead = (s32)mul_div((s64)bytes_for_second, time_ahead, platform_data.time.precision);
 			
 			DWORD end_at_byte    = (write_cursor + bytes_ahead) % bytes_for_buffer;
 			DWORD bytes_to_write = (
@@ -386,14 +386,14 @@ LRESULT CALLBACK window_procedure(
 		
 		case WM_MOUSEWHEEL: {
 			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			input_pointer.wheel.y = (float)delta / WHEEL_DELTA;
+			input_pointer.wheel.y = (r32)delta / WHEEL_DELTA;
 			// If an application processes this message, it should return zero.
 			return 0;
 		} break;
 		
 		case WM_MOUSEHWHEEL: {
 			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			input_pointer.wheel.x = (float)delta / WHEEL_DELTA;
+			input_pointer.wheel.x = (r32)delta / WHEEL_DELTA;
 			// If an application processes this message, it should return zero.
 			return 0;
 		} break;
@@ -556,8 +556,8 @@ void convert_image() {
 	auto exposure = platform_data.render_buffer_image_f.exposure;
 	render_buffer.image_f.exposure = exposure;
 	if (exposure <= 0) { return; }
-	int32 pixels_count = render_buffer.image.size.x * render_buffer.image.size.y;
-	for (int32 i = 0; i < pixels_count; ++i) {
+	s32 pixels_count = render_buffer.image.size.x * render_buffer.image.size.y;
+	for (s32 i = 0; i < pixels_count; ++i) {
 		auto color = render_buffer.image_f.data[i] / exposure;
 		color = clamp(color, {0, 0, 0}, {1, 1, 1});
 		*(render_buffer.image.data + i) = vector4_to_color32(color, render_buffer.image.offsets);

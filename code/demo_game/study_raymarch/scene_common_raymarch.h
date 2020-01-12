@@ -1,7 +1,7 @@
 struct Raymarch_Result {
-	float depth;
-	int32 steps;
-	float attenuation;
+	r32 depth;
+	s32 steps;
+	r32 attenuation;
 };
 
 /*
@@ -9,12 +9,12 @@ struct Raymarch_Result {
 2) Move along the ray by this distance
 3) Repeat until close enough or out of steps
 */
-Raymarch_Result raymarch_scene(Ray3 ray, int32 steps_limit, float depth_limit) {
-	static float const proximity_epsilon = 0.1f;
+Raymarch_Result raymarch_scene(Ray3 ray, s32 steps_limit, r32 depth_limit) {
+	static r32 const proximity_epsilon = 0.1f;
 
 	Raymarch_Result result = {0, 0, 1};
-	for (int32 i = 0; i < steps_limit; ++i) {
-		float proximity = sdf_scene(ray.origin + ray.direction * result.depth);
+	for (s32 i = 0; i < steps_limit; ++i) {
+		r32 proximity = sdf_scene(ray.origin + ray.direction * result.depth);
 		result.depth += proximity;
 		result.steps = i;
 		if (proximity < proximity_epsilon) { result.attenuation = 0; break; }
@@ -25,8 +25,8 @@ Raymarch_Result raymarch_scene(Ray3 ray, int32 steps_limit, float depth_limit) {
 	return result;
 }
 
-float raymarch_attenuation(Vector3 point, Vector3 normal, Vector3 light, int32 steps_limit, float depth_limit) {
-	static float const proximity_epsilon = 0.1f;
+r32 raymarch_attenuation(Vector3 point, Vector3 normal, Vector3 light, s32 steps_limit, r32 depth_limit) {
+	static r32 const proximity_epsilon = 0.1f;
 	Vector3 offset_point = point + normal * (proximity_epsilon * 2);
 	Raymarch_Result raymarch_result = raymarch_scene({offset_point, light}, steps_limit, depth_limit);
 	return raymarch_result.attenuation;

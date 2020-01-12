@@ -1,12 +1,12 @@
 struct Scene_Node {
 	Aabb3 aabb;
-	int32 shape_index;
-	int32 nodes[SHAPES_COUNT];
-	int32 nodes_count;
+	s32 shape_index;
+	s32 nodes[SHAPES_COUNT];
+	s32 nodes_count;
 };
 
 static Scene_Node scene_nodes[SHAPES_COUNT * 2] = {};
-static int32 scene_nodes_count = 0;
+static s32 scene_nodes_count = 0;
 
 Aabb3 shape_get_aabb(Shape shape);
 void reinit_shapes(Game_Data * game_data);
@@ -19,7 +19,7 @@ void reinit_nodes(Game_Data * game_data) {
 		0
 	};
 
-	for (int32 i = 0; i < game_data->shapes.length; ++i) {
+	for (s32 i = 0; i < game_data->shapes.length; ++i) {
 		scene_nodes[0].nodes[i] = i + 1;
 		scene_nodes[0].nodes_count++;
 
@@ -52,7 +52,7 @@ namespace game {
 	void init() {
 		auto game_data = allocate_game_memory();
 		memcpy(game_data->checksum, checksum, sizeof(checksum));
-		game_data->random_state = (uint32)globals::frame_timestamp;
+		game_data->random_state = (u32)globals::frame_timestamp;
 
 		game_data->camera_position = {-3, 2, -8};
 		game_data->camera_rotation = quaternion_from_radians(

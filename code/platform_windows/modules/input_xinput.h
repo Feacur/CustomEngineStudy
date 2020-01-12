@@ -26,8 +26,8 @@ void load_xinput()
 {
 	HMODULE library = 0;
 	cstring libraries[] = {"xinput1_4.dll", "xinput9_1_0.dll", "xinput1_3.dll"};
-	const int32 elements_in_libraries = C_ARRAY_LENGTH(libraries);
-	for (int32 i = 0; i < elements_in_libraries; ++i) {
+	const s32 elements_in_libraries = C_ARRAY_LENGTH(libraries);
+	for (s32 i = 0; i < elements_in_libraries; ++i) {
 		library = LoadLibrary(libraries[i]);
 		if (library) { break; }
 	}
@@ -64,14 +64,14 @@ void process_xinput_example() {
 		bool button_4       = BITS_ARE_SET(gamepad.wButtons, XINPUT_GAMEPAD_Y);
 		
 		// XINPUT_GAMEPAD_TRIGGER_THRESHOLD
-		float trigger0 = uint8_to_fraction(gamepad.bLeftTrigger);
-		float trigger1 = uint8_to_fraction(gamepad.bRightTrigger);
+		r32 trigger0 = uint8_to_fraction(gamepad.bLeftTrigger);
+		r32 trigger1 = uint8_to_fraction(gamepad.bRightTrigger);
 		
 		// XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE
 		// XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE
-		float thumb0x = int16_to_fraction(gamepad.sThumbLX);
-		float thumb0y = int16_to_fraction(gamepad.sThumbLY);
-		float thumb1x = int16_to_fraction(gamepad.sThumbRX);
-		float thumb1y = int16_to_fraction(gamepad.sThumbRY);
+		r32 thumb0x = int16_to_fraction(gamepad.sThumbLX);
+		r32 thumb0y = int16_to_fraction(gamepad.sThumbLY);
+		r32 thumb1x = int16_to_fraction(gamepad.sThumbRX);
+		r32 thumb1y = int16_to_fraction(gamepad.sThumbRY);
 	}
 }
