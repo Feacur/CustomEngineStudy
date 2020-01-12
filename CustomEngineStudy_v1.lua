@@ -89,7 +89,6 @@ root_directory = os.getcwd()
 
 -- project: demo game
 project "demo_game"
-	-- targetname "demo_game"
 	location "code"
 	kind "SharedLib"
 	language "C++"
@@ -122,7 +121,6 @@ project "demo_game"
 
 -- project: platform windows
 project "platform_windows"
-	-- targetname "demo_windows"
 	location "code"
 	kind "ConsoleApp"
 	language "C++"
@@ -159,7 +157,6 @@ project "platform_windows"
 
 -- project: demo console
 project "demo_console"
-	-- targetname "demo_console"
 	location "code"
 	kind "ConsoleApp"
 	language "C++"
@@ -187,7 +184,6 @@ project "demo_console"
 
 -- project: demo c
 project "demo_c"
-	-- targetname "demo_c"
 	location "code"
 	kind "ConsoleApp"
 	language "C"

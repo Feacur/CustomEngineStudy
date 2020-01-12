@@ -28,8 +28,7 @@ workspace "CustomEngineStudy_v2"
 	}
 
 	defines {
-		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		"GLM_FORCE_LEFT_HANDED",
+		--
 	}
 
 	filter "toolset:msc*"
@@ -89,23 +88,10 @@ enginename = "engine"
 -- Include directories relative to the root folder (solution directory)
 include_directories = {}
 include_directories["engine"] = enginename .. "/src"
--- include_directories["Glad"]   = enginename .. "/vendor/Glad/include"
--- include_directories["GLFW"]   = enginename .. "/vendor/GLFW/include"
--- include_directories["glm"]    = enginename .. "/vendor/glm"
--- include_directories["imgui"]  = enginename .. "/vendor/imgui"
--- include_directories["lua"]    = enginename .. "/vendor/lua/src"
--- include_directories["spdlog"] = enginename .. "/vendor/spdlog/include"
--- include_directories["stb_image"] = enginename .. "/vendor/stb_image"
 
 root_directory = os.getcwd()
 
-group "Dependecies"
--- include "Engine/vendor/premake5_Glad.lua"
--- include "Engine/vendor/premake5_GLFW.lua"
--- include "Engine/vendor/premake5_imgui.lua"
--- include "Engine/vendor/premake5_lua.lua"
-group ""
-
+-- project: engine
 project "engine"
 	location "engine"
 	kind "StaticLib" -- or "SharedLib"
@@ -117,44 +103,30 @@ project "engine"
 	targetdir (target_location .. "/%{prj.name}")
 	objdir (intermediate_location .. "/%{prj.name}")
 
-	-- pchheader "ges_pch.h"
-	-- pchsource (enginename .. "/src/ges_pch.cpp")
+	-- pchheader "custom_pch.h"
+	-- pchsource (enginename .. "/src/custom_pch.cpp")
 
 	files {
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
-		-- "%{include_directories.spdlog}/spdlog/**.h",
-		-- "%{include_directories.glm}/glm/**.hpp",
-		-- "%{include_directories.glm}/glm/**.inl",
-		-- "%{include_directories.stb_image}/**.h",
-		-- "%{include_directories.stb_image}/**.cpp",
 	}
 
 	includedirs {
 		"%{include_directories.engine}",
-		-- "%{include_directories.Glad}",
-		-- "%{include_directories.GLFW}",
-		-- "%{include_directories.glm}",
-		-- "%{include_directories.imgui}",
-		-- "%{include_directories.lua}",
-		-- "%{include_directories.spdlog}",
-		-- "%{include_directories.stb_image}",
 	}
 
 	filter "system:windows"
 		defines {
-			-- "GES_BUILD_DLL", -- if specified [kind "SharedLib"]
-			-- "GES_SHARED", -- if specified [kind "SharedLib"]
-			-- "GLFW_INCLUDE_NONE",
-			-- "_CRT_SECURE_NO_WARNINGS",
+			-- "CUSTOM_IS_DLL", -- if specified [kind "SharedLib"]
+			-- "CUSTOM_SHARED", -- if specified [kind "SharedLib"]
 		}
 
 		links {
-			-- "GLFW",
-			-- "Glad",
-			-- "imgui",
-			-- "lua",
-			"opengl32.lib",
+			-- "user32",
+			-- "gdi32",
+			-- "opengl32",
+			-- "winmm",
+			-- "kernel32",
 		}
 
 		postbuildcommands {
@@ -163,6 +135,7 @@ project "engine"
 			-- ("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/sandbox/\""),
 		}
 
+-- project: sandbox
 project "sandbox"
 	location "sandbox"
 	kind "ConsoleApp"
@@ -181,10 +154,6 @@ project "sandbox"
 
 	includedirs {
 		"%{include_directories.engine}",
-		-- "%{include_directories.glm}",
-		-- "%{include_directories.imgui}",
-		-- "%{include_directories.lua}",
-		-- "%{include_directories.spdlog}",
 	}
 
 	links {
@@ -196,15 +165,5 @@ project "sandbox"
 	}
 
 	defines {
-		-- "GES_SHARED", -- if specified [kind "SharedLib"] for the engine
+		-- "CUSTOM_SHARED", -- if specified [kind "SharedLib"] for the engine
 	}
-
-	-- filter "system:windows"
-	-- 	defines {
-	-- 		"_CRT_SECURE_NO_WARNINGS",
-	-- 	}
-
-	-- filter "toolset:msc*"
-	-- 	defines {
-	-- 		-- "IMGUI_API=__declspec(dllimport)", -- if specified [kind "SharedLib"] for the engine
-	-- 	}
