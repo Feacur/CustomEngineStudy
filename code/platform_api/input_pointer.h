@@ -23,14 +23,14 @@ struct Input_Pointer {
 static int32 const POINTER_KEYS_BYTES = sizeof(Input_Pointer::is_pressed);
 
 inline bool pointer_get_previous_state(Input_Pointer *pointer, Pointer_Keys key) {
-	ASSERT_TRUE(pointer, "Pointer is not initialized");
-	ASSERT_TRUE((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
+	CUSTOM_ASSERT(pointer, "Pointer is not initialized");
+	CUSTOM_ASSERT((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
 	return pointer->was_pressed[(int32)key];
 }
 
 inline bool pointer_get_current_state(Input_Pointer *pointer, Pointer_Keys key) {
-	ASSERT_TRUE(pointer, "Pointer is not initialized");
-	ASSERT_TRUE((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
+	CUSTOM_ASSERT(pointer, "Pointer is not initialized");
+	CUSTOM_ASSERT((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
 	return pointer->is_pressed[(int32)key];
 }
 

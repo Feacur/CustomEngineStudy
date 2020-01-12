@@ -10,7 +10,7 @@
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build_v2.bat",
+            "command": "${workspaceFolder}/../solution_build_v2.bat",
             "args": [
                 "x64",
                 "Shipping",
@@ -24,7 +24,7 @@
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build_v2.bat",
+            "command": "${workspaceFolder}/../solution_build_v2.bat",
             "args": [
                 "x64",
                 "Development",
@@ -38,7 +38,7 @@
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\solution_build_v2.bat",
+            "command": "${workspaceFolder}/../solution_build_v2.bat",
             "args": [
                 "x64",
                 "Debug",

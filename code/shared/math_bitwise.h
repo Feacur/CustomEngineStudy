@@ -68,7 +68,7 @@ BITS_TO_ZERO_IMPL(uint48)
 
 #define GET_BIT_AT_INDEX(T)\
 constexpr inline bool get_bit_at_index(T container, uint8 index) {\
-	ASSERT_TRUE(index < 8 * sizeof(T), "Bit index overflow");\
+	CUSTOM_ASSERT(index < 8 * sizeof(T), "Bit index overflow");\
 	return bits_are_set_impl(container, BIT(T, index));\
 }
 

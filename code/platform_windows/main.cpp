@@ -20,10 +20,10 @@ static Platform_Data platform_data;
 
 extern "C" { // @Note: use discrete GPU by default
 	// http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-	API_DLL_EXPORT DWORD NvOptimusEnablement = 1;
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001UL;
 	// https://community.amd.com/thread/223376
 	// https://gpuopen.com/amdpowerxpressrequesthighperformance/
-	API_DLL_EXPORT DWORD AmdPowerXpressRequestHighPerformance = 1;
+	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001UL;
 }
 
 //
@@ -110,7 +110,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	ATOM window_class_atom = RegisterClass(&window_class);
 	if (!window_class_atom) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't register the window class");
+		CUSTOM_ASSERT(false, "Can't register the window class");
 		return 0;
 	}
 	
@@ -129,7 +129,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	);
 	if (!window) {
 		log_last_error();
-		ASSERT_TRUE(window, "Can't create a window");
+		CUSTOM_ASSERT(window, "Can't create a window");
 		return 0;
 	}
 	
@@ -147,13 +147,13 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	platform_data.permanent_memory.capacity = 100 * 1024 * 1024;
 	platform_data.permanent_memory.data = (uint8 *)allocate_memory(platform_data.permanent_memory.capacity);
-	ASSERT_TRUE(platform_data.permanent_memory.data, "Can't allocate permanent memory");
+	CUSTOM_ASSERT(platform_data.permanent_memory.data, "Can't allocate permanent memory");
 	
 	platform_data.transient_memory.capacity = 100 * 1024 * 1024;
 	platform_data.transient_memory.data = (uint8 *)allocate_memory(platform_data.transient_memory.capacity);
-	ASSERT_TRUE(platform_data.transient_memory.data, "Can't allocate transient memory");
+	CUSTOM_ASSERT(platform_data.transient_memory.data, "Can't allocate transient memory");
 	
-	LOG_TRACE("Allocated general memory");
+	CUSTOM_TRACE("Allocated general memory");
 	
 	//
 	// Initialize performance counters
@@ -173,7 +173,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 		(int32)GetDeviceCaps(device_context, VERTRES)
 	};
 	
-	LOG_TRACE("Initialized performance counters");
+	CUSTOM_TRACE("Initialized performance counters");
 
 	//
 	// Initialize OpenGL
@@ -205,7 +205,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	pointer_keys_mode     = Pointer_Mode::Direct;
 	#endif
 	
-	LOG_TRACE("Started main cycle");
+	CUSTOM_TRACE("Started main cycle");
 
 	game_code = {};
 	platform_data.keep_alive = true;
@@ -315,7 +315,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 
 	DestroyWindow(window);
 	
-	LOG_TRACE("Finished running");
+	CUSTOM_TRACE("Finished running");
 	return 0;
 }
 

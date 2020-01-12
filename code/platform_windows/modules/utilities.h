@@ -56,7 +56,7 @@ void win_main_show_console() {
 }
 
 void normalize_directory(cstring exe_path) {
-	cstring exe_name = strrchr(exe_path, '\\');
+	cstring exe_name = strrchr(exe_path, '/');
 	size_t folder_path_length = exe_name - exe_path;
 
 	char folder_path[MAX_PATH] = {};

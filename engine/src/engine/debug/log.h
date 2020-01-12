@@ -16,9 +16,9 @@
 	#define CUSTOM_ASSERT(statement, format, ...)\
 		if(statement) { /**/ } else { fprintf(stderr, CUSTOM_FORMAT(critical, format), __VA_ARGS__); CUSTOM_DEBUG_BREAK(); }
 #else
-	#define CUSTOM_TRACE(...)
-	#define CUSTOM_INFO(...)
-	#define CUSTOM_WARN(...)
-	#define CUSTOM_ERROR(...)
-	#define CUSTOM_ASSERT(statement, ...)
+	#define CUSTOM_TRACE(format, ...)
+	#define CUSTOM_INFO(format, ...)
+	#define CUSTOM_WARN(format, ...)
+	#define CUSTOM_ERROR(format, ...)
+	#define CUSTOM_ASSERT(statement, format, ...)
 #endif

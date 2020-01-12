@@ -8,7 +8,7 @@ static LARGE_INTEGER clock_frame_start;
 
 void initialize_time() {
 	// if (timeGetDevCaps(&time_caps, sizeof(time_caps)) != MMSYSERR_NOERROR) {
-	// 	LOG_ERROR("Can't retrieve time caps");
+	// 	CUSTOM_ERROR("Can't retrieve time caps");
 	// }
 
 	QueryPerformanceFrequency(&ticks_per_second);
@@ -25,7 +25,7 @@ int64 wait_for_next_frame(int64 target_delta, int64 precision) {
 	
 	// if (time_caps.wPeriodMin != 0) {
 	// 	if (timeBeginPeriod(time_caps.wPeriodMin) != TIMERR_NOERROR) {
-	// 		LOG_ERROR("Timer granularity wasn't set");
+	// 		CUSTOM_ERROR("Timer granularity wasn't set");
 	// 	}
 	// }
 
@@ -43,7 +43,7 @@ int64 wait_for_next_frame(int64 target_delta, int64 precision) {
 	
 	// if (time_caps.wPeriodMin != 0) {
 	// 	if (timeEndPeriod(time_caps.wPeriodMin) != TIMERR_NOERROR) {
-	// 		LOG_ERROR("Timer granularity wasn't reset");
+	// 		CUSTOM_ERROR("Timer granularity wasn't reset");
 	// 	}
 	// }
 

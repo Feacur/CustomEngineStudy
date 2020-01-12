@@ -69,7 +69,7 @@ Vector4 raymarch_color(Ray3 ray) {
 }
 
 static float rotation_radians = 0;
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto delta_time = globals::get_delta_seconds();
@@ -96,7 +96,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::Fractional;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	auto image = globals::render_buffer_f;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -127,5 +127,5 @@ API_C API_DLL GAME_RENDER(game_render) {
 	platform_data->render_buffer_image_f.exposure = 1;
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // }

@@ -11,7 +11,7 @@ void verify_opengl_pixel_format(HDC device_context) {
 	int active_format = GetPixelFormat(device_context);
 	if (!active_format) {
 		log_last_error();
-		ASSERT_TRUE(false, "No active pixel format");
+		CUSTOM_ASSERT(false, "No active pixel format");
 		return;
 	}
 
@@ -19,12 +19,12 @@ void verify_opengl_pixel_format(HDC device_context) {
 	int maximum_format = DescribePixelFormat(device_context, active_format, sizeof(pfd), &pfd);
 	if (!maximum_format) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't describe pixel format");
+		CUSTOM_ASSERT(false, "Can't describe pixel format");
 		return;
 	}
 
 	if (!BITS_ARE_SET(pfd.dwFlags, PFD_SUPPORT_OPENGL)) {
-		ASSERT_TRUE(false, "Pixel format doesn't support OpenGL");
+		CUSTOM_ASSERT(false, "Pixel format doesn't support OpenGL");
 		return;
 	}
 }
@@ -42,13 +42,13 @@ void init_opengl(HDC device_context) {
 	int format = ChoosePixelFormat(device_context, &pfd);
 	if (!format) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't choose pixel format");
+		CUSTOM_ASSERT(false, "Can't choose pixel format");
 		return;
 	}
 	
 	if (!SetPixelFormat(device_context, format, &pfd)) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't set pixel format");
+		CUSTOM_ASSERT(false, "Can't set pixel format");
 		return;
 	}
 
@@ -57,19 +57,19 @@ void init_opengl(HDC device_context) {
 	HGLRC rendering_context = wglCreateContext(device_context);
 	if (!rendering_context) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't create rendering context");
+		CUSTOM_ASSERT(false, "Can't create rendering context");
 		return;
 	}
 
 	if (!wglMakeCurrent(device_context, rendering_context)) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't select rendering context");
+		CUSTOM_ASSERT(false, "Can't select rendering context");
 		return;
 	}
 
-	LOG_TRACE((cstring)glGetString(GL_VENDOR));
-	LOG_TRACE((cstring)glGetString(GL_RENDERER));
-	LOG_TRACE((cstring)glGetString(GL_VERSION));
+	CUSTOM_TRACE((cstring)glGetString(GL_VENDOR));
+	CUSTOM_TRACE((cstring)glGetString(GL_RENDERER));
+	CUSTOM_TRACE((cstring)glGetString(GL_VERSION));
 
 	wglSwapIntervalEXT = (wglSwapIntervalEXT_func *)wglGetProcAddress("wglSwapIntervalEXT");
 	if (wglSwapIntervalEXT) {

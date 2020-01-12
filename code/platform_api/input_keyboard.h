@@ -80,14 +80,14 @@ struct Input_Keyboard {
 static int32 const KEYBOARD_KEYS_BYTES = sizeof(Input_Keyboard::is_pressed);
 
 inline bool keyboard_get_previous_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
-	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
-	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
+	CUSTOM_ASSERT(keyboard, "Keyboard is not initialized");
+	CUSTOM_ASSERT((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
 	return keyboard->was_pressed[(int32)key];
 }
 
 inline bool keyboard_get_current_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
-	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
-	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
+	CUSTOM_ASSERT(keyboard, "Keyboard is not initialized");
+	CUSTOM_ASSERT((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
 	return keyboard->is_pressed[(int32)key];
 }
 

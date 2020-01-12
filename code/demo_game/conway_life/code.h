@@ -91,7 +91,7 @@ namespace field {
 				prefab.tiles.add(1);
 				break;
 			case '\n':
-				ASSERT_TRUE(
+				CUSTOM_ASSERT(
 					width == 0 || prefab.width == 0 || prefab.width == width,
 					"Inconsistent field prefab width"
 				);

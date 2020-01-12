@@ -79,7 +79,8 @@ typedef char const * cstring;
 	#define CUSTOM_DLL
 #endif
 
-// meta for enum struct
+// c++ meta and operators for enum structs
+#if defined(__cplusplus)
 namespace meta {
 	template<size_t S> struct uint_for_size;
 	template<> struct uint_for_size<1> { typedef uint8  type; };
@@ -93,7 +94,6 @@ namespace meta {
 	};
 }
 
-// meta for enum struct
 #if defined(_MSC_VER)
 	namespace meta {
 		template<typename T>
@@ -120,7 +120,6 @@ namespace meta {
 	namespace meta { template<> struct is_enum<T> { static bool const value = true; }; }
 #endif
 
-// bitwise operators implementation for enum structs
 #define ENUM_FLAG_OPERATORS_IMPL(T)\
 constexpr inline T operator&(T a, T b) {\
 	using U = meta::uint_for_type<T>::type;\
@@ -140,3 +139,4 @@ constexpr inline T operator~(T v) {\
 }\
 constexpr inline bool bits_are_set(T container, T bits) { return (container & bits) == bits; }\
 constexpr inline T bits_to_zero(T container, T bits) { return container & ~bits; }
+#endif // defined(__cplusplus)

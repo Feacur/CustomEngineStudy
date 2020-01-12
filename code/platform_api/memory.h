@@ -16,7 +16,7 @@ inline uint8 * allocate_data(Memory_Chunk * memory, size_t size_in_bytes) {
 		memory->length += size_in_bytes;
 	}
 	else {
-		ASSERT_TRUE(false, "Can't allocate a memory chunk");
+		CUSTOM_ASSERT(false, "Can't allocate a memory chunk");
 	}
 	return result;
 }
@@ -26,7 +26,7 @@ inline void deallocate_from_top(Memory_Chunk * memory, size_t size_in_bytes) {
 		memory->length -= size_in_bytes;
 	}
 	else {
-		ASSERT_TRUE(false, "Can't deallocate a memory chunk");
+		CUSTOM_ASSERT(false, "Can't deallocate a memory chunk");
 	}
 }
 

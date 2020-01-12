@@ -10,55 +10,55 @@
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Shipping",
-                "-D API_SHARED -D BUILD_DLL",
+                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Development",
-                "-D API_SHARED -D BUILD_DLL",
+                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Debug",
-                "-D API_SHARED -D BUILD_DLL",
+                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
                 // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
     ]

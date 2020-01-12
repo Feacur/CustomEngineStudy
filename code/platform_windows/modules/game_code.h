@@ -31,7 +31,7 @@ else {\
 	code->ROUTINE_NAME = NULL;\
 }\
 if (!code->ROUTINE_NAME) {\
-	LOG_WARNING("Can't find \"" #ROUTINE_NAME "\" handler in the game code library");\
+	CUSTOM_WARN("Can't find '" #ROUTINE_NAME "' handler in the game code library");\
 	code->ROUTINE_NAME = &ROUTINE_NAME##_stub;\
 }
 
@@ -47,7 +47,7 @@ void load_game_code(Game_Code * code, cstring file_name) {
 void reinit_game_code(Game_Code * code) {
 	WIN32_FIND_DATA find_data;
 	HANDLE file = FindFirstFile(build_library_name, &find_data);
-	ASSERT_TRUE(file != INVALID_HANDLE_VALUE, "Can't find game code library");
+	CUSTOM_ASSERT(file != INVALID_HANDLE_VALUE, "Can't find game code library");
 
 	auto creation_time = find_data.ftLastWriteTime;
 	FindClose(file);
@@ -61,7 +61,7 @@ void reinit_game_code(Game_Code * code) {
 
 		load_game_code(code, runtime_library_name);
 		code->creation_time = creation_time;
-		LOG_TRACE("Reloaded game code library");
+		CUSTOM_TRACE("Reloaded game code library");
 	}
 }
 

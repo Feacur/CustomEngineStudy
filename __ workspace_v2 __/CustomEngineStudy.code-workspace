@@ -8,10 +8,10 @@
 		// 	"path": ".."
 		// },
 		{
-			"path": "..\\engine"
+			"path": "../engine"
 		},
 		{
-			"path": "..\\sandbox"
+			"path": "../sandbox"
 		},
 	],
 	"settings": {
@@ -32,20 +32,14 @@
 		"C_Cpp.intelliSenseEngine": "Default",
 		"C_Cpp.default.cStandard": "c11",
 		"C_Cpp.default.cppStandard": "c++17",
-		"C_Cpp.default.compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Tools\\MSVC\\14.16.27023\\bin\\Hostx64\\x64\\cl.exe",
+		// "C_Cpp.default.compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
+		"C_Cpp.default.compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe",
 		"C_Cpp.default.intelliSenseMode": "msvc-x64",
 		"C_Cpp.default.includePath": [
-			"${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\src",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\Glad\\include",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\GLFW\\include",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\glm",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\imgui",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\lua\\src",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\spdlog\\include",
-			// "${workspaceFolder:__ workspace_v2 __}\\..\\Engine\\vendor\\stb_image",
+			"${workspaceFolder:__ workspace_v2 __}/../Engine/src",
 		],
 		"C_Cpp.default.defines": [],
-		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace_v2 __}\\..\\bin-int",
+		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace_v2 __}/../bin-int",
 		// files
 		"files.exclude": {
 			"**/ipch/" : true,

@@ -35,7 +35,7 @@ void load_xinput()
 	LOAD_PROCEDURE(xinput_get_state)
 	LOAD_PROCEDURE(xinput_set_state)
 	
-	LOG_TRACE("Initialized xinput");
+	CUSTOM_TRACE("Initialized xinput");
 }
 
 #undef LOAD_PROCEDURE

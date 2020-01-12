@@ -10,55 +10,55 @@
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Shipping",
-                "-D API_SHARED -D WIN32_LEAN_AND_MEAN",
+                "-D CUSTOM_SHARED -D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Development",
-                "-D API_SHARED -D WIN32_LEAN_AND_MEAN",
+                "-D CUSTOM_SHARED -D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Debug",
-                "-D API_SHARED -D WIN32_LEAN_AND_MEAN",
+                "-D CUSTOM_SHARED -D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
     ]

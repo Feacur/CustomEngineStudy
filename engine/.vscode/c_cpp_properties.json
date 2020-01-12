@@ -10,8 +10,7 @@
             
             "includePath": ["${default}"],
             "defines": [
-                "${default}",
-                "CUSTOM_BUILD_DLL"
+                "${default}"
             ]
         }
     ],

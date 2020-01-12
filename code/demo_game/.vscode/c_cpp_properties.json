@@ -11,7 +11,8 @@
             "includePath": ["${default}"],
             "defines": [
                 "${default}",
-                "BUILD_DLL"
+                "CUSTOM_SHARED",
+                "CUSTOM_IS_DLL"
             ]
         }
     ],

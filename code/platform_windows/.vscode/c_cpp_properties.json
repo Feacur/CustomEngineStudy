@@ -11,6 +11,7 @@
             "includePath": ["${default}"],
             "defines": [
                 "${default}",
+                "CUSTOM_SHARED",
                 "WIN32_LEAN_AND_MEAN"
             ]
         }

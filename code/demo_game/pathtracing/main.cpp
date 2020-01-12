@@ -18,7 +18,7 @@
 
 // https://raytracing.github.io/
 
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto game_data = get_game_data();
@@ -32,13 +32,13 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::Fractional;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	auto game_data = get_game_data();
 	camera::reset_exposure(game_data);
 	draw_hit_shapes(game_data, game_data->camera_position, game_data->camera_rotation);
 	platform_data->render_buffer_image_f.exposure = globals::render_buffer_f.exposure;
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // 	auto game_data = get_game_data();
 // }

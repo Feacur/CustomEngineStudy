@@ -100,7 +100,7 @@ namespace utils {
 				current_width += 1;
 				break;
 			case '\n':
-				ASSERT_TRUE(
+				CUSTOM_ASSERT(
 					current_width == 0 || result.width == 0 || result.width == current_width,
 					"Inconsistent map prefab width"
 				);

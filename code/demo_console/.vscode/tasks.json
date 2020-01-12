@@ -10,9 +10,9 @@
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Shipping",
@@ -22,15 +22,15 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Development",
@@ -40,15 +40,15 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64",
                 "Debug",
@@ -58,7 +58,7 @@
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
     ]

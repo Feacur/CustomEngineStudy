@@ -11,7 +11,7 @@
 
 // https://github.com/aras-p/dod-playground
 
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 	
 	auto game_data = get_game_data();
@@ -24,7 +24,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::None;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	clear_buffer(globals::render_buffer, {0.1f, 0.1f, 0.1f, 1});
 
 	auto game_data = get_game_data();
@@ -42,6 +42,6 @@ API_C API_DLL GAME_RENDER(game_render) {
 	}
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // 	auto game_data = get_game_data();
 // }
