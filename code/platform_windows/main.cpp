@@ -42,12 +42,15 @@ void             process_raw_input(HWND window, LPARAM lParam);
 // Entry point
 //
 
-#if defined(WIN_MAIN)
-int CALLBACK WinMain(
-	HINSTANCE hInstance,     // Application instance handler.
-	HINSTANCE hPrevInstance, // Application previous instance handler. Always 0.
-	LPSTR     lpCmdLine,     // The command line arguments without program name.
-	int       nCmdShow       // Window visibility options.
+// https://docs.microsoft.com/ru-ru/windows/win32/desktop-programming
+// https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain
+// https://docs.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
+
+int WINAPI WinMain(
+	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
+	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
+	PSTR      pCmdLine,      // contains the command-line arguments as an ANSI string.
+	int       nCmdShow       // is a flag that says whether the main application window will be minimized, maximized, or shown normally.
 ) {
 	win_main_show_console();
 	
@@ -56,7 +59,21 @@ int CALLBACK WinMain(
 
 	return platform_windows_main(hInstance, exe_path);
 }
-#else
+
+// int WINAPI wWinMain(
+// 	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
+// 	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
+// 	PWSTR     pCmdLine,      // contains the command-line arguments as a Unicode string.
+// 	int       nCmdShow       // is a flag that says whether the main application window will be minimized, maximized, or shown normally.
+// ) {
+// 	win_main_show_console();
+// 	
+// 	char exe_path[MAX_PATH];
+// 	GetModuleFileName(NULL, exe_path, MAX_PATH);
+// 
+// 	return platform_windows_main(hInstance, exe_path);
+// }
+
 int main(int argc, char * argv[]) {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
@@ -65,7 +82,21 @@ int main(int argc, char * argv[]) {
 	
 	return platform_windows_main(hInstance, argv[0]);
 }
-#endif
+
+// int wmain(int argc, wchar_t * argv[]) {
+// 	HINSTANCE hInstance = GetModuleHandle(NULL);
+// 
+// 	// ShowWindow(GetConsoleWindow(), SW_HIDE);
+// 	// ShowWindow(GetConsoleWindow(), SW_SHOW);
+// 	
+// 	return platform_windows_main(hInstance, argv[0]);
+// }
+
+// BOOL WINAPI DllMain(
+// 	_In_ HINSTANCE hinstDLL, // A handle to the DLL module. The value is the base address of the DLL. The HINSTANCE of a DLL is the same as the HMODULE of the DLL, so hinstDLL can be used in calls to functions that require a module handle.
+// 	_In_ DWORD     fdwReason, // The reason code that indicates why the DLL entry-point function is being called. This parameter can be one of the following values.
+// 	_In_ LPVOID    lpvReserved
+// );
 
 //
 // Routines
@@ -105,7 +136,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	window_class.hInstance     = hInstance;
 	window_class.hIcon         = 0;
 	window_class.hCursor       = LoadCursor(0, IDC_ARROW);
-	window_class.lpszClassName = "Platform window class";
+	window_class.lpszClassName = TEXT("Platform window class");
 
 	ATOM window_class_atom = RegisterClass(&window_class);
 	if (!window_class_atom) {
@@ -120,7 +151,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	HWND window = CreateWindowEx(
 		0,
-		window_class.lpszClassName, "Platform",
+		window_class.lpszClassName, TEXT("Platform"),
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, 0,

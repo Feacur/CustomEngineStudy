@@ -83,10 +83,6 @@ set defines=%defines% -D _HAS_EXCEPTIONS=0
 rem set defines=%defines% -D _UNICODE -D UNICODE
 rem set defines=%defines% -D _MBCS
 
-if %kind% == WindowedApp (
-	set defines=%defines% -D WIN_MAIN
-)
-
 if %configuration% == Shipping (
 	set defines=%defines% -D SHIPPING
 ) else if %configuration% == Development (
@@ -327,6 +323,8 @@ rem //
 
 if %kind% == ConsoleApp (
 	rem use int main(...) { }
+	rem set linker=%linker% -ENTRY:mainCRTStartup
+	rem set linker=%linker% -ENTRY:wmainCRTStartup
 	if %architecture% == x64 (
 		set linker=%linker% -SUBSYSTEM:CONSOLE,5.02
 	) else if %architecture% == x86 (
@@ -336,8 +334,13 @@ if %kind% == ConsoleApp (
 		echo unexpected architecture %architecture%
 		exit /b 0
 	)
+) else if %kind% == SharedLib (
+	rem use int __stdcall DllMain(...) { }
+	rem set linker=%linker% -ENTRY:_DllMainCRTStartup
 ) else if %kind% == WindowedApp (
-	rem use int CALLBACK WinMain(...) { }
+	rem use int __stdcall WinMain(...) { }
+	rem set linker=%linker% -ENTRY:WinMainCRTStartup
+	rem set linker=%linker% -ENTRY:wWinMainCRTStartup
 	if %architecture% == x64 (
 		set linker=%linker% -SUBSYSTEM:WINDOWS,5.02
 	) else if %architecture% == x86 (
@@ -347,6 +350,10 @@ if %kind% == ConsoleApp (
 		echo unexpected architecture %architecture%
 		exit /b 0
 	)
+) else (
+	rem (LPVOID var1, DWORD var2, LPVOID var3)
+	echo unexpected kind %kind%
+	exit /b 0
 )
 
 rem //
