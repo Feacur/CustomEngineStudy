@@ -7,7 +7,7 @@
             "cppStandard": "${default}",
             "compilerPath": "${default}",
             "intelliSenseMode": "${default}",
-            
+
             "includePath": ["${default}"],
             "defines": [
                 "${default}"

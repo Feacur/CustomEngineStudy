@@ -14,10 +14,9 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Shipping",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Shipping",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -32,10 +31,9 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Development",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Development",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -50,10 +48,9 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Debug",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Debug",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",

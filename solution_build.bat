@@ -9,18 +9,22 @@ set VSLANG=1033
 rem msbuild locale 1033: English
 
 rem read batch file arguments
-set architecture=%1
-set configuration=%2
+set solution=%1
+set architecture=%2
+set configuration=%3
 
 if [%architecture%] == [] (
-	set architecture="x64"
+	echo provide architecture [x64, x86]
+	exit /b 0
 )
 
 if [%configuration%] == [] (
-	set configuration="Shipping"
+	echo provide kind [Debug, Development, Shipping]
+	exit /b 0
 )
 
 rem clean batch file arguments
+set solution=%solution:"=%
 set architecture=%architecture:"=%
 set configuration=%configuration:"=%
 
@@ -30,5 +34,5 @@ call "vcvarsall.bat" %architecture%
 popd
 
 echo ---- BUILD ---- %time%
-msbuild CustomEngineStudy_v1.sln -m -p:Configuration=%configuration%
+msbuild %solution% -m -p:Configuration=%configuration%
 echo ---- DONE ---- %time%

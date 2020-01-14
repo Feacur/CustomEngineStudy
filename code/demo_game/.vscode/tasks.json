@@ -14,10 +14,9 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "SharedLib", "x64",
-                "Shipping",
-                // defines
-                // libraries
+                "SharedLib", "x64", "Shipping",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -32,10 +31,9 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "SharedLib", "x64",
-                "Development",
-                // defines
-                // libraries
+                "SharedLib", "x64", "Development",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -50,10 +48,9 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "SharedLib", "x64",
-                "Debug",
-                // defines
-                // libraries
+                "SharedLib", "x64", "Debug",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
