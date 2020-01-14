@@ -71,14 +71,14 @@ typedef char const * cstring;
 
 #if defined(CUSTOM_SHARED)
 	#if defined(CUSTOM_IS_DLL)
-		#define CUSTOM_TEMPLATE
+		#define CUSTOM_EXTERN
 		#define CUSTOM_DLL CUSTOM_DLL_EXPORT
 	#else
-		#define CUSTOM_TEMPLATE extern
+		#define CUSTOM_EXTERN extern
 		#define CUSTOM_DLL CUSTOM_DLL_IMPORT
 	#endif
 #else
-	#define CUSTOM_TEMPLATE
+	#define CUSTOM_EXTERN
 	#define CUSTOM_DLL
 #endif
 
