@@ -27,10 +27,6 @@ workspace "CustomEngineStudy_v2"
 		"Shipping",
 	}
 
-	defines {
-		--
-	}
-
 	filter "toolset:msc*"
 		disablewarnings {
 			"4201", -- nameless struct/union (suppress)
@@ -51,21 +47,27 @@ workspace "CustomEngineStudy_v2"
 		-- 	"-time+",
 		-- }
 
-	filter "toolset:gcc*"
-		disablewarnings { "unused-variable", "unused-parameter", "missing-field-initializers" }
+	filter "kind:StaticLib"
+		defines "CUSTOM_STATIC_LIBRARY"
 
-	filter "toolset:clang*"
-		disablewarnings { "unused-variable", "unused-parameter", "missing-field-initializers" }
+	filter "kind:SharedLib"
+		defines {
+			"CUSTOM_SHARED_LIBRARY",
+			"CUSTOM_SYMBOLS_SHARE",
+		}
+
+	filter "kind:ConsoleApp or WindowedApp"
+		defines "CUSTOM_APPLICATION"
 
 	filter "configurations:Debug"
-		defines "DEBUG"
+		defines "CUSTOM_DEBUG"
 		staticruntime "Off"
 		runtime "Debug"
 		symbols "Full" -- On, Full
 		optimize "Off" -- Off, Debug
 
 	filter "configurations:Development"
-		defines "DEVELOPMENT"
+		defines "CUSTOM_DEVELOPMENT"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "FastLink" -- On, FastLink
@@ -74,7 +76,7 @@ workspace "CustomEngineStudy_v2"
 	filter "configurations:Shipping"
 		-- either bundle CRT (vcruntime140.dll, etc.)
 		-- or build with [staticruntime "On"]
-		defines "SHIPPING"
+		defines "CUSTOM_SHIPPING"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "Off"
@@ -115,25 +117,11 @@ project "engine"
 		"%{include_directories.engine}",
 	}
 
-	filter "system:windows"
-		defines {
-			-- "CUSTOM_IS_DLL", -- if specified [kind "SharedLib"]
-			-- "CUSTOM_SHARED", -- if specified [kind "SharedLib"]
-		}
-
-		links {
-			-- "user32",
-			-- "gdi32",
-			-- "opengl32",
-			-- "winmm",
-			-- "kernel32",
-		}
-
-		postbuildcommands {
-			-- ("{COPY} \"%{prj.location}assets\" \"../bin/" .. outputdir .. "/sandbox/assets\""),
-			-- if specified [kind "SharedLib"]
-			-- ("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/sandbox/\""),
-		}
+	postbuildcommands {
+		-- ("{COPY} \"%{prj.location}assets\" \"../bin/" .. outputdir .. "/sandbox/assets\""),
+		-- if specified [kind "SharedLib"]
+		-- ("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/sandbox/\""),
+	}
 
 -- project: sandbox
 project "sandbox"
@@ -157,14 +145,14 @@ project "sandbox"
 		"%{include_directories.engine}",
 	}
 
+	defines {
+		-- "CUSTOM_SYMBOLS_SHARE", -- if specified [kind "SharedLib"] for the engine
+	}
+
 	links {
 		"engine",
 	}
 
 	postbuildcommands {
 		-- ("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
-	}
-
-	defines {
-		-- "CUSTOM_SHARED", -- if specified [kind "SharedLib"] for the engine
 	}

@@ -10,7 +10,8 @@
             
             "includePath": ["${default}"],
             "defines": [
-                "${default}"
+                "${default}",
+                "WIN32_LEAN_AND_MEAN"
             ]
         }
     ],

@@ -16,7 +16,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Shipping",
-                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
+                // defines
                 // libraries
             ],
             "problemMatcher": "$msCompile",
@@ -34,7 +34,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Development",
-                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
+                // defines
                 // libraries
             ],
             "problemMatcher": "$msCompile",
@@ -52,7 +52,7 @@
                 "${workspaceFolderBasename}",
                 "SharedLib", "x64",
                 "Debug",
-                "-D CUSTOM_SHARED -D CUSTOM_IS_DLL",
+                // defines
                 // libraries
             ],
             "problemMatcher": "$msCompile",

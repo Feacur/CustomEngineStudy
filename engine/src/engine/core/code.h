@@ -69,8 +69,8 @@ typedef char const * cstring;
 	#define CUSTOM_DLL_IMPORT
 #endif
 
-#if defined(CUSTOM_SHARED)
-	#if defined(CUSTOM_IS_DLL)
+#if defined(CUSTOM_SYMBOLS_SHARE)
+	#if defined(CUSTOM_SHARED_LIBRARY)
 		#define CUSTOM_EXTERN
 		#define CUSTOM_DLL CUSTOM_DLL_EXPORT
 	#else

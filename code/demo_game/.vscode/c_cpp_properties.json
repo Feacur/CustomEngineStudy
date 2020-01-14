@@ -11,8 +11,8 @@
             "includePath": ["${default}"],
             "defines": [
                 "${default}",
-                "CUSTOM_SHARED",
-                "CUSTOM_IS_DLL"
+                "CUSTOM_SYMBOLS_SHARE",
+                "CUSTOM_SHARED_LIBRARY"
             ]
         }
     ],

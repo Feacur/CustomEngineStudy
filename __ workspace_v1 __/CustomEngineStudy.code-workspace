@@ -52,6 +52,7 @@
 		],
 		"C_Cpp.default.defines": [],
 		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace_v1 __}/../bin-int",
+		// "C_Cpp.intelliSenseCacheSize": 0,
 		// files
 		"files.exclude": {
 			"**/ipch/" : true,

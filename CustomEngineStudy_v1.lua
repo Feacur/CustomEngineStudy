@@ -47,21 +47,27 @@ workspace "CustomEngineStudy_v1"
 		-- 	"-time+",
 		-- }
 
-	filter "toolset:gcc*"
-		disablewarnings { "unused-variable", "unused-parameter", "missing-field-initializers" }
+	filter "kind:StaticLib"
+		defines "CUSTOM_STATIC_LIBRARY"
 
-	filter "toolset:clang*"
-		disablewarnings { "unused-variable", "unused-parameter", "missing-field-initializers" }
+	filter "kind:SharedLib"
+		defines {
+			"CUSTOM_SHARED_LIBRARY",
+			"CUSTOM_SYMBOLS_SHARE",
+		}
+
+	filter "kind:ConsoleApp or WindowedApp"
+		defines "CUSTOM_APPLICATION"
 
 	filter "configurations:Debug"
-		defines "DEBUG"
+		defines "CUSTOM_DEBUG"
 		staticruntime "Off"
 		runtime "Debug"
 		symbols "On" -- On, Full
 		optimize "Off" -- Off, Debug
 
 	filter "configurations:Development"
-		defines "DEVELOPMENT"
+		defines "CUSTOM_DEVELOPMENT"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "FastLink" -- On, FastLink
@@ -70,7 +76,7 @@ workspace "CustomEngineStudy_v1"
 	filter "configurations:Shipping"
 		-- either bundle CRT (vcruntime140.dll, etc.)
 		-- or build with [staticruntime "On"]
-		defines "SHIPPING"
+		defines "CUSTOM_SHIPPING"
 		staticruntime "Off"
 		runtime "Release"
 		symbols "Off"
@@ -110,15 +116,9 @@ project "demo_game"
 		"%{include_directories.engine}",
 	}
 
-	filter "system:windows"
-		defines {
-			"CUSTOM_SHARED",
-			"CUSTOM_IS_DLL",
-		}
-
-		postbuildcommands {
-			("{COPY} \"%{cfg.buildtarget.directory}%{prj.name}*\" \"../" .. target_location .. "/platform_windows\"")
-		}
+	postbuildcommands {
+		("{COPY} \"%{cfg.buildtarget.directory}%{prj.name}*\" \"../" .. target_location .. "/platform_windows\"")
+	}
 
 -- project: platform windows
 project "platform_windows"
@@ -142,17 +142,16 @@ project "platform_windows"
 	includedirs {
 		"%{include_directories.engine}",
 	}
-
+	
+	links {
+		"opengl32", -- @Todo: use dll
+	}
+	
 	filter "system:windows"
-		defines {
-			"CUSTOM_SHARED",
-			"WIN32_LEAN_AND_MEAN",
-		}
-
+		defines "WIN32_LEAN_AND_MEAN"
 		links {
 			"user32",
 			"gdi32",
-			"opengl32",
 			-- "winmm",
 			-- "kernel32",
 		}
@@ -180,11 +179,6 @@ project "demo_console"
 		"%{include_directories.engine}",
 	}
 
-	filter "system:windows"
-		defines {
-			--
-		}
-
 -- project: demo c
 project "demo_c"
 	location "code"
@@ -207,8 +201,3 @@ project "demo_c"
 	includedirs {
 		"%{include_directories.engine}",
 	}
-
-	filter "system:windows"
-		defines {
-			--
-		}
