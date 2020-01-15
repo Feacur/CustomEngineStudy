@@ -1,11 +1,11 @@
 {
     "version": "2.0.0",
-	"presentation": {
-		"reveal": "silent",
-		"panel": "shared",
-		"showReuseMessage": false,
-		"clear": true
-	},
+    "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+    },
     "tasks": [
         {
             "label": "Build Shipping",
