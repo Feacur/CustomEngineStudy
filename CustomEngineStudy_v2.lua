@@ -91,72 +91,10 @@ target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)
 enginename = "engine"
 
--- Include directories relative to the root folder (solution directory)
 include_directories = {}
-include_directories["engine"] = enginename .. "/src"
+include_directories["engine"] = "src"
 
 root_directory = os.getcwd()
 
--- project: engine
-project "engine"
-	location "engine"
-	kind "StaticLib" -- or "SharedLib"
-	language "C++"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-
-	-- pchheader "custom_pch.h"
-	-- pchsource (enginename .. "/src/custom_pch.cpp")
-
-	files {
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
-
-	postbuildcommands {
-		-- ("{COPY} \"%{prj.location}assets\" \"../bin/" .. outputdir .. "/sandbox/assets\""),
-		-- if specified [kind "SharedLib"]
-		-- ("{COPY} \"%{cfg.buildtarget.relpath}\" \"../bin/" .. outputdir .. "/sandbox/\""),
-	}
-
--- project: sandbox
-project "sandbox"
-	location "sandbox"
-	kind "ConsoleApp"
-	-- entrypoint "mainCRTStartup"
-	language "C++"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-
-	files {
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
-
-	defines {
-		-- "CUSTOM_SYMBOLS_SHARE", -- if specified [kind "SharedLib"] for the engine
-	}
-
-	links {
-		"engine",
-	}
-
-	postbuildcommands {
-		-- ("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
-	}
+include "engine/premake5.lua"
+include "sandbox/premake5.lua"

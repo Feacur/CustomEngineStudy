@@ -91,111 +91,12 @@ target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)
 enginename = "code"
 
--- Include directories relative to the root folder (solution directory)
 include_directories = {}
 include_directories["engine"] = enginename
 
 root_directory = os.getcwd()
 
--- project: demo game
-project "demo_game"
-	location "code"
-	kind "SharedLib"
-	-- entrypoint "_DllMainCRTStartup"
-	language "C++"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-	
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-	implibdir (intermediate_location .. "/%{prj.name}")
-
-	files {
-		"code/%{prj.name}/**.h",
-		"code/%{prj.name}/main.cpp",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
-
-	postbuildcommands {
-		("{COPY} \"%{cfg.buildtarget.directory}%{prj.name}*\" \"../" .. target_location .. "/platform_windows\"")
-	}
-
--- project: platform windows
-project "platform_windows"
-	location "code"
-	kind "ConsoleApp"
-	-- entrypoint "mainCRTStartup"
-	language "C++"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-	implibdir (intermediate_location .. "/%{prj.name}")
-
-	files {
-		"code/%{prj.name}/**.h",
-		"code/%{prj.name}/main.cpp",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
-	
-	filter "system:windows"
-		defines "WIN32_LEAN_AND_MEAN"
-		links {
-			"user32",
-			"gdi32",
-		}
-
--- project: demo console
-project "demo_console"
-	location "code"
-	kind "ConsoleApp"
-	-- entrypoint "mainCRTStartup"
-	language "C++"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-	implibdir (intermediate_location .. "/%{prj.name}")
-
-	files {
-		"code/%{prj.name}/**.h",
-		"code/%{prj.name}/main.cpp",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
-
--- project: demo c
-project "demo_c"
-	location "code"
-	kind "ConsoleApp"
-	-- entrypoint "mainCRTStartup"
-	language "C"
-	cdialect "C11"
-	cppdialect "C++17"
-	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
-
-	targetdir (target_location .. "/%{prj.name}")
-	objdir (intermediate_location .. "/%{prj.name}")
-	implibdir (intermediate_location .. "/%{prj.name}")
-
-	files {
-		"code/%{prj.name}/**.h",
-		"code/%{prj.name}/main.c",
-	}
-
-	includedirs {
-		"%{include_directories.engine}",
-	}
+include "code/premake5_demo_game.lua"
+include "code/premake5_platform_windows.lua"
+include "code/premake5_demo_console.lua"
+include "code/premake5_demo_c.lua"
