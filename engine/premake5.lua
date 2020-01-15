@@ -22,7 +22,7 @@ project "engine"
 	}
 
 	includedirs {
-		"%{include_directories.engine}",
+		"%{engine_includes.engine}",
 	}
 
 	filter "kind:SharedLib"

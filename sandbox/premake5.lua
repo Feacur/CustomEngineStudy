@@ -18,7 +18,7 @@ project "sandbox"
 	}
 
 	includedirs {
-		sandbox_to_root .. "/engine/%{include_directories.engine}",
+		sandbox_to_root .. "/engine/%{engine_includes.engine}",
 	}
 
 	defines {

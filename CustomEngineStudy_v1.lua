@@ -91,8 +91,8 @@ target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)
 enginename = "code"
 
-include_directories = {}
-include_directories["engine"] = enginename
+engine_includes = {}
+engine_includes["engine"] = enginename
 
 root_directory = os.getcwd()
 
