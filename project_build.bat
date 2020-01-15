@@ -84,6 +84,8 @@ rem Name Mapfile
 rem set compiler=%compiler% -Fm"%intermediate_location%\\"
 
 set defines=%defines% -D _HAS_EXCEPTIONS=0
+rem @Note: might want to enable this only locally
+set defines=%defines% -D _CRT_SECURE_NO_WARNINGS
 rem set defines=%defines% -D _UNICODE -D UNICODE
 rem set defines=%defines% -D _MBCS
 

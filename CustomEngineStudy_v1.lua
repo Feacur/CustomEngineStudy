@@ -27,6 +27,10 @@ workspace "CustomEngineStudy_v1"
 		"Shipping",
 	}
 
+	defines {
+		"_CRT_SECURE_NO_WARNINGS", -- @Note: might want to enable this only locally
+	}
+
 	filter "toolset:msc*"
 		disablewarnings {
 			"4201", -- nameless struct/union
@@ -143,17 +147,11 @@ project "platform_windows"
 		"%{include_directories.engine}",
 	}
 	
-	links {
-		"opengl32", -- @Todo: use dll
-	}
-	
 	filter "system:windows"
 		defines "WIN32_LEAN_AND_MEAN"
 		links {
 			"user32",
 			"gdi32",
-			-- "winmm",
-			-- "kernel32",
 		}
 
 -- project: demo console

@@ -27,6 +27,10 @@ workspace "CustomEngineStudy_v2"
 		"Shipping",
 	}
 
+	defines {
+		"_CRT_SECURE_NO_WARNINGS", -- @Note: might want to enable this only locally
+	}
+
 	filter "toolset:msc*"
 		disablewarnings {
 			"4201", -- nameless struct/union (suppress)

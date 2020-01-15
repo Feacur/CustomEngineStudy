@@ -16,7 +16,7 @@
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64", "Shipping",
                 "-D WIN32_LEAN_AND_MEAN",
-                "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
+                "user32.lib gdi32.lib",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -33,7 +33,7 @@
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64", "Development",
                 "-D WIN32_LEAN_AND_MEAN",
-                "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
+                "user32.lib gdi32.lib",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -50,7 +50,7 @@
                 "${workspaceFolderBasename}",
                 "ConsoleApp", "x64", "Debug",
                 "-D WIN32_LEAN_AND_MEAN",
-                "user32.lib gdi32.lib opengl32.lib", // winmm.lib kernel32.lib
+                "user32.lib gdi32.lib",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",

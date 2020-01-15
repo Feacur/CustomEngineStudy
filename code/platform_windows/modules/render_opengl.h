@@ -1,5 +1,8 @@
 #define FEATURE_OPENGL
 
+// @Tode: use dll instead; that's why the lib is hardcoded here
+#pragma comment(lib, "opengl32")
+
 #include <gl/GL.h>
 
 static GLuint texture_handle;
@@ -67,9 +70,7 @@ void init_opengl(HDC device_context) {
 		return;
 	}
 
-	CUSTOM_TRACE((cstring)glGetString(GL_VENDOR));
-	CUSTOM_TRACE((cstring)glGetString(GL_RENDERER));
-	CUSTOM_TRACE((cstring)glGetString(GL_VERSION));
+	CUSTOM_INFO("vendor '%s'; renderer '%s'; version '%s'", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
 	wglSwapIntervalEXT = (wglSwapIntervalEXT_func *)wglGetProcAddress("wglSwapIntervalEXT");
 	if (wglSwapIntervalEXT) {

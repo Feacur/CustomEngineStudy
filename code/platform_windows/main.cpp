@@ -243,11 +243,19 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	platform_data.render_settings.size_mode = render_settings.size_mode;
 	platform_data.render_settings.stretch_mode = render_settings.stretch_mode;
 
+	static char header_text[128];
 	while(platform_data.keep_alive) {
 		// idle
 		platform_data.time.last_frame_duration = wait_for_next_frame(platform_data.time.target_frame_duration, platform_data.time.precision);
 		platform_data.time.since_start = get_clock_span_get_clock_spanseconds(clock_game_start, clock_current, platform_data.time.precision);
 		platform_data.time.frame_timestamp = get_timestamp();
+
+		#if !defined(CUSTOM_SHIPPING)
+		float debug_ms = platform_data.time.last_frame_duration * 1000LL / (float)platform_data.time.precision;
+		float debug_fps = platform_data.time.precision / (float)platform_data.time.last_frame_duration;
+		sprintf(header_text, "Platform - %.1f ms (%.1f FPS)", debug_ms, debug_fps);
+		SetWindowText(window, header_text);
+		#endif
 		
 		// init
 		if (render_settings.fullscreen != platform_data.render_settings.fullscreen) {
