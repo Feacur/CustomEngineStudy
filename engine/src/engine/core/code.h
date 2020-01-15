@@ -1,6 +1,14 @@
 #pragma once
 
-#include <intrin.h> // debug intrinsics, SIMD
+// debug intrinsics, SIMD
+#if defined(_MSC_VER)
+	#include <intrin.h>
+#elif defined(__GNUC__) || defined(__clang__)
+	#include <x86intrin.h>
+#else
+	#pragma message("no intrinsics header included")
+#endif
+
 #include <stdint.h> // integer data types
 #include <float.h>  // floating point data types
 #include <stdio.h>  // file operations, printing functions
