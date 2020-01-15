@@ -1,4 +1,3 @@
-#if defined(_WIN32)
 #if defined(CUSTOM_SHARED_LIBRARY)
 	#pragma message("engine is being built as a shared library")
 	#pragma message("and won't export performance variables")
@@ -19,5 +18,4 @@
 		__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001UL;
 		// Yes, it’s that easy. This line will ensure that the high-performance graphics device is chosen when running your application.
 	}
-#endif
 #endif

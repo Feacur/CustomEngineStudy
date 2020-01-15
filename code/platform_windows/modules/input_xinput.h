@@ -2,48 +2,60 @@
 
 #include <xinput.h>
 
+#define XINPUT_GET_CAPABILITIES(ROUTINE_NAME) DWORD WINAPI ROUTINE_NAME(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES * pCapabilities)
 #define XINPUT_GET_STATE(ROUTINE_NAME) DWORD WINAPI ROUTINE_NAME(DWORD dwUserIndex, XINPUT_STATE * pState)
 #define XINPUT_SET_STATE(ROUTINE_NAME) DWORD WINAPI ROUTINE_NAME(DWORD dwUserIndex, XINPUT_VIBRATION * pVibration)
 
-typedef XINPUT_GET_STATE(xinput_get_state_type);
-typedef XINPUT_SET_STATE(xinput_set_state_type);
+typedef XINPUT_GET_CAPABILITIES(XInputGetCapabilities_func);
+typedef XINPUT_GET_STATE(XInputGetState_func);
+typedef XINPUT_SET_STATE(XInputSetState_func);
 
-XINPUT_GET_STATE(xinput_get_state_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
-XINPUT_SET_STATE(xinput_set_state_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
+XINPUT_GET_CAPABILITIES(XInputGetCapabilities_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
+XINPUT_GET_STATE(XInputGetState_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
+XINPUT_SET_STATE(XInputSetState_stub) { return ERROR_DEVICE_NOT_CONNECTED; }
 
-static xinput_get_state_type * xinput_get_state;
-static xinput_set_state_type * xinput_set_state;
+static XInputGetCapabilities_func * DLL_XInputGetCapabilities;
+static XInputGetState_func * DLL_XInputGetState;
+static XInputSetState_func * DLL_XInputSetState;
+
+#undef XINPUT_GET_CAPABILITIES
+#undef XINPUT_GET_STATE
+#undef XINPUT_SET_STATE
 
 #define LOAD_PROCEDURE(ROUTINE_NAME)\
-if (library) {\
-	ROUTINE_NAME = (ROUTINE_NAME##_type *)GetProcAddress(library, #ROUTINE_NAME);\
-}\
-if (!ROUTINE_NAME) {\
-	ROUTINE_NAME = ROUTINE_NAME##_stub;\
-}
+DLL_##ROUTINE_NAME = (ROUTINE_NAME##_func *)GetProcAddress(library, #ROUTINE_NAME);
+
+#define VERIFY_PROCEDURE(ROUTINE_NAME)\
+if (!DLL_##ROUTINE_NAME) { DLL_##ROUTINE_NAME = ROUTINE_NAME##_stub; }
 
 void load_xinput()
 {
 	HMODULE library = 0;
-	cstring libraries[] = {"xinput1_4.dll", "xinput9_1_0.dll", "xinput1_3.dll"};
-	const s32 elements_in_libraries = C_ARRAY_LENGTH(libraries);
-	for (s32 i = 0; i < elements_in_libraries; ++i) {
+	cstring libraries[] = {"xinput1_4.dll", "xinput1_3.dll", "xinput9_1_0.dll", "xinput1_3.dll", "xinput1_2.dll", "xinput1_1.dll", NULL};
+	for (s32 i = 0; libraries[i]; ++i) {
 		library = LoadLibrary(libraries[i]);
 		if (library) { break; }
 	}
 
-	LOAD_PROCEDURE(xinput_get_state)
-	LOAD_PROCEDURE(xinput_set_state)
+	if (library) {
+		LOAD_PROCEDURE(XInputGetCapabilities)
+		LOAD_PROCEDURE(XInputGetState)
+		LOAD_PROCEDURE(XInputSetState)
+	}
+	VERIFY_PROCEDURE(XInputGetCapabilities)
+	VERIFY_PROCEDURE(XInputGetState)
+	VERIFY_PROCEDURE(XInputSetState)
 	
 	CUSTOM_TRACE("Initialized xinput");
 }
 
 #undef LOAD_PROCEDURE
+#undef VERIFY_PROCEDURE
 
 void process_xinput_example() {
 	for (DWORD controller_index = 0; controller_index < XUSER_MAX_COUNT; ++controller_index) {
 		XINPUT_STATE controller_state;
-		bool is_connected = (xinput_get_state(controller_index, &controller_state) == ERROR_SUCCESS);
+		bool is_connected = (DLL_XInputGetState(controller_index, &controller_state) == ERROR_SUCCESS);
 		if (!is_connected) { continue; }
 		
 		XINPUT_GAMEPAD gamepad = controller_state.Gamepad;
