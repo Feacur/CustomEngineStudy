@@ -17,19 +17,27 @@ project "engine"
 	-- pchsource ("src/custom_pch.cpp")
 
 	files {
-		"src/**.h",
-		"src/**.cpp",
+		"src/engine/**.h",
+		"src/engine/**.cpp",
 	}
 
 	includedirs {
 		"%{engine_includes.engine}",
 	}
 
+	postbuildcommands {
+		-- ("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
+	}
+
+	filter "system:windows"
+		files {
+			"src/platform/windows/**.h",
+			"src/platform/windows/**.cpp",
+			"src/platform/opengl/**.h",
+			"src/platform/opengl/**.cpp",
+		}
+
 	filter "kind:SharedLib"
 		postbuildcommands {
 			("{COPY} \"%{cfg.buildtarget.relpath}\" \"" .. engine_target_location .. "/sandbox/\""),
 		}
-
-	postbuildcommands {
-		-- ("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
-	}

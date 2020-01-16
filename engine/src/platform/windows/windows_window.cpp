@@ -1,24 +1,52 @@
-#include "windows_window.h"
-
+#include "engine/platform/platform_window.h"
 #include "engine/debug/log.h"
 
 #include <Windows.h>
 
-using namespace custom;
-
 static LPTSTR const window_class_name = TEXT("custom engine");
 static LPTSTR const window_title = TEXT("");
 
+static ATOM register_window_class(void);
+static HWND create_window(void);
+static void destroy_window(HWND);
+
+//
+// API implementation
+//
+
+namespace custom
+{
+	Window::Window()
+	{
+		ATOM window_class_atom = register_window_class();
+		HWND window_handle = create_window();
+		handle = (u64)window_handle;
+		display = 0;
+		graphics = (u64)GetDC(window_handle);
+	}
+
+	Window::~Window()
+	{
+		destroy_window((HWND)handle);
+		handle = 0;
+		display = 0;
+		graphics = 0;
+	}
+
+	void Window::update() { /*blank*/ }
+	
+	void Window::set_header(cstring value)
+	{
+		SetWindowText((HWND)handle, value);
+	}
+}
+
+//
+// platform implementation
+//
+
 static LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
-
-#pragma warning(push)
-#pragma warning(disable: 4505)
-
-//
-// API
-//
-
-static u64 register_window_class() {
+static ATOM register_window_class(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa
 	WNDCLASSEX window_class = {};
 	window_class.cbSize        = sizeof(window_class);
@@ -30,10 +58,10 @@ static u64 register_window_class() {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerclassexa
 	ATOM window_class_atom = RegisterClassEx(&window_class);
 	CUSTOM_ASSERT(window_class_atom, "didn't register window class");
-	return (u64)window_class_atom;
+	return window_class_atom;
 }
 
-static u64 create_window() {
+static HWND create_window(void) {
 	DWORD     dwExStyle  = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR;
 	DWORD     dwStyle    = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 	HWND      hWndParent = HWND_DESKTOP;
@@ -46,16 +74,16 @@ static u64 create_window() {
 		dwExStyle,
 		window_class_name, window_title,
 		dwStyle,
-		// i32 X, Y, nWidth, nHeight
+		// int X, Y, nWidth, nHeight
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		hWndParent, hMenu, hInstance, lpParam
 	);
 	CUSTOM_ASSERT(window_handle, "didn't create window");
-	return (u64)window_handle;
+	return window_handle;
 }
 
-static void destroy_window(u64 window_handle) {
-	DestroyWindow((HWND)window_handle);
+static void destroy_window(HWND window_handle) {
+	DestroyWindow(window_handle);
 }
 
 //
@@ -183,5 +211,3 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 
 	return DefWindowProc(window_handle, message, wParam, lParam);
 }
-
-#pragma warning(pop)
