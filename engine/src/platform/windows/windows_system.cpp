@@ -7,11 +7,10 @@
 	#include <signal.h>
 #endif
 
-static void platform_update();
-static ULONGLONG platform_get_system_time();
-
 custom::System global_system;
 
+static void platform_update();
+static ULONGLONG platform_get_system_time();
 static void signal_handler(int value);
 
 //
