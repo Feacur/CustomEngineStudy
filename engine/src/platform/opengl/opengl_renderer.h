@@ -5,3 +5,5 @@ namespace custom
 {
 
 }
+
+// https://www.khronos.org/registry/OpenGL/index_gl.php
