@@ -7,6 +7,30 @@
 	#include <glad/glad.h>
 #endif
 
+static void log_last_error() {
+	auto error = GetLastError();
+	if (!error) { return; }
+
+	LPTSTR messageBuffer = NULL;
+	size_t size = FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM
+		| FORMAT_MESSAGE_ALLOCATE_BUFFER
+		| FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, error,
+		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
+		(LPTSTR)&messageBuffer, 0,
+		NULL
+	);
+
+	if (size) {
+		printf("0x%x: %s\n", error, messageBuffer);
+		LocalFree(messageBuffer);
+		return;
+	}
+
+	printf("0x%x\n", error);
+}
+
 constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
 }
@@ -220,18 +244,6 @@ static void platform_init(HDC hdc) {
 		0, // End
 	};
 
-	HGLRC share = NULL;
-	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share, attributes);
-	if (!hrc) {
-		CUSTOM_ASSERT(false, "can't create rendering context");
-		return;
-	}
-
-	if (!wgl.MakeCurrent(hdc, hrc)) {
-		CUSTOM_ASSERT(false, "can't make rendering context the current one");
-		return;
-	}
-
 	int pixel_format;
 	UINT formats_count;
 	wgl.ChoosePixelFormatARB(hdc, attributes, NULL, 1, &pixel_format, &formats_count);
@@ -244,6 +256,19 @@ static void platform_init(HDC hdc) {
 
 	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
 		CUSTOM_ASSERT(false, "can't set pixel format");
+		return;
+	}
+
+	HGLRC share = NULL;
+	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share, attributes);
+	if (!hrc) {
+		log_last_error();
+		CUSTOM_ASSERT(false, "can't create rendering context");
+		return;
+	}
+
+	if (!wgl.MakeCurrent(hdc, hrc)) {
+		CUSTOM_ASSERT(false, "can't make rendering context the current one");
 		return;
 	}
 	
