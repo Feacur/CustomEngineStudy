@@ -91,6 +91,10 @@ cstring wgl_get_extensions_string(HDC hdc) {
 }
 
 static bool contains_subword(cstring container, cstring value) {
+	CUSTOM_ASSERT(value, "extension is nullptr");
+	CUSTOM_ASSERT(*value != '\0', "extension is empty");
+	CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
+
 	cstring start = container;
 	while (true)
 	{
@@ -108,14 +112,6 @@ static bool contains_subword(cstring container, cstring value) {
 	}
 
 	return true;
-}
-
-bool contains_extension(cstring container, cstring value) {
-	if (!container) { return false; }
-	CUSTOM_ASSERT(value, "extension is nullptr");
-	CUSTOM_ASSERT(*value != '\0', "extension is empty");
-	CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
-	return contains_subword(container, value);
 }
 
 #define LOAD_OPENGL_FUNCTION(name) {\
@@ -141,9 +137,13 @@ static void load_extension_functions_through_dummy() {
 }
 #undef LOAD_EXTENSION_FUNCTION
 
-#define CHECK_EXTENSION(name) wgl.name = contains_extension(extensions, "WGL_" #name)
+#define CHECK_EXTENSION(name) wgl.name = contains_subword(extensions_string, "WGL_" #name)
 void check_extension_through_dummy(HDC hdc) {
-	cstring extensions = wgl_get_extensions_string(hdc);
+	cstring extensions_string = wgl_get_extensions_string(hdc);
+	if (!extensions_string) {
+		CUSTOM_ASSERT(false, "failed to load extensions string");
+		return;
+	}
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
 	CHECK_EXTENSION(EXT_framebuffer_sRGB);
