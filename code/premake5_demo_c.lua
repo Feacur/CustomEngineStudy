@@ -20,3 +20,5 @@ project "demo_c"
 	includedirs {
 		".",
 	}
+
+	filter {}

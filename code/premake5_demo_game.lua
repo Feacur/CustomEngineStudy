@@ -26,3 +26,5 @@ project "demo_game"
 	postbuildcommands {
 		("{COPY} \"%{cfg.buildtarget.directory}%{prj.name}*\" \"" .. demo_game_to_root_target_location .. "/platform_windows\"")
 	}
+
+	filter {}

@@ -20,3 +20,5 @@ project "demo_console"
 	includedirs {
 		".",
 	}
+
+	filter {}

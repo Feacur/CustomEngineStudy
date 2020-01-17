@@ -27,3 +27,5 @@ project "platform_windows"
 		"user32",
 		"gdi32",
 	}
+
+	filter {}

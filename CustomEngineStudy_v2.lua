@@ -89,6 +89,8 @@ workspace "CustomEngineStudy_v2"
 		symbols "Off"
 		optimize "On" -- On, Size, Speed, Full
 
+	filter {}
+
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)

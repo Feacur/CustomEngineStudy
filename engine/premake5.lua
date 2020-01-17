@@ -38,12 +38,6 @@ project "engine"
 			"src/platform/windows/**.cpp",
 		}
 
-	filter "system:windows"
-		files {
-			"src/platform/windows_opengl/**.h",
-			"src/platform/windows_opengl/**.cpp",
-		}
-
 	filter "system:windows or macosx or linux or bsd"
 		files {
 			"src/platform/opengl/**.h",
@@ -54,3 +48,5 @@ project "engine"
 		postbuildcommands {
 			("{COPY} \"%{cfg.buildtarget.relpath}\" \"" .. engine_target_location .. "/sandbox/\""),
 		}
+
+	filter {}
