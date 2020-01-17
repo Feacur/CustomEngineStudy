@@ -11,6 +11,8 @@
 // https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
 // https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
 
+#define OPENGL_LIBRARY_NAME "opengl32.dll"
+
 static void platform_init(HDC hdc);
 static void platform_shutdown();
 
@@ -37,97 +39,89 @@ namespace custom
 
 #include "wgl_tiny.h"
 
-namespace custom
+struct Wgl_Context
 {
-	struct Wgl_Context
+	HINSTANCE instance;
+
+	CreateContext_func     * CreateContext;
+	DeleteContext_func     * DeleteContext;
+	GetProcAddress_func    * GetProcAddress;
+	MakeCurrent_func       * MakeCurrent;
+	ShareLists_func        * ShareLists;
+
+	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
+	SwapIntervalEXT_func           * SwapIntervalEXT;
+
+	GetExtensionsStringARB_func    * GetExtensionsStringARB;
+	CreateContextAttribsARB_func   * CreateContextAttribsARB;
+	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
+
+	bool ARB_multisample;
+	bool ARB_framebuffer_sRGB;
+	bool EXT_framebuffer_sRGB;
+	bool ARB_create_context;
+	bool ARB_create_context_profile;
+	bool EXT_create_context_es2_profile;
+	bool ARB_create_context_robustness;
+	bool ARB_create_context_no_error;
+	bool EXT_swap_control;
+	bool EXT_colorspace;
+	bool ARB_pixel_format;
+	bool ARB_context_flush_control;
+};
+static Wgl_Context wgl;
+
+void * wgl_get_proc_address(cstring name) {
+	CUSTOM_ASSERT(name, "null GL procedure name");
+	void * address = wgl.GetProcAddress(name);
+	if (!address) {
+		address = GetProcAddress(wgl.instance, name);
+	}
+	return address;
+}
+
+cstring wgl_get_extensions_string(HDC hdc) {
+	if (wgl.GetExtensionsStringARB) {
+		return wgl.GetExtensionsStringARB(hdc);
+	}
+	if (wgl.GetExtensionsStringEXT) {
+		return wgl.GetExtensionsStringEXT();
+	}
+	return NULL;
+}
+
+static bool contains_subword(cstring container, cstring value) {
+	cstring start = container;
+	while (true)
 	{
-		HINSTANCE instance;
+		cstring where = strstr(start, value);
+		if (!where) { return false; }
 
-		CreateContext_func     * CreateContext;
-		DeleteContext_func     * DeleteContext;
-		GetProcAddress_func    * GetProcAddress;
-		MakeCurrent_func       * MakeCurrent;
-		ShareLists_func        * ShareLists;
-
-		GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
-		SwapIntervalEXT_func           * SwapIntervalEXT;
-
-		GetExtensionsStringARB_func    * GetExtensionsStringARB;
-		CreateContextAttribsARB_func   * CreateContextAttribsARB;
-		GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
-
-		bool ARB_multisample;
-		bool ARB_framebuffer_sRGB;
-		bool EXT_framebuffer_sRGB;
-		bool ARB_create_context;
-		bool ARB_create_context_profile;
-		bool EXT_create_context_es2_profile;
-		bool ARB_create_context_robustness;
-		bool ARB_create_context_no_error;
-		bool EXT_swap_control;
-		bool EXT_colorspace;
-		bool ARB_pixel_format;
-		bool ARB_context_flush_control;
-	};
-}
-static custom::Wgl_Context wgl;
-
-namespace custom
-{
-	void * wgl_get_proc_address(cstring name) {
-		CUSTOM_ASSERT(name, "null GL procedure name");
-		void * address = wgl.GetProcAddress(name);
-		if (!address) {
-			address = GetProcAddress(wgl.instance, name);
-		}
-		return address;
-	}
-
-	static bool contains_subword(cstring container, cstring value) {
-		cstring start = container;
-		while (true)
-		{
-			cstring where = strstr(start, value);
-			if (!where) { return false; }
-
-			// @Note: make sure a word has been found, not a substring
-			cstring terminator = where + strlen(value);
-			if (where == start || *(where - 1) == ' ') {
-				if (*terminator == ' ' || *terminator == '\0')
-					break;
-			}
-
-			start = terminator;
+		// @Note: make sure a word has been found, not a substring
+		cstring terminator = where + strlen(value);
+		if (where == start || *(where - 1) == ' ') {
+			if (*terminator == ' ' || *terminator == '\0')
+				break;
 		}
 
-		return true;
+		start = terminator;
 	}
 
-	bool contains_extension(cstring container, cstring value) {
-		if (!container) { return false; }
-		CUSTOM_ASSERT(value, "extension is nullptr");
-		CUSTOM_ASSERT(*value != '\0', "extension is empty");
-		CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
-		return contains_subword(container, value);
-	}
-
-	bool wgl_contains_extension(HDC hdc, cstring value) {
-		CUSTOM_ASSERT(value, "extension is nullptr");
-		CUSTOM_ASSERT(*value != '\0', "extension is empty");
-		CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
-
-		cstring container = NULL;
-		if (wgl.GetExtensionsStringARB)
-			container = wgl.GetExtensionsStringARB(hdc);
-		else if (wgl.GetExtensionsStringEXT)
-			container = wgl.GetExtensionsStringEXT();
-
-		if (!container) { return false; }
-		return contains_subword(container, value);
-	}
+	return true;
 }
 
-#define LOAD_OPENGL_FUNCTION(name) wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name)
+bool contains_extension(cstring container, cstring value) {
+	if (!container) { return false; }
+	CUSTOM_ASSERT(value, "extension is nullptr");
+	CUSTOM_ASSERT(*value != '\0', "extension is empty");
+	CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
+	return contains_subword(container, value);
+}
+
+#define LOAD_OPENGL_FUNCTION(name) {\
+	wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);\
+	CUSTOM_ASSERT(wgl.name, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
+}
 static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(CreateContext);
 	LOAD_OPENGL_FUNCTION(DeleteContext);
@@ -147,8 +141,9 @@ static void load_extension_functions_through_dummy() {
 }
 #undef LOAD_EXTENSION_FUNCTION
 
-#define CHECK_EXTENSION(name) wgl.name = custom::wgl_contains_extension(hdc, "WGL_" #name)
+#define CHECK_EXTENSION(name) wgl.name = contains_extension(extensions, "WGL_" #name)
 void check_extension_through_dummy(HDC hdc) {
+	cstring extensions = wgl_get_extensions_string(hdc);
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
 	CHECK_EXTENSION(EXT_framebuffer_sRGB);
@@ -198,9 +193,9 @@ static void load_extensions(HDC hdc) {
 }
 
 static void platform_init(HDC hdc) {
-	HINSTANCE opengl_handle = LoadLibrary("opengl32.dll");
+	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
 	if (!opengl_handle) {
-		CUSTOM_ASSERT(false, "can't load opengl32.dll");
+		CUSTOM_ASSERT(false, "can't load " OPENGL_LIBRARY_NAME);
 		return;
 	}
 
