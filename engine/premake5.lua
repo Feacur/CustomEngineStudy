@@ -39,10 +39,12 @@ project "engine"
 		}
 
 	filter "system:windows or macosx or linux or bsd"
+		links "glad"
 		files {
 			"src/platform/opengl/**.h",
 			"src/platform/opengl/**.cpp",
 		}
+		includedirs "%{engine_includes.glad}"
 
 	filter "kind:SharedLib"
 		postbuildcommands {

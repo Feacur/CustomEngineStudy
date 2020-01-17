@@ -98,8 +98,13 @@ enginename = "engine"
 
 engine_includes = {}
 engine_includes["engine"] = "src"
+engine_includes["glad"]   = "vendor/glad/include"
 
 root_directory = os.getcwd()
+
+group "dependecies"
+include "engine/vendor/premake5_glad.lua"
+group ""
 
 include "engine/premake5.lua"
 include "sandbox/premake5.lua"
