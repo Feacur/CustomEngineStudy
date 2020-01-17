@@ -12,13 +12,13 @@ namespace custom
 		void update();
 		void set_header(cstring value);
 
-		u64 get_handle() { return handle; }
-		u64 get_display() { return display; }
-		u64 get_graphics() { return graphics; }
+		uptr get_handle() { return handle; }
+		uptr get_display() { return display; }
+		uptr get_graphics() { return graphics; }
 
 	private:
-		u64 handle;
-		u64 display;
-		u64 graphics;
+		uptr handle;
+		uptr display;
+		uptr graphics;
 	};
 }

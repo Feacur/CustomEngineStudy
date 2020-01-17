@@ -16,7 +16,7 @@ static void platform_shutdown();
 
 namespace custom
 {
-	void Opengl_Context::init(u64 graphics)
+	void Opengl_Context::init(uptr graphics)
 	{
 		platform_init((HDC)graphics);
 	}

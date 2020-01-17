@@ -34,6 +34,9 @@ typedef double r64;
 
 typedef char const * cstring;
 
+typedef intptr_t  sptr;
+typedef uintptr_t uptr;
+
 // macros
 #define CUSTOM_STRINGIFY_A_VALUE(v) #v
 #define CUSTOM_STRINGIFY_A_MACRO(m) CUSTOM_STRINGIFY_A_VALUE(m)

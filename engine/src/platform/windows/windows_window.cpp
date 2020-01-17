@@ -25,9 +25,9 @@ namespace custom
 	{
 		ATOM window_atom = register_window_class();
 		HWND hwnd = create_window();
-		handle = (u64)hwnd;
+		handle = (uptr)hwnd;
 		display = 0;
-		graphics = (u64)GetDC(hwnd);
+		graphics = (uptr)GetDC(hwnd);
 
 		Opengl_Context::init(graphics);
 	}
