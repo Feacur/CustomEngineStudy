@@ -46,13 +46,13 @@ typedef BOOL  (WINAPI ShareLists_func)(HGLRC target, HGLRC source);
 
 // https://www.khronos.org/registry/OpenGL/extensions/EXT
 typedef cstring (WINAPI GetExtensionsStringEXT_func)(void);
-typedef cstring (WINAPI SwapIntervalEXT_func)(void);
+typedef BOOL    (WINAPI SwapIntervalEXT_func)(void);
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/
 typedef cstring (WINAPI GetExtensionsStringARB_func)(HDC hdc);
-typedef cstring (WINAPI CreateContextAttribsARB_func)(HDC hdc, HGLRC hrc, const int * attributes);
-typedef cstring (WINAPI GetPixelFormatAttribivARB_func)(void);
-typedef BOOL ChoosePixelFormatARB_func(HDC hdc, const int * attributes, const FLOAT * attributes_f, UINT formats_limit, int * pixel_format, UINT * formats_count);
+typedef HGLRC   (WINAPI CreateContextAttribsARB_func)(HDC hdc, HGLRC hrc, const int * attributes);
+typedef BOOL    (WINAPI GetPixelFormatAttribivARB_func)(void);
+typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int * attributes, const FLOAT * attributes_f, UINT formats_limit, int * pixel_format, UINT * formats_count);
 
 namespace custom
 {
@@ -219,6 +219,18 @@ static void platform_init(HDC hdc) {
 		WGL_STENCIL_BITS_ARB,    8,
 		0, // End
 	};
+
+	HGLRC share = NULL;
+	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share, attributes);
+	if (!hrc) {
+		CUSTOM_ASSERT(false, "can't create rendering context");
+		return;
+	}
+
+	if (!wgl.MakeCurrent(hdc, hrc)) {
+		CUSTOM_ASSERT(false, "can't make rendering context the current one");
+		return;
+	}
 
 	int pixel_format;
 	UINT formats_count;
