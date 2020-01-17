@@ -1,8 +1,11 @@
+#include "custom_pch.h"
 #include "engine/platform/platform_system.h"
 #include "engine/debug/log.h"
 
-#include <Windows.h>
-#include <signal.h>
+#if !defined(CUSTOM_PRECOMPILED_HEADER)
+	#include <Windows.h>
+	#include <signal.h>
+#endif
 
 static void platform_update();
 static ULONGLONG platform_get_system_time();

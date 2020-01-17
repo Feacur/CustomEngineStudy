@@ -1,7 +1,10 @@
+#include "custom_pch.h"
 #include "engine/platform/platform_timer.h"
 #include "engine/debug/log.h"
 
-#include <Windows.h>
+#if !defined(CUSTOM_PRECOMPILED_HEADER)
+	#include <Windows.h>
+#endif
 
 custom::Timer global_timer;
 

@@ -15,10 +15,12 @@ project "engine"
 
 	-- pchheader "custom_pch.h"
 	-- pchsource ("src/custom_pch.cpp")
+	-- defines "CUSTOM_PRECOMPILED_HEADER"
 
 	files {
 		"src/engine/**.h",
 		"src/engine/**.cpp",
+		-- "src/custom_pch.cpp",
 	}
 
 	includedirs {
@@ -30,9 +32,20 @@ project "engine"
 	}
 
 	filter "system:windows"
+		defines "WIN32_LEAN_AND_MEAN"
 		files {
 			"src/platform/windows/**.h",
 			"src/platform/windows/**.cpp",
+		}
+
+	filter "system:windows"
+		files {
+			"src/platform/windows_opengl/**.h",
+			"src/platform/windows_opengl/**.cpp",
+		}
+
+	filter "system:windows or macosx or linux or bsd"
+		files {
 			"src/platform/opengl/**.h",
 			"src/platform/opengl/**.cpp",
 		}

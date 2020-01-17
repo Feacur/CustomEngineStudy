@@ -1,7 +1,10 @@
+#include "custom_pch.h"
 #include "engine/platform/platform_window.h"
 #include "engine/debug/log.h"
 
-#include <Windows.h>
+#if !defined(CUSTOM_PRECOMPILED_HEADER)
+	#include <Windows.h>
+#endif
 
 static LPTSTR const window_class_name = TEXT("custom engine");
 static LPTSTR const window_title = TEXT("");

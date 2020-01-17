@@ -1,9 +1,13 @@
+#include "custom_pch.h"
+
+// #if !defined(CUSTOM_PRECOMPILED_HEADER)
+// 	#include <Windows.h>
+// #endif
+
 #if defined(CUSTOM_SHARED_LIBRARY)
 	#pragma message("engine is being built as a shared library")
 	#pragma message("and won't export performance variables")
 #else
-	// #define WIN32_LEAN_AND_MEAN
-	// #include <Windows.h> // DWORD
 	typedef unsigned long DWORD;
 	extern "C" { // @Note: use discrete GPU by default
 		// http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf

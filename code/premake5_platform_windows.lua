@@ -21,9 +21,9 @@ project "platform_windows"
 		".",
 	}
 	
-	filter "system:windows"
-		defines "WIN32_LEAN_AND_MEAN"
-		links {
-			"user32",
-			"gdi32",
-		}
+	defines "WIN32_LEAN_AND_MEAN"
+	
+	links {
+		"user32",
+		"gdi32",
+	}

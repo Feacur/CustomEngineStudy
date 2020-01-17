@@ -51,6 +51,9 @@ workspace "CustomEngineStudy_v2"
 		-- 	"-time+",
 		-- }
 
+	filter "system:windows"
+		defines "WIN32_LEAN_AND_MEAN"
+
 	filter "kind:StaticLib"
 		defines "CUSTOM_STATIC_LIBRARY"
 
