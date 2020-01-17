@@ -3,8 +3,6 @@
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/
 typedef HGLRC (WINAPI CreateContext_func)(HDC hDc);
 typedef BOOL  (WINAPI DeleteContext_func)(HGLRC oldContext);
-typedef HGLRC (WINAPI GetCurrentContext_func)(void);
-typedef HDC   (WINAPI GetCurrentDC_func)(void);
 typedef PROC  (WINAPI GetProcAddress_func)(LPCSTR lpszProc);
 typedef BOOL  (WINAPI MakeCurrent_func)(HDC hDc, HGLRC newContext);
 typedef BOOL  (WINAPI ShareLists_func)(HGLRC hrcSrvShare, HGLRC hrcSrvSource);

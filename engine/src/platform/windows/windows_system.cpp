@@ -7,6 +7,8 @@
 	#include <signal.h>
 #endif
 
+// https://github.com/Marzac/le3d/blob/master/engine/system_win.cpp
+
 custom::System global_system;
 
 static void platform_update();

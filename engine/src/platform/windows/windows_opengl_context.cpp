@@ -7,6 +7,10 @@
 	#include <glad/glad.h>
 #endif
 
+// https://github.com/glfw/glfw/blob/master/src/wgl_context.c
+// https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
+// https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
+
 static void platform_init(HDC hdc);
 static void platform_shutdown();
 
@@ -41,8 +45,6 @@ namespace custom
 
 		CreateContext_func     * CreateContext;
 		DeleteContext_func     * DeleteContext;
-		GetCurrentContext_func * GetCurrentContext;
-		GetCurrentDC_func      * GetCurrentDC;
 		GetProcAddress_func    * GetProcAddress;
 		MakeCurrent_func       * MakeCurrent;
 		ShareLists_func        * ShareLists;
@@ -88,6 +90,7 @@ namespace custom
 			cstring where = strstr(start, value);
 			if (!where) { return false; }
 
+			// @Note: make sure a word has been found, not a substring
 			cstring terminator = where + strlen(value);
 			if (where == start || *(where - 1) == ' ') {
 				if (*terminator == ' ' || *terminator == '\0')
@@ -100,9 +103,20 @@ namespace custom
 		return true;
 	}
 
-	bool wgl_contains_extension(HDC hdc, cstring value) {
-		cstring container = NULL;
+	bool contains_extension(cstring container, cstring value) {
+		if (!container) { return false; }
+		CUSTOM_ASSERT(value, "extension is nullptr");
+		CUSTOM_ASSERT(*value != '\0', "extension is empty");
+		CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
+		return contains_subword(container, value);
+	}
 
+	bool wgl_contains_extension(HDC hdc, cstring value) {
+		CUSTOM_ASSERT(value, "extension is nullptr");
+		CUSTOM_ASSERT(*value != '\0', "extension is empty");
+		CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
+
+		cstring container = NULL;
 		if (wgl.GetExtensionsStringARB)
 			container = wgl.GetExtensionsStringARB(hdc);
 		else if (wgl.GetExtensionsStringEXT)
@@ -117,8 +131,6 @@ namespace custom
 static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(CreateContext);
 	LOAD_OPENGL_FUNCTION(DeleteContext);
-	LOAD_OPENGL_FUNCTION(GetCurrentContext);
-	LOAD_OPENGL_FUNCTION(GetCurrentDC);
 	LOAD_OPENGL_FUNCTION(GetProcAddress);
 	LOAD_OPENGL_FUNCTION(MakeCurrent);
 	LOAD_OPENGL_FUNCTION(ShareLists);
@@ -153,16 +165,16 @@ void check_extension_through_dummy(HDC hdc) {
 #undef CHECK_EXTENSION
 
 static void load_extensions(HDC hdc) {
-	PIXELFORMATDESCRIPTOR pfd = {};
-	pfd.nSize        = sizeof(pfd);
-	pfd.nVersion     = 1;
-	pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	pfd.iPixelType   = PFD_TYPE_RGBA;
-	pfd.cColorBits   = 8 * 3;
-	// pfd.cDepthBits   = 8 * 3;
-	// pfd.cStencilBits = 8 * 1;
+	PIXELFORMATDESCRIPTOR dummy_pfd = {};
+	dummy_pfd.nSize        = sizeof(dummy_pfd);
+	dummy_pfd.nVersion     = 1;
+	dummy_pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	dummy_pfd.iPixelType   = PFD_TYPE_RGBA;
+	dummy_pfd.cColorBits   = 8 * 3;
+	// dummy_pfd.cDepthBits   = 8 * 3;
+	// dummy_pfd.cStencilBits = 8 * 1;
 
-	if (!SetPixelFormat(hdc, ChoosePixelFormat(hdc, &pfd), &pfd)) {
+	if (!SetPixelFormat(hdc, ChoosePixelFormat(hdc, &dummy_pfd), &dummy_pfd)) {
 		CUSTOM_ASSERT(false, "can't set dummy pixel format");
 		return;
 	}
@@ -173,9 +185,6 @@ static void load_extensions(HDC hdc) {
 		return;
 	}
 
-	HDC current_hdc = wgl.GetCurrentDC();
-	HGLRC current_hrc = wgl.GetCurrentContext();
-
 	if (!wgl.MakeCurrent(hdc, dummy_hrc)) {
 		CUSTOM_ASSERT(false, "can't make dummy rendering context the current one");
 	}
@@ -184,7 +193,7 @@ static void load_extensions(HDC hdc) {
 		check_extension_through_dummy(hdc);
 	}
 
-	wgl.MakeCurrent(current_hdc, current_hrc);
+	wgl.MakeCurrent(hdc, NULL);
 	wgl.DeleteContext(dummy_hrc);
 }
 
