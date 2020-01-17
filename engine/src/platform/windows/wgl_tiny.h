@@ -10,11 +10,13 @@ typedef BOOL  (WINAPI ShareLists_func)(HGLRC hrcSrvShare, HGLRC hrcSrvSource);
 // https://www.khronos.org/registry/OpenGL/extensions/EXT
 typedef cstring (WINAPI GetExtensionsStringEXT_func)(void);
 typedef BOOL    (WINAPI SwapIntervalEXT_func)(void);
+typedef int     (WINAPI GetSwapIntervalEXT_func)(void);
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/
 typedef cstring (WINAPI GetExtensionsStringARB_func)(HDC hdc);
 typedef HGLRC   (WINAPI CreateContextAttribsARB_func)(HDC hDC, HGLRC hShareContext, const int *attribList);
 typedef BOOL    (WINAPI GetPixelFormatAttribivARB_func)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
+typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 
 #define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
 #define WGL_DRAW_TO_WINDOW_ARB            0x2001

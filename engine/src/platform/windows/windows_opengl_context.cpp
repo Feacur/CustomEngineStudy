@@ -51,21 +51,23 @@ struct Wgl_Context
 
 	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
 	SwapIntervalEXT_func           * SwapIntervalEXT;
+	GetSwapIntervalEXT_func        * GetSwapIntervalEXT;
 
 	GetExtensionsStringARB_func    * GetExtensionsStringARB;
 	CreateContextAttribsARB_func   * CreateContextAttribsARB;
 	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
+	ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
 
 	bool ARB_multisample;
 	bool ARB_framebuffer_sRGB;
 	bool EXT_framebuffer_sRGB;
-	bool ARB_create_context;
-	bool ARB_create_context_profile;
+	// bool ARB_create_context;
+	// bool ARB_create_context_profile;
 	bool EXT_create_context_es2_profile;
 	bool ARB_create_context_robustness;
 	bool ARB_create_context_no_error;
 	bool EXT_swap_control;
-	bool EXT_colorspace;
+	// bool EXT_colorspace;
 	bool ARB_pixel_format;
 	bool ARB_context_flush_control;
 };
@@ -131,9 +133,11 @@ static void load_opengl_functions() {
 static void load_extension_functions_through_dummy() {
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
+	LOAD_EXTENSION_FUNCTION(GetSwapIntervalEXT);
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
 	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
 	LOAD_EXTENSION_FUNCTION(GetPixelFormatAttribivARB);
+	LOAD_EXTENSION_FUNCTION(ChoosePixelFormatARB);
 }
 #undef LOAD_EXTENSION_FUNCTION
 
@@ -147,13 +151,13 @@ void check_extension_through_dummy(HDC hdc) {
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
 	CHECK_EXTENSION(EXT_framebuffer_sRGB);
-	CHECK_EXTENSION(ARB_create_context);
-	CHECK_EXTENSION(ARB_create_context_profile);
+	// CHECK_EXTENSION(ARB_create_context);
+	// CHECK_EXTENSION(ARB_create_context_profile);
 	CHECK_EXTENSION(EXT_create_context_es2_profile);
 	CHECK_EXTENSION(ARB_create_context_robustness);
 	CHECK_EXTENSION(ARB_create_context_no_error);
 	CHECK_EXTENSION(EXT_swap_control);
-	CHECK_EXTENSION(EXT_colorspace);
+	// CHECK_EXTENSION(EXT_colorspace);
 	CHECK_EXTENSION(ARB_pixel_format);
 	CHECK_EXTENSION(ARB_context_flush_control);
 }
@@ -170,18 +174,18 @@ static void load_extensions(HDC hdc) {
 	// dummy_pfd.cStencilBits = 8 * 1;
 
 	if (!SetPixelFormat(hdc, ChoosePixelFormat(hdc, &dummy_pfd), &dummy_pfd)) {
-		CUSTOM_ASSERT(false, "can't set dummy pixel format");
+		CUSTOM_ASSERT(false, "failed to set dummy pixel format");
 		return;
 	}
 
 	HGLRC dummy_hrc = wgl.CreateContext(hdc);
 	if (!dummy_hrc) {
-		CUSTOM_ASSERT(false, "can't create dummy rendering context");
+		CUSTOM_ASSERT(false, "failed to create dummy rendering context");
 		return;
 	}
 
 	if (!wgl.MakeCurrent(hdc, dummy_hrc)) {
-		CUSTOM_ASSERT(false, "can't make dummy rendering context the current one");
+		CUSTOM_ASSERT(false, "failed to make dummy rendering context the current one");
 	}
 	else {
 		load_extension_functions_through_dummy();
