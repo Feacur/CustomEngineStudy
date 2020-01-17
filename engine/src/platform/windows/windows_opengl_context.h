@@ -7,5 +7,6 @@ namespace custom
 	{
 	public:
 		static void init(u64 graphics);
+		static void shutdown();
 	};
 }

@@ -2,6 +2,8 @@
 #include "engine/platform/platform_window.h"
 #include "engine/debug/log.h"
 
+#include "windows_opengl_context.h"
+
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
 #endif
@@ -21,11 +23,13 @@ namespace custom
 {
 	Window::Window()
 	{
-		ATOM window_class_atom = register_window_class();
-		HWND window_handle = create_window();
-		handle = (u64)window_handle;
+		ATOM window_atom = register_window_class();
+		HWND hwnd = create_window();
+		handle = (u64)hwnd;
 		display = 0;
-		graphics = (u64)GetDC(window_handle);
+		graphics = (u64)GetDC(hwnd);
+
+		Opengl_Context::init(graphics);
 	}
 
 	Window::~Window()
@@ -34,6 +38,8 @@ namespace custom
 		handle = 0;
 		display = 0;
 		graphics = 0;
+
+		Opengl_Context::shutdown();
 	}
 
 	void Window::update() { /*blank*/ }
@@ -48,7 +54,7 @@ namespace custom
 // platform implementation
 //
 
-static LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static ATOM register_window_class(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa
 	WNDCLASSEX window_class = {};
@@ -73,7 +79,7 @@ static HWND create_window(void) {
 	LPVOID    lpParam    = NULL;
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
-	HWND window_handle = CreateWindowEx(
+	HWND hwnd = CreateWindowEx(
 		dwExStyle,
 		window_class_name, window_title,
 		dwStyle,
@@ -81,32 +87,32 @@ static HWND create_window(void) {
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		hWndParent, hMenu, hInstance, lpParam
 	);
-	CUSTOM_ASSERT(window_handle, "didn't create window");
-	return window_handle;
+	CUSTOM_ASSERT(hwnd, "didn't create window");
+	return hwnd;
 }
 
-static void destroy_window(HWND window_handle) {
-	DestroyWindow(window_handle);
+static void destroy_window(HWND hwnd) {
+	DestroyWindow(hwnd);
 }
 
 //
 // input
 //
 
-static void process_message_raw(HWND window_handle, LPARAM lParam) { /**/ }
-static void process_message_keyboard(HWND window_handle, WPARAM wParam, LPARAM lParam) { /**/ }
-static void process_message_mouse(HWND window_handle, WPARAM wParam, LPARAM lParam) { /**/ }
+static void process_message_raw(HWND hwnd, LPARAM lParam) { /**/ }
+static void process_message_keyboard(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
+static void process_message_mouse(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
 
 //
 // window procedure callback
 // https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms633573(v=vs.85)?redirectedfrom=MSDN
 //
 
-static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
 		case WM_INPUT: {
-			process_message_raw(window_handle, lParam);
+			process_message_raw(hwnd, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
@@ -115,7 +121,7 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
 		case WM_KEYDOWN: {
-			process_message_keyboard(window_handle, wParam, lParam);
+			process_message_keyboard(hwnd, wParam, lParam);
 			return 0; // An application should return zero if it processes this message.
 		} break;
 		
@@ -141,7 +147,7 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 		case WM_MBUTTONUP:
 		case WM_RBUTTONDOWN:
 		case WM_RBUTTONUP: {
-			process_message_mouse(window_handle, wParam, lParam);
+			process_message_mouse(hwnd, wParam, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
@@ -168,11 +174,11 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 		// https://docs.microsoft.com/en-us/windows/win32/gdi/painting-and-drawing-messages
 		case WM_PAINT: {
 			// Is sent when the system or another application makes a request to paint a portion of an application's window.
-			bool has_update_region = GetUpdateRect(window_handle, NULL, false);
+			bool has_update_region = GetUpdateRect(hwnd, NULL, false);
 			if (has_update_region) {
 				PAINTSTRUCT paint;
-				HDC device_context = BeginPaint(window_handle, &paint);
-				EndPaint(window_handle, &paint);
+				HDC hdc = BeginPaint(hwnd, &paint);
+				EndPaint(hwnd, &paint);
 			}
 			return 0; // An application returns zero if it processes this message.
 		} break;
@@ -201,7 +207,7 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 
 		case WM_CLOSE: {
 			// Sent as a signal that a window or an application should terminate.
-			DestroyWindow(window_handle); // Go to WM_DESTROY
+			DestroyWindow(hwnd); // Go to WM_DESTROY
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
@@ -212,5 +218,5 @@ static LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARA
 		} break;
 	}
 
-	return DefWindowProc(window_handle, message, wParam, lParam);
+	return DefWindowProc(hwnd, message, wParam, lParam);
 }
