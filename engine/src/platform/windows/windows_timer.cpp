@@ -30,7 +30,7 @@ namespace custom
 		u64 duration_ticks = mul_div(duration, ticks_per_second, precision);
 		u64 frame_end_ticks = frame_start_ticks + duration_ticks;
 		u64 current_ticks;
-		while(true) {
+		while (true) {
 			current_ticks = (u64)platform_get_counter();
 			if (current_ticks >= frame_end_ticks) { break; }
 

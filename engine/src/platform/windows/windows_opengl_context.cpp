@@ -7,37 +7,6 @@
 	#include <glad/glad.h>
 #endif
 
-// https://www.khronos.org/registry/OpenGL/api/GL
-// @Note: see "wgl_reference/wgl.h", "wgl_reference/wglext.h"
-
-static void log_last_error() {
-	auto error = GetLastError();
-	if (!error) { return; }
-
-	LPTSTR messageBuffer = NULL;
-	size_t size = FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM
-		| FORMAT_MESSAGE_ALLOCATE_BUFFER
-		| FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, error,
-		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-		(LPTSTR)&messageBuffer, 0,
-		NULL
-	);
-
-	if (size) {
-		printf("0x%x: %s\n", error, messageBuffer);
-		LocalFree(messageBuffer);
-		return;
-	}
-
-	printf("0x%x\n", error);
-}
-
-constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
-	return (container & bits) == bits;
-}
-
 static void platform_init(HDC hdc);
 static void platform_shutdown();
 
@@ -62,31 +31,14 @@ namespace custom
 // platform implementation
 //
 
-// https://docs.microsoft.com/en-us/windows/win32/api/wingdi/
-typedef HGLRC (WINAPI CreateContext_func)(HDC hDc);
-typedef BOOL  (WINAPI DeleteContext_func)(HGLRC oldContext);
-typedef HGLRC (WINAPI GetCurrentContext_func)(void);
-typedef HDC   (WINAPI GetCurrentDC_func)(void);
-typedef PROC  (WINAPI GetProcAddress_func)(LPCSTR lpszProc);
-typedef BOOL  (WINAPI MakeCurrent_func)(HDC hDc, HGLRC newContext);
-typedef BOOL  (WINAPI ShareLists_func)(HGLRC hrcSrvShare, HGLRC hrcSrvSource);
-
-// https://www.khronos.org/registry/OpenGL/extensions/EXT
-typedef cstring (WINAPI GetExtensionsStringEXT_func)(void);
-typedef BOOL    (WINAPI SwapIntervalEXT_func)(void);
-
-// https://www.khronos.org/registry/OpenGL/extensions/ARB/
-typedef cstring (WINAPI GetExtensionsStringARB_func)(HDC hdc);
-typedef HGLRC   (WINAPI CreateContextAttribsARB_func)(HDC hDC, HGLRC hShareContext, const int *attribList);
-typedef BOOL    (WINAPI GetPixelFormatAttribivARB_func)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
-
-typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+#include "wgl_tiny.h"
 
 namespace custom
 {
 	struct Wgl_Context
 	{
 		HINSTANCE instance;
+
 		CreateContext_func     * CreateContext;
 		DeleteContext_func     * DeleteContext;
 		GetCurrentContext_func * GetCurrentContext;
@@ -102,13 +54,67 @@ namespace custom
 		CreateContextAttribsARB_func   * CreateContextAttribsARB;
 		GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
 
-		ChoosePixelFormatARB_func * ChoosePixelFormatARB;
+		bool ARB_multisample;
+		bool ARB_framebuffer_sRGB;
+		bool EXT_framebuffer_sRGB;
+		bool ARB_create_context;
+		bool ARB_create_context_profile;
+		bool EXT_create_context_es2_profile;
+		bool ARB_create_context_robustness;
+		bool ARB_create_context_no_error;
+		bool EXT_swap_control;
+		bool EXT_colorspace;
+		bool ARB_pixel_format;
+		bool ARB_context_flush_control;
 	};
 }
 static custom::Wgl_Context wgl;
 
+namespace custom
+{
+	void * wgl_get_proc_address(cstring name) {
+		CUSTOM_ASSERT(name, "null GL procedure name");
+		void * address = wgl.GetProcAddress(name);
+		if (!address) {
+			address = GetProcAddress(wgl.instance, name);
+		}
+		return address;
+	}
+
+	static bool contains_subword(cstring container, cstring value) {
+		cstring start = container;
+		while (true)
+		{
+			cstring where = strstr(start, value);
+			if (!where) { return false; }
+
+			cstring terminator = where + strlen(value);
+			if (where == start || *(where - 1) == ' ') {
+				if (*terminator == ' ' || *terminator == '\0')
+					break;
+			}
+
+			start = terminator;
+		}
+
+		return true;
+	}
+
+	bool wgl_contains_extension(HDC hdc, cstring value) {
+		cstring container = NULL;
+
+		if (wgl.GetExtensionsStringARB)
+			container = wgl.GetExtensionsStringARB(hdc);
+		else if (wgl.GetExtensionsStringEXT)
+			container = wgl.GetExtensionsStringEXT();
+
+		if (!container) { return false; }
+		return contains_subword(container, value);
+	}
+}
+
 #define LOAD_OPENGL_FUNCTION(name) wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name)
-static void platform_init_opengl() {
+static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(CreateContext);
 	LOAD_OPENGL_FUNCTION(DeleteContext);
 	LOAD_OPENGL_FUNCTION(GetCurrentContext);
@@ -120,17 +126,33 @@ static void platform_init_opengl() {
 #undef LOAD_OPENGL_FUNCTION
 
 #define LOAD_EXTENSION_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
-static void platform_init_extensions() {
+static void load_extension_functions_through_dummy() {
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
 	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
 	LOAD_EXTENSION_FUNCTION(GetPixelFormatAttribivARB);
-	LOAD_EXTENSION_FUNCTION(ChoosePixelFormatARB);
 }
 #undef LOAD_EXTENSION_FUNCTION
 
-static void platform_init_ext_arb(HDC hdc) {
+#define CHECK_EXTENSION(name) wgl.name = custom::wgl_contains_extension(hdc, "WGL_" #name)
+void check_extension_through_dummy(HDC hdc) {
+	CHECK_EXTENSION(ARB_multisample);
+	CHECK_EXTENSION(ARB_framebuffer_sRGB);
+	CHECK_EXTENSION(EXT_framebuffer_sRGB);
+	CHECK_EXTENSION(ARB_create_context);
+	CHECK_EXTENSION(ARB_create_context_profile);
+	CHECK_EXTENSION(EXT_create_context_es2_profile);
+	CHECK_EXTENSION(ARB_create_context_robustness);
+	CHECK_EXTENSION(ARB_create_context_no_error);
+	CHECK_EXTENSION(EXT_swap_control);
+	CHECK_EXTENSION(EXT_colorspace);
+	CHECK_EXTENSION(ARB_pixel_format);
+	CHECK_EXTENSION(ARB_context_flush_control);
+}
+#undef CHECK_EXTENSION
+
+static void load_extensions(HDC hdc) {
 	PIXELFORMATDESCRIPTOR pfd = {};
 	pfd.nSize        = sizeof(pfd);
 	pfd.nVersion     = 1;
@@ -158,82 +180,12 @@ static void platform_init_ext_arb(HDC hdc) {
 		CUSTOM_ASSERT(false, "can't make dummy rendering context the current one");
 	}
 	else {
-		platform_init_extensions();
+		load_extension_functions_through_dummy();
+		check_extension_through_dummy(hdc);
 	}
 
 	wgl.MakeCurrent(current_hdc, current_hrc);
 	wgl.DeleteContext(dummy_hrc);
-}
-
-static void * get_proc_address(cstring name) {
-	CUSTOM_ASSERT(name, "null GL procedure name");
-	void * address = wgl.GetProcAddress(name);
-	if (!address) {
-		address = GetProcAddress(wgl.instance, name);
-	}
-	return address;
-}
-
-#define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
-#define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
-#define WGL_CONTEXT_FLAGS_ARB             0x2094
-
-int choose_pixel_format(HDC hdc) {
-	// https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
-	const int attrib = WGL_NUMBER_PIXEL_FORMATS_ARB;
-	// The number of pixel formats for the device context.
-	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
-	int nativeCount;
-
-	if (!wgl.GetPixelFormatAttribivARB(hdc, NULL, NULL, 1, &attrib, &nativeCount))
-	{
-	}
-
-	return 0;
-}
-
-static void platform_init_create(HDC hdc) {
-	int const attributes[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
-		WGL_CONTEXT_FLAGS_ARB, 0,
-		0
-	};
-
-	int pixel_format;
-	UINT formats_count;
-	wgl.ChoosePixelFormatARB(hdc, attributes, NULL, 1, &pixel_format, &formats_count);
-
-	PIXELFORMATDESCRIPTOR pfd;
-	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
-		log_last_error();
-		CUSTOM_ASSERT(false, "can't describe pixel format");
-		return;
-	}
-
-	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
-		log_last_error();
-		CUSTOM_ASSERT(false, "can't set pixel format");
-		return;
-	}
-
-	HGLRC share = NULL;
-	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share, attributes);
-	if (!hrc) {
-		log_last_error();
-		CUSTOM_ASSERT(false, "can't create rendering context");
-		return;
-	}
-
-	if (!wgl.MakeCurrent(hdc, hrc)) {
-		log_last_error();
-		CUSTOM_ASSERT(false, "can't make rendering context the current one");
-		return;
-	}
-	
-	int glad_status = gladLoadGLLoader((GLADloadproc)get_proc_address);
-	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 }
 
 static void platform_init(HDC hdc) {
@@ -244,19 +196,75 @@ static void platform_init(HDC hdc) {
 	}
 
 	wgl.instance = opengl_handle;
-	platform_init_opengl();
-	platform_init_ext_arb(hdc);
-	platform_init_create(hdc);
-	
+	load_opengl_functions();
+	load_extensions(hdc);
 }
 
 static void platform_shutdown() {
 	FreeLibrary(wgl.instance);
 }
 
-// CUSTOM_INFO("vendor '%s'; renderer '%s'; version '%s'", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+#define ADD_ATTRIBUTE_KEY(key) {\
+	CUSTOM_ASSERT(count < cap, "attributes capacity reached");\
+	keys[count++] = key;\
+}
+int add_atribute_keys(int * keys, int cap) {
+	int count = 0;
+	ADD_ATTRIBUTE_KEY(WGL_SUPPORT_OPENGL_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_PIXEL_TYPE_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCELERATION_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_RED_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_RED_SHIFT_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_GREEN_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_GREEN_SHIFT_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_BLUE_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_BLUE_SHIFT_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ALPHA_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ALPHA_SHIFT_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_DEPTH_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_STENCIL_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCUM_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCUM_RED_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCUM_GREEN_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCUM_BLUE_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_ACCUM_ALPHA_BITS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_AUX_BUFFERS_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_STEREO_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_DOUBLE_BUFFER_ARB);
 
-// wglSwapIntervalEXT = (wglSwapIntervalEXT_func *)wglGetProcAddress("wglSwapIntervalEXT");
-// if (wglSwapIntervalEXT) {
-// 	wglSwapIntervalEXT(1);
-// }
+	if (wgl.ARB_multisample) {
+		ADD_ATTRIBUTE_KEY(WGL_SAMPLES_ARB);
+	}
+
+	// @Note: is desktop OpenGL?
+	if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
+		ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+	}
+
+	// @Note: is not desktop OpenGL?
+	// if (wgl.EXT_colorspace) {
+	// 	ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
+	// }
+
+	return count;
+}
+#undef ADD_ATTRIBUTE
+
+int choose_pixel_format_arb(HDC hdc) {
+	// https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
+	// The number of pixel formats for the device context.
+	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
+	int const attribute = WGL_NUMBER_PIXEL_FORMATS_ARB;
+	int nativeCount;
+	if (!wgl.GetPixelFormatAttribivARB(hdc, NULL, NULL, 1, &attribute, &nativeCount)) {
+		CUSTOM_ASSERT(false, "failed to get pixel format attribute");
+	}
+
+	int const attr_cap = 40;
+	int attr_keys[attr_cap] = {};
+	int attr_vals[attr_cap] = {};
+	int attr_count = add_atribute_keys(attr_keys, attr_cap);
+
+	return 0;
+}

@@ -50,7 +50,7 @@ namespace custom
 
 static void platform_update() {
 	MSG message = {};
-	while(PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
+	while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
 		if (message.message == WM_QUIT) {
 			// Indicates a request to terminate an application.
 			global_system.is_running = false;
