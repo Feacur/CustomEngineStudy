@@ -16,12 +16,10 @@ typedef int     (WINAPI GetSwapIntervalEXT_func)(void);
 typedef cstring (WINAPI GetExtensionsStringARB_func)(HDC hdc);
 typedef HGLRC   (WINAPI CreateContextAttribsARB_func)(HDC hDC, HGLRC hShareContext, const int *attribList);
 typedef BOOL    (WINAPI GetPixelFormatAttribivARB_func)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
-typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-
-// attribute requests
-#define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
+// typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 
 // attribute keys
+#define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
 #define WGL_DRAW_TO_WINDOW_ARB            0x2001
 #define WGL_ACCELERATION_ARB              0x2003
 #define WGL_SWAP_METHOD_ARB               0x2007
@@ -51,8 +49,14 @@ typedef BOOL    (WINAPI ChoosePixelFormatARB_func)(HDC hdc, const int *piAttribI
 #define WGL_COLORSPACE_EXT                0x309D
 
 // attribute values
+#define WGL_NO_ACCELERATION_ARB           0x2025
+#define WGL_GENERIC_ACCELERATION_ARB      0x2026
 #define WGL_FULL_ACCELERATION_ARB         0x2027
 #define WGL_SWAP_EXCHANGE_ARB             0x2028
+#define WGL_SWAP_COPY_ARB                 0x2029
+#define WGL_SWAP_UNDEFINED_ARB            0x202A
+#define WGL_TYPE_RGBA_ARB                 0x202B
+#define WGL_TYPE_COLORINDEX_ARB           0x202C
 
 // errors
 #define ERROR_INVALID_VERSION_ARB         0x2095

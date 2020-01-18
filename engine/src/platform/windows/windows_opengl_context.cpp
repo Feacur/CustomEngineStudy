@@ -7,6 +7,9 @@
 	#include <glad/glad.h>
 #endif
 
+// https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
+// https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-pixelformatdescriptor
+
 // https://github.com/glfw/glfw/blob/master/src/wgl_context.c
 // https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
 // https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
@@ -19,6 +22,9 @@ static void platform_shutdown();
 constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
 }
+
+#define ALLOCATE(type, count) (type *)malloc(count * sizeof(type))
+#define CREATE_ARRAY(type, count, name) type * name = ALLOCATE(type, count)
 
 //
 // API implementation
@@ -43,6 +49,37 @@ namespace custom
 
 #include "wgl_tiny.h"
 
+struct Pixel_Format
+{
+	int redBits;
+	int greenBits;
+	int blueBits;
+	int alphaBits;
+	int depthBits;
+	int stencilBits;
+};
+
+struct Pixel_Format_Aux
+{
+	int  redShift;
+	int  greenShift;
+	int  blueShift;
+	int  alphaShift;
+	//
+	int  accumRedShift;
+	int  accumGreenShift;
+	int  accumBlueShift;
+	int  accumAlphaShift;
+	//
+	int  auxBuffers;
+	int  samples;
+	//
+	bool stereo;
+	bool sRGB;
+	bool doublebuffer;
+	// bool transparent;
+};
+
 struct Wgl_Context
 {
 	HINSTANCE instance;
@@ -63,7 +100,7 @@ struct Wgl_Context
 	GetExtensionsStringARB_func    * GetExtensionsStringARB;
 	CreateContextAttribsARB_func   * CreateContextAttribsARB;
 	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
-	ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
+	// ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
 
 	// EXT extensions
 	bool EXT_framebuffer_sRGB;
@@ -149,7 +186,7 @@ static void load_extension_functions_through_dummy() {
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
 	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
 	LOAD_EXTENSION_FUNCTION(GetPixelFormatAttribivARB);
-	LOAD_EXTENSION_FUNCTION(ChoosePixelFormatARB);
+	// LOAD_EXTENSION_FUNCTION(ChoosePixelFormatARB);
 }
 #undef LOAD_EXTENSION_FUNCTION
 
@@ -222,22 +259,21 @@ static int add_atribute_keys(int * keys, int cap) {
 	ADD_ATTRIBUTE_KEY(WGL_PIXEL_TYPE_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_ACCELERATION_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_RED_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_RED_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_RED_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_GREEN_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_GREEN_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_GREEN_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_BLUE_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_BLUE_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_BLUE_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_ALPHA_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ALPHA_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ALPHA_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DEPTH_BITS_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_STENCIL_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ACCUM_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ACCUM_RED_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ACCUM_GREEN_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ACCUM_BLUE_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_ACCUM_ALPHA_BITS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_AUX_BUFFERS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_STEREO_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_BITS_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_RED_BITS_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_GREEN_BITS_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_BLUE_BITS_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_ALPHA_BITS_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_AUX_BUFFERS_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DOUBLE_BUFFER_ARB);
 
 	if (wgl.ARB_multisample) {
@@ -258,8 +294,12 @@ static int add_atribute_keys(int * keys, int cap) {
 }
 #undef ADD_ATTRIBUTE
 
+int get_value(int * keys, int * vals, int key) {
+	return 0;
+}
+
+#define GET_ATTRIBUTE_VALUE(key) get_value(attr_keys, attr_vals, key)
 static int choose_pixel_format_arb(HDC hdc) {
-	// https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 	// The number of pixel formats for the device context.
 	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
 	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
@@ -274,13 +314,25 @@ static int choose_pixel_format_arb(HDC hdc) {
 	int attr_vals[attr_cap] = {};
 	int attr_count = add_atribute_keys(attr_keys, attr_cap);
 
+	int pf_count = 0;
+	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
 	for (int i = 0; i < formats_count; ++i)
 	{
-		int pixel_format = i + 1;
-		if (!wgl.GetPixelFormatAttribivARB(hdc, pixel_format, 0, attr_count, attr_keys, attr_vals)) {
-			CUSTOM_ASSERT(false, "failed to get pixel format %d values", pixel_format);
+		int pixel_format_id = i + 1;
+		if (!wgl.GetPixelFormatAttribivARB(hdc, pixel_format_id, 0, attr_count, attr_keys, attr_vals)) {
+			CUSTOM_WARN("failed to get pixel format %d values", pixel_format_id);
+			continue;
 		}
+
+		Pixel_Format pf = {};
+		pf.alphaBits = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
+
+		pixel_formats[pf_count++] = pf;
 	}
+
+	// @Todo: search for the best match
+
+	free(pixel_formats);
 
 	return 0;
 }
@@ -290,9 +342,60 @@ static int choose_pixel_format_legacy(HDC hdc) {
 		hdc, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL
 	);
 
+	int pf_count = 0;
+	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
 	for (int i = 0; i < formats_count; ++i)
 	{
+		int pixel_format_id = i + 1;
+		PIXELFORMATDESCRIPTOR pfd;
+		if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd))
+		{
+			CUSTOM_WARN("failed to describe pixel format %d", pixel_format_id);
+			continue;
+		}
+		// should support
+		if (!bits_are_set(pfd.dwFlags, PFD_DRAW_TO_WINDOW)) { continue; }
+		if (!bits_are_set(pfd.dwFlags, PFD_SUPPORT_OPENGL)) { continue; }
+		// if (!bits_are_set(pfd.dwFlags, PFD_GENERIC_ACCELERATED)) { continue; }
+		
+		// should not support
+		// if (bits_are_set(pfd.dwFlags, PFD_DRAW_TO_BITMAP)) { continue; }
+		if (bits_are_set(pfd.dwFlags, PFD_SUPPORT_GDI)) { continue; }
+		// if (!bits_are_set(pfd.dwFlags, PFD_GENERIC_FORMAT)) { continue; }
+
+		Pixel_Format pf = {};
+		pf.redBits     = pfd.cRedBits;
+		pf.greenBits   = pfd.cGreenBits;
+		pf.blueBits    = pfd.cBlueBits;
+		pf.alphaBits   = pfd.cAlphaBits;
+		pf.depthBits   = pfd.cDepthBits;
+		pf.stencilBits = pfd.cStencilBits;
+
+		Pixel_Format_Aux pfa = {};
+		pfa.redShift = pfd.cRedShift;
+		pfa.greenShift = pfd.cGreenShift;
+		pfa.blueShift = pfd.cBlueShift;
+		pfa.alphaShift = pfd.cAlphaShift;
+		//
+		pfa.accumRedShift = pfd.cAccumRedBits;
+		pfa.accumGreenShift = pfd.cAccumGreenBits;
+		pfa.accumBlueShift = pfd.cAccumBlueBits;
+		pfa.accumAlphaShift = pfd.cAccumAlphaBits;
+		//
+		pfa.auxBuffers = pfd.cAuxBuffers;
+		pfa.samples = 0;
+		//
+		pfa.stereo = bits_are_set(pfd.dwFlags, PFD_STEREO);
+		pfa.sRGB = pfd.iPixelType == PFD_TYPE_RGBA;
+		pfa.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
+		// pfa.transparent = true;
+
+		pixel_formats[pf_count++] = pf;
 	}
+
+	// @Todo: search for the best match
+
+	free(pixel_formats);
 
 	return 0;
 }
@@ -339,7 +442,12 @@ static void craete_context(HDC hdc) {
 		return;
 	}
 
+	// ???
 	HGLRC hrc_2 = wgl.CreateContext(hdc);
+
+	if (share_hrc) {
+		wgl.ShareLists(share_hrc, hrc);
+	}
 }
 
 static void platform_init(HDC hdc) {
