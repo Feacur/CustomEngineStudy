@@ -19,12 +19,13 @@
 struct Pixel_Format
 {
 	uptr id;
-	int redBits;
-	int greenBits;
-	int blueBits;
-	int alphaBits;
-	int depthBits;
-	int stencilBits;
+	int  redBits;
+	int  greenBits;
+	int  blueBits;
+	int  alphaBits;
+	int  depthBits;
+	int  stencilBits;
+	bool doublebuffer;
 };
 
 struct Pixel_Format_Aux
@@ -43,7 +44,6 @@ struct Pixel_Format_Aux
 	int  samples;
 	//
 	bool stereo;
-	bool doublebuffer;
 	// bool sRGB;
 	// bool transparent;
 };
@@ -125,12 +125,13 @@ namespace custom
 		settings.opengl_no_error   = false;
 
 		Pixel_Format pf_hint = {};
-		pf_hint.redBits     =  8;
-		pf_hint.greenBits   =  8;
-		pf_hint.blueBits    =  8;
-		pf_hint.alphaBits   =  8;
-		pf_hint.depthBits   = 24;
-		pf_hint.stencilBits =  8;
+		pf_hint.redBits      =  8;
+		pf_hint.greenBits    =  8;
+		pf_hint.blueBits     =  8;
+		pf_hint.alphaBits    =  8;
+		pf_hint.depthBits    = 24;
+		pf_hint.stencilBits  =  8;
+		pf_hint.doublebuffer = true;
 
 		platform_init_wgl((HDC)dummy_graphics);
 
@@ -309,8 +310,8 @@ static void load_extensions(HDC dummy_hdc) {
 	dummy_pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	dummy_pfd.iPixelType   = PFD_TYPE_RGBA;
 	dummy_pfd.cColorBits   = 8 * 3;
-	dummy_pfd.cDepthBits   = 8 * 3;
-	dummy_pfd.cStencilBits = 8 * 1;
+	// dummy_pfd.cDepthBits   = 8 * 3;
+	// dummy_pfd.cStencilBits = 8 * 1;
 
 	int dummy_pixel_format_id = ChoosePixelFormat(dummy_hdc, &dummy_pfd);
 	if (!dummy_pixel_format_id) {
@@ -460,12 +461,13 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 
 		Pixel_Format pf = {};
 		pf.id = pixel_format_id;
-		pf.redBits     = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
-		pf.greenBits   = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
-		pf.blueBits    = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
-		pf.alphaBits   = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
-		pf.depthBits   = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
-		pf.stencilBits = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
+		pf.redBits      = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
+		pf.greenBits    = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
+		pf.blueBits     = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
+		pf.alphaBits    = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
+		pf.depthBits    = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
+		pf.stencilBits  = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
+		pf.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
 
 		pixel_formats[pf_count++] = pf;
 
@@ -485,7 +487,6 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 		pfa.samples = GET_ATTRIBUTE_VALUE(WGL_SAMPLES_ARB);
 		//
 		pfa.stereo = GET_ATTRIBUTE_VALUE(WGL_STEREO_ARB);
-		pfa.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
 		// pfa.transparent = GET_ATTRIBUTE_VALUE(WGL_TRANSPARENT_ARB);
 		*/
 	}
@@ -525,12 +526,13 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 
 		Pixel_Format pf = {};
 		pf.id = pixel_format_id;
-		pf.redBits     = pfd.cRedBits;
-		pf.greenBits   = pfd.cGreenBits;
-		pf.blueBits    = pfd.cBlueBits;
-		pf.alphaBits   = pfd.cAlphaBits;
-		pf.depthBits   = pfd.cDepthBits;
-		pf.stencilBits = pfd.cStencilBits;
+		pf.redBits      = pfd.cRedBits;
+		pf.greenBits    = pfd.cGreenBits;
+		pf.blueBits     = pfd.cBlueBits;
+		pf.alphaBits    = pfd.cAlphaBits;
+		pf.depthBits    = pfd.cDepthBits;
+		pf.stencilBits  = pfd.cStencilBits;
+		pf.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
 
 		pixel_formats[pf_count++] = pf;
 
@@ -551,7 +553,6 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		//
 		pfa.stereo = bits_are_set(pfd.dwFlags, PFD_STEREO);
 		// pfa.sRGB = pfd.iPixelType == PFD_TYPE_RGBA;
-		pfa.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
 		// pfa.transparent = true;
 		*/
 	}
@@ -564,12 +565,16 @@ static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) 
 	Pixel_Format best_match = {};
 	for (Pixel_Format * format = formats; format && format->id; ++format)
 	{
+		if (format->doublebuffer != pf_hint.doublebuffer) { continue; }
+
 		if (format->redBits     < pf_hint.redBits)     { continue; }
 		if (format->greenBits   < pf_hint.greenBits)   { continue; }
 		if (format->blueBits    < pf_hint.blueBits)    { continue; }
 		if (format->alphaBits   < pf_hint.alphaBits)   { continue; }
 		if (format->depthBits   < pf_hint.depthBits)   { continue; }
 		if (format->stencilBits < pf_hint.stencilBits) { continue; }
+
+		// @Todo: implement/take better algorithm
 		best_match = *format;
 		break;
 	}
@@ -764,4 +769,6 @@ static void platform_swap_interval(uptr display, HDC hdc, s32 value) {
 
 static void platform_swap_buffers(uptr display, HDC hdc) {
 	SwapBuffers(hdc);
+	// @Note: if not double buffer
+	// glFlush();
 }

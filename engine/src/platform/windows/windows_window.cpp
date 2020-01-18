@@ -47,7 +47,8 @@ namespace custom
 		Opengl_Context::shutdown();
 	}
 
-	void Window::update() {
+	void Window::update()
+	{
 		Opengl_Context::swap_buffers(display, (uptr)graphics);
 	}
 	
