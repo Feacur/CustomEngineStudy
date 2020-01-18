@@ -19,9 +19,38 @@
 static void platform_init(HDC hdc);
 static void platform_shutdown();
 
-constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
+static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
 }
+
+#if !defined(CUSTOM_SHIPPING)
+static void log_last_error() {
+	DWORD const error = GetLastError();
+	if (!error) { return; }
+
+	LPTSTR message_buffer = NULL;
+	DWORD size = FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM
+		| FORMAT_MESSAGE_ALLOCATE_BUFFER
+		| FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, error,
+		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
+		(LPTSTR)&message_buffer, 0,
+		NULL
+	);
+
+	if (size) {
+		CUSTOM_ERROR("'0x%x' system error: %s", error, message_buffer);
+		LocalFree(message_buffer);
+	}
+	else {
+		CUSTOM_ERROR("'0x%x' system error: unknown", error);
+	}
+}
+	#define LOG_LAST_ERROR() log_last_error()
+#else
+	#define LOG_LAST_ERROR()
+#endif
 
 #define ALLOCATE(type, count) (type *)malloc(count * sizeof(type))
 #define CREATE_ARRAY(type, count, name) type * name = ALLOCATE(type, count)
@@ -226,7 +255,15 @@ static void load_extensions(HDC hdc) {
 	dummy_pfd.cDepthBits   = 8 * 3;
 	dummy_pfd.cStencilBits = 8 * 1;
 
-	if (!SetPixelFormat(hdc, ChoosePixelFormat(hdc, &dummy_pfd), &dummy_pfd)) {
+	int dummy_pixel_format_id = ChoosePixelFormat(hdc, &dummy_pfd);
+	if (!dummy_pixel_format_id) {
+		LOG_LAST_ERROR();
+		CUSTOM_ASSERT(false, "failed to describe dummy pixel format");
+		return;
+	}
+
+	if (!SetPixelFormat(hdc, dummy_pixel_format_id, &dummy_pfd)) {
+		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to set dummy pixel format");
 		return;
 	}
@@ -301,6 +338,9 @@ static int add_atribute_keys(int * keys, int cap) {
 #undef ADD_ATTRIBUTE
 
 int get_value(int * keys, int * vals, int key) {
+	for (int i = 0; keys[i]; ++i) {
+		if (keys[i] == key) { return vals[i]; }
+	}
 	return 0;
 }
 
@@ -323,8 +363,7 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 
 	int pf_count = 0;
 	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
-	for (int i = 0; i < formats_count; ++i)
-	{
+	for (int i = 0; i < formats_count; ++i) {
 		int pixel_format_id = i + 1;
 		if (!wgl.GetPixelFormatAttribivARB(hdc, pixel_format_id, 0, attr_count, attr_keys, attr_vals)) {
 			CUSTOM_WARN("failed to get pixel format %d values", pixel_format_id);
@@ -333,10 +372,7 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		// should support
 		if (!GET_ATTRIBUTE_VALUE(WGL_DRAW_TO_WINDOW_ARB)) { continue; }
 		if (!GET_ATTRIBUTE_VALUE(WGL_SUPPORT_OPENGL_ARB)) { continue; }
-		if (GET_ATTRIBUTE_VALUE(WGL_ACCELERATION_ARB) == WGL_NO_ACCELERATION_ARB) {
-			continue;
-		}
-		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) == WGL_TYPE_RGBA_ARB) {
+		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) != WGL_TYPE_RGBA_ARB) {
 			continue;
 		}
 		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
@@ -355,6 +391,9 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		// should not support
 		if (GET_ATTRIBUTE_VALUE(PFD_SUPPORT_GDI)) { continue; }
 		if (GET_ATTRIBUTE_VALUE(PFD_GENERIC_FORMAT)) { continue; }
+		if (GET_ATTRIBUTE_VALUE(WGL_ACCELERATION_ARB) == WGL_NO_ACCELERATION_ARB) {
+			continue;
+		}
 
 		Pixel_Format pf = {};
 		pf.id = pixel_format_id;
@@ -397,16 +436,17 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	int formats_count = DescribePixelFormat(
 		hdc, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL
 	);
+	LOG_LAST_ERROR();
 	if (!formats_count) { return NULL; }
 
 	int pf_count = 0;
 	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
-	for (int i = 0; i < formats_count; ++i)
-	{
+	for (int i = 0; i < formats_count; ++i) {
 		int pixel_format_id = i + 1;
 		PIXELFORMATDESCRIPTOR pfd;
 		if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd))
 		{
+			LOG_LAST_ERROR();
 			CUSTOM_WARN("failed to describe pixel format %d", pixel_format_id);
 			continue;
 		}
@@ -461,6 +501,8 @@ static int choose_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) {
 	Pixel_Format best_match = {};
 	for (Pixel_Format * format = formats; format && format->id; ++format)
 	{
+		best_match = *format;
+		break;
 	}
 	return (int)best_match.id;
 }
@@ -475,10 +517,10 @@ static int choose_pixel_format(HDC hdc, Pixel_Format pf_hint) {
 	}
 
 	if (!pixel_formats) { return 0; }
-	int pixel_format = choose_pixel_format(pixel_formats, pf_hint);
+	int pixel_format_id = choose_pixel_format(pixel_formats, pf_hint);
 	free(pixel_formats);
 
-	return pixel_format;
+	return pixel_format_id;
 }
 
 static void create_context_arb(HDC hdc, HGLRC share_hrc) {
@@ -517,16 +559,18 @@ static void create_context_legacy(HDC hdc, HGLRC share_hrc) {
 }
 
 static void create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
-	int pixel_format = choose_pixel_format(hdc, pf_hint);
+	int pixel_format_id = choose_pixel_format(hdc, pf_hint);
 
 	PIXELFORMATDESCRIPTOR pfd;
-	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
-		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format);
+	if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd)) {
+		LOG_LAST_ERROR();
+		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format_id);
 		return;
 	}
 
-	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
-		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format);
+	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
+		LOG_LAST_ERROR();
+		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format_id);
 		return;
 	}
 
