@@ -33,6 +33,11 @@ project "engine"
 
 	filter "system:windows"
 		defines "WIN32_LEAN_AND_MEAN"
+		links {
+			-- "user32",
+			-- "gdi32",
+			"winmm",
+		}
 		files {
 			"src/platform/windows/**.h",
 			"src/platform/windows/**.cpp",

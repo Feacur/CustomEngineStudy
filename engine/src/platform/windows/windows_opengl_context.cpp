@@ -43,33 +43,40 @@ struct Wgl_Context
 {
 	HINSTANCE instance;
 
+	// OGL functions
 	CreateContext_func     * CreateContext;
 	DeleteContext_func     * DeleteContext;
 	GetProcAddress_func    * GetProcAddress;
 	MakeCurrent_func       * MakeCurrent;
 	ShareLists_func        * ShareLists;
 
+	// EXT functions
 	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
 	SwapIntervalEXT_func           * SwapIntervalEXT;
 	GetSwapIntervalEXT_func        * GetSwapIntervalEXT;
 
+	// ARB functions
 	GetExtensionsStringARB_func    * GetExtensionsStringARB;
 	CreateContextAttribsARB_func   * CreateContextAttribsARB;
 	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
 	ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
 
+	// EXT extensions
+	bool EXT_framebuffer_sRGB;
+	bool EXT_create_context_es2_profile;
+	bool EXT_swap_control;
+	bool EXT_swap_control_tear;
+	// bool EXT_colorspace;
+
+	// ARB extensions
 	bool ARB_multisample;
 	bool ARB_framebuffer_sRGB;
-	bool EXT_framebuffer_sRGB;
-	// bool ARB_create_context;
-	// bool ARB_create_context_profile;
-	bool EXT_create_context_es2_profile;
 	bool ARB_create_context_robustness;
 	bool ARB_create_context_no_error;
-	bool EXT_swap_control;
-	// bool EXT_colorspace;
 	bool ARB_pixel_format;
 	bool ARB_context_flush_control;
+	// bool ARB_create_context;
+	// bool ARB_create_context_profile;
 };
 static Wgl_Context wgl;
 
@@ -116,24 +123,26 @@ static bool contains_subword(cstring container, cstring value) {
 	return true;
 }
 
-#define LOAD_OPENGL_FUNCTION(name) {\
+#define LOAD_OPENGL_FUNCTION(name, required) {\
 	wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);\
-	CUSTOM_ASSERT(wgl.name, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
+	CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
 }
 static void load_opengl_functions() {
-	LOAD_OPENGL_FUNCTION(CreateContext);
-	LOAD_OPENGL_FUNCTION(DeleteContext);
-	LOAD_OPENGL_FUNCTION(GetProcAddress);
-	LOAD_OPENGL_FUNCTION(MakeCurrent);
-	LOAD_OPENGL_FUNCTION(ShareLists);
+	LOAD_OPENGL_FUNCTION(CreateContext,  true);
+	LOAD_OPENGL_FUNCTION(DeleteContext,  true);
+	LOAD_OPENGL_FUNCTION(GetProcAddress, true);
+	LOAD_OPENGL_FUNCTION(MakeCurrent,    true);
+	LOAD_OPENGL_FUNCTION(ShareLists,     false);
 }
 #undef LOAD_OPENGL_FUNCTION
 
 #define LOAD_EXTENSION_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
 static void load_extension_functions_through_dummy() {
+	// EXT functions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
 	LOAD_EXTENSION_FUNCTION(GetSwapIntervalEXT);
+	// ARB extensions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
 	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
 	LOAD_EXTENSION_FUNCTION(GetPixelFormatAttribivARB);
@@ -148,18 +157,21 @@ void check_extension_through_dummy(HDC hdc) {
 		CUSTOM_ASSERT(false, "failed to load extensions string");
 		return;
 	}
+	// EXT extensions
+	CHECK_EXTENSION(EXT_framebuffer_sRGB);
+	CHECK_EXTENSION(EXT_create_context_es2_profile);
+	CHECK_EXTENSION(EXT_swap_control);
+	CHECK_EXTENSION(EXT_swap_control_tear);
+	// CHECK_EXTENSION(EXT_colorspace);
+	// ARB extensions
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
-	CHECK_EXTENSION(EXT_framebuffer_sRGB);
-	// CHECK_EXTENSION(ARB_create_context);
-	// CHECK_EXTENSION(ARB_create_context_profile);
-	CHECK_EXTENSION(EXT_create_context_es2_profile);
 	CHECK_EXTENSION(ARB_create_context_robustness);
 	CHECK_EXTENSION(ARB_create_context_no_error);
-	CHECK_EXTENSION(EXT_swap_control);
-	// CHECK_EXTENSION(EXT_colorspace);
 	CHECK_EXTENSION(ARB_pixel_format);
 	CHECK_EXTENSION(ARB_context_flush_control);
+	// CHECK_EXTENSION(ARB_create_context);
+	// CHECK_EXTENSION(ARB_create_context_profile);
 }
 #undef CHECK_EXTENSION
 
