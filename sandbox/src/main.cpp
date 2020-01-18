@@ -25,10 +25,13 @@ int main(int argc, char * argv[]) {
 	u64 const ticks_per_second = global_timer.get_ticks_per_second();
 
 	custom::Window window;
+	custom::Opengl_Renderer renderer;
+
 	while (global_system.is_running) {
 		u64 last_frame_ticks = global_timer.wait_next_frame(duration, precision);
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, ticks_per_second);
 		global_system.update();
+		renderer.update();
 		window.update();
 	}
 

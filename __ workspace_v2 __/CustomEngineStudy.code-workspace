@@ -37,7 +37,7 @@
 		"C_Cpp.default.intelliSenseMode": "msvc-x64",
 		"C_Cpp.default.includePath": [
 			"${workspaceFolder:__ workspace_v2 __}/../engine/src",
-			"${workspaceFolder:__ workspace __}/../engine/vendor/glad/include",
+			"${workspaceFolder:__ workspace_v2 __}/../engine/vendor/glad/include",
 		],
 		"C_Cpp.default.defines": [],
 		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace_v2 __}/../bin-int",

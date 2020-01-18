@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/platform/opengl_context.h"
+#include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
@@ -52,6 +52,8 @@ static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(HDC dummy_hdc);
 static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint);
 static void platform_shutdown();
+static void platform_swap_interval(uptr display, HDC hdc, s32);
+static void platform_swap_buffers(uptr display, HDC hdc);
 
 static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
@@ -109,13 +111,23 @@ namespace custom
 		platform_create_context((HDC)graphics, NULL, pf_hint);
 
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
-		log_last_error();
+		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 	}
 
 	void Opengl_Context::shutdown()
 	{
 		platform_shutdown();
+	}
+	
+	void Opengl_Context::swap_interval(uptr display, uptr graphics, s32 value)
+	{
+		platform_swap_interval(display, (HDC)graphics, value);
+	}
+
+	void Opengl_Context::swap_buffers(uptr display, uptr graphics)
+	{
+		platform_swap_buffers(display, (HDC)graphics);
 	}
 }
 
@@ -545,7 +557,7 @@ static int choose_pixel_format(HDC hdc, Pixel_Format pf_hint) {
 	return pixel_format_id;
 }
 
-static void create_context_arb(HDC hdc, HGLRC share_hrc) {
+static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	int const attr_cap = 40;
 	int attr_pair[attr_cap * 2] = {};
 
@@ -564,20 +576,22 @@ static void create_context_arb(HDC hdc, HGLRC share_hrc) {
 		else {
 			CUSTOM_ASSERT(false, "'0x%x' failed to create context: unknown", error);
 		}
-		return;
+		return NULL;
 	}
+	return hrc;
 }
 
-static void create_context_legacy(HDC hdc, HGLRC share_hrc) {
+static HGLRC create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	HGLRC hrc = wgl.CreateContext(hdc);
 	if (!hrc) {
 		CUSTOM_ASSERT(false, "failed to create context");
-		return;
+		return NULL;
 	}
 
 	if (share_hrc && !wgl.ShareLists(share_hrc, hrc)) {
 		CUSTOM_ASSERT(false, "failed to share context");
 	}
+	return hrc;
 }
 
 static void platform_init_wgl(HDC dummy_hdc) {
@@ -610,14 +624,29 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hi
 	}
 
 	// You should select a pixel format in the device context before calling the wglCreateContext function. The wglCreateContext function creates a rendering context for drawing on the device in the selected pixel format of the device context.
+	HGLRC hrc;
 	if (wgl.ARB_create_context) {
-		create_context_arb(hdc, share_hrc);
+		hrc = create_context_arb(hdc, share_hrc);
 	}
 	else {
-		create_context_legacy(hdc, share_hrc);
+		hrc = create_context_legacy(hdc, share_hrc);
+	}
+
+	if (hrc && !wgl.MakeCurrent(hdc, hrc)) {
+		CUSTOM_ASSERT(false, "failed to make context current");
 	}
 }
 
 static void platform_shutdown() {
 	FreeLibrary(wgl.instance);
+}
+
+static void platform_swap_interval(uptr display, HDC hdc, s32 value) {
+	if (wgl.EXT_swap_control) {
+		wgl.SwapIntervalEXT(value);
+	}
+}
+
+static void platform_swap_buffers(uptr display, HDC hdc) {
+	SwapBuffers(hdc);
 }

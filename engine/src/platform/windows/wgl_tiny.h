@@ -11,7 +11,7 @@ typedef HGLRC (WINAPI GetCurrentContext_func)(void);
 
 // https://www.khronos.org/registry/OpenGL/extensions/EXT
 typedef cstring (WINAPI GetExtensionsStringEXT_func)(void);
-typedef BOOL    (WINAPI SwapIntervalEXT_func)(void);
+typedef BOOL    (WINAPI SwapIntervalEXT_func)(int interval);
 typedef int     (WINAPI GetSwapIntervalEXT_func)(void);
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/

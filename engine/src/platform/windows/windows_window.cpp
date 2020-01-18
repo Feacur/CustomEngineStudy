@@ -1,7 +1,7 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
 #include "engine/platform/platform_window.h"
-#include "engine/platform/opengl_context.h"
+#include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
@@ -31,9 +31,10 @@ namespace custom
 		graphics = (uptr)GetDC(hwnd);
 
 		HWND dummy_hwnd = create_dummy_window();
-		HDC dummy_graphics = GetDC(dummy_hwnd);
+		HDC dummy_hdc = GetDC(dummy_hwnd);
 
-		Opengl_Context::init(graphics, (uptr)dummy_graphics);
+		Opengl_Context::init(graphics, (uptr)dummy_hdc);
+		Opengl_Context::swap_interval(display, graphics, 1);
 	}
 
 	Window::~Window()
@@ -46,7 +47,9 @@ namespace custom
 		Opengl_Context::shutdown();
 	}
 
-	void Window::update() { /*blank*/ }
+	void Window::update() {
+		Opengl_Context::swap_buffers(display, (uptr)graphics);
+	}
 	
 	void Window::set_header(cstring value)
 	{
