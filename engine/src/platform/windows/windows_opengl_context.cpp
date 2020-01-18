@@ -1,11 +1,14 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
+#include "engine/platform/platform_window.h"
 #include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
 	#include <glad/glad.h>
 #endif
+
+#include "wgl_tiny.h"
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-pixelformatdescriptor
@@ -19,12 +22,15 @@
 struct Pixel_Format
 {
 	uptr id;
+	//
 	int  redBits;
 	int  greenBits;
 	int  blueBits;
 	int  alphaBits;
+	//
 	int  depthBits;
 	int  stencilBits;
+	//
 	bool doublebuffer;
 };
 
@@ -48,9 +54,15 @@ struct Pixel_Format_Aux
 	// bool transparent;
 };
 
+enum struct Context_Api
+{
+	OpenGL,
+	OpenGL_ES,
+};
+
 struct Context_Settings
 {
-	int  profile_api;
+	Context_Api api;
 	int  forward;
 	int  profile_bit;
 	//
@@ -58,16 +70,56 @@ struct Context_Settings
 	int  minor_version;
 	int  robustness;
 	int  release_behaviour;
+	//
 	bool debug;
 	bool opengl_no_error;
 };
 
-static void * wgl_get_proc_address(cstring name);
-static void platform_init_wgl(HDC dummy_hdc);
-static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
-static void platform_shutdown();
-static void platform_swap_interval(uptr display, HDC hdc, s32);
-static void platform_swap_buffers(uptr display, HDC hdc);
+struct Wgl_Context
+{
+	HINSTANCE instance;
+
+	// OGL functions
+	CreateContext_func     * CreateContext;
+	DeleteContext_func     * DeleteContext;
+	GetProcAddress_func    * GetProcAddress;
+	MakeCurrent_func       * MakeCurrent;
+	ShareLists_func        * ShareLists;
+	GetCurrentDC_func      * GetCurrentDC;
+	GetCurrentContext_func * GetCurrentContext;
+
+	// EXT functions
+	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
+	SwapIntervalEXT_func           * SwapIntervalEXT;
+	// GetSwapIntervalEXT_func        * GetSwapIntervalEXT;
+
+	// ARB functions
+	GetExtensionsStringARB_func    * GetExtensionsStringARB;
+	CreateContextAttribsARB_func   * CreateContextAttribsARB;
+	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
+	// ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
+
+	// EXT extensions
+	bool EXT_framebuffer_sRGB;
+	bool EXT_create_context_es2_profile;
+	bool EXT_swap_control;
+	bool EXT_swap_control_tear;
+	bool EXT_colorspace;
+
+	// ARB extensions
+	bool ARB_multisample;
+	bool ARB_framebuffer_sRGB;
+	bool ARB_create_context_robustness;
+	bool ARB_create_context_no_error;
+	bool ARB_pixel_format;
+	bool ARB_context_flush_control;
+	bool ARB_create_context;
+	bool ARB_create_context_profile;
+
+	// current pixel_format
+	Pixel_Format pixel_format;
+	PIXELFORMATDESCRIPTOR pfd;
+};
 
 static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
@@ -109,12 +161,24 @@ static void log_last_error() {
 // API implementation
 //
 
+// @Todo: put into rendering context object?
+static Wgl_Context wgl;
+
+static void * wgl_get_proc_address(cstring name);
+static void platform_init_wgl(HDC dummy_hdc);
+static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
+static void platform_shutdown();
+static void platform_swap_interval(HDC hdc, s32);
+static void platform_swap_buffers(HDC hdc, bool doublebuffer);
+
 namespace custom
 {
-	void Opengl_Context::init(uptr graphics, uptr dummy_graphics)
+	Opengl_Context::Opengl_Context(uptr target_graphics_context)
+		: m_target_graphics_context(target_graphics_context)
+		, m_dummy_window(nullptr)
 	{
 		Context_Settings settings = {};
-		settings.profile_api       = 0; // 0 as OpenGL?, 1 as OpenGL ES?
+		settings.api               = Context_Api::OpenGL;
 		settings.forward           = false;
 		settings.profile_bit       = 0; // WGL_CONTEXT_CORE_PROFILE_BIT_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
 		settings.major_version     = 4;
@@ -133,79 +197,41 @@ namespace custom
 		pf_hint.stencilBits  =  8;
 		pf_hint.doublebuffer = true;
 
-		platform_init_wgl((HDC)dummy_graphics);
+		m_dummy_window = new Window(true);
+		HDC dummy_hdc = GetDC((HWND)m_dummy_window->get_handle());
+		platform_init_wgl(dummy_hdc);
 
-		platform_create_context((HDC)graphics, NULL, settings, pf_hint);
+		HDC hdc = (HDC)target_graphics_context;
+		platform_create_context(hdc, NULL, settings, pf_hint);
 
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 	}
 
-	void Opengl_Context::shutdown()
+	Opengl_Context::~Opengl_Context()
 	{
 		platform_shutdown();
+		delete m_dummy_window;
+		m_dummy_window = nullptr;
 	}
 	
-	void Opengl_Context::swap_interval(uptr display, uptr graphics, s32 value)
+	void Opengl_Context::swap_interval(s32 value)
 	{
-		platform_swap_interval(display, (HDC)graphics, value);
+		HDC hdc = (HDC)m_target_graphics_context;
+		platform_swap_interval(hdc, value);
 	}
 
-	void Opengl_Context::swap_buffers(uptr display, uptr graphics)
+	void Opengl_Context::swap_buffers()
 	{
-		platform_swap_buffers(display, (HDC)graphics);
+		HDC hdc = (HDC)m_target_graphics_context;
+		platform_swap_buffers(hdc, wgl.pixel_format.doublebuffer);
 	}
 }
 
 //
 // platform implementation
 //
-
-#include "wgl_tiny.h"
-
-struct Wgl_Context
-{
-	HINSTANCE instance;
-
-	// OGL functions
-	CreateContext_func     * CreateContext;
-	DeleteContext_func     * DeleteContext;
-	GetProcAddress_func    * GetProcAddress;
-	MakeCurrent_func       * MakeCurrent;
-	ShareLists_func        * ShareLists;
-	GetCurrentDC_func      * GetCurrentDC;
-	GetCurrentContext_func * GetCurrentContext;
-
-	// EXT functions
-	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
-	SwapIntervalEXT_func           * SwapIntervalEXT;
-	GetSwapIntervalEXT_func        * GetSwapIntervalEXT;
-
-	// ARB functions
-	GetExtensionsStringARB_func    * GetExtensionsStringARB;
-	CreateContextAttribsARB_func   * CreateContextAttribsARB;
-	GetPixelFormatAttribivARB_func * GetPixelFormatAttribivARB;
-	// ChoosePixelFormatARB_func      * ChoosePixelFormatARB;
-
-	// EXT extensions
-	bool EXT_framebuffer_sRGB;
-	bool EXT_create_context_es2_profile;
-	bool EXT_swap_control;
-	bool EXT_swap_control_tear;
-	bool EXT_colorspace;
-
-	// ARB extensions
-	bool ARB_multisample;
-	bool ARB_framebuffer_sRGB;
-	bool ARB_create_context_robustness;
-	bool ARB_create_context_no_error;
-	bool ARB_pixel_format;
-	bool ARB_context_flush_control;
-	bool ARB_create_context;
-	bool ARB_create_context_profile;
-};
-static Wgl_Context wgl;
 
 static void * wgl_get_proc_address(cstring name) {
 	if (!name) { return NULL; }
@@ -269,7 +295,7 @@ static void load_extension_functions_through_dummy() {
 	// EXT functions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
-	LOAD_EXTENSION_FUNCTION(GetSwapIntervalEXT);
+	// LOAD_EXTENSION_FUNCTION(GetSwapIntervalEXT);
 	// ARB extensions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
 	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
@@ -384,12 +410,12 @@ static int add_atribute_keys(int * keys, int cap, Context_Settings settings) {
 		ADD_ATTRIBUTE_KEY(WGL_SAMPLES_ARB);
 	}
 
-	if (settings.profile_api == 0) {
+	if (settings.api == Context_Api::OpenGL) {
 		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
 			ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
 		}
 	}
-	else if (settings.profile_api == 1) {
+	else if (settings.api == Context_Api::OpenGL_ES) {
 		if (wgl.EXT_colorspace) {
 			ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
 		}
@@ -437,14 +463,14 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) != WGL_TYPE_RGBA_ARB) {
 			continue;
 		}
-		if (settings.profile_api == 0) {
+		if (settings.api == Context_Api::OpenGL) {
 			if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
 				if (!GET_ATTRIBUTE_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)) {
 					continue;
 				}
 			}
 		}
-		else if (settings.profile_api == 1) {
+		else if (settings.api == Context_Api::OpenGL_ES) {
 			if (wgl.EXT_colorspace) {
 				if (GET_ATTRIBUTE_VALUE(WGL_COLORSPACE_EXT) != WGL_COLORSPACE_SRGB_EXT) {
 					continue;
@@ -561,7 +587,7 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	return pixel_formats;
 }
 
-static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) {
+static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint, Pixel_Format * out) {
 	Pixel_Format best_match = {};
 	for (Pixel_Format * format = formats; format && format->id; ++format)
 	{
@@ -578,10 +604,11 @@ static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) 
 		best_match = *format;
 		break;
 	}
+	if (out) { *out = best_match; }
 	return (int)best_match.id;
 }
 
-static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings settings) {
+static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings settings, Pixel_Format * out) {
 	Pixel_Format * pixel_formats;
 	if (wgl.ARB_pixel_format) {
 		pixel_formats = allocate_pixel_formats_arb(hdc, settings);
@@ -591,7 +618,7 @@ static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings sett
 	}
 
 	if (!pixel_formats) { return 0; }
-	int pixel_format_id = find_best_pixel_format(pixel_formats, pf_hint);
+	int pixel_format_id = find_best_pixel_format(pixel_formats, pf_hint, out);
 	free(pixel_formats);
 
 	return pixel_format_id;
@@ -610,7 +637,7 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, Context_Settings setti
 	int profile_mask = 0;
 	int context_flags = 0;
 
-	if (settings.profile_api == 0) {
+	if (settings.api == Context_Api::OpenGL) {
 		if (settings.forward) {
 			context_flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 		}
@@ -618,7 +645,7 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, Context_Settings setti
 			profile_mask |= settings.profile_bit;
 		}
 	}
-	else if (settings.profile_api == 1) {
+	else if (settings.api == Context_Api::OpenGL_ES) {
 		profile_mask |= WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
 	}
 
@@ -709,7 +736,7 @@ static void platform_init_wgl(HDC dummy_hdc) {
 }
 
 static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint) {
-	if (settings.profile_api == 0) {
+	if (settings.api == Context_Api::OpenGL) {
 		if (settings.forward && !wgl.ARB_create_context) {
 			CUSTOM_ASSERT(false, "forward compatible OpenGL context requires 'ARB_create_context'");
 			return;
@@ -720,14 +747,16 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings s
 			return;
 		}
 	}
-	else if (settings.profile_api == 1) {
+	else if (settings.api == Context_Api::OpenGL_ES) {
 		if (!wgl.EXT_create_context_es2_profile) {
 			CUSTOM_ASSERT(false, "OpenGL ES requires 'EXT_create_context_es2_profile'");
 			return;
 		}
 	}
 
-	int pixel_format_id = get_pixel_format(hdc, pf_hint, settings);
+	Pixel_Format pixel_format = {};
+	int pixel_format_id = get_pixel_format(hdc, pf_hint, settings, &pixel_format);
+	wgl.pixel_format = pixel_format;
 
 	PIXELFORMATDESCRIPTOR pfd;
 	if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd)) {
@@ -735,6 +764,7 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings s
 		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format_id);
 		return;
 	}
+	wgl.pfd = pfd;
 
 	// If hdc references a window, calling the SetPixelFormat function also changes the pixel format of the window. Setting the pixel format of a window more than once can lead to significant complications for the Window Manager and for multithread applications, so it is not allowed. An application can only set the pixel format of a window one time. Once a window's pixel format is set, it cannot be changed.
 	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
@@ -761,14 +791,19 @@ static void platform_shutdown() {
 	FreeLibrary(wgl.instance);
 }
 
-static void platform_swap_interval(uptr display, HDC hdc, s32 value) {
+static void platform_swap_interval(HDC hdc, s32 value) {
 	if (wgl.EXT_swap_control) {
 		wgl.SwapIntervalEXT(value);
 	}
 }
 
-static void platform_swap_buffers(uptr display, HDC hdc) {
-	SwapBuffers(hdc);
-	// @Note: if not double buffer
-	// glFlush();
+static void platform_swap_buffers(HDC hdc, bool doublebuffer) {
+	// https://www.khronos.org/opengl/wiki/Swap_Interval
+	// https://www.khronos.org/opengl/wiki/Common_Mistakes#glFinish_and_glFlush
+	if (wgl.pixel_format.doublebuffer) {
+		SwapBuffers(hdc);
+	}
+	else {
+		glFlush();
+	}
 }

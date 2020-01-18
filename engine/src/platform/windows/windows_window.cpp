@@ -10,51 +10,66 @@
 static LPTSTR const window_class_name = TEXT("custom engine");
 static LPTSTR const window_title = TEXT("");
 
-static ATOM register_window_class(void);
-static HWND create_window(void);
-static HWND create_dummy_window(void);
-static void destroy_window(HWND);
-
 //
 // API implementation
 //
 
+static ATOM register_window_class(void);
+static HWND create_window(void);
+static HWND create_dummy_window(void);
+
 namespace custom
 {
-	Window::Window()
+	Window::Window(bool is_dummy)
+		: should_close(false)
+		, m_rendering_context(nullptr)
 	{
-		ATOM window_atom = register_window_class();
+		// @Bug: is this error prone to register a window class like that?
+		static ATOM const window_atom = register_window_class();
 
-		HWND hwnd = create_window();
-		handle = (uptr)hwnd;
-		display = 0;
-		graphics = (uptr)GetDC(hwnd);
-
-		HWND dummy_hwnd = create_dummy_window();
-		HDC dummy_hdc = GetDC(dummy_hwnd);
-
-		Opengl_Context::init(graphics, (uptr)dummy_hdc);
-		Opengl_Context::swap_interval(display, graphics, 1);
+		HWND hwnd;
+		if (is_dummy) {
+			hwnd = create_dummy_window();
+			ShowWindow(hwnd, SW_HIDE);
+			MSG dummy_message = {};
+			while (PeekMessage(&dummy_message, hwnd, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&dummy_message);
+				DispatchMessage(&dummy_message);
+			}
+		}
+		else {
+			hwnd = create_window();
+		}
+		m_handle = (uptr)hwnd;
 	}
 
 	Window::~Window()
 	{
-		destroy_window((HWND)handle);
-		handle = 0;
-		display = 0;
-		graphics = 0;
+		delete m_rendering_context;
+		m_rendering_context = nullptr;
+		DestroyWindow((HWND)m_handle);
+		m_handle = 0;
+	}
 
-		Opengl_Context::shutdown();
+	void Window::init_context()
+	{
+		if (m_rendering_context) {
+			CUSTOM_ASSERT(false, "trying to create a second rendering context");
+			return;
+		}
+		HDC hdc = GetDC((HWND)m_handle);
+		m_rendering_context = new Opengl_Context((uptr)hdc);
+		m_rendering_context->swap_interval(1);
 	}
 
 	void Window::update()
 	{
-		Opengl_Context::swap_buffers(display, (uptr)graphics);
+		m_rendering_context->swap_buffers();
 	}
 	
 	void Window::set_header(cstring value)
 	{
-		SetWindowText((HWND)handle, value);
+		SetWindowText((HWND)m_handle, value);
 	}
 }
 
@@ -95,7 +110,7 @@ static HWND create_window(void) {
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		hWndParent, hMenu, hInstance, lpParam
 	);
-	CUSTOM_ASSERT(hwnd, "failed to create dummy window");
+	CUSTOM_ASSERT(hwnd, "failed to create window");
 	return hwnd;
 }
 
@@ -118,24 +133,8 @@ static HWND create_dummy_window(void) {
 		0, 0, 1, 1,
 		hWndParent, hMenu, hInstance, lpParam
 	);
-	if (!hwnd) {
-		CUSTOM_ASSERT(false, "failed to create dummy window");
-		return 0;
-	}
-
-	ShowWindow(hwnd, SW_HIDE);
-
-	MSG message = {};
-	while (PeekMessage(&message, hwnd, 0, 0, PM_REMOVE)) {
-		TranslateMessage(&message);
-		DispatchMessage(&message);
-	}
-
+	CUSTOM_ASSERT(hwnd, "failed to create dummy window");
 	return hwnd;
-}
-
-static void destroy_window(HWND hwnd) {
-	DestroyWindow(hwnd);
 }
 
 //

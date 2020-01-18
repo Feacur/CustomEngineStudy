@@ -22,15 +22,22 @@ int main(int argc, char * argv[]) {
 	static u64 const duration  = 16666;
 	static u64 const precision = 1000000;
 
-	u64 const ticks_per_second = global_timer.get_ticks_per_second();
+	custom::System & system = custom::System::get();
+	custom::Timer  & timer = custom::Timer::get();
 
-	custom::Window window;
+	custom::Window window(false);
+	window.init_context();
+
 	custom::Opengl_Renderer renderer;
 
-	while (global_system.is_running) {
-		u64 last_frame_ticks = global_timer.wait_next_frame(duration, precision);
+	static u64 const ticks_per_second = timer.get_ticks_per_second();
+	while (true) {
+		if (system.should_close) { break; }
+		if (window.should_close) { break; }
+
+		u64 last_frame_ticks = timer.wait_next_frame(duration, precision);
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, ticks_per_second);
-		global_system.update();
+		system.update();
 		renderer.update();
 		window.update();
 	}

@@ -11,18 +11,18 @@ namespace custom
 
 	class Timer
 	{
+		SOMEWHAT_A_SINGLETON_BOILERPLATE(Timer)
+
 	public:
-		Timer();
 		~Timer();
 
 		u64 wait_next_frame(u64 duration, u64 precision);
 
-		u64 get_ticks_per_second() { return ticks_per_second; }
-		u64 get_frame_start_ticks() { return frame_start_ticks; }
+		u64 get_ticks_per_second() { return m_ticks_per_second; }
+		u64 get_frame_start_ticks() { return m_frame_start_ticks; }
 
 	private:
-		u64 ticks_per_second;
-		u64 frame_start_ticks;
+		u64 m_ticks_per_second;
+		u64 m_frame_start_ticks;
 	};
 }
-extern custom::Timer global_timer;

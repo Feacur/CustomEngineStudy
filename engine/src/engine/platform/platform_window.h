@@ -3,22 +3,27 @@
 
 namespace custom
 {
+	class Rendering_Context;
+ 
 	class Window
 	{
 	public:
-		Window();
+		bool should_close;
+
+	public:
+		Window(bool is_dummy);
 		~Window();
 
+		void init_context();
+
 		void update();
+
 		void set_header(cstring value);
 
-		uptr get_handle() { return handle; }
-		uptr get_display() { return display; }
-		uptr get_graphics() { return graphics; }
+		uptr get_handle() { return m_handle; }
 
 	private:
-		uptr handle;
-		uptr display;
-		uptr graphics;
+		uptr m_handle;
+		Rendering_Context * m_rendering_context;
 	};
 }

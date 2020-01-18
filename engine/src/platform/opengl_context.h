@@ -1,15 +1,22 @@
 #pragma once
 #include "engine/core/code.h"
+#include "engine/platform/rendering_context.h"
 
 namespace custom
 {
-	class Opengl_Context
+	class Window;
+
+	class Opengl_Context : public Rendering_Context
 	{
 	public:
-		static void init(uptr graphics, uptr dummy_graphics);
-		static void shutdown();
+		Opengl_Context(uptr graphics_context);
+		~Opengl_Context() override;
 
-		static void swap_interval(uptr display, uptr graphics, s32 value);
-		static void swap_buffers(uptr display, uptr graphics);
+		void swap_interval(s32 value) override;
+		void swap_buffers() override;
+
+	private:
+		uptr m_target_graphics_context;
+		Window * m_dummy_window;
 	};
 }

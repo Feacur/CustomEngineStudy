@@ -9,20 +9,20 @@
 
 // https://github.com/Marzac/le3d/blob/master/engine/system_win.cpp
 
-custom::System global_system;
-
-static void platform_update();
-static ULONGLONG platform_get_system_time();
-static void signal_handler(int value);
-
 //
 // API implementation
 //
 
+static bool platform_poll_events();
+static ULONGLONG platform_get_system_time();
+static void signal_handler(int value);
+
 namespace custom
 {
+	System System::s_instance;
+
 	System::System()
-		: is_running(true)
+		: should_close(false)
 	{
 		signal(SIGABRT, signal_handler);
 		// signal(SIGFPE, SIG_DFL);
@@ -36,7 +36,8 @@ namespace custom
 
 	void System::update()
 	{
-		platform_update();
+		bool quit_request = platform_poll_events();
+		if (quit_request) { should_close = true; }
 	}
 
 	u64 System::get_system_time()
@@ -50,17 +51,23 @@ namespace custom
 // platform implementation
 //
 
-static void platform_update() {
+static bool platform_poll_events() {
+	bool quit_request = false;
 	MSG message = {};
 	while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
 		if (message.message == WM_QUIT) {
+			// https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-quit
 			// Indicates a request to terminate an application.
-			global_system.is_running = false;
-			break;
+			// This message does not have a return value because it causes the message loop to terminate before the message is sent to the application's window procedure.
+			// The WM_QUIT message is not associated with a window and therefore will never be received through a window's window procedure.
+			// * wParam - The exit code given in the PostQuitMessage function.
+			quit_request = true;
+			continue;
 		}
 		TranslateMessage(&message);
 		DispatchMessage(&message);
 	}
+	return quit_request;
 }
 
 static ULONGLONG platform_get_system_time() {
@@ -85,5 +92,5 @@ static void signal_handler(int value) {
 		case SIGTERM: CUSTOM_ERROR("Terminate signal");         break; // Termination request sent to program.
 		default:      CUSTOM_ERROR("Unknown signal");           break; // ?
 	}
-	global_system.is_running = false;
+	custom::System::get().should_close = true;
 }

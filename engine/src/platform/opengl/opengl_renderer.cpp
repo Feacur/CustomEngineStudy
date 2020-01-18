@@ -43,10 +43,7 @@ namespace custom
 		// glCullFace(GL_BACK);
 	}
 
-	Opengl_Renderer::~Opengl_Renderer()
-	{
-
-	}
+	Opengl_Renderer::~Opengl_Renderer() = default;
 
 	void Opengl_Renderer::update()
 	{
