@@ -48,9 +48,23 @@ struct Pixel_Format_Aux
 	// bool transparent;
 };
 
+struct Context_Settings
+{
+	int  profile_api;
+	int  forward;
+	int  profile_bit;
+	//
+	int  major_version;
+	int  minor_version;
+	int  robustness;
+	int  release_behaviour;
+	bool debug;
+	bool opengl_no_error;
+};
+
 static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(HDC dummy_hdc);
-static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint);
+static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
 static void platform_shutdown();
 static void platform_swap_interval(uptr display, HDC hdc, s32);
 static void platform_swap_buffers(uptr display, HDC hdc);
@@ -99,7 +113,16 @@ namespace custom
 {
 	void Opengl_Context::init(uptr graphics, uptr dummy_graphics)
 	{
-		platform_init_wgl((HDC)dummy_graphics);
+		Context_Settings settings = {};
+		settings.profile_api       = 0; // 0 as OpenGL?, 1 as OpenGL ES?
+		settings.forward           = false;
+		settings.profile_bit       = 0; // WGL_CONTEXT_CORE_PROFILE_BIT_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
+		settings.major_version     = 4;
+		settings.minor_version     = 3;
+		settings.robustness        = 0; // WGL_NO_RESET_NOTIFICATION_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB
+		settings.release_behaviour = 0; // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB
+		settings.debug             = false;
+		settings.opengl_no_error   = false;
 
 		Pixel_Format pf_hint = {};
 		pf_hint.redBits     =  8;
@@ -108,7 +131,10 @@ namespace custom
 		pf_hint.alphaBits   =  8;
 		pf_hint.depthBits   = 24;
 		pf_hint.stencilBits =  8;
-		platform_create_context((HDC)graphics, NULL, pf_hint);
+
+		platform_init_wgl((HDC)dummy_graphics);
+
+		platform_create_context((HDC)graphics, NULL, settings, pf_hint);
 
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 		LOG_LAST_ERROR();
@@ -166,17 +192,17 @@ struct Wgl_Context
 	bool EXT_create_context_es2_profile;
 	bool EXT_swap_control;
 	bool EXT_swap_control_tear;
-	// bool EXT_colorspace;
+	bool EXT_colorspace;
 
 	// ARB extensions
 	bool ARB_multisample;
 	bool ARB_framebuffer_sRGB;
-	// bool ARB_create_context_robustness;
-	// bool ARB_create_context_no_error;
+	bool ARB_create_context_robustness;
+	bool ARB_create_context_no_error;
 	bool ARB_pixel_format;
 	bool ARB_context_flush_control;
 	bool ARB_create_context;
-	// bool ARB_create_context_profile;
+	bool ARB_create_context_profile;
 };
 static Wgl_Context wgl;
 
@@ -263,16 +289,16 @@ static void check_extension_through_dummy(HDC dummy_hdc) {
 	CHECK_EXTENSION(EXT_create_context_es2_profile);
 	CHECK_EXTENSION(EXT_swap_control);
 	CHECK_EXTENSION(EXT_swap_control_tear);
-	// CHECK_EXTENSION(EXT_colorspace);
+	CHECK_EXTENSION(EXT_colorspace);
 	// ARB extensions
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
-	// CHECK_EXTENSION(ARB_create_context_robustness);
-	// CHECK_EXTENSION(ARB_create_context_no_error);
+	CHECK_EXTENSION(ARB_create_context_robustness);
+	CHECK_EXTENSION(ARB_create_context_no_error);
 	CHECK_EXTENSION(ARB_pixel_format);
 	CHECK_EXTENSION(ARB_context_flush_control);
 	CHECK_EXTENSION(ARB_create_context);
-	// CHECK_EXTENSION(ARB_create_context_profile);
+	CHECK_EXTENSION(ARB_create_context_profile);
 }
 #undef CHECK_EXTENSION
 
@@ -324,7 +350,7 @@ static void load_extensions(HDC dummy_hdc) {
 	CUSTOM_ASSERT(count < cap, "attributes capacity reached");\
 	keys[count++] = key;\
 }
-static int add_atribute_keys(int * keys, int cap) {
+static int add_atribute_keys(int * keys, int cap, Context_Settings settings) {
 	int count = 0;
 	ADD_ATTRIBUTE_KEY(WGL_SUPPORT_OPENGL_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
@@ -357,15 +383,16 @@ static int add_atribute_keys(int * keys, int cap) {
 		ADD_ATTRIBUTE_KEY(WGL_SAMPLES_ARB);
 	}
 
-	if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
-		// @Note: is desktop OpenGL?
-		ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+	if (settings.profile_api == 0) {
+		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
+			ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+		}
 	}
-
-	// if (wgl.EXT_colorspace) {
-	// 	// @Note: is not desktop OpenGL?
-	// 	ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
-	// }
+	else if (settings.profile_api == 1) {
+		if (wgl.EXT_colorspace) {
+			ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
+		}
+	}
 
 	return count;
 }
@@ -379,7 +406,7 @@ int get_value(int * keys, int * vals, int key) {
 }
 
 #define GET_ATTRIBUTE_VALUE(key) get_value(attr_keys, attr_vals, key)
-static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
+static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings settings) {
 	// The number of pixel formats for the device context.
 	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
 	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
@@ -390,10 +417,10 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 	}
 	if (!formats_count) { return NULL; }
 
-	int const attr_cap = 40;
+	int const attr_cap = 64;
 	int attr_keys[attr_cap] = {};
 	int attr_vals[attr_cap] = {};
-	int attr_count = add_atribute_keys(attr_keys, attr_cap);
+	int attr_count = add_atribute_keys(attr_keys, attr_cap, settings);
 
 	int pf_count = 0;
 	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
@@ -409,18 +436,20 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) != WGL_TYPE_RGBA_ARB) {
 			continue;
 		}
-		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
-			// @Note: is desktop OpenGL?
-			if (!GET_ATTRIBUTE_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)) {
-				continue;
+		if (settings.profile_api == 0) {
+			if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
+				if (!GET_ATTRIBUTE_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)) {
+					continue;
+				}
 			}
 		}
-		// if (wgl.EXT_colorspace) {
-		// 	// @Note: is not desktop OpenGL?
-		// 	if (GET_ATTRIBUTE_VALUE(WGL_COLORSPACE_EXT) != WGL_COLORSPACE_SRGB_EXT) {
-		// 		continue;
-		// 	}
-		// }
+		else if (settings.profile_api == 1) {
+			if (wgl.EXT_colorspace) {
+				if (GET_ATTRIBUTE_VALUE(WGL_COLORSPACE_EXT) != WGL_COLORSPACE_SRGB_EXT) {
+					continue;
+				}
+			}
+		}
 
 		// should not support
 		if (GET_ATTRIBUTE_VALUE(PFD_SUPPORT_GDI)) { continue; }
@@ -531,35 +560,100 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	return pixel_formats;
 }
 
-static int choose_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) {
+static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) {
 	Pixel_Format best_match = {};
 	for (Pixel_Format * format = formats; format && format->id; ++format)
 	{
+		if (format->redBits     < pf_hint.redBits)     { continue; }
+		if (format->greenBits   < pf_hint.greenBits)   { continue; }
+		if (format->blueBits    < pf_hint.blueBits)    { continue; }
+		if (format->alphaBits   < pf_hint.alphaBits)   { continue; }
+		if (format->depthBits   < pf_hint.depthBits)   { continue; }
+		if (format->stencilBits < pf_hint.stencilBits) { continue; }
 		best_match = *format;
 		break;
 	}
 	return (int)best_match.id;
 }
 
-static int choose_pixel_format(HDC hdc, Pixel_Format pf_hint) {
+static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings settings) {
 	Pixel_Format * pixel_formats;
 	if (wgl.ARB_pixel_format) {
-		pixel_formats = allocate_pixel_formats_arb(hdc);
+		pixel_formats = allocate_pixel_formats_arb(hdc, settings);
 	}
 	else {
 		pixel_formats = allocate_pixel_formats_legacy(hdc);
 	}
 
 	if (!pixel_formats) { return 0; }
-	int pixel_format_id = choose_pixel_format(pixel_formats, pf_hint);
+	int pixel_format_id = find_best_pixel_format(pixel_formats, pf_hint);
 	free(pixel_formats);
 
 	return pixel_format_id;
 }
 
-static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
-	int const attr_cap = 40;
-	int attr_pair[attr_cap * 2] = {};
+#define SET_ATTRIBUTE(key, value) {\
+	CUSTOM_ASSERT(attr_count < attr_cap, "attributes capacity reached");\
+	attr_pair[attr_count++] = key;\
+	attr_pair[attr_count++] = value;\
+}
+static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, Context_Settings settings) {
+	int const attr_cap = 64 * 2;
+	int attr_pair[attr_cap] = {};
+	int attr_count = 0;
+
+	int profile_mask = 0;
+	int context_flags = 0;
+
+	if (settings.profile_api == 0) {
+		if (settings.forward) {
+			context_flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+		}
+		if (settings.profile_bit) {
+			profile_mask |= settings.profile_bit;
+		}
+	}
+	else if (settings.profile_api == 1) {
+		profile_mask |= WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+	}
+
+	if (settings.major_version != 1 || settings.minor_version != 0) {
+		SET_ATTRIBUTE(WGL_CONTEXT_MAJOR_VERSION_ARB, settings.major_version);
+		SET_ATTRIBUTE(WGL_CONTEXT_MINOR_VERSION_ARB, settings.minor_version);
+	}
+
+	if (settings.robustness && wgl.ARB_create_context_robustness) {
+		SET_ATTRIBUTE(
+			WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
+			settings.robustness
+		);
+		context_flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+	}
+
+	if (settings.release_behaviour && wgl.ARB_context_flush_control) {
+		SET_ATTRIBUTE(
+			WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
+			settings.release_behaviour
+		);
+	}
+
+	if (settings.debug) {
+		context_flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+	}
+
+	if (settings.opengl_no_error && wgl.ARB_create_context_no_error) {
+		SET_ATTRIBUTE(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, true);
+	}
+
+	if (context_flags) {
+		SET_ATTRIBUTE(WGL_CONTEXT_FLAGS_ARB, context_flags);
+	}
+
+	if (profile_mask) {
+		SET_ATTRIBUTE(WGL_CONTEXT_PROFILE_MASK_ARB, profile_mask);
+	}
+
+	SET_ATTRIBUTE(0, 0);
 
 	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share_hrc, attr_pair);
 	if (!hrc) {
@@ -578,8 +672,10 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 		}
 		return NULL;
 	}
+
 	return hrc;
 }
+#undef SET_ATTRIBUTE
 
 static HGLRC create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	HGLRC hrc = wgl.CreateContext(hdc);
@@ -591,6 +687,7 @@ static HGLRC create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	if (share_hrc && !wgl.ShareLists(share_hrc, hrc)) {
 		CUSTOM_ASSERT(false, "failed to share context");
 	}
+
 	return hrc;
 }
 
@@ -606,8 +703,26 @@ static void platform_init_wgl(HDC dummy_hdc) {
 	load_extensions(dummy_hdc);
 }
 
-static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
-	int pixel_format_id = choose_pixel_format(hdc, pf_hint);
+static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint) {
+	if (settings.profile_api == 0) {
+		if (settings.forward && !wgl.ARB_create_context) {
+			CUSTOM_ASSERT(false, "forward compatible OpenGL context requires 'ARB_create_context'");
+			return;
+		}
+
+		if (settings.profile_bit && !wgl.ARB_create_context_profile) {
+			CUSTOM_ASSERT(false, "OpenGL profile requires 'ARB_create_context_profile'");
+			return;
+		}
+	}
+	else if (settings.profile_api == 1) {
+		if (!wgl.EXT_create_context_es2_profile) {
+			CUSTOM_ASSERT(false, "OpenGL ES requires 'EXT_create_context_es2_profile'");
+			return;
+		}
+	}
+
+	int pixel_format_id = get_pixel_format(hdc, pf_hint, settings);
 
 	PIXELFORMATDESCRIPTOR pfd;
 	if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd)) {
@@ -626,7 +741,7 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hi
 	// You should select a pixel format in the device context before calling the wglCreateContext function. The wglCreateContext function creates a rendering context for drawing on the device in the selected pixel format of the device context.
 	HGLRC hrc;
 	if (wgl.ARB_create_context) {
-		hrc = create_context_arb(hdc, share_hrc);
+		hrc = create_context_arb(hdc, share_hrc, settings);
 	}
 	else {
 		hrc = create_context_legacy(hdc, share_hrc);
