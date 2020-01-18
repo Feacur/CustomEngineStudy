@@ -112,11 +112,11 @@ struct Wgl_Context
 	// ARB extensions
 	bool ARB_multisample;
 	bool ARB_framebuffer_sRGB;
-	bool ARB_create_context_robustness;
-	bool ARB_create_context_no_error;
+	// bool ARB_create_context_robustness;
+	// bool ARB_create_context_no_error;
 	bool ARB_pixel_format;
 	bool ARB_context_flush_control;
-	// bool ARB_create_context;
+	bool ARB_create_context;
 	// bool ARB_create_context_profile;
 };
 static Wgl_Context wgl;
@@ -206,11 +206,11 @@ static void check_extension_through_dummy(HDC hdc) {
 	// ARB extensions
 	CHECK_EXTENSION(ARB_multisample);
 	CHECK_EXTENSION(ARB_framebuffer_sRGB);
-	CHECK_EXTENSION(ARB_create_context_robustness);
-	CHECK_EXTENSION(ARB_create_context_no_error);
+	// CHECK_EXTENSION(ARB_create_context_robustness);
+	// CHECK_EXTENSION(ARB_create_context_no_error);
 	CHECK_EXTENSION(ARB_pixel_format);
 	CHECK_EXTENSION(ARB_context_flush_control);
-	// CHECK_EXTENSION(ARB_create_context);
+	CHECK_EXTENSION(ARB_create_context);
 	// CHECK_EXTENSION(ARB_create_context_profile);
 }
 #undef CHECK_EXTENSION
@@ -400,30 +400,17 @@ static int choose_pixel_format_legacy(HDC hdc) {
 	return 0;
 }
 
-static void craete_context(HDC hdc) {
-	int pixel_format;
+static int choose_pixel_format(HDC hdc) {
 	if (wgl.ARB_pixel_format) {
-		pixel_format = choose_pixel_format_arb(hdc);
+		return choose_pixel_format_arb(hdc);
 	}
-	else {
-		pixel_format = choose_pixel_format_legacy(hdc);
-	}
+	return choose_pixel_format_legacy(hdc);
+}
 
-	PIXELFORMATDESCRIPTOR pfd;
-	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
-		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format);
-		return;
-	}
-
-	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
-		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format);
-		return;
-	}
-
+static void create_context_arb(HDC hdc, HGLRC share_hrc) {
 	int const attr_cap = 40;
 	int attr_pair[attr_cap * 2] = {};
 
-	HGLRC share_hrc = NULL;
 	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share_hrc, attr_pair);
 	if (!hrc) {
 		DWORD const error = GetLastError();
@@ -441,19 +428,41 @@ static void craete_context(HDC hdc) {
 		}
 		return;
 	}
+}
 
-	// ???
-	HGLRC hrc_2 = wgl.CreateContext(hdc);
-
+static void create_context_legacy(HDC hdc, HGLRC share_hrc) {
+	HGLRC hrc = wgl.CreateContext(hdc);
 	if (share_hrc) {
 		wgl.ShareLists(share_hrc, hrc);
+	}
+}
+
+static void create_context(HDC hdc, HGLRC share_hrc) {
+	int pixel_format = choose_pixel_format(hdc);
+
+	PIXELFORMATDESCRIPTOR pfd;
+	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
+		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format);
+		return;
+	}
+
+	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
+		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format);
+		return;
+	}
+
+	if (wgl.ARB_create_context) {
+		create_context_arb(hdc, share_hrc);
+	}
+	else {
+		create_context_legacy(hdc, share_hrc);
 	}
 }
 
 static void platform_init(HDC hdc) {
 	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
 	if (!opengl_handle) {
-		CUSTOM_ASSERT(false, "can't load " OPENGL_LIBRARY_NAME);
+		CUSTOM_ASSERT(false, "failed to load " OPENGL_LIBRARY_NAME);
 		return;
 	}
 
@@ -461,7 +470,7 @@ static void platform_init(HDC hdc) {
 	load_opengl_functions();
 	load_extensions(hdc);
 
-	craete_context(hdc);
+	create_context(hdc, NULL);
 
 	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
