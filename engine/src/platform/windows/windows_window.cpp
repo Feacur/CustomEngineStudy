@@ -12,6 +12,7 @@ static LPTSTR const window_title = TEXT("");
 
 static ATOM register_window_class(void);
 static HWND create_window(void);
+static HWND create_dummy_window(void);
 static void destroy_window(HWND);
 
 //
@@ -23,12 +24,16 @@ namespace custom
 	Window::Window()
 	{
 		ATOM window_atom = register_window_class();
+
 		HWND hwnd = create_window();
 		handle = (uptr)hwnd;
 		display = 0;
 		graphics = (uptr)GetDC(hwnd);
 
-		Opengl_Context::init(graphics);
+		HWND dummy_hwnd = create_dummy_window();
+		HDC dummy_graphics = GetDC(dummy_hwnd);
+
+		Opengl_Context::init(graphics, (uptr)dummy_graphics);
 	}
 
 	Window::~Window()
@@ -65,7 +70,7 @@ static ATOM register_window_class(void) {
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerclassexa
 	ATOM window_class_atom = RegisterClassEx(&window_class);
-	CUSTOM_ASSERT(window_class_atom, "didn't register window class");
+	CUSTOM_ASSERT(window_class_atom, "failed to register window class");
 	return window_class_atom;
 }
 
@@ -74,7 +79,7 @@ static HWND create_window(void) {
 	DWORD     dwStyle    = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 	HWND      hWndParent = HWND_DESKTOP;
 	HMENU     hMenu      = NULL;
-	HINSTANCE hInstance  = NULL;
+	HINSTANCE hInstance  = GetModuleHandle(NULL);
 	LPVOID    lpParam    = NULL;
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
@@ -86,7 +91,42 @@ static HWND create_window(void) {
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		hWndParent, hMenu, hInstance, lpParam
 	);
-	CUSTOM_ASSERT(hwnd, "didn't create window");
+	CUSTOM_ASSERT(hwnd, "failed to create dummy window");
+	return hwnd;
+}
+
+static HWND create_dummy_window(void) {
+	// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-setpixelformat
+	// An OpenGL window has its own pixel format. Because of this, only device contexts retrieved for the client area of an OpenGL window are allowed to draw into the window. As a result, an OpenGL window should be created with the WS_CLIPCHILDREN and WS_CLIPSIBLINGS styles. Additionally, the window class attribute should not include the CS_PARENTDC style.
+	DWORD     dwExStyle  = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR;
+	DWORD     dwStyle    = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	HWND      hWndParent = HWND_DESKTOP;
+	HMENU     hMenu      = NULL;
+	HINSTANCE hInstance  = GetModuleHandle(NULL);
+	LPVOID    lpParam    = NULL;
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
+	HWND hwnd = CreateWindowEx(
+		dwExStyle,
+		window_class_name, window_title,
+		dwStyle,
+		// int X, Y, nWidth, nHeight
+		0, 0, 1, 1,
+		hWndParent, hMenu, hInstance, lpParam
+	);
+	if (!hwnd) {
+		CUSTOM_ASSERT(false, "failed to create dummy window");
+		return 0;
+	}
+
+	ShowWindow(hwnd, SW_HIDE);
+
+	MSG message = {};
+	while (PeekMessage(&message, hwnd, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&message);
+		DispatchMessage(&message);
+	}
+
 	return hwnd;
 }
 

@@ -16,7 +16,41 @@
 
 #define OPENGL_LIBRARY_NAME "opengl32.dll"
 
-static void platform_init(HDC hdc);
+struct Pixel_Format
+{
+	uptr id;
+	int redBits;
+	int greenBits;
+	int blueBits;
+	int alphaBits;
+	int depthBits;
+	int stencilBits;
+};
+
+struct Pixel_Format_Aux
+{
+	int  redShift;
+	int  greenShift;
+	int  blueShift;
+	int  alphaShift;
+	//
+	int  accumRedBits;
+	int  accumGreenBits;
+	int  accumBlueBits;
+	int  accumAlphaBits;
+	//
+	int  auxBuffers;
+	int  samples;
+	//
+	bool stereo;
+	bool doublebuffer;
+	// bool sRGB;
+	// bool transparent;
+};
+
+static void * wgl_get_proc_address(cstring name);
+static void platform_init_wgl(HDC dummy_hdc);
+static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint);
 static void platform_shutdown();
 
 static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
@@ -61,9 +95,22 @@ static void log_last_error() {
 
 namespace custom
 {
-	void Opengl_Context::init(uptr graphics)
+	void Opengl_Context::init(uptr graphics, uptr dummy_graphics)
 	{
-		platform_init((HDC)graphics);
+		platform_init_wgl((HDC)dummy_graphics);
+
+		Pixel_Format pf_hint = {};
+		pf_hint.redBits     =  8;
+		pf_hint.greenBits   =  8;
+		pf_hint.blueBits    =  8;
+		pf_hint.alphaBits   =  8;
+		pf_hint.depthBits   = 24;
+		pf_hint.stencilBits =  8;
+		platform_create_context((HDC)graphics, NULL, pf_hint);
+
+		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
+		log_last_error();
+		CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 	}
 
 	void Opengl_Context::shutdown()
@@ -78,38 +125,6 @@ namespace custom
 
 #include "wgl_tiny.h"
 
-struct Pixel_Format
-{
-	uptr id;
-	int redBits;
-	int greenBits;
-	int blueBits;
-	int alphaBits;
-	int depthBits;
-	int stencilBits;
-};
-
-struct Pixel_Format_Aux
-{
-	int  redShift;
-	int  greenShift;
-	int  blueShift;
-	int  alphaShift;
-	//
-	int  accumRedBits;
-	int  accumGreenBits;
-	int  accumBlueBits;
-	int  accumAlphaBits;
-	//
-	int  auxBuffers;
-	int  samples;
-	//
-	bool stereo;
-	bool doublebuffer;
-	// bool sRGB;
-	// bool transparent;
-};
-
 struct Wgl_Context
 {
 	HINSTANCE instance;
@@ -120,6 +135,8 @@ struct Wgl_Context
 	GetProcAddress_func    * GetProcAddress;
 	MakeCurrent_func       * MakeCurrent;
 	ShareLists_func        * ShareLists;
+	GetCurrentDC_func      * GetCurrentDC;
+	GetCurrentContext_func * GetCurrentContext;
 
 	// EXT functions
 	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
@@ -151,8 +168,8 @@ struct Wgl_Context
 };
 static Wgl_Context wgl;
 
-void * wgl_get_proc_address(cstring name) {
-	CUSTOM_ASSERT(name, "null GL procedure name");
+static void * wgl_get_proc_address(cstring name) {
+	if (!name) { return NULL; }
 	void * address = wgl.GetProcAddress(name);
 	if (!address) {
 		address = GetProcAddress(wgl.instance, name);
@@ -202,7 +219,9 @@ static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(DeleteContext,  true);
 	LOAD_OPENGL_FUNCTION(GetProcAddress, true);
 	LOAD_OPENGL_FUNCTION(MakeCurrent,    true);
-	LOAD_OPENGL_FUNCTION(ShareLists,     false);
+	LOAD_OPENGL_FUNCTION(ShareLists,     true);
+	LOAD_OPENGL_FUNCTION(GetCurrentDC,   true);
+	LOAD_OPENGL_FUNCTION(GetCurrentContext, true);
 }
 #undef LOAD_OPENGL_FUNCTION
 
@@ -221,8 +240,8 @@ static void load_extension_functions_through_dummy() {
 #undef LOAD_EXTENSION_FUNCTION
 
 #define CHECK_EXTENSION(name) wgl.name = contains_full_word(extensions_string, "WGL_" #name)
-static void check_extension_through_dummy(HDC hdc) {
-	cstring extensions_string = wgl_get_extensions_string(hdc);
+static void check_extension_through_dummy(HDC dummy_hdc) {
+	cstring extensions_string = wgl_get_extensions_string(dummy_hdc);
 	if (!extensions_string) {
 		CUSTOM_ASSERT(false, "failed to load extensions string");
 		return;
@@ -245,7 +264,7 @@ static void check_extension_through_dummy(HDC hdc) {
 }
 #undef CHECK_EXTENSION
 
-static void load_extensions(HDC hdc) {
+static void load_extensions(HDC dummy_hdc) {
 	PIXELFORMATDESCRIPTOR dummy_pfd = {};
 	dummy_pfd.nSize        = sizeof(dummy_pfd);
 	dummy_pfd.nVersion     = 1;
@@ -255,34 +274,37 @@ static void load_extensions(HDC hdc) {
 	dummy_pfd.cDepthBits   = 8 * 3;
 	dummy_pfd.cStencilBits = 8 * 1;
 
-	int dummy_pixel_format_id = ChoosePixelFormat(hdc, &dummy_pfd);
+	int dummy_pixel_format_id = ChoosePixelFormat(dummy_hdc, &dummy_pfd);
 	if (!dummy_pixel_format_id) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to describe dummy pixel format");
 		return;
 	}
 
-	if (!SetPixelFormat(hdc, dummy_pixel_format_id, &dummy_pfd)) {
+	if (!SetPixelFormat(dummy_hdc, dummy_pixel_format_id, &dummy_pfd)) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to set dummy pixel format");
 		return;
 	}
 
-	HGLRC dummy_hrc = wgl.CreateContext(hdc);
+	HGLRC dummy_hrc = wgl.CreateContext(dummy_hdc);
 	if (!dummy_hrc) {
 		CUSTOM_ASSERT(false, "failed to create dummy rendering context");
 		return;
 	}
 
-	if (!wgl.MakeCurrent(hdc, dummy_hrc)) {
+	HDC current_hdc = wgl.GetCurrentDC();
+	HGLRC current_hrc = wgl.GetCurrentContext();
+
+	if (!wgl.MakeCurrent(dummy_hdc, dummy_hrc)) {
 		CUSTOM_ASSERT(false, "failed to make dummy rendering context the current one");
 	}
 	else {
 		load_extension_functions_through_dummy();
-		check_extension_through_dummy(hdc);
+		check_extension_through_dummy(dummy_hdc);
 	}
 
-	wgl.MakeCurrent(hdc, NULL);
+	wgl.MakeCurrent(current_hdc, current_hrc);
 	wgl.DeleteContext(dummy_hrc);
 }
 
@@ -558,7 +580,19 @@ static void create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	}
 }
 
-static void create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
+static void platform_init_wgl(HDC dummy_hdc) {
+	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
+	if (!opengl_handle) {
+		CUSTOM_ASSERT(false, "failed to load " OPENGL_LIBRARY_NAME);
+		return;
+	}
+
+	wgl.instance = opengl_handle;
+	load_opengl_functions();
+	load_extensions(dummy_hdc);
+}
+
+static void platform_create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
 	int pixel_format_id = choose_pixel_format(hdc, pf_hint);
 
 	PIXELFORMATDESCRIPTOR pfd;
@@ -568,42 +602,20 @@ static void create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
 		return;
 	}
 
+	// If hdc references a window, calling the SetPixelFormat function also changes the pixel format of the window. Setting the pixel format of a window more than once can lead to significant complications for the Window Manager and for multithread applications, so it is not allowed. An application can only set the pixel format of a window one time. Once a window's pixel format is set, it cannot be changed.
 	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format_id);
 		return;
 	}
 
+	// You should select a pixel format in the device context before calling the wglCreateContext function. The wglCreateContext function creates a rendering context for drawing on the device in the selected pixel format of the device context.
 	if (wgl.ARB_create_context) {
 		create_context_arb(hdc, share_hrc);
 	}
 	else {
 		create_context_legacy(hdc, share_hrc);
 	}
-}
-
-static void platform_init(HDC hdc) {
-	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
-	if (!opengl_handle) {
-		CUSTOM_ASSERT(false, "failed to load " OPENGL_LIBRARY_NAME);
-		return;
-	}
-
-	wgl.instance = opengl_handle;
-	load_opengl_functions();
-	load_extensions(hdc);
-
-	Pixel_Format pf_hint = {};
-	pf_hint.redBits     =  8;
-    pf_hint.greenBits   =  8;
-    pf_hint.blueBits    =  8;
-    pf_hint.alphaBits   =  8;
-    pf_hint.depthBits   = 24;
-    pf_hint.stencilBits =  8;
-	create_context(hdc, NULL, pf_hint);
-
-	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
-	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 }
 
 static void platform_shutdown() {
