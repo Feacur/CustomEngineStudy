@@ -51,6 +51,7 @@ namespace custom
 
 struct Pixel_Format
 {
+	uptr id;
 	int redBits;
 	int greenBits;
 	int blueBits;
@@ -66,17 +67,17 @@ struct Pixel_Format_Aux
 	int  blueShift;
 	int  alphaShift;
 	//
-	int  accumRedShift;
-	int  accumGreenShift;
-	int  accumBlueShift;
-	int  accumAlphaShift;
+	int  accumRedBits;
+	int  accumGreenBits;
+	int  accumBlueBits;
+	int  accumAlphaBits;
 	//
 	int  auxBuffers;
 	int  samples;
 	//
 	bool stereo;
-	bool sRGB;
 	bool doublebuffer;
+	// bool sRGB;
 	// bool transparent;
 };
 
@@ -222,8 +223,8 @@ static void load_extensions(HDC hdc) {
 	dummy_pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	dummy_pfd.iPixelType   = PFD_TYPE_RGBA;
 	dummy_pfd.cColorBits   = 8 * 3;
-	// dummy_pfd.cDepthBits   = 8 * 3;
-	// dummy_pfd.cStencilBits = 8 * 1;
+	dummy_pfd.cDepthBits   = 8 * 3;
+	dummy_pfd.cStencilBits = 8 * 1;
 
 	if (!SetPixelFormat(hdc, ChoosePixelFormat(hdc, &dummy_pfd), &dummy_pfd)) {
 		CUSTOM_ASSERT(false, "failed to set dummy pixel format");
@@ -258,35 +259,40 @@ static int add_atribute_keys(int * keys, int cap) {
 	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_PIXEL_TYPE_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_ACCELERATION_ARB);
+	ADD_ATTRIBUTE_KEY(WGL_DOUBLE_BUFFER_ARB);
+	//
 	ADD_ATTRIBUTE_KEY(WGL_RED_BITS_ARB);
-	// ADD_ATTRIBUTE_KEY(WGL_RED_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_GREEN_BITS_ARB);
-	// ADD_ATTRIBUTE_KEY(WGL_GREEN_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_BLUE_BITS_ARB);
-	// ADD_ATTRIBUTE_KEY(WGL_BLUE_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_ALPHA_BITS_ARB);
-	// ADD_ATTRIBUTE_KEY(WGL_ALPHA_SHIFT_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DEPTH_BITS_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_STENCIL_BITS_ARB);
+	//
+	// ADD_ATTRIBUTE_KEY(WGL_RED_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_GREEN_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_BLUE_SHIFT_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_ALPHA_SHIFT_ARB);
+	//
 	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_BITS_ARB);
 	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_RED_BITS_ARB);
 	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_GREEN_BITS_ARB);
 	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_BLUE_BITS_ARB);
 	// ADD_ATTRIBUTE_KEY(WGL_ACCUM_ALPHA_BITS_ARB);
+	//
 	// ADD_ATTRIBUTE_KEY(WGL_AUX_BUFFERS_ARB);
-	ADD_ATTRIBUTE_KEY(WGL_DOUBLE_BUFFER_ARB);
+	// ADD_ATTRIBUTE_KEY(WGL_TRANSPARENT_ARB);
 
 	if (wgl.ARB_multisample) {
 		ADD_ATTRIBUTE_KEY(WGL_SAMPLES_ARB);
 	}
 
-	// @Note: is desktop OpenGL?
 	if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
+		// @Note: is desktop OpenGL?
 		ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
 	}
 
-	// @Note: is not desktop OpenGL?
 	// if (wgl.EXT_colorspace) {
+	// 	// @Note: is not desktop OpenGL?
 	// 	ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
 	// }
 
@@ -299,15 +305,16 @@ int get_value(int * keys, int * vals, int key) {
 }
 
 #define GET_ATTRIBUTE_VALUE(key) get_value(attr_keys, attr_vals, key)
-static int choose_pixel_format_arb(HDC hdc) {
+static Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 	// The number of pixel formats for the device context.
 	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
 	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
 	int formats_count;
 	if (!wgl.GetPixelFormatAttribivARB(hdc, 0, 0, 1, &formats_request, &formats_count)) {
 		CUSTOM_ASSERT(false, "failed to count pixel formats");
-		return 0;
+		return NULL;
 	}
+	if (!formats_count) { return NULL; }
 
 	int const attr_cap = 40;
 	int attr_keys[attr_cap] = {};
@@ -323,24 +330,74 @@ static int choose_pixel_format_arb(HDC hdc) {
 			CUSTOM_WARN("failed to get pixel format %d values", pixel_format_id);
 			continue;
 		}
+		// should support
+		if (!GET_ATTRIBUTE_VALUE(WGL_DRAW_TO_WINDOW_ARB)) { continue; }
+		if (!GET_ATTRIBUTE_VALUE(WGL_SUPPORT_OPENGL_ARB)) { continue; }
+		if (GET_ATTRIBUTE_VALUE(WGL_ACCELERATION_ARB) == WGL_NO_ACCELERATION_ARB) {
+			continue;
+		}
+		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) == WGL_TYPE_RGBA_ARB) {
+			continue;
+		}
+		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
+			// @Note: is desktop OpenGL?
+			if (!GET_ATTRIBUTE_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)) {
+				continue;
+			}
+		}
+		// if (wgl.EXT_colorspace) {
+		// 	// @Note: is not desktop OpenGL?
+		// 	if (GET_ATTRIBUTE_VALUE(WGL_COLORSPACE_EXT) != WGL_COLORSPACE_SRGB_EXT) {
+		// 		continue;
+		// 	}
+		// }
+
+		// should not support
+		if (GET_ATTRIBUTE_VALUE(PFD_SUPPORT_GDI)) { continue; }
+		if (GET_ATTRIBUTE_VALUE(PFD_GENERIC_FORMAT)) { continue; }
 
 		Pixel_Format pf = {};
-		pf.alphaBits = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
+		pf.id = pixel_format_id;
+		pf.redBits     = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
+		pf.greenBits   = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
+		pf.blueBits    = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
+		pf.alphaBits   = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
+		pf.depthBits   = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
+		pf.stencilBits = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
 
 		pixel_formats[pf_count++] = pf;
+
+		/*
+		Pixel_Format_Aux pfa = {};
+		pfa.redShift   = GET_ATTRIBUTE_VALUE(WGL_RED_SHIFT_ARB);
+		pfa.greenShift = GET_ATTRIBUTE_VALUE(WGL_GREEN_SHIFT_ARB);
+		pfa.blueShift  = GET_ATTRIBUTE_VALUE(WGL_BLUE_SHIFT_ARB);
+		pfa.alphaShift = GET_ATTRIBUTE_VALUE(WGL_ALPHA_SHIFT_ARB);
+		//
+		pfa.accumRedBits   = GET_ATTRIBUTE_VALUE(WGL_ACCUM_RED_BITS_ARB);
+		pfa.accumGreenBits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_GREEN_BITS_ARB);
+		pfa.accumBlueBits  = GET_ATTRIBUTE_VALUE(WGL_ACCUM_BLUE_BITS_ARB);
+		pfa.accumAlphaBits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_ALPHA_BITS_ARB);
+		//
+		pfa.auxBuffers = GET_ATTRIBUTE_VALUE(WGL_AUX_BUFFERS_ARB);
+		pfa.samples = GET_ATTRIBUTE_VALUE(WGL_SAMPLES_ARB);
+		//
+		pfa.stereo = GET_ATTRIBUTE_VALUE(WGL_STEREO_ARB);
+		pfa.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
+		// pfa.transparent = GET_ATTRIBUTE_VALUE(WGL_TRANSPARENT_ARB);
+		*/
 	}
 
-	// @Todo: search for the best match
-
-	free(pixel_formats);
-
-	return 0;
+	pixel_formats[pf_count].id = NULL;
+	return pixel_formats;
 }
+#undef GET_ATTRIBUTE_VALUE
 
-static int choose_pixel_format_legacy(HDC hdc) {
+static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	int formats_count = DescribePixelFormat(
 		hdc, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL
 	);
+	if (!formats_count) { return NULL; }
 
 	int pf_count = 0;
 	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
@@ -356,14 +413,15 @@ static int choose_pixel_format_legacy(HDC hdc) {
 		// should support
 		if (!bits_are_set(pfd.dwFlags, PFD_DRAW_TO_WINDOW)) { continue; }
 		if (!bits_are_set(pfd.dwFlags, PFD_SUPPORT_OPENGL)) { continue; }
-		// if (!bits_are_set(pfd.dwFlags, PFD_GENERIC_ACCELERATED)) { continue; }
+		if (!bits_are_set(pfd.dwFlags, PFD_GENERIC_ACCELERATED)) { continue; }
+		if (pfd.iPixelType != PFD_TYPE_RGBA) { continue; }
 		
 		// should not support
-		// if (bits_are_set(pfd.dwFlags, PFD_DRAW_TO_BITMAP)) { continue; }
 		if (bits_are_set(pfd.dwFlags, PFD_SUPPORT_GDI)) { continue; }
-		// if (!bits_are_set(pfd.dwFlags, PFD_GENERIC_FORMAT)) { continue; }
+		if (bits_are_set(pfd.dwFlags, PFD_GENERIC_FORMAT)) { continue; }
 
 		Pixel_Format pf = {};
+		pf.id = pixel_format_id;
 		pf.redBits     = pfd.cRedBits;
 		pf.greenBits   = pfd.cGreenBits;
 		pf.blueBits    = pfd.cBlueBits;
@@ -371,40 +429,56 @@ static int choose_pixel_format_legacy(HDC hdc) {
 		pf.depthBits   = pfd.cDepthBits;
 		pf.stencilBits = pfd.cStencilBits;
 
+		pixel_formats[pf_count++] = pf;
+
+		/*
 		Pixel_Format_Aux pfa = {};
-		pfa.redShift = pfd.cRedShift;
+		pfa.redShift   = pfd.cRedShift;
 		pfa.greenShift = pfd.cGreenShift;
-		pfa.blueShift = pfd.cBlueShift;
+		pfa.blueShift  = pfd.cBlueShift;
 		pfa.alphaShift = pfd.cAlphaShift;
 		//
-		pfa.accumRedShift = pfd.cAccumRedBits;
-		pfa.accumGreenShift = pfd.cAccumGreenBits;
-		pfa.accumBlueShift = pfd.cAccumBlueBits;
-		pfa.accumAlphaShift = pfd.cAccumAlphaBits;
+		pfa.accumRedBits   = pfd.cAccumRedBits;
+		pfa.accumGreenBits = pfd.cAccumGreenBits;
+		pfa.accumBlueBits  = pfd.cAccumBlueBits;
+		pfa.accumAlphaBits = pfd.cAccumAlphaBits;
 		//
 		pfa.auxBuffers = pfd.cAuxBuffers;
 		pfa.samples = 0;
 		//
 		pfa.stereo = bits_are_set(pfd.dwFlags, PFD_STEREO);
-		pfa.sRGB = pfd.iPixelType == PFD_TYPE_RGBA;
+		// pfa.sRGB = pfd.iPixelType == PFD_TYPE_RGBA;
 		pfa.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
 		// pfa.transparent = true;
-
-		pixel_formats[pf_count++] = pf;
+		*/
 	}
 
-	// @Todo: search for the best match
-
-	free(pixel_formats);
-
-	return 0;
+	pixel_formats[pf_count].id = NULL;
+	return pixel_formats;
 }
 
-static int choose_pixel_format(HDC hdc) {
-	if (wgl.ARB_pixel_format) {
-		return choose_pixel_format_arb(hdc);
+static int choose_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint) {
+	Pixel_Format best_match = {};
+	for (Pixel_Format * format = formats; format && format->id; ++format)
+	{
 	}
-	return choose_pixel_format_legacy(hdc);
+	return (int)best_match.id;
+}
+
+static int choose_pixel_format(HDC hdc, Pixel_Format pf_hint) {
+	Pixel_Format * pixel_formats;
+	if (wgl.ARB_pixel_format) {
+		pixel_formats = allocate_pixel_formats_arb(hdc);
+	}
+	else {
+		pixel_formats = allocate_pixel_formats_legacy(hdc);
+	}
+
+	if (!pixel_formats) { return 0; }
+	int pixel_format = choose_pixel_format(pixel_formats, pf_hint);
+	free(pixel_formats);
+
+	return pixel_format;
 }
 
 static void create_context_arb(HDC hdc, HGLRC share_hrc) {
@@ -432,13 +506,18 @@ static void create_context_arb(HDC hdc, HGLRC share_hrc) {
 
 static void create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	HGLRC hrc = wgl.CreateContext(hdc);
-	if (share_hrc) {
-		wgl.ShareLists(share_hrc, hrc);
+	if (!hrc) {
+		CUSTOM_ASSERT(false, "failed to create context");
+		return;
+	}
+
+	if (share_hrc && !wgl.ShareLists(share_hrc, hrc)) {
+		CUSTOM_ASSERT(false, "failed to share context");
 	}
 }
 
-static void create_context(HDC hdc, HGLRC share_hrc) {
-	int pixel_format = choose_pixel_format(hdc);
+static void create_context(HDC hdc, HGLRC share_hrc, Pixel_Format pf_hint) {
+	int pixel_format = choose_pixel_format(hdc, pf_hint);
 
 	PIXELFORMATDESCRIPTOR pfd;
 	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
@@ -470,7 +549,14 @@ static void platform_init(HDC hdc) {
 	load_opengl_functions();
 	load_extensions(hdc);
 
-	create_context(hdc, NULL);
+	Pixel_Format pf_hint = {};
+	pf_hint.redBits     =  8;
+    pf_hint.greenBits   =  8;
+    pf_hint.blueBits    =  8;
+    pf_hint.alphaBits   =  8;
+    pf_hint.depthBits   = 24;
+    pf_hint.stencilBits =  8;
+	create_context(hdc, NULL, pf_hint);
 
 	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
