@@ -3,7 +3,7 @@ enum struct Pointer_Mode {
 	Raw,
 	Direct
 };
-UNDERLYING_TYPE_META(Pointer_Mode, uint8)
+UNDERLYING_TYPE_META(Pointer_Mode, u8)
 IS_ENUM_META(Pointer_Mode)
 
 static Input_Pointer input_pointer;
@@ -13,7 +13,7 @@ static Pointer_Mode pointer_position_mode = Pointer_Mode::Raw;
 static Pointer_Mode pointer_keys_mode     = Pointer_Mode::Raw;
 
 inline void pointer_set_key(Pointer_Keys key, bool is_pressed) {
-	input_pointer.is_pressed[(int32)key] = is_pressed;
+	input_pointer.is_pressed[(s32)key] = is_pressed;
 }
 
 inline void pointer_reset_state() {
@@ -69,7 +69,7 @@ void update_current_pointer(POINT const & screen_position, POINT const & client_
 	);
 }
 
-void update_raw_delta_pointer(int48 x, int48 y) {
+void update_raw_delta_pointer(s48 x, s48 y) {
 	input_pointer.raw_delta = {
 		x - os_input_pointer_screen.x,
 		os_input_pointer_screen.y - y

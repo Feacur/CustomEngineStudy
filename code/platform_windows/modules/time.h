@@ -8,7 +8,7 @@ static LARGE_INTEGER clock_frame_start;
 
 void initialize_time() {
 	// if (timeGetDevCaps(&time_caps, sizeof(time_caps)) != MMSYSERR_NOERROR) {
-	// 	LOG_ERROR("Can't retrieve time caps");
+	// 	CUSTOM_ERROR("Can't retrieve time caps");
 	// }
 
 	QueryPerformanceFrequency(&ticks_per_second);
@@ -16,21 +16,21 @@ void initialize_time() {
 	clock_game_start = clock_frame_start = clock_game_start;
 }
 
-int64 get_clock_span_get_clock_spanseconds(LARGE_INTEGER start, LARGE_INTEGER end, int64 precision) {
+s64 get_clock_span_get_clock_spanseconds(LARGE_INTEGER start, LARGE_INTEGER end, s64 precision) {
 	return mul_div(end.QuadPart - start.QuadPart, precision, ticks_per_second.QuadPart);
 }
 
-int64 wait_for_next_frame(int64 target_delta, int64 precision) {
-	static int64 const target_precision = 1000;
+s64 wait_for_next_frame(s64 target_delta, s64 precision) {
+	static s64 const target_precision = 1000;
 	
 	// if (time_caps.wPeriodMin != 0) {
 	// 	if (timeBeginPeriod(time_caps.wPeriodMin) != TIMERR_NOERROR) {
-	// 		LOG_ERROR("Timer granularity wasn't set");
+	// 		CUSTOM_ERROR("Timer granularity wasn't set");
 	// 	}
 	// }
 
 	QueryPerformanceCounter(&clock_current);
-	int64 delta = get_clock_span_get_clock_spanseconds(clock_frame_start, clock_current, precision);
+	s64 delta = get_clock_span_get_clock_spanseconds(clock_frame_start, clock_current, precision);
 	
 	if (delta < target_delta) {
 		DWORD sleep_millis = (DWORD)mul_div(target_delta - delta, target_precision, precision);
@@ -43,7 +43,7 @@ int64 wait_for_next_frame(int64 target_delta, int64 precision) {
 	
 	// if (time_caps.wPeriodMin != 0) {
 	// 	if (timeEndPeriod(time_caps.wPeriodMin) != TIMERR_NOERROR) {
-	// 		LOG_ERROR("Timer granularity wasn't reset");
+	// 		CUSTOM_ERROR("Timer granularity wasn't reset");
 	// 	}
 	// }
 
@@ -51,7 +51,7 @@ int64 wait_for_next_frame(int64 target_delta, int64 precision) {
 	return delta;
 }
 
-uint64 get_timestamp() {
+u64 get_timestamp() {
 	FILETIME time;
 	GetSystemTimeAsFileTime(&time);
 

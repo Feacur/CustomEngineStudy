@@ -18,12 +18,12 @@ void draw_rectangle_over(RGBA_Data image, Vector2 position, Vector2 size, Vector
 	Rendering_Rect rect = create_rendering_rect(position, size);
 	rect = restrict_rendering_rect_to_image(rect, image.size);
 
-	uint32 out = vector4_to_color32(color, image.offsets);
+	u32 out = vector4_to_color32(color, image.offsets);
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
-		uint32 *destination_line = image.data + y * image.size.x;
-		for (int32 x = rect.left; x < rect.right; ++x) {
-			uint32 *destination_uint32 = destination_line + x;
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
+		u32 *destination_line = image.data + y * image.size.x;
+		for (s32 x = rect.left; x < rect.right; ++x) {
+			u32 *destination_uint32 = destination_line + x;
 			*destination_uint32 = out;
 		}
 	}
@@ -35,10 +35,10 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Vector4 col
 
 	Vector4 source = color;
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
-		uint32 *destination_line = image.data + y * image.size.x;
-		for (int32 x = rect.left; x < rect.right; ++x) {
-			uint32 *destination_uint32 = destination_line + x;
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
+		u32 *destination_line = image.data + y * image.size.x;
+		for (s32 x = rect.left; x < rect.right; ++x) {
+			u32 *destination_uint32 = destination_line + x;
 			Vector4 destination = color32_to_vector4(*destination_uint32, image.offsets);
 			
 			Vector4 blend = interpolate(destination, source, source.w);
@@ -55,16 +55,16 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex ori
 
 	Vector4 source = color;
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
-		float local_y = (float)y - position.y;
-		uint32 *destination_line = image.data + y * image.size.x;
-		for (int32 x = rect.left; x < rect.right; ++x) {
-			float local_x = (float)x - position.x;
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
+		r32 local_y = (r32)y - position.y;
+		u32 *destination_line = image.data + y * image.size.x;
+		for (s32 x = rect.left; x < rect.right; ++x) {
+			r32 local_x = (r32)x - position.x;
 			
 			MAKE_UV
 			
 			if (inside) {
-				uint32 *destination_uint32 = destination_line + x;
+				u32 *destination_uint32 = destination_line + x;
 				Vector4 destination = color32_to_vector4(*destination_uint32, image.offsets);
 				
 				Vector4 blend = interpolate(destination, source, source.w);
@@ -80,25 +80,25 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex ori
 	
 	CONSTANTS_AXES
 	
-	float texture_uv_width  = (float)(texture.size.x - 1);
-	float texture_uv_height = (float)(texture.size.y - 1);
+	r32 texture_uv_width  = (r32)(texture.size.x - 1);
+	r32 texture_uv_height = (r32)(texture.size.y - 1);
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
-		float local_y = (float)y - position.y;
-		uint32 *destination_line = image.data + y * image.size.x;
-		for (int32 x = rect.left; x < rect.right; ++x) {
-			float local_x = (float)x - position.x;
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
+		r32 local_y = (r32)y - position.y;
+		u32 *destination_line = image.data + y * image.size.x;
+		for (s32 x = rect.left; x < rect.right; ++x) {
+			r32 local_x = (r32)x - position.x;
 			
 			MAKE_UV
 			
 			if (inside) {
-				int32 texture_x  = (int32)(texture_uv_width * UV.x);
-				int32 texture_y  = (int32)(texture_uv_height * UV.y);
+				s32 texture_x  = (s32)(texture_uv_width * UV.x);
+				s32 texture_y  = (s32)(texture_uv_height * UV.y);
 				
-				uint32 *source_uint32 = texture.data + texture_y * texture.size.x + texture_x;
+				u32 *source_uint32 = texture.data + texture_y * texture.size.x + texture_x;
 				Vector4 source = color32_to_vector4(*source_uint32, texture.offsets);
 				
-				uint32 *destination_uint32 = destination_line + x;
+				u32 *destination_uint32 = destination_line + x;
 				Vector4 destination = color32_to_vector4(*destination_uint32, image.offsets);
 				
 				Vector4 blend = interpolate(destination, source, source.w);

@@ -1,5 +1,8 @@
 #define FEATURE_OPENGL
 
+// @Tode: use dll instead; that's why the lib is hardcoded here
+#pragma comment(lib, "opengl32")
+
 #include <gl/GL.h>
 
 static GLuint texture_handle;
@@ -11,7 +14,7 @@ void verify_opengl_pixel_format(HDC device_context) {
 	int active_format = GetPixelFormat(device_context);
 	if (!active_format) {
 		log_last_error();
-		ASSERT_TRUE(false, "No active pixel format");
+		CUSTOM_ASSERT(false, "No active pixel format");
 		return;
 	}
 
@@ -19,12 +22,12 @@ void verify_opengl_pixel_format(HDC device_context) {
 	int maximum_format = DescribePixelFormat(device_context, active_format, sizeof(pfd), &pfd);
 	if (!maximum_format) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't describe pixel format");
+		CUSTOM_ASSERT(false, "Can't describe pixel format");
 		return;
 	}
 
 	if (!BITS_ARE_SET(pfd.dwFlags, PFD_SUPPORT_OPENGL)) {
-		ASSERT_TRUE(false, "Pixel format doesn't support OpenGL");
+		CUSTOM_ASSERT(false, "Pixel format doesn't support OpenGL");
 		return;
 	}
 }
@@ -42,13 +45,13 @@ void init_opengl(HDC device_context) {
 	int format = ChoosePixelFormat(device_context, &pfd);
 	if (!format) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't choose pixel format");
+		CUSTOM_ASSERT(false, "Can't choose pixel format");
 		return;
 	}
 	
 	if (!SetPixelFormat(device_context, format, &pfd)) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't set pixel format");
+		CUSTOM_ASSERT(false, "Can't set pixel format");
 		return;
 	}
 
@@ -57,19 +60,17 @@ void init_opengl(HDC device_context) {
 	HGLRC rendering_context = wglCreateContext(device_context);
 	if (!rendering_context) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't create rendering context");
+		CUSTOM_ASSERT(false, "Can't create rendering context");
 		return;
 	}
 
 	if (!wglMakeCurrent(device_context, rendering_context)) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't select rendering context");
+		CUSTOM_ASSERT(false, "Can't select rendering context");
 		return;
 	}
 
-	LOG_TRACE((cstring)glGetString(GL_VENDOR));
-	LOG_TRACE((cstring)glGetString(GL_RENDERER));
-	LOG_TRACE((cstring)glGetString(GL_VERSION));
+	CUSTOM_INFO("vendor '%s'; renderer '%s'; version '%s'", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
 	wglSwapIntervalEXT = (wglSwapIntervalEXT_func *)wglGetProcAddress("wglSwapIntervalEXT");
 	if (wglSwapIntervalEXT) {
@@ -100,8 +101,8 @@ void display_render_buffer_opengl(HDC device_context) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	Vector2 opengl_size = {
-		(float)render_buffer.destination_size.x / window_size.x,
-		(float)render_buffer.destination_size.y / window_size.y
+		(r32)render_buffer.destination_size.x / window_size.x,
+		(r32)render_buffer.destination_size.y / window_size.y
 	};
 	glBegin(GL_TRIANGLES);
 	glTexCoord2f(0, 0); glVertex2f(-opengl_size.x, -opengl_size.y);

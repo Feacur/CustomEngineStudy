@@ -16,7 +16,7 @@
 // https://youtu.be/9bbhJi0NBkk
 // https://youtu.be/w5kFmdkrIuY
 
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto game_data = get_game_data();
@@ -29,61 +29,61 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::Fractional;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	clear_buffer(globals::render_buffer, {0, 0, 0, 0});
 
 	auto game_data = get_game_data();
 	
-	int32 MAP_WIDTH  = game_data->map_dimensions.x;
-	int32 MAP_HEIGHT = game_data->map_dimensions.y;
+	s32 MAP_WIDTH  = game_data->map_dimensions.x;
+	s32 MAP_HEIGHT = game_data->map_dimensions.y;
 
-	int32 scale = max(min(globals::render_buffer.size / (game_data->map_dimensions * TILE_SIZE)), 1);
+	s32 scale = max(min(globals::render_buffer.size / (game_data->map_dimensions * TILE_SIZE)), 1);
 	Vector2i TILE_SIZE_S      = TILE_SIZE      * scale;
 	Vector2i DOT_SIZE_S       = DOT_SIZE       * scale;
 	Vector2i ENERGY_SIZE_S    = ENERGY_SIZE    * scale;
 	Vector2i CHARACTER_SIZE_S = CHARACTER_SIZE * scale;
 
 	// draw map
-	Vector2 tile_size = {(float)TILE_SIZE_S.x, (float)TILE_SIZE_S.y};
-	Vector2 dot_size = {(float)DOT_SIZE_S.x, (float)DOT_SIZE_S.y};
+	Vector2 tile_size = {(r32)TILE_SIZE_S.x, (r32)TILE_SIZE_S.y};
+	Vector2 dot_size = {(r32)DOT_SIZE_S.x, (r32)DOT_SIZE_S.y};
 	Vector2i dot_offset = (TILE_SIZE_S - DOT_SIZE_S) / 2;
-	Vector2 energy_size = {(float)ENERGY_SIZE_S.x, (float)ENERGY_SIZE_S.y};
+	Vector2 energy_size = {(r32)ENERGY_SIZE_S.x, (r32)ENERGY_SIZE_S.y};
 	Vector2i energy_offset = (TILE_SIZE_S - ENERGY_SIZE_S) / 2;
-	for (int32 y = 0; y < MAP_HEIGHT; ++y) {
-		for (int32 x = 0; x < MAP_WIDTH; ++x) {
+	for (s32 y = 0; y < MAP_HEIGHT; ++y) {
+		for (s32 x = 0; x < MAP_WIDTH; ++x) {
 			Vector2i base_xy = vec2i(x, y) * TILE_SIZE_S;
 
 			Tile tile_type = map::get_tile(game_data, y * MAP_WIDTH + x);
 			Vector4 tile_color = TILE_COLORS[tile_type];
 			if (tile_color.w != 0.0f) {
 				Vector2i xy = base_xy;
-				Vector2 position = {(float)xy.x, (float)xy.y};
+				Vector2 position = {(r32)xy.x, (r32)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, tile_size, tile_color);
 			}
 
 			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Dot)) {
 				Vector2i xy = base_xy + dot_offset;
-				Vector2 position = {(float)xy.x, (float)xy.y};
+				Vector2 position = {(r32)xy.x, (r32)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, dot_size, DOT_COLOR);
 			}
 
 			if (bits_are_set(TILE_FLAGS[tile_type], Tile_Type::Energy)) {
 				Vector2i xy = base_xy + energy_offset;
-				Vector2 position = {(float)xy.x, (float)xy.y};
+				Vector2 position = {(r32)xy.x, (r32)xy.y};
 				draw_rectangle_over(globals::render_buffer, position, energy_size, ENERGY_COLOR);
 			}
 		}
 	}
 	
 	// draw characters
-	Vector2 character_size = {(float)CHARACTER_SIZE_S.x, (float)CHARACTER_SIZE_S.y};
+	Vector2 character_size = {(r32)CHARACTER_SIZE_S.x, (r32)CHARACTER_SIZE_S.y};
 	Vector2i character_offset = (TILE_SIZE_S - CHARACTER_SIZE_S) / 2;
-	for (uint8 i = 0; i < game_data->characters.length; ++i) {
+	for (u8 i = 0; i < game_data->characters.length; ++i) {
 		if (!CHARACTER_TYPES[i]) { continue; }
 
 		Character character = game_data->characters[i];
 		Timer timer = game_data->characters_timers[i];
-		uint8 type = CHARACTER_TYPES[i];
+		u8 type = CHARACTER_TYPES[i];
 
 		Vector2i xy = character.position * TILE_SIZE_S + character_offset;
 		Vector2i next_position = utils::wrap_position(character.position + character.direction, game_data->map_dimensions);
@@ -92,7 +92,7 @@ API_C API_DLL GAME_RENDER(game_render) {
 			xy += move_offset * timer.elapsed / timer.period;
 		}
 
-		Vector2 position = {(float)xy.x, (float)xy.y};
+		Vector2 position = {(r32)xy.x, (r32)xy.y};
 		Vector4 character_color = CHARACTER_COLORS[i];
 		if ((game_data->mode == Mode::Fright) && (CHARACTER_TEAM[i] == 1)) {
 			character_color = FRIGHTENED_COLOR;
@@ -108,6 +108,6 @@ API_C API_DLL GAME_RENDER(game_render) {
 	}
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // 	auto game_data = get_game_data();
 // }

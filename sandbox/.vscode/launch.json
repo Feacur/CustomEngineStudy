@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Debug",
+            "request": "launch",
+            "program": "${workspaceFolderBasename}.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/../bin/Debug-windows-x86_64/${workspaceFolderBasename}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "type": "cppvsdbg",
+        },
+        {
+            "name": "Launch Development",
+            "request": "launch",
+            "program": "${workspaceFolderBasename}.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/../bin/Development-windows-x86_64/${workspaceFolderBasename}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "type": "cppvsdbg",
+        },
+        {
+            "name": "Launch Shipping",
+            "request": "launch",
+            "program": "${workspaceFolderBasename}.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/../bin/Shipping-windows-x86_64/${workspaceFolderBasename}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "type": "cppvsdbg",
+        }
+    ]
+}

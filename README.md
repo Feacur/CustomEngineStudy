@@ -4,7 +4,7 @@ Study on C/C++, custom engines, games and stuff
 # How to work with this stuff
 ### __See sub-projects inside folder__
 ```
-> __ workspace __
+> __ workspace_v1 __
 VSCode workspace, because it doesn't support nested projects
 ```
 
@@ -41,6 +41,22 @@ Standalone console application test bed, C
 test ............ testing C code
 ```
 
+### __See sub-projects inside folder__
+```
+> __ workspace_v2 __
+VSCode workspace, because it doesn't support nested projects
+```
+
+```
+> engine
+Engine project
+```
+
+```
+> sandbox
+Executable test project
+```
+
 ### __Project setup and build__
 Initial  
 * Call git submodule update --init --recursive
@@ -68,7 +84,8 @@ VSCode
 * See "**/.vscode/launch.json" for run and debug commands
 
 Premake  
-* Call GenerateProjects.bat
+* Call GenerateProjects_v1.bat
+* Call GenerateProjects_v2.bat
 * Use your IDE of preference
 
 > Target output into "/bin" folder  

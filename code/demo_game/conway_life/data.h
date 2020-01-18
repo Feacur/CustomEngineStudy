@@ -1,31 +1,31 @@
-static uint8 const checksum[8] = {'g', 'a', 'm', 'e', 'l', 'i', 'f', 'e'};
+static u8 const checksum[8] = {'g', 'a', 'm', 'e', 'l', 'i', 'f', 'e'};
 
 //
 // data layout
 //
 
-using Field_Cell = uint8;
+using Field_Cell = u8;
 struct Game_Data {
-	uint8                     checksum[8];
-	uint32                    random_state;
+	u8                     checksum[8];
+	u32                    random_state;
 	// actual data
 	Array_Dynamic<Field_Cell> field;
 	Vector2i                  field_dimensions;
 	// controls
 	bool                      is_active;
-	int32                     step_time;
+	s32                     step_time;
 };
 
 struct Field_Prefab {
 	Array_Dynamic<Field_Cell> tiles;
-	int32 width;
+	s32 width;
 };
 
 //
 // game settings
 //
 
-static int32 const TIME_STEP = 100 * 1000;
+static s32 const TIME_STEP = 100 * 1000;
 
 //
 // rendering settings

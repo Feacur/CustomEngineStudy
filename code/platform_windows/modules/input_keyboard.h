@@ -2,7 +2,7 @@ enum struct Keyboard_Mode {
 	Message,
 	Raw,
 };
-UNDERLYING_TYPE_META(Keyboard_Mode, uint8)
+UNDERLYING_TYPE_META(Keyboard_Mode, u8)
 IS_ENUM_META(Keyboard_Mode)
 
 static Input_Keyboard input_keyboard;
@@ -20,8 +20,8 @@ bool keyboard_test_range(
 	if (virtual_key_code < min_code) { return false; }
 	if (virtual_key_code > max_code) { return false; }
 
-	auto offset = (int32)(virtual_key_code - min_code);
-	int32 index = (int32)base + offset;
+	auto offset = (s32)(virtual_key_code - min_code);
+	s32 index = (s32)base + offset;
 	input_keyboard.is_pressed[index] = is_pressed;
 	return true;
 }
@@ -35,7 +35,7 @@ bool keyboard_test_value(
 	WPARAM expected_code
 ) {
 	if (virtual_key_code != expected_code) { return false; }
-	input_keyboard.is_pressed[(int32)key] = is_pressed;
+	input_keyboard.is_pressed[(s32)key] = is_pressed;
 	return true;
 }
 

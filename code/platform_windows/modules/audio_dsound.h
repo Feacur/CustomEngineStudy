@@ -8,8 +8,8 @@
 
 struct Sound_Buffer {
 	Sound_Data sound;
-	int32      bytes_per_sample;
-	float      buffer_length_in_seconds;
+	s32      bytes_per_sample;
+	r32      buffer_length_in_seconds;
 	DWORD      running_sample_byte;
 	LPDIRECTSOUNDBUFFER secondary_buffer;
 };
@@ -21,20 +21,20 @@ typedef DIRECT_SOUND_CREATE(direct_sound_create_type);
 
 void setup_sound_buffer(HWND window) {
 	HMODULE library = LoadLibrary("dsound.dll");
-	ASSERT_TRUE(library, "Can't load \"dsound.dll\"");
+	CUSTOM_ASSERT(library, "Can't load \"dsound.dll\"");
 	
 	auto DirectSoundCreate = (direct_sound_create_type *)(
 		GetProcAddress(library, "DirectSoundCreate")
 	);
-	ASSERT_TRUE(library, "Can't load DirectSoundCreate");
+	CUSTOM_ASSERT(library, "Can't load DirectSoundCreate");
 	
 	// initialize direct sound
 	LPDIRECTSOUND direct_sound;
 	HRESULT result_DirectSoundCreate = DirectSoundCreate(0, &direct_sound, 0);
-	ASSERT_TRUE(result_DirectSoundCreate == DS_OK, "Can't create direct sound");
+	CUSTOM_ASSERT(result_DirectSoundCreate == DS_OK, "Can't create direct sound");
 	
 	HRESULT result_SetCooperativeLevel = direct_sound->SetCooperativeLevel(window, DSSCL_PRIORITY);
-	ASSERT_TRUE(result_SetCooperativeLevel == DS_OK, "Can't set cooperative level");
+	CUSTOM_ASSERT(result_SetCooperativeLevel == DS_OK, "Can't set cooperative level");
 	
 	// primary buffer
 	DSBUFFERDESC primary_buffer_description = {};
@@ -43,7 +43,7 @@ void setup_sound_buffer(HWND window) {
 	
 	LPDIRECTSOUNDBUFFER primary_buffer;
 	HRESULT result_primary_CreateSoundBuffer = direct_sound->CreateSoundBuffer(&primary_buffer_description, &primary_buffer, 0);
-	ASSERT_TRUE(result_primary_CreateSoundBuffer == DS_OK, "Can't create primary sound buffer");
+	CUSTOM_ASSERT(result_primary_CreateSoundBuffer == DS_OK, "Can't create primary sound buffer");
 	
 	// primary buffer: wave format
 	WAVEFORMATEX wave_format = {};
@@ -56,7 +56,7 @@ void setup_sound_buffer(HWND window) {
 	wave_format.cbSize = 0;
 	
 	HRESULT result_SetFormat = primary_buffer->SetFormat(&wave_format);
-	ASSERT_TRUE(result_SetFormat == DS_OK, "Can't set primary buffer wave format");
+	CUSTOM_ASSERT(result_SetFormat == DS_OK, "Can't set primary buffer wave format");
 	
 	// secondary buffer
 	DSBUFFERDESC secondary_buffer_description = {};
@@ -66,12 +66,12 @@ void setup_sound_buffer(HWND window) {
 	secondary_buffer_description.lpwfxFormat = &wave_format;
 
 	HRESULT result_secondary_CreateSoundBuffer = direct_sound->CreateSoundBuffer(&secondary_buffer_description, &sound_buffer.secondary_buffer, 0);
-	ASSERT_TRUE(result_secondary_CreateSoundBuffer == DS_OK, "Can't create secondary sound buffer");
+	CUSTOM_ASSERT(result_secondary_CreateSoundBuffer == DS_OK, "Can't create secondary sound buffer");
 	
 	// allocate memory
 	sound_buffer.sound.size = secondary_buffer_description.dwBufferBytes;
-	sound_buffer.sound.data = (int16 *)allocate_memory(secondary_buffer_description.dwBufferBytes);
-	ASSERT_TRUE(sound_buffer.sound.data, "Can't allocate sound buffer memory");
+	sound_buffer.sound.data = (s16 *)allocate_memory(secondary_buffer_description.dwBufferBytes);
+	CUSTOM_ASSERT(sound_buffer.sound.data, "Can't allocate sound buffer memory");
 }
 
 void clear_sound_buffer() {
@@ -84,7 +84,7 @@ void clear_sound_buffer() {
 		&region2, &region2_size,
 		DSBLOCK_ENTIREBUFFER
 	);
-	ASSERT_TRUE(result_Lock == DS_OK, "Can't lock sound buffer");
+	CUSTOM_ASSERT(result_Lock == DS_OK, "Can't lock sound buffer");
 
 	// fill buffer's regions
 	memset(region1, 0, region1_size);
@@ -95,7 +95,7 @@ void clear_sound_buffer() {
 		region1, region1_size,
 		region2, region2_size
 	);
-	ASSERT_TRUE(result_Unlock == DS_OK, "Can't unlock sound buffer");
+	CUSTOM_ASSERT(result_Unlock == DS_OK, "Can't unlock sound buffer");
 }
 
 void reinit_sound_buffer(HWND window) {
@@ -104,7 +104,7 @@ void reinit_sound_buffer(HWND window) {
 	}
 
 	sound_buffer.sound.channels = 2;
-	sound_buffer.bytes_per_sample = sizeof(int16);
+	sound_buffer.bytes_per_sample = sizeof(s16);
 	sound_buffer.sound.samples_per_second = 48000;
 	sound_buffer.buffer_length_in_seconds = 1;
 	
@@ -113,42 +113,42 @@ void reinit_sound_buffer(HWND window) {
 
 	// reset play cursor
 	HRESULT result_SetCurrentPosition = sound_buffer.secondary_buffer->SetCurrentPosition(0);
-	ASSERT_TRUE(result_SetCurrentPosition == DS_OK, "Can't set current position in the sound buffer");
+	CUSTOM_ASSERT(result_SetCurrentPosition == DS_OK, "Can't set current position in the sound buffer");
 
 	// reset running sample
 	DWORD play_cursor;
 	DWORD write_cursor;
 	HRESULT result_GetCurrentPosition = sound_buffer.secondary_buffer->GetCurrentPosition(&play_cursor, &write_cursor);
-	ASSERT_TRUE(result_GetCurrentPosition == DS_OK, "Can't get current position in the sound buffer");
+	CUSTOM_ASSERT(result_GetCurrentPosition == DS_OK, "Can't get current position in the sound buffer");
 
 	sound_buffer.running_sample_byte = write_cursor;
 
-	LOG_TRACE("Initialized direct sound");
+	CUSTOM_TRACE("Initialized direct sound");
 }
 
 void play_sound_buffer() {
 	DWORD status;
 	HRESULT result_GetStatus = sound_buffer.secondary_buffer->GetStatus(&status);
-	ASSERT_TRUE(result_GetStatus == DS_OK, "Can't get status of direct sound buffer");
+	CUSTOM_ASSERT(result_GetStatus == DS_OK, "Can't get status of direct sound buffer");
 	
 	bool isPlaying = BITS_ARE_SET(status, DSBSTATUS_PLAYING);
 
 	if (!isPlaying) {
 		HRESULT result_Play = sound_buffer.secondary_buffer->Play(0, 0, DSBPLAY_LOOPING);
-		ASSERT_TRUE(result_Play == DS_OK, "Can't play direct sound buffer");
+		CUSTOM_ASSERT(result_Play == DS_OK, "Can't play direct sound buffer");
 		
-		LOG_TRACE("Playing direct sound buffer");
+		CUSTOM_TRACE("Playing direct sound buffer");
 	}
 	// else if (isPlaying) {
 	// 	HRESULT result_Play = sound_buffer.secondary_buffer->Stop();
-	// 	ASSERT_TRUE(result_Play == DS_OK, "Can't stop direct sound buffer");
+	// 	CUSTOM_ASSERT(result_Play == DS_OK, "Can't stop direct sound buffer");
 	// }
 }
 
 void fill_sound_buffer(DWORD bytes_to_write) {
-	int32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
-	int32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
-	int32 bytes_for_buffer  = (int32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
+	s32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
+	s32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
+	s32 bytes_for_buffer  = (s32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
 
 	// lock buffer's regions
 	VOID *region1, *region2;
@@ -159,11 +159,11 @@ void fill_sound_buffer(DWORD bytes_to_write) {
 		&region2, &region2_size,
 		0 // DSBLOCK_FROMWRITECURSOR
 	);
-	ASSERT_TRUE(result_Lock == DS_OK, "Can't lock sound buffer");
+	CUSTOM_ASSERT(result_Lock == DS_OK, "Can't lock sound buffer");
 
 	// fill buffer's regions
-	int8 *region1_in = (int8 *)sound_buffer.sound.data;
-	int8 *region2_in = region1_in + region1_size;
+	s8 *region1_in = (s8 *)sound_buffer.sound.data;
+	s8 *region2_in = region1_in + region1_size;
 	
 	memcpy(region1, region1_in, region1_size);		
 	memcpy(region2, region2_in, region2_size);
@@ -178,5 +178,5 @@ void fill_sound_buffer(DWORD bytes_to_write) {
 		region1, region1_size,
 		region2, region2_size
 	);
-	ASSERT_TRUE(result_Unlock == DS_OK, "Can't unlock sound buffer");
+	CUSTOM_ASSERT(result_Unlock == DS_OK, "Can't unlock sound buffer");
 }

@@ -14,6 +14,6 @@ namespace game {
 	void init() {
 		auto game_data = allocate_game_memory();
 		memcpy(game_data->checksum, checksum, sizeof(checksum));
-		game_data->random_state = (uint32)globals::frame_timestamp;
+		game_data->random_state = (u32)globals::frame_timestamp;
 	}
 }

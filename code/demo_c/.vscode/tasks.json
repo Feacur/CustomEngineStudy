@@ -1,64 +1,61 @@
 {
     "version": "2.0.0",
-	"presentation": {
-		"reveal": "silent",
-		"panel": "shared",
-		"showReuseMessage": false,
-		"clear": true
-	},
+    "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+    },
     "tasks": [
         {
             "label": "Build Shipping",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.c",
+                "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Shipping",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Shipping",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Development",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.c",
+                "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Development",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Development",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
         {
             "label": "Build Debug",
             "group": "build",
-            "command": "${workspaceFolder}\\..\\..\\project_build.bat",
+            "command": "${workspaceFolder}/../../project_build.bat",
             "args": [
-                "${workspaceFolder}\\main.c",
+                "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64",
-                "Debug",
-                // defines
-                // libraries
+                "ConsoleApp", "x64", "Debug",
+                "", // defines
+                "", // libraries
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
             "options": {
-                "cwd": "..\\.."
+                "cwd": "../.."
             },
         },
     ]

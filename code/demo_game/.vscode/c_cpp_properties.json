@@ -7,11 +7,12 @@
             "cppStandard": "${default}",
             "compilerPath": "${default}",
             "intelliSenseMode": "${default}",
-            
+
             "includePath": ["${default}"],
             "defines": [
                 "${default}",
-                "BUILD_DLL"
+                "CUSTOM_SYMBOLS_SHARE",
+                "CUSTOM_SHARED_LIBRARY"
             ]
         }
     ],

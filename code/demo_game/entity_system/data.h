@@ -1,4 +1,4 @@
-static uint8 const checksum[8] = {'e', 'n', 't', 'i', 't', 'y', 's', 'y'};
+static u8 const checksum[8] = {'e', 'n', 't', 'i', 't', 'y', 's', 'y'};
 
 //
 // data layout
@@ -7,14 +7,14 @@ static uint8 const checksum[8] = {'e', 'n', 't', 'i', 't', 'y', 's', 'y'};
 // typedef size_t Entity;
 using Entity = size_t;
 
-enum struct Component_Type : uint8 {
+enum struct Component_Type : u8 {
 	None         = 0,
-	Position     = BIT(uint8, 0),
-	Rotation     = BIT(uint8, 1),
-	Velocity     = BIT(uint8, 2),
-	Sprite       = BIT(uint8, 3),
+	Position     = BIT(u8, 0),
+	Rotation     = BIT(u8, 1),
+	Velocity     = BIT(u8, 2),
+	Sprite       = BIT(u8, 3),
 };
-UNDERLYING_TYPE_META(Component_Type, uint8)
+UNDERLYING_TYPE_META(Component_Type, u8)
 IS_ENUM_META(Component_Type)
 ENUM_FLAG_OPERATORS_IMPL(Component_Type)
 
@@ -58,8 +58,8 @@ struct Renderable {
 };
 
 struct Game_Data {
-	uint8        checksum[8];
-	uint32       random_state;
+	u8        checksum[8];
+	u32       random_state;
 	// all entities data
 	Entity_SoA   entities;
 	Aabb2        world_bounds;

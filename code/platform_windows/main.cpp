@@ -20,10 +20,10 @@ static Platform_Data platform_data;
 
 extern "C" { // @Note: use discrete GPU by default
 	// http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-	API_DLL_EXPORT DWORD NvOptimusEnablement = 1;
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001UL;
 	// https://community.amd.com/thread/223376
 	// https://gpuopen.com/amdpowerxpressrequesthighperformance/
-	API_DLL_EXPORT DWORD AmdPowerXpressRequestHighPerformance = 1;
+	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001UL;
 }
 
 //
@@ -42,12 +42,15 @@ void             process_raw_input(HWND window, LPARAM lParam);
 // Entry point
 //
 
-#if defined(WIN_MAIN)
-int CALLBACK WinMain(
-	HINSTANCE hInstance,     // Application instance handler.
-	HINSTANCE hPrevInstance, // Application previous instance handler. Always 0.
-	LPSTR     lpCmdLine,     // The command line arguments without program name.
-	int       nCmdShow       // Window visibility options.
+// https://docs.microsoft.com/ru-ru/windows/win32/desktop-programming
+// https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain
+// https://docs.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
+
+int WINAPI WinMain(
+	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
+	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
+	PSTR      pCmdLine,      // contains the command-line arguments as an ANSI string.
+	int       nCmdShow       // is a flag that says whether the main application window will be minimized, maximized, or shown normally.
 ) {
 	win_main_show_console();
 	
@@ -56,7 +59,21 @@ int CALLBACK WinMain(
 
 	return platform_windows_main(hInstance, exe_path);
 }
-#else
+
+// int WINAPI wWinMain(
+// 	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
+// 	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
+// 	PWSTR     pCmdLine,      // contains the command-line arguments as a Unicode string.
+// 	int       nCmdShow       // is a flag that says whether the main application window will be minimized, maximized, or shown normally.
+// ) {
+// 	win_main_show_console();
+// 	
+// 	char exe_path[MAX_PATH];
+// 	GetModuleFileName(NULL, exe_path, MAX_PATH);
+// 
+// 	return platform_windows_main(hInstance, exe_path);
+// }
+
 int main(int argc, char * argv[]) {
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
@@ -65,7 +82,21 @@ int main(int argc, char * argv[]) {
 	
 	return platform_windows_main(hInstance, argv[0]);
 }
-#endif
+
+// int wmain(int argc, wchar_t * argv[]) {
+// 	HINSTANCE hInstance = GetModuleHandle(NULL);
+// 
+// 	// ShowWindow(GetConsoleWindow(), SW_HIDE);
+// 	// ShowWindow(GetConsoleWindow(), SW_SHOW);
+// 	
+// 	return platform_windows_main(hInstance, argv[0]);
+// }
+
+// BOOL WINAPI DllMain(
+// 	_In_ HINSTANCE hinstDLL, // A handle to the DLL module. The value is the base address of the DLL. The HINSTANCE of a DLL is the same as the HMODULE of the DLL, so hinstDLL can be used in calls to functions that require a module handle.
+// 	_In_ DWORD     fdwReason, // The reason code that indicates why the DLL entry-point function is being called. This parameter can be one of the following values.
+// 	_In_ LPVOID    lpvReserved
+// );
 
 //
 // Routines
@@ -105,12 +136,12 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	window_class.hInstance     = hInstance;
 	window_class.hIcon         = 0;
 	window_class.hCursor       = LoadCursor(0, IDC_ARROW);
-	window_class.lpszClassName = "Platform window class";
+	window_class.lpszClassName = TEXT("Platform window class");
 
 	ATOM window_class_atom = RegisterClass(&window_class);
 	if (!window_class_atom) {
 		log_last_error();
-		ASSERT_TRUE(false, "Can't register the window class");
+		CUSTOM_ASSERT(false, "Can't register the window class");
 		return 0;
 	}
 	
@@ -120,7 +151,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	HWND window = CreateWindowEx(
 		0,
-		window_class.lpszClassName, "Platform",
+		window_class.lpszClassName, TEXT("Platform"),
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, 0,
@@ -129,7 +160,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	);
 	if (!window) {
 		log_last_error();
-		ASSERT_TRUE(window, "Can't create a window");
+		CUSTOM_ASSERT(window, "Can't create a window");
 		return 0;
 	}
 	
@@ -146,14 +177,14 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	//
 	
 	platform_data.permanent_memory.capacity = 100 * 1024 * 1024;
-	platform_data.permanent_memory.data = (uint8 *)allocate_memory(platform_data.permanent_memory.capacity);
-	ASSERT_TRUE(platform_data.permanent_memory.data, "Can't allocate permanent memory");
+	platform_data.permanent_memory.data = (u8 *)allocate_memory(platform_data.permanent_memory.capacity);
+	CUSTOM_ASSERT(platform_data.permanent_memory.data, "Can't allocate permanent memory");
 	
 	platform_data.transient_memory.capacity = 100 * 1024 * 1024;
-	platform_data.transient_memory.data = (uint8 *)allocate_memory(platform_data.transient_memory.capacity);
-	ASSERT_TRUE(platform_data.transient_memory.data, "Can't allocate transient memory");
+	platform_data.transient_memory.data = (u8 *)allocate_memory(platform_data.transient_memory.capacity);
+	CUSTOM_ASSERT(platform_data.transient_memory.data, "Can't allocate transient memory");
 	
-	LOG_TRACE("Allocated general memory");
+	CUSTOM_TRACE("Allocated general memory");
 	
 	//
 	// Initialize performance counters
@@ -161,7 +192,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	initialize_time();
 
-	int64 monitor_hz = (int64)GetDeviceCaps(device_context, VREFRESH);
+	s64 monitor_hz = (s64)GetDeviceCaps(device_context, VREFRESH);
 	if (monitor_hz <= 0) { monitor_hz = 60; }
 
 	platform_data.time.precision = 1000000000;
@@ -169,11 +200,11 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	
 	// GetSystemMetrics with SM_CXSCREEN and SM_CYSCREEN
 	monitor_size = {
-		(int32)GetDeviceCaps(device_context, HORZRES),
-		(int32)GetDeviceCaps(device_context, VERTRES)
+		(s32)GetDeviceCaps(device_context, HORZRES),
+		(s32)GetDeviceCaps(device_context, VERTRES)
 	};
 	
-	LOG_TRACE("Initialized performance counters");
+	CUSTOM_TRACE("Initialized performance counters");
 
 	//
 	// Initialize OpenGL
@@ -205,18 +236,26 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	pointer_keys_mode     = Pointer_Mode::Direct;
 	#endif
 	
-	LOG_TRACE("Started main cycle");
+	CUSTOM_TRACE("Started main cycle");
 
 	game_code = {};
 	platform_data.keep_alive = true;
 	platform_data.render_settings.size_mode = render_settings.size_mode;
 	platform_data.render_settings.stretch_mode = render_settings.stretch_mode;
 
+	static char header_text[128];
 	while(platform_data.keep_alive) {
 		// idle
 		platform_data.time.last_frame_duration = wait_for_next_frame(platform_data.time.target_frame_duration, platform_data.time.precision);
 		platform_data.time.since_start = get_clock_span_get_clock_spanseconds(clock_game_start, clock_current, platform_data.time.precision);
 		platform_data.time.frame_timestamp = get_timestamp();
+
+		#if !defined(CUSTOM_SHIPPING)
+		float debug_ms = platform_data.time.last_frame_duration * 1000LL / (float)platform_data.time.precision;
+		float debug_fps = platform_data.time.precision / (float)platform_data.time.last_frame_duration;
+		sprintf(header_text, "Platform - %.1f ms (%.1f FPS)", debug_ms, debug_fps);
+		SetWindowText(window, header_text);
+		#endif
 		
 		// init
 		if (render_settings.fullscreen != platform_data.render_settings.fullscreen) {
@@ -288,12 +327,12 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 		DWORD write_cursor;
 		HRESULT result_GetCurrentPosition = sound_buffer.secondary_buffer->GetCurrentPosition(&play_cursor, &write_cursor);
 		if (result_GetCurrentPosition == DS_OK) {
-			int32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
-			int32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
-			int32 bytes_for_buffer  = (int32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
+			s32 bytes_for_samples = sound_buffer.sound.channels * sound_buffer.bytes_per_sample;
+			s32 bytes_for_second  = bytes_for_samples * sound_buffer.sound.samples_per_second;
+			s32 bytes_for_buffer  = (s32)(bytes_for_second * sound_buffer.buffer_length_in_seconds);
 			
-			int64 time_ahead  = platform_data.time.target_frame_duration * 4;
-			int32 bytes_ahead = (int32)mul_div((int64)bytes_for_second, time_ahead, platform_data.time.precision);
+			s64 time_ahead  = platform_data.time.target_frame_duration * 4;
+			s32 bytes_ahead = (s32)mul_div((s64)bytes_for_second, time_ahead, platform_data.time.precision);
 			
 			DWORD end_at_byte    = (write_cursor + bytes_ahead) % bytes_for_buffer;
 			DWORD bytes_to_write = (
@@ -315,7 +354,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 
 	DestroyWindow(window);
 	
-	LOG_TRACE("Finished running");
+	CUSTOM_TRACE("Finished running");
 	return 0;
 }
 
@@ -386,14 +425,14 @@ LRESULT CALLBACK window_procedure(
 		
 		case WM_MOUSEWHEEL: {
 			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			input_pointer.wheel.y = (float)delta / WHEEL_DELTA;
+			input_pointer.wheel.y = (r32)delta / WHEEL_DELTA;
 			// If an application processes this message, it should return zero.
 			return 0;
 		} break;
 		
 		case WM_MOUSEHWHEEL: {
 			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			input_pointer.wheel.x = (float)delta / WHEEL_DELTA;
+			input_pointer.wheel.x = (r32)delta / WHEEL_DELTA;
 			// If an application processes this message, it should return zero.
 			return 0;
 		} break;
@@ -556,8 +595,8 @@ void convert_image() {
 	auto exposure = platform_data.render_buffer_image_f.exposure;
 	render_buffer.image_f.exposure = exposure;
 	if (exposure <= 0) { return; }
-	int32 pixels_count = render_buffer.image.size.x * render_buffer.image.size.y;
-	for (int32 i = 0; i < pixels_count; ++i) {
+	s32 pixels_count = render_buffer.image.size.x * render_buffer.image.size.y;
+	for (s32 i = 0; i < pixels_count; ++i) {
 		auto color = render_buffer.image_f.data[i] / exposure;
 		color = clamp(color, {0, 0, 0}, {1, 1, 1});
 		*(render_buffer.image.data + i) = vector4_to_color32(color, render_buffer.image.offsets);

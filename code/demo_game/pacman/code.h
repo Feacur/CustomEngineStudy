@@ -39,12 +39,12 @@ namespace utils {
 namespace utils {
 	struct Parsed_Map_Prefab {
 		struct Spawn_Tile {
-			uint8 team;
-			int32 tile_index;
+			u8 team;
+			s32 tile_index;
 		};
 		Array_Dynamic<Tile> tiles;
-		int32 width;
-		int32 dots_count;
+		s32 width;
+		s32 dots_count;
 		Array_Dynamic<Spawn_Tile> spawn_tiles;
 	};
 
@@ -53,7 +53,7 @@ namespace utils {
 		result.tiles.set_capacity(strlen(prefab), globals::allocate_transient);
 		result.spawn_tiles.set_capacity(SPAWN_POINTS_LIMIT, globals::allocate_transient);
 
-		int32 current_width = 0;
+		s32 current_width = 0;
 		while (char symbol = *(prefab++)) {
 			switch (symbol) {
 			case 'u': case '=': // none
@@ -67,8 +67,8 @@ namespace utils {
 			case '0': case '1': // floor with a spawn
 				result.tiles.add(1);
 				result.spawn_tiles.add({
-					(uint8)(symbol - '0'),
-					(int32)(result.tiles.length - 1)
+					(u8)(symbol - '0'),
+					(s32)(result.tiles.length - 1)
 				});
 				current_width += 1;
 				break;
@@ -100,7 +100,7 @@ namespace utils {
 				current_width += 1;
 				break;
 			case '\n':
-				ASSERT_TRUE(
+				CUSTOM_ASSERT(
 					current_width == 0 || result.width == 0 || result.width == current_width,
 					"Inconsistent map prefab width"
 				);
@@ -113,14 +113,14 @@ namespace utils {
 		return result;
 	}
 
-	void flip_y(Array_Dynamic<Tile> tiles, int32 width) {
+	void flip_y(Array_Dynamic<Tile> tiles, s32 width) {
 		Array_Dynamic<Tile> line = {};
 		line.set_capacity(width, globals::allocate_transient);
 		size_t line_bytes = width * sizeof(Tile);
 
-		int32 height = (int32)tiles.length / width;
-		int32 height_half = height / 2;
-		for (int32 y = 0; y < height_half; ++y) {
+		s32 height = (s32)tiles.length / width;
+		s32 height_half = height / 2;
+		for (s32 y = 0; y < height_half; ++y) {
 			Tile * a = tiles.data + y * width;
 			Tile * b = tiles.data + (height - y - 1) * width;
 
@@ -135,25 +135,25 @@ namespace utils {
 	struct Level_Compiled {
 		Modes const  * modes;
 		Speeds const * speeds;
-		uint8 fright_tile_steps;
-		uint8 fright_flashes;
-		uint8 fast_dots_left;
+		u8 fright_tile_steps;
+		u8 fright_flashes;
+		u8 fast_dots_left;
 	};
 
-	Level_Compiled get_level_settings(uint8 level) {
+	Level_Compiled get_level_settings(u8 level) {
 		Level_Compiled result;
 
-		for (uint8 i = 0; i < MODES_PRESETS_COUNT; ++i) {
+		for (u8 i = 0; i < MODES_PRESETS_COUNT; ++i) {
 			if (LEVELS_PRESETS.modes[i].level > level) { break; }
 			result.modes = &LEVELS_PRESETS.modes[i];
 		}
 
-		for (uint8 i = 0; i < SPEEDS_PRESETS_COUNT; ++i) {
+		for (u8 i = 0; i < SPEEDS_PRESETS_COUNT; ++i) {
 			if (LEVELS_PRESETS.speeds[i].level > level) { break; }
 			result.speeds = &LEVELS_PRESETS.speeds[i];
 		}
 
-		uint8 preset_index = min(level, LEVEL_PRESETS_COUNT);
+		u8 preset_index = min(level, LEVEL_PRESETS_COUNT);
 		result.fright_tile_steps = LEVELS_PRESETS.fright_tile_steps[preset_index];
 		result.fright_flashes    = LEVELS_PRESETS.fright_flashes[preset_index];
 		result.fast_dots_left    = LEVELS_PRESETS.fast_dots_left[preset_index];
@@ -192,9 +192,9 @@ namespace map {
 		return bits_are_set(TILE_FLAGS[tile], Tile_Type::NoTurn);
 	}
 
-	Vector2i get_spawn_point(Game_Data * game_data, uint8 character_index) {
-		uint8 team = CHARACTER_TEAM[character_index];
-		for (int32 i = 0; i < game_data->spawn_points.length; ++i) {
+	Vector2i get_spawn_point(Game_Data * game_data, u8 character_index) {
+		u8 team = CHARACTER_TEAM[character_index];
+		for (s32 i = 0; i < game_data->spawn_points.length; ++i) {
 			Spawn_Point spawn_point = game_data->spawn_points[i];
 			if (spawn_point.team != team) { continue; }
 			return spawn_point.position;
@@ -205,8 +205,8 @@ namespace map {
 
 namespace path_finding {
 	struct Walls {
-		uint8 data[4];
-		uint8 count;
+		u8 data[4];
+		u8 count;
 	};
 
 	Walls get_walls(Game_Data * game_data, Vector2i position) {
@@ -216,24 +216,24 @@ namespace path_finding {
 		Tile     tiles[4]   = {};
 		Walls    walls      = {};
 
-		for (uint8 i = 0; i < 4; ++i) {
+		for (u8 i = 0; i < 4; ++i) {
 			targets[i] = utils::wrap_position(position + utils::offsets[i], dimensions);
 		}
-		for (uint8 i = 0; i < 4; ++i) {
+		for (u8 i = 0; i < 4; ++i) {
 			tiles[i] = map::get_tile(game_data, targets[i]);
 		}
-		for (uint8 i = 0; i < 4; ++i) {
+		for (u8 i = 0; i < 4; ++i) {
 			Tile tile = tiles[i];
 			walls.data[i] = !bits_are_set(TILE_FLAGS[tile], Tile_Type::Floor);
 		}
-		for (uint8 i = 0; i < 4; ++i) {
+		for (u8 i = 0; i < 4; ++i) {
 			walls.count += walls.data[i];
 		}
 
 		return walls;
 	}
 	
-	constexpr inline int32 estimate_distance(Vector2i value) {
+	constexpr inline s32 estimate_distance(Vector2i value) {
 		// return abs(value.x) + abs(value.y);
 		return magnitude_squared(value);
 	}
@@ -242,30 +242,30 @@ namespace path_finding {
 namespace path_finding {
 	Array_Dynamic<Vector2i> get_path(Game_Data * game_data, Vector2i from, Vector2i to, Vector2i direction) {
 		Vector2i dimensions = game_data->map_dimensions;
-		int32 width = game_data->map_dimensions.x;
-		int32 height = game_data->map_dimensions.y;
+		s32 width = game_data->map_dimensions.x;
+		s32 height = game_data->map_dimensions.y;
 
-		int32 start = from.y * width + from.x;
-		int32 target = to.y * width + to.x;
+		s32 start = from.y * width + from.x;
+		s32 target = to.y * width + to.x;
 
 		// allocate memory
-		Array_Dynamic<int32> path_costs = {};
-		Array_Dynamic<int32> path_parents = {};
+		Array_Dynamic<s32> path_costs = {};
+		Array_Dynamic<s32> path_parents = {};
 		Array_Dynamic<Vector2i> path_positions = {};
 		path_costs.set_capacity(game_data->map.length, globals::allocate_transient);
 		path_parents.set_capacity(game_data->map.length, globals::allocate_transient);
 
-		Array_Dynamic<int32> nodes_frontier = {};
-		Array_Dynamic<int32> nodes_priorities = {};
+		Array_Dynamic<s32> nodes_frontier = {};
+		Array_Dynamic<s32> nodes_priorities = {};
 		nodes_frontier.set_capacity(game_data->map.length, globals::allocate_transient);
 		nodes_priorities.set_capacity(game_data->map.length, globals::allocate_transient);
 		
-		Array_Dynamic<int32> visited = {};
+		Array_Dynamic<s32> visited = {};
 		visited.set_capacity(game_data->map.length, globals::allocate_transient);
 		
 		// set initial
-		memset(path_costs.data, INT32_MAX, path_costs.capacity * sizeof(int32));
-		memset(path_parents.data, -1, path_parents.capacity * sizeof(int32));
+		memset(path_costs.data, INT32_MAX, path_costs.capacity * sizeof(s32));
+		memset(path_parents.data, -1, path_parents.capacity * sizeof(s32));
 		path_costs.length = path_costs.capacity;
 		path_parents.length = path_parents.capacity;
 
@@ -276,10 +276,10 @@ namespace path_finding {
 		while (nodes_frontier.length > 0) {
 			// select current
 			size_t node_index = get_index_minimum(nodes_priorities);
-			int32 current = nodes_frontier[node_index];
+			s32 current = nodes_frontier[node_index];
 			if (current == target) { break; }
 
-			int32 current_cost = path_costs[current];
+			s32 current_cost = path_costs[current];
 			Vector2i current_position = {current % width, current / width};
 
 			// mark current as visited
@@ -288,16 +288,16 @@ namespace path_finding {
 			visited.add(current);
 
 			// iterate possible paths
-			for (uint8 offset_index = 0; offset_index < 4; ++offset_index) {
+			for (u8 offset_index = 0; offset_index < 4; ++offset_index) {
 				Vector2i offset = utils::offsets[offset_index];
 				Vector2i next_position = utils::wrap_position(current_position + offset, dimensions);
-				int32 next_i = next_position.y * width + next_position.x;
+				s32 next_i = next_position.y * width + next_position.x;
 				if (!map::is_walkable(game_data, next_i)) { continue; }
 
-				int32 next_cost = current_cost + path_finding::estimate_distance(offset);
+				s32 next_cost = current_cost + path_finding::estimate_distance(offset);
 				if (contains(visited, next_i) && next_cost > path_costs[next_i]) { continue; }
 
-				int32 next_priority = next_cost + path_finding::estimate_distance(to - next_position);
+				s32 next_priority = next_cost + path_finding::estimate_distance(to - next_position);
 
 				path_costs[next_i] = next_cost;
 				path_parents[next_i] = current;
@@ -311,7 +311,7 @@ namespace path_finding {
 		Array_Dynamic<Vector2i> path = {};
 		path.set_capacity(visited.length, globals::allocate_transient);
 
-		int32 path_index = to.y * width + to.x;
+		s32 path_index = to.y * width + to.x;
 		while (path_parents[path_index] >= 0) {
 			path.add({path_index % width, path_index / width});
 			path_index = path_parents[path_index];
@@ -333,7 +333,7 @@ namespace path_finding {
 
 		// turn around at dead-ends
 		if (walls.count == 3) {
-			for (uint8 i = 0; i < 4; ++i) {
+			for (u8 i = 0; i < 4; ++i) {
 				if (walls.data[i]) { continue; }
 				return utils::offsets[i];
 			}
@@ -342,7 +342,7 @@ namespace path_finding {
 		// move down the corridor
 		bool is_no_turn = map::is_no_turn(game_data, from);
 		if (walls.count == 2 || is_no_turn) {
-			for (uint8 i = 0; i < 4; ++i) {
+			for (u8 i = 0; i < 4; ++i) {
 				if (walls.data[i]) { continue; }
 				if (direction == -utils::offsets[i]) { continue; }
 				return utils::offsets[i];
@@ -351,8 +351,8 @@ namespace path_finding {
 
 		// do not bash into the walls
 		Vector2i distance_vector = to - from;
-		int32 priority = path_finding::estimate_distance(distance_vector - direction);
-		for (uint8 i = 0; i < 4; ++i) {
+		s32 priority = path_finding::estimate_distance(distance_vector - direction);
+		for (u8 i = 0; i < 4; ++i) {
 			if (direction != utils::offsets[i]) { continue; }
 			if (walls.data[i]) { priority = INT32_MAX; }
 			break;
@@ -360,11 +360,11 @@ namespace path_finding {
 
 		// evaluate the best direction
 		Vector2i new_direction = direction;
-		for (uint8 i = 0; i < 4; ++i) {
+		for (u8 i = 0; i < 4; ++i) {
 			if (walls.data[i]) { continue; }
 			if (direction == -utils::offsets[i]) { continue; }
 
-			int32 priority_b = path_finding::estimate_distance(distance_vector - utils::offsets[i]);
+			s32 priority_b = path_finding::estimate_distance(distance_vector - utils::offsets[i]);
 			if (priority > priority_b) {
 				priority = priority_b;
 				new_direction = utils::offsets[i];
@@ -385,7 +385,7 @@ namespace path_finding {
 
 		// turn around at dead-ends
 		if (walls.count == 3) {
-			for (uint8 i = 0; i < 4; ++i) {
+			for (u8 i = 0; i < 4; ++i) {
 				if (walls.data[i]) { continue; }
 				return utils::offsets[i];
 			}
@@ -393,7 +393,7 @@ namespace path_finding {
 		
 		// move down the corridor
 		if (walls.count == 2) {
-			for (uint8 i = 0; i < 4; ++i) {
+			for (u8 i = 0; i < 4; ++i) {
 				if (walls.data[i]) { continue; }
 				if (direction == -utils::offsets[i]) { continue; }
 				return utils::offsets[i];
@@ -401,9 +401,9 @@ namespace path_finding {
 		}
 
 		// select random direction
-		uint8 index_offset = random_in_range(&game_data->random_state, (uint8)0, (uint8)4);
-		for (uint8 i = 0; i < 4; ++i) {
-			uint8 offset_i = (i + index_offset) % 4;
+		u8 index_offset = random_in_range(&game_data->random_state, (u8)0, (u8)4);
+		for (u8 i = 0; i < 4; ++i) {
+			u8 offset_i = (i + index_offset) % 4;
 			if (walls.data[offset_i]) { continue; }
 			return utils::offsets[offset_i];
 		}
@@ -419,12 +419,12 @@ namespace character {
 		// game_data->characters_reverse.add();
 	}
 
-	void reverse(Game_Data * game_data, uint8 i) {
+	void reverse(Game_Data * game_data, u8 i) {
 		Character * character = &game_data->characters[i];
 		Timer * timer = &game_data->characters_timers[i];
 
 		Vector2i next_position = utils::wrap_position(character->position + character->direction, game_data->map_dimensions);
-		int32 next_i = next_position.y * game_data->map_dimensions.x + next_position.x;
+		s32 next_i = next_position.y * game_data->map_dimensions.x + next_position.x;
 		if (map::is_walkable(game_data, next_i)) {
 			character->position = next_position;
 			timer->elapsed = timer->period - timer->elapsed;
@@ -436,7 +436,7 @@ namespace character {
 		character->direction = -character->direction;
 	}
 
-	void respawn(Game_Data * game_data, uint8 i) {
+	void respawn(Game_Data * game_data, u8 i) {
 		Character * character = &game_data->characters[i];
 		Timer     * timer     = &game_data->characters_timers[i];
 
@@ -451,7 +451,7 @@ namespace character {
 }
 
 namespace ai {
-	#define AI_GET_ACTION_FUNC(ROUTINE_NAME) Vector2i ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move)
+	#define AI_GET_ACTION_FUNC(ROUTINE_NAME) Vector2i ROUTINE_NAME(Game_Data * game_data, Mode mode, u8 character_index, bool finished_move)
 	typedef AI_GET_ACTION_FUNC(get_action_func);
 
 	AI_GET_ACTION_FUNC(get_action_none) { return {0, 0}; }
@@ -460,10 +460,10 @@ namespace ai {
 		// if (!finished_move) { return {0, 0}; } // @Note: always allow user input for responsiveness
 		if (mode == Mode::None) { return {0, 0}; }
 
-		int32 input_left  = input::get_current(Keyboard_Keys::Left);
-		int32 input_right = input::get_current(Keyboard_Keys::Right);
-		int32 input_down  = input::get_current(Keyboard_Keys::Down);
-		int32 input_up    = input::get_current(Keyboard_Keys::Up);
+		s32 input_left  = input::get_current(Keyboard_Keys::Left);
+		s32 input_right = input::get_current(Keyboard_Keys::Right);
+		s32 input_down  = input::get_current(Keyboard_Keys::Down);
+		s32 input_up    = input::get_current(Keyboard_Keys::Up);
 
 		Vector2i input_move = { input_right - input_left, input_up - input_down };
 
@@ -478,7 +478,7 @@ namespace ai {
 		}
 
 		if (mode == Mode::Chase) {
-			uint8 target_index = CHARACTER_TARGETS[character_index];
+			u8 target_index = CHARACTER_TARGETS[character_index];
 			Character target = game_data->characters[target_index];
 			return target.position;
 		}
@@ -494,8 +494,8 @@ namespace ai {
 		}
 
 		if (mode == Mode::Chase) {
-			static int32 const ambush_offset = 4;
-			uint8 target_index = CHARACTER_TARGETS[character_index];
+			static s32 const ambush_offset = 4;
+			u8 target_index = CHARACTER_TARGETS[character_index];
 			Character target = game_data->characters[target_index];
 			return target.position + target.direction * ambush_offset;
 		}
@@ -511,10 +511,10 @@ namespace ai {
 		}
 
 		if (mode == Mode::Chase) {
-			static int32 const pivot_offset = 2;
+			static s32 const pivot_offset = 2;
 
-			uint8 target_index = CHARACTER_TARGETS[character_index];
-			uint8 ally_index = CHARACTER_ALLIES[character_index];
+			u8 target_index = CHARACTER_TARGETS[character_index];
+			u8 ally_index = CHARACTER_ALLIES[character_index];
 
 			Character target = game_data->characters[target_index];
 			Character ally = game_data->characters[ally_index];
@@ -534,9 +534,9 @@ namespace ai {
 		}
 
 		if (mode == Mode::Chase) {
-			static int32 const chase_radius = 8;
+			static s32 const chase_radius = 8;
 
-			uint8 target_index = CHARACTER_TARGETS[character_index];
+			u8 target_index = CHARACTER_TARGETS[character_index];
 
 			Character character = game_data->characters[character_index];
 			Character target = game_data->characters[target_index];
@@ -559,7 +559,7 @@ namespace ai {
 }
 
 namespace ai {	
-	#define AI_DO_ACTION_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, Mode mode, uint8 character_index, bool finished_move, Vector2i value)
+	#define AI_DO_ACTION_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, Mode mode, u8 character_index, bool finished_move, Vector2i value)
 	typedef AI_DO_ACTION_FUNC(do_action_func);
 
 	AI_DO_ACTION_FUNC(do_action_none) { }
@@ -621,7 +621,7 @@ namespace ai {
 }
 
 namespace ai {
-	#define AI_MOVE_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, uint8 character_index, bool finished_move)
+	#define AI_MOVE_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Game_Data * game_data, u8 character_index, bool finished_move)
 	typedef AI_MOVE_FUNC(move_func);
 
 	AI_MOVE_FUNC(move_none) { }
@@ -632,7 +632,7 @@ namespace ai {
 		if (character->direction == vec2i(0, 0)) { return; }
 
 		Vector2i next_position = utils::wrap_position(character->position + character->direction, game_data->map_dimensions);
-		int32 next_i = next_position.y * game_data->map_dimensions.x + next_position.x;
+		s32 next_i = next_position.y * game_data->map_dimensions.x + next_position.x;
 		if (map::is_walkable(game_data, next_i)) {
 			character->position = next_position;
 		}
@@ -641,7 +641,7 @@ namespace ai {
 }
 
 namespace game {
-	Game_Data * allocate_game_memory(int32 tiles_count) {
+	Game_Data * allocate_game_memory(s32 tiles_count) {
 		auto game_data = globals::allocate_permanent<Game_Data>();
 		*game_data = {};
 
@@ -669,9 +669,9 @@ namespace game {
 		Map_Prefab map_prefab = utils::parse_map_prefab(map_prefab_1);
 		utils::flip_y(map_prefab.tiles, map_prefab.width);
 
-		auto game_data = allocate_game_memory((int32)map_prefab.tiles.length);
+		auto game_data = allocate_game_memory((s32)map_prefab.tiles.length);
 		memcpy(game_data->checksum, checksum, sizeof(checksum));
-		game_data->random_state = (uint32)globals::frame_timestamp;
+		game_data->random_state = (u32)globals::frame_timestamp;
 
 		{
 			Array_Dynamic<Tile> * map = &game_data->map;
@@ -679,12 +679,12 @@ namespace game {
 			map->length = map_prefab.tiles.length;
 			game_data->map_dimensions = {
 				map_prefab.width,
-				(int32)map_prefab.tiles.length / map_prefab.width
+				(s32)map_prefab.tiles.length / map_prefab.width
 			};
 			game_data->dots_count = map_prefab.dots_count;
 		}
 
-		for (int32 i = 0; i < map_prefab.spawn_tiles.length; ++i) {
+		for (s32 i = 0; i < map_prefab.spawn_tiles.length; ++i) {
 			Map_Prefab::Spawn_Tile spawn_tile = map_prefab.spawn_tiles[i];
 			game_data->spawn_points.add({
 				spawn_tile.team,
@@ -695,11 +695,11 @@ namespace game {
 			});
 		}
 
-		for (uint8 i = 0; i < CHARACTERS_COUNT; ++i) {
+		for (u8 i = 0; i < CHARACTERS_COUNT; ++i) {
 			character::add(game_data);
 		}
 
-		for (uint8 i = 0; i < CHARACTERS_COUNT; ++i) {
+		for (u8 i = 0; i < CHARACTERS_COUNT; ++i) {
 			character::respawn(game_data, i);
 		}
 	}
@@ -759,8 +759,8 @@ namespace game {
 
 		Modes::Config const * modes = level_modes->modes;
 
-		int32 tile_steps = game_data->tile_steps;
-		for (uint8 i = 0; i < MODES_COUNT; ++i) {
+		s32 tile_steps = game_data->tile_steps;
+		for (u8 i = 0; i < MODES_COUNT; ++i) {
 			tile_steps -= modes[i].tile_steps;
 			if (tile_steps < 0) { return modes[i].type; }
 		}
@@ -768,7 +768,7 @@ namespace game {
 		return Mode::Chase;
 	}
 
-	bool collect(Game_Data * game_data, int8 level_fright_tile_steps, uint8 character_index) {
+	bool collect(Game_Data * game_data, s8 level_fright_tile_steps, u8 character_index) {
 		static Tile_Type const to_collect = Tile_Type::Dot | Tile_Type::Energy;
 		
 		bool is_dot = false;
@@ -794,16 +794,16 @@ namespace game {
 		return is_dot;
 	}
 
-	bool collide(Game_Data * game_data, uint8 character_index_a, uint8 character_index_b) {
+	bool collide(Game_Data * game_data, u8 character_index_a, u8 character_index_b) {
 		Character character_a = game_data->characters[character_index_a];
 		Character character_b = game_data->characters[character_index_b];
 		return character_a.position == character_b.position;
 	}
 	
-	uint8 get_speed_percent(Speeds const * level_speeds, uint8 character_index, Mode mode, bool is_dot, bool is_slow, uint8 fast) {
+	u8 get_speed_percent(Speeds const * level_speeds, u8 character_index, Mode mode, bool is_dot, bool is_slow, u8 fast) {
 		Speeds::Config config = level_speeds->percents[character_index];
 
-		uint8 result = 100;
+		u8 result = 100;
 
 		if (mode == Mode::Fright) {
 			result = is_dot ? config.fright_dot : config.fright;
@@ -823,7 +823,7 @@ namespace game {
 	void update(Game_Data * game_data) {
 		using Level = utils::Level_Compiled;
 
-		int32 update_period = UPDATE_PERIOD_INTERNAL * (globals::time_precision / TIME_PRECISION);
+		s32 update_period = UPDATE_PERIOD_INTERNAL * (globals::time_precision / TIME_PRECISION);
 
 		Level level = utils::get_level_settings(game_data->level);
 
@@ -834,14 +834,14 @@ namespace game {
 			game_data->mode = mode;
 			is_mode_change = true;
 
-			// for (uint8 i = 0; i < game_data->characters.length; ++i) {
+			// for (u8 i = 0; i < game_data->characters.length; ++i) {
 			// 	if (CHARACTER_TEAM[i] == 0) { continue; }
 			// 	game_data->characters_reverse[i] = true;
 			// }
 		}
 		
 		bool finished_move[CHARACTERS_COUNT] = {};
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
 			Timer * timer = &game_data->characters_timers[i];
 			timer->elapsed += globals::delta_time;
 			if (timer->elapsed < timer->period) { continue; }
@@ -859,21 +859,21 @@ namespace game {
 		}
 		
 		// move characters
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
-			uint8 type = CHARACTER_TYPES[i];
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
+			u8 type = CHARACTER_TYPES[i];
 			(*game::type_to_move[type])(game_data, i, finished_move[i]);
 		}
 
 		// do AI actions:
 		// - towards target position or simply set
 		// - reverse direction upon game mode change
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
-			uint8 type = CHARACTER_TYPES[i];
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
+			u8 type = CHARACTER_TYPES[i];
 			Vector2i action = (*game::type_to_get_action[type])(game_data, mode, i, finished_move[i]);
 			(*game::type_to_do_action[type])(game_data, mode, i, finished_move[i], action);
 		}
 		
-		// for (uint8 i = 0; i < game_data->characters.length; ++i) {
+		// for (u8 i = 0; i < game_data->characters.length; ++i) {
 		// 	if (!finished_move[i]) { continue; }
 		// 
 		// 	if (!game_data->characters_reverse[i]) { continue; }
@@ -886,7 +886,7 @@ namespace game {
 		// }
 		
 		if (is_mode_change) { // @Note: immediate reverse is more responsive
-			for (uint8 i = 0; i < game_data->characters.length; ++i) {
+			for (u8 i = 0; i < game_data->characters.length; ++i) {
 				if (CHARACTER_TEAM[i] == 0) { continue; }
 				character::reverse(game_data, i);
 			}
@@ -896,7 +896,7 @@ namespace game {
 		// - collect items
 		// - process collisions
 		bool is_dot[CHARACTERS_COUNT] = {};
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
 			if (!finished_move[i]) { continue; }
 			if (CHARACTER_TEAM[i] == 1) { continue; }
 			
@@ -904,26 +904,26 @@ namespace game {
 		}
 
 		bool was_eaten[CHARACTERS_COUNT] = {};
-		uint8 chaser_in_pair = (mode != Mode::Fright);
-		for (uint8 i = 0; i < COLLISTION_PAIRS_COUNT; ++i) {
-			uint8 chaser_index = COLLISTION_PAIRS[i][chaser_in_pair];
-			uint8 target_index = COLLISTION_PAIRS[i][1 - chaser_in_pair];
+		u8 chaser_in_pair = (mode != Mode::Fright);
+		for (u8 i = 0; i < COLLISTION_PAIRS_COUNT; ++i) {
+			u8 chaser_index = COLLISTION_PAIRS[i][chaser_in_pair];
+			u8 target_index = COLLISTION_PAIRS[i][1 - chaser_in_pair];
 			was_eaten[target_index] |= game::collide(game_data, chaser_index, target_index);
 		}
 
 		// update movement periods
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
 			if (!finished_move[i]) { continue; }
 
-			uint8 fast = 0;
-			for (uint8 f = 1; f <= CHARACTER_FAST[i]; ++f) {
+			u8 fast = 0;
+			for (u8 f = 1; f <= CHARACTER_FAST[i]; ++f) {
 				if (game_data->dots_count > level.fast_dots_left / f) { break; }
 				fast++;
 			}
 
 			Character character = game_data->characters[i];
 			bool is_slow = map::is_slow(game_data, character.position);
-			uint8 speed_percent = game::get_speed_percent(level.speeds, i, mode, is_dot[i], is_slow, fast);
+			u8 speed_percent = game::get_speed_percent(level.speeds, i, mode, is_dot[i], is_slow, fast);
 
 			Timer * timer = &game_data->characters_timers[i];
 			timer->period = update_period * 100 / speed_percent;
@@ -932,7 +932,7 @@ namespace game {
 		// track game over conditions:
 		// - teleport away upon being eaten
 		// - reset game upon collection of all dots
-		for (uint8 i = 0; i < game_data->characters.length; ++i) {
+		for (u8 i = 0; i < game_data->characters.length; ++i) {
 			if (!was_eaten[i]) { continue; }
 			character::respawn(game_data, i);
 		}

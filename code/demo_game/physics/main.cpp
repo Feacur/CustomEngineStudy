@@ -7,7 +7,7 @@
 #include "data.h"
 #include "code.h"
 
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto game_data = get_game_data();
@@ -20,7 +20,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::None;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	clear_buffer(globals::render_buffer, {0, 0, 0, 0});
 
 	auto game_data = get_game_data();
@@ -31,7 +31,7 @@ API_C API_DLL GAME_RENDER(game_render) {
 	};
 	
 	// draw entities
-	for (uint8 i = 0; i < game_data->entities.length; ++i) {
+	for (u8 i = 0; i < game_data->entities.length; ++i) {
 		Entity entity = game_data->entities[i];
 		
 		Vector2 axis_x = entity.rotation;
@@ -48,6 +48,6 @@ API_C API_DLL GAME_RENDER(game_render) {
 	}
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // 	auto game_data = get_game_data();
 // }

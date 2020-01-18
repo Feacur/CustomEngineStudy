@@ -7,13 +7,13 @@
 #include "data.h"
 #include "code.h"
 
-API_C API_DLL GAME_UPDATE(game_update) {
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto game_data = get_game_data();
 	
-	int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-	int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+	s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+	s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
 	// creation
 	if (game_data->figure.length == 0) {
@@ -59,7 +59,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 
 		// move down
 		bool should_move_fast = input::get_current(Keyboard_Keys::Down);
-		int32 time_step_down = should_move_fast ? TIME_STEP_DOWN_FAST : TIME_STEP_DOWN_NORMAL;
+		s32 time_step_down = should_move_fast ? TIME_STEP_DOWN_FAST : TIME_STEP_DOWN_NORMAL;
 
 		if (game_data->step_time_down >= time_step_down) {
 			game_data->step_time_down -= time_step_down;
@@ -80,28 +80,28 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::Fractional;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	clear_buffer(globals::render_buffer, {0, 0, 0, 0});
 
 	auto game_data = get_game_data();
 	
-	int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-	int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+	s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+	s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
-	int32 scale = max(min(globals::render_buffer.size / (game_data->field_dimensions * TILE_SIZE)), 1);
+	s32 scale = max(min(globals::render_buffer.size / (game_data->field_dimensions * TILE_SIZE)), 1);
 	Vector2i TILE_SIZE_S = TILE_SIZE * scale;
 	Vector2i CELL_SIZE_S = CELL_SIZE * scale;
 
 	// draw background
-	Vector2 tile_size = {(float)TILE_SIZE_S.x, (float)TILE_SIZE_S.y};
-	Vector2 cell_size = {(float)CELL_SIZE_S.x, (float)CELL_SIZE_S.y};
+	Vector2 tile_size = {(r32)TILE_SIZE_S.x, (r32)TILE_SIZE_S.y};
+	Vector2 cell_size = {(r32)CELL_SIZE_S.x, (r32)CELL_SIZE_S.y};
 	Vector2i cell_offset = (TILE_SIZE_S - CELL_SIZE_S) / 2;
-	for (int32 y = 0; y < FIELD_HEIGHT; ++y) {
-		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
+	for (s32 y = 0; y < FIELD_HEIGHT; ++y) {
+		for (s32 x = 0; x < FIELD_WIDTH; ++x) {
 			Vector2i base_xy = vec2i(x, y) * TILE_SIZE_S;
 			
 			Vector2i xy = base_xy;
-			Vector2 position = {(float)xy.x, (float)xy.y};
+			Vector2 position = {(r32)xy.x, (r32)xy.y};
 
 			Vector4 color = ((x + y) % 2) ? color_background_odd : color_background_even;
 			draw_rectangle_over(globals::render_buffer, position, tile_size, color);
@@ -109,14 +109,14 @@ API_C API_DLL GAME_RENDER(game_render) {
 	}
 	
 	// draw field
-	for (int32 y = 0; y < FIELD_HEIGHT; ++y) {
-		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
+	for (s32 y = 0; y < FIELD_HEIGHT; ++y) {
+		for (s32 x = 0; x < FIELD_WIDTH; ++x) {
 			bool is_filled = game_data->field[y * FIELD_WIDTH + x];
 			if (is_filled) {
 				Vector2i base_xy = vec2i(x, y) * TILE_SIZE_S;
 				
 				Vector2i xy = base_xy + cell_offset;
-				Vector2 position = {(float)xy.x, (float)xy.y};
+				Vector2 position = {(r32)xy.x, (r32)xy.y};
 
 				draw_rectangle_over(globals::render_buffer, position, cell_size, color_field);
 			}
@@ -124,17 +124,17 @@ API_C API_DLL GAME_RENDER(game_render) {
 	}
 	
 	// draw figure
-	for (int32 i = 0; i < game_data->figure.length; ++i) {
+	for (s32 i = 0; i < game_data->figure.length; ++i) {
 		Vector2i position_i = game_data->figure[i] + game_data->position;
 		Vector2i base_xy = position_i * TILE_SIZE_S;
 		
 		Vector2i xy = base_xy + cell_offset;
-		Vector2 position = {(float)xy.x, (float)xy.y};
+		Vector2 position = {(r32)xy.x, (r32)xy.y};
 
 		draw_rectangle_over(globals::render_buffer, position, cell_size, color_figure);
 	}
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // 	auto game_data = get_game_data();
 // }

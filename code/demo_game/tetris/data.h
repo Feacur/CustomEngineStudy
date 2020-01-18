@@ -1,32 +1,32 @@
-static uint8 const checksum[8] = {'t', 'e', 't', 'r', 'i', 's', ' ', ' '};
+static u8 const checksum[8] = {'t', 'e', 't', 'r', 'i', 's', ' ', ' '};
 
 //
 // data layout
 //
 
-using Field_Cell = uint8;
+using Field_Cell = u8;
 struct Game_Data {
-	uint8                     checksum[8];
-	uint32                    random_state;
+	u8                     checksum[8];
+	u32                    random_state;
 	// actual data
 	Array_Dynamic<Field_Cell> field;
 	Vector2i                  field_dimensions;
 	Array_Dynamic<Vector2i>   figure;
 	Vector2i                  position;
 	// controls
-	int32                     step_time_side;
-	int32                     step_time_down;
+	s32                     step_time_side;
+	s32                     step_time_down;
 };
 
 //
 // game settings
 //
 
-static int32 const TIME_STEP_SIDE        = 100 * 1000;
-static int32 const TIME_STEP_DOWN_NORMAL = 200 * 1000;
-static int32 const TIME_STEP_DOWN_FAST   = 50 * 1000;
+static s32 const TIME_STEP_SIDE        = 100 * 1000;
+static s32 const TIME_STEP_DOWN_NORMAL = 200 * 1000;
+static s32 const TIME_STEP_DOWN_FAST   = 50 * 1000;
 
-static int32 const FIGURE_PREFAB_LENGTH = 4;
+static s32 const FIGURE_PREFAB_LENGTH = 4;
 static Vector2i const figure_prefabs[][FIGURE_PREFAB_LENGTH] {
 	{{ 0,  2}, {0, 1}, {0, 0}, { 1, 0}}, // L
 	{{ 0,  2}, {0, 1}, {0, 0}, {-1, 0}}, // L inverse
@@ -36,7 +36,7 @@ static Vector2i const figure_prefabs[][FIGURE_PREFAB_LENGTH] {
 	{{ 0,  0}, {0, 1}, {1, 0}, { 1, 1}}, // O
 	{{-1,  0}, {0, 0}, {1, 0}, { 0, 1}}, // T
 };
-static int32 const FIGURES_NUMBER = C_ARRAY_LENGTH(figure_prefabs);
+static s32 const FIGURES_NUMBER = C_ARRAY_LENGTH(figure_prefabs);
 
 //
 // rendering settings

@@ -18,23 +18,23 @@
 #include "scene_common_sdf.h"
 #include "scene_common_raymarch.h"
 
-Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, float specular_power) {
+Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, r32 specular_power) {
 	static Vector3 const ambient = {0.1f, 0.1f, 0.1f};
 	static Vector3 const light = normalize(vec3(1.0f, 2.0f, 1.0f));
 	static Vector3 const light_color = {1, 1, 1};
-	static float const depth_limit = 1000;
+	static r32 const depth_limit = 1000;
 
 	auto result = (albedo * ambient);
 	
-	float attenuation = raymarch_attenuation(point, normal, light, 16, depth_limit);
+	r32 attenuation = raymarch_attenuation(point, normal, light, 16, depth_limit);
 
-	float diffuse_lighting = max(0.0f, dot_product(normal, light)) * attenuation;
+	r32 diffuse_lighting = max(0.0f, dot_product(normal, light)) * attenuation;
 	result = result + (albedo * light_color) * diffuse_lighting;
 	
 	if (specular_power > 0) {
 		auto reflection = reflect(ray.direction, normal, 2.0f);
-		float specular_lighting_base = max(0.0f, dot_product(reflection, light));
-		float specular_lighting = powf(specular_lighting_base, specular_power) * attenuation;
+		r32 specular_lighting_base = max(0.0f, dot_product(reflection, light));
+		r32 specular_lighting = powf(specular_lighting_base, specular_power) * attenuation;
 		result = result + light_color * specular_lighting;
 	}
 
@@ -42,7 +42,7 @@ Vector3 apply_light(Vector3 albedo, Ray3 ray, Vector3 point, Vector3 normal, flo
 }
 
 Vector4 raymarch_color(Ray3 ray) {
-	static float const depth_limit = 1000;
+	static r32 const depth_limit = 1000;
 	Raymarch_Result raymarch_result = raymarch_scene(ray, 256, depth_limit);
 
 	Vector4 color = {0, 0, 0, 0};
@@ -52,8 +52,8 @@ Vector4 raymarch_color(Ray3 ray) {
 		Vector3 reflection = reflect(ray.direction, normal, 2.0f);
 
 		if (normal.y > 0.99f && point.y < 0.2f) {
-			float pattern = fmodf(floorf(point.x * 0.2f) + floorf(point.z * 0.2f), 2.0f);
-			float brightness = (0.3f + pattern * 0.1f);
+			r32 pattern = fmodf(floorf(point.x * 0.2f) + floorf(point.z * 0.2f), 2.0f);
+			r32 brightness = (0.3f + pattern * 0.1f);
 			color.xyz = {brightness, brightness, brightness};	
 		}
 		else {
@@ -68,8 +68,8 @@ Vector4 raymarch_color(Ray3 ray) {
 	return color;
 }
 
-static float rotation_radians = 0;
-API_C API_DLL GAME_UPDATE(game_update) {
+static r32 rotation_radians = 0;
+extern "C" CUSTOM_DLL GAME_UPDATE(game_update) {
 	globals::cache(platform_data);
 
 	auto delta_time = globals::get_delta_seconds();
@@ -79,7 +79,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 		rotation_radians -= tau;
 	}
 
-	static float fraction_direction = 1;
+	static r32 fraction_direction = 1;
 	fraction += fraction_direction * delta_time;
 	if (fraction < 0) {
 		fraction = 0;
@@ -96,7 +96,7 @@ API_C API_DLL GAME_UPDATE(game_update) {
 	platform_data->render_settings.stretch_mode = Render_Settings::Stretch_Mode::Fractional;
 }
 
-API_C API_DLL GAME_RENDER(game_render) {
+extern "C" CUSTOM_DLL GAME_RENDER(game_render) {
 	auto image = globals::render_buffer_f;
 	clear_buffer(image, {0, 0, 0, 0});
 
@@ -107,12 +107,12 @@ API_C API_DLL GAME_RENDER(game_render) {
 	
 	Quaternion direction_rotation = quaternion_from_radians({pi/6, rotation_radians, 0});
 	
-	for (int32 y = 0; y < image.size.y; ++y) {
+	for (s32 y = 0; y < image.size.y; ++y) {
 		auto destination_line = image.data + y * image.size.x;
-		float offset_y = (float)(y - image.size.y / 2) / image.size.y;
-		for (int32 x = 0; x < image.size.x; ++x) {
+		r32 offset_y = (r32)(y - image.size.y / 2) / image.size.y;
+		for (s32 x = 0; x < image.size.x; ++x) {
 			auto destination = destination_line + x;
-			float offset_x = (float)(x - image.size.x / 2) / image.size.y;
+			r32 offset_x = (r32)(x - image.size.x / 2) / image.size.y;
 			
 			Vector3 screen_point = {offset_x, offset_y, 1};
 			ray.direction = quaternion_rotate_vector(
@@ -127,5 +127,5 @@ API_C API_DLL GAME_RENDER(game_render) {
 	platform_data->render_buffer_image_f.exposure = 1;
 }
 
-// API_C API_DLL GAME_OUTPUT_SOUND(game_output_sound) {
+// extern "C" CUSTOM_DLL GAME_OUTPUT_SOUND(game_output_sound) {
 // }

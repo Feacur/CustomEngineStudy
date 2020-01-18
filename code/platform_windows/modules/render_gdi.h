@@ -4,8 +4,8 @@ struct Render_Buffer {
 	BITMAPINFO info;
 	//
 	Vector2i   offset;
-	int32      scaler_mul;
-	int32      scaler_div;
+	s32      scaler_mul;
+	s32      scaler_div;
 	//
 	Vector2i   source_size;
 	Vector2i   destination_size;
@@ -34,8 +34,8 @@ void make_render_buffer_fit(HWND window) {
 		render_buffer.destination_size = source_size;
 	}
 	else {
-		int32 numerator_source = source_size.x * window_size.y;
-		int32 numerator_window = window_size.x * source_size.y;
+		s32 numerator_source = source_size.x * window_size.y;
+		s32 numerator_window = window_size.x * source_size.y;
 
 		if (numerator_source > numerator_window) {
 			render_buffer.scaler_mul = source_size.x;
@@ -59,7 +59,7 @@ void make_render_buffer_fit(HWND window) {
 }
 
 void set_render_buffer_size(Vector2i size) {
-	static int32 const bytes_per_pixel = sizeof(uint32);
+	static s32 const bytes_per_pixel = sizeof(u32);
 	
 	if (render_buffer.image.data) {
 		free_memory(render_buffer.image.data);
@@ -78,13 +78,13 @@ void set_render_buffer_size(Vector2i size) {
 	render_buffer.image.offsets[2] =  0;
 	render_buffer.image.offsets[3] = 24;
 	
-	render_buffer.image.data    = (uint32 *)allocate_memory(size.x * size.y * bytes_per_pixel);
+	render_buffer.image.data    = (u32 *)allocate_memory(size.x * size.y * bytes_per_pixel);
 	render_buffer.image.size    = size;
-	ASSERT_TRUE(render_buffer.image.data, "Can't allocate render buffer image memory");
+	CUSTOM_ASSERT(render_buffer.image.data, "Can't allocate render buffer image memory");
 
 	render_buffer.image_f.data = (Vector4 *)allocate_memory(size.x * size.y * sizeof(Vector4));
 	render_buffer.image_f.size = size;
-	ASSERT_TRUE(render_buffer.image_f.data, "Can't allocate render buffer image memory");
+	CUSTOM_ASSERT(render_buffer.image_f.data, "Can't allocate render buffer image memory");
 	
 	render_buffer.info.bmiHeader.biSize        = sizeof(render_buffer.info.bmiHeader);
 	render_buffer.info.bmiHeader.biWidth       = size.x;
@@ -123,7 +123,7 @@ void reinit_render_buffer(HWND window) {
 	// After setting the STRETCH_HALFTONE stretching mode, an application must call the SetBrushOrgEx function to set the brush origin. If it fails to do so, brush misalignment occurs.
 	// SetBrushOrgEx(device_context, 0, 0, NULL);
 
-	LOG_TRACE("Reinitialized GDI parameters");
+	CUSTOM_TRACE("Reinitialized GDI parameters");
 }
 
 void display_render_buffer(HDC device_context) {

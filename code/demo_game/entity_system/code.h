@@ -60,7 +60,7 @@ namespace rotation_system {
 		Array_Dynamic<Entity> const       & entities  = game_data->systems.rotation;
 		Array_Dynamic<Rotation_Component> & rotations = game_data->entities.rotation;
 
-		float delta_time = globals::get_delta_seconds();
+		r32 delta_time = globals::get_delta_seconds();
 		Complex rotator = complex_from_radians((pi / 6) * delta_time);
 		
 		for (size_t i = 0; i < entities.length; ++i) {
@@ -85,7 +85,7 @@ namespace movement_system {
 		Array_Dynamic<Position_Component>       & positions  = game_data->entities.position;
 		Array_Dynamic<Velocity_Component> const & velocities = game_data->entities.velocity;
 
-		float delta_time = globals::get_delta_seconds();
+		r32 delta_time = globals::get_delta_seconds();
 		
 		for (size_t i = 0; i < entities.length; ++i) {
 			Entity                     entity   = entities[i];
@@ -160,7 +160,7 @@ namespace rendering_system {
 			globals::render_buffer.size.y * 0.5f
 		};
 
-		float delta_time = globals::get_delta_seconds();
+		r32 delta_time = globals::get_delta_seconds();
 		
 		for (size_t i = 0; i < entities.length; ++i) {
 			Entity                     entity   = entities[i];
@@ -204,7 +204,7 @@ namespace rendering_no_rotation_system {
 			globals::render_buffer.size.y * 0.5f
 		};
 
-		float delta_time = globals::get_delta_seconds();
+		r32 delta_time = globals::get_delta_seconds();
 		
 		for (size_t i = 0; i < entities.length; ++i) {
 			Entity                     entity   = entities[i];
@@ -260,7 +260,7 @@ namespace game {
 	void init() {
 		auto game_data = allocate_game_memory();
 		memcpy(game_data->checksum, checksum, sizeof(checksum));
-		game_data->random_state = (uint32)globals::frame_timestamp;
+		game_data->random_state = (u32)globals::frame_timestamp;
 
 		game_data->world_bounds = BOUNDS;
 		

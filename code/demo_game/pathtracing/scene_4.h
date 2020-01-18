@@ -1,14 +1,14 @@
-static int32 const trace_depth_limit = 10;
-static int32 const samples_count = 4;
-static float const camera_focus_distance = 1.0f;
-static float const camera_aperture = 0.001f;
+static s32 const trace_depth_limit = 10;
+static s32 const samples_count = 4;
+static r32 const camera_focus_distance = 1.0f;
+static r32 const camera_aperture = 0.001f;
 
-static float const air_refractive_index = 1;
+static r32 const air_refractive_index = 1;
 
-static int32 const SHAPES_COUNT = 100;
+static s32 const SHAPES_COUNT = 100;
 
 void reinit_shapes(Game_Data * game_data) {
-	int32 shape_i = 0;
+	s32 shape_i = 0;
 
 	game_data->shapes[shape_i] = sphere({0, -1000, 0, 1000});
 	game_data->materials[shape_i] = mat0(Material::Type::Diffuse)
@@ -44,7 +44,7 @@ void reinit_shapes(Game_Data * game_data) {
 		for (int b = -4; b < 4; ++b) {
 			if (shape_i == SHAPES_COUNT) { break; }
 
-			float y = 0.2f + random_01(&game_data->random_state) * 0.1f;
+			r32 y = 0.2f + random_01(&game_data->random_state) * 0.1f;
 
 			Vector2 offset = random2_radius01(&game_data->random_state) * 0.4f;
 			Vector3 center = {a + offset.x, y, b + offset.y};
@@ -52,7 +52,7 @@ void reinit_shapes(Game_Data * game_data) {
 			if (magnitude(center - vec3(4, y, 0)) > 0.9f) {
 				game_data->shapes[shape_i] = sphere({center, 0.2f});
 
-				float choose_mat = random_radius01(&game_data->random_state);
+				r32 choose_mat = random_radius01(&game_data->random_state);
 				if (choose_mat < 0.5f) {
 					game_data->materials[shape_i] = mat0(Material::Type::Diffuse)
 						.set_albedo(random3_radius01(&game_data->random_state) * 0.8 + 0.2f)

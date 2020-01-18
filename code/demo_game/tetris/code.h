@@ -6,11 +6,11 @@ namespace field {
 	void imprint_figure(Game_Data * game_data) {
 		Array_Dynamic<Field_Cell> & field  = game_data->field;
 		Array_Dynamic<Vector2i>   & figure = game_data->figure;
-		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+		s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+		s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
 		Vector2i zero_point = game_data->position;
-		for (int32 i = 0; i < figure.length; ++i) {
+		for (s32 i = 0; i < figure.length; ++i) {
 			Vector2i p = zero_point + figure[i];
 			if (p.y < FIELD_HEIGHT) {
 				field[p.y * FIELD_WIDTH + p.x] = true;
@@ -26,13 +26,13 @@ namespace field {
 		field.length = field.capacity;
 	}
 
-	bool get_line_is_value(Game_Data * game_data, int32 y, Field_Cell value) {
-		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+	bool get_line_is_value(Game_Data * game_data, s32 y, Field_Cell value) {
+		s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+		s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
 		Array_Dynamic<Field_Cell> & field = game_data->field;
 
-		for (int32 x = 0; x < FIELD_WIDTH; ++x) {
+		for (s32 x = 0; x < FIELD_WIDTH; ++x) {
 			if (field[y * FIELD_WIDTH + x] != value) {
 				return false;
 			}
@@ -40,11 +40,11 @@ namespace field {
 		return true;
 	}
 
-	void copy_line(Game_Data * game_data, int32 from, int32 to) {
+	void copy_line(Game_Data * game_data, s32 from, s32 to) {
 		if (from == to) { return; }
 
 		Array_Dynamic<Field_Cell> & field = game_data->field;
-		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
+		s32 FIELD_WIDTH  = game_data->field_dimensions.x;
 
 		Field_Cell * source      = field.data + from * FIELD_WIDTH;
 		Field_Cell * destination = field.data + to * FIELD_WIDTH;
@@ -53,11 +53,11 @@ namespace field {
 
 	void collapse(Game_Data * game_data) {
 		Array_Dynamic<Field_Cell> & field = game_data->field;
-		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+		s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+		s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
-		int32 collapse_target = 0;
-		for (int32 y = 0; y < FIELD_HEIGHT; ++y) {
+		s32 collapse_target = 0;
+		for (s32 y = 0; y < FIELD_HEIGHT; ++y) {
 			if (field::get_line_is_value(game_data, y, true)) { continue; }
 			if (field::get_line_is_value(game_data, y, false)) { continue; }
 			field::copy_line(game_data, y, collapse_target);
@@ -72,7 +72,7 @@ namespace field {
 }
 
 namespace game {
-	Game_Data * allocate_game_memory(int32 cells_count) {
+	Game_Data * allocate_game_memory(s32 cells_count) {
 		auto game_data = globals::allocate_permanent<Game_Data>();
 		*game_data = {};
 
@@ -90,11 +90,11 @@ namespace game {
 
 	void init() {
 		Vector2i dimensions = {10, 20};
-		int32 cells_count = dimensions.x * dimensions.y;
+		s32 cells_count = dimensions.x * dimensions.y;
 
 		auto game_data = allocate_game_memory(cells_count);
 		memcpy(game_data->checksum, checksum, sizeof(checksum));
-		game_data->random_state = (uint32)globals::frame_timestamp;
+		game_data->random_state = (u32)globals::frame_timestamp;
 
 		game_data->field_dimensions = dimensions;
 		field::reset(game_data);
@@ -105,14 +105,14 @@ namespace game {
 		// 2) except the top, which is ignored
 		// 3) does not overlap with other figures
 		Array_Dynamic<Field_Cell> & field  = game_data->field;
-		int32 FIELD_WIDTH  = game_data->field_dimensions.x;
-		int32 FIELD_HEIGHT = game_data->field_dimensions.y;
+		s32 FIELD_WIDTH  = game_data->field_dimensions.x;
+		s32 FIELD_HEIGHT = game_data->field_dimensions.y;
 
 		bool is_valid = true;
 		
 		Vector2i position = game_data->position + move;
 		
-		for (int32 i = 0; (i < figure.length) && is_valid; ++i) {
+		for (s32 i = 0; (i < figure.length) && is_valid; ++i) {
 			Vector2i p = figure[i] + position;
 			if ((p.x >= 0) && (p.x < FIELD_WIDTH) && (p.y >= 0)) {
 				if (p.y < FIELD_HEIGHT) {
@@ -145,7 +145,7 @@ namespace game {
 		copy.set_capacity(figure.length, &globals::allocate_transient);
 		copy.length = figure.length;
 
-		for (int32 i = 0; i < figure.length; ++i) {
+		for (s32 i = 0; i < figure.length; ++i) {
 			copy[i] = complex_rotate_vector(figure[i], ROTATION);
 		}
 

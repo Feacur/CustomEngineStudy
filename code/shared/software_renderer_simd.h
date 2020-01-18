@@ -34,17 +34,17 @@ __m128 NAME##_a = _mm_cvtepi32_ps(_mm_and_si128(_mm_srli_epi32(NAME, FROM.offset
 
 
 #define MAKE_LOCAL_Y ;\
-uint32 *destination_line = image.data + y * image.size.x;\
+u32 *destination_line = image.data + y * image.size.x;\
 \
-__m128 screen_y = _mm_set1_ps((float)y);\
+__m128 screen_y = _mm_set1_ps((r32)y);\
 __m128 local_y = _mm_sub_ps(screen_y, position_y);\
 
 
 #define MAKE_LOCAL_X ;\
-uint32 *destination_start = destination_line + x;\
+u32 *destination_start = destination_line + x;\
 \
 __m128i destination = _mm_loadu_si128((__m128i *)destination_start);\
-__m128 screen_x = _mm_set_ps((float)(x + 3), (float)(x + 2), (float)(x + 1), (float)(x + 0));\
+__m128 screen_x = _mm_set_ps((r32)(x + 3), (r32)(x + 2), (r32)(x + 1), (r32)(x + 0));\
 __m128 local_x = _mm_sub_ps(screen_x, position_x);
 
 
@@ -58,8 +58,8 @@ __m128 U = _mm_mul_ps(local_x, axis_x_x);\
 __m128 V = _mm_mul_ps(local_y, axis_y_y);
 
 
-#define SIMD_I(V, I) ((float *)&V)[I]
-#define SIMDi_I(V, I) ((uint32 *)&V)[I]
+#define SIMD_I(V, I) ((r32 *)&V)[I]
+#define SIMDi_I(V, I) ((u32 *)&V)[I]
 
 
 #define READ_TEXTURE_COLOR ;\
@@ -67,10 +67,10 @@ __m128 texture_x = _mm_mul_ps(texture_uv_width,  _mm_min_ps(_mm_max_ps(U, zero),
 __m128 texture_y = _mm_mul_ps(texture_uv_height, _mm_min_ps(_mm_max_ps(V, zero), one));\
 \
 __m128i source = _mm_set1_epi32(0);\
-for (int32 i = 0; i < 4; ++i) {\
-	int32 texture_x_i = (int32)SIMD_I(texture_x, i);\
-	int32 texture_y_i = (int32)SIMD_I(texture_y, i);\
-	uint32 source_uint32 = *(texture.data + texture_y_i * texture.size.x + texture_x_i);\
+for (s32 i = 0; i < 4; ++i) {\
+	s32 texture_x_i = (s32)SIMD_I(texture_x, i);\
+	s32 texture_y_i = (s32)SIMD_I(texture_y, i);\
+	u32 source_uint32 = *(texture.data + texture_y_i * texture.size.x + texture_x_i);\
 	SIMDi_I(source, i) = source_uint32;\
 }
 
@@ -106,12 +106,12 @@ void draw_rectangle_over(RGBA_Data image, Vector2 position, Vector2 size, Vector
 	CONSTANTS
 	CONSTANTS_AXES_R
 	
-	uint32 source_uint32 = vector4_to_color32(color, image.offsets);
+	u32 source_uint32 = vector4_to_color32(color, image.offsets);
 	__m128i out = _mm_set1_epi32(source_uint32);
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
 		MAKE_LOCAL_Y
-		for (int32 x = rect.left; x < rect.right; x += 4) {
+		for (s32 x = rect.left; x < rect.right; x += 4) {
 			MAKE_LOCAL_X
 			MAKE_UV_R
 			WRITE_OUT_TO_DESTINATION
@@ -127,14 +127,14 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Vector4 col
 	CONSTANTS
 	CONSTANTS_AXES_R
 
-	uint32 source_uint32 = vector4_to_color32(color, image.offsets);
+	u32 source_uint32 = vector4_to_color32(color, image.offsets);
 	__m128i source = _mm_set1_epi32(source_uint32);
 	SEPARATE_CHANNELS(source, image)
 	__m128 blend_alpha = _mm_div_ps(source_a, f255);
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
 		MAKE_LOCAL_Y
-		for (int32 x = rect.left; x < rect.right; x += 4) {
+		for (s32 x = rect.left; x < rect.right; x += 4) {
 			MAKE_LOCAL_X
 			MAKE_UV_R
 			SEPARATE_CHANNELS(destination, image)
@@ -152,14 +152,14 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex ori
 	CONSTANTS
 	CONSTANTS_AXES
 
-	uint32 source_uint32 = vector4_to_color32(color, image.offsets);
+	u32 source_uint32 = vector4_to_color32(color, image.offsets);
 	__m128i source = _mm_set1_epi32(source_uint32);
 	SEPARATE_CHANNELS(source, image)
 	__m128 blend_alpha = _mm_div_ps(source_a, f255);
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
 		MAKE_LOCAL_Y
-		for (int32 x = rect.left; x < rect.right; x += 4) {
+		for (s32 x = rect.left; x < rect.right; x += 4) {
 			MAKE_LOCAL_X
 			MAKE_UV
 			SEPARATE_CHANNELS(destination, image)
@@ -177,12 +177,12 @@ void draw_rectangle(RGBA_Data image, Vector2 position, Vector2 size, Complex ori
 	CONSTANTS
 	CONSTANTS_AXES
 	
-	__m128 texture_uv_width  = _mm_set1_ps((float)(texture.size.x - 1));
-	__m128 texture_uv_height = _mm_set1_ps((float)(texture.size.y - 1));
+	__m128 texture_uv_width  = _mm_set1_ps((r32)(texture.size.x - 1));
+	__m128 texture_uv_height = _mm_set1_ps((r32)(texture.size.y - 1));
 	
-	for (int32 y = rect.bottom; y < rect.top; ++y) {
+	for (s32 y = rect.bottom; y < rect.top; ++y) {
 		MAKE_LOCAL_Y
-		for (int32 x = rect.left; x < rect.right; x += 4) {
+		for (s32 x = rect.left; x < rect.right; x += 4) {
 			MAKE_LOCAL_X
 			MAKE_UV
 			READ_TEXTURE_COLOR

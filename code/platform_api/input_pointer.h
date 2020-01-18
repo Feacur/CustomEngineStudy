@@ -1,4 +1,4 @@
-enum struct Pointer_Keys : uint8 {
+enum struct Pointer_Keys : u8 {
 	None,
 	//
 	Key1,
@@ -7,31 +7,31 @@ enum struct Pointer_Keys : uint8 {
 	//
 	Last
 };
-UNDERLYING_TYPE_META(Pointer_Keys, uint8)
+UNDERLYING_TYPE_META(Pointer_Keys, u8)
 IS_ENUM_META(Pointer_Keys)
 
-static int32 const POINTER_KEYS_NUMBER = (int32)Pointer_Keys::Last;
+static s32 const POINTER_KEYS_NUMBER = (s32)Pointer_Keys::Last;
 
 struct Input_Pointer {
 	Vector2i pixel_position;
 	Vector2i raw_delta;
 	Vector2 wheel;
-	int8 was_pressed[POINTER_KEYS_NUMBER];
-	int8 is_pressed[POINTER_KEYS_NUMBER];
+	s8 was_pressed[POINTER_KEYS_NUMBER];
+	s8 is_pressed[POINTER_KEYS_NUMBER];
 };
 
-static int32 const POINTER_KEYS_BYTES = sizeof(Input_Pointer::is_pressed);
+static s32 const POINTER_KEYS_BYTES = sizeof(Input_Pointer::is_pressed);
 
 inline bool pointer_get_previous_state(Input_Pointer *pointer, Pointer_Keys key) {
-	ASSERT_TRUE(pointer, "Pointer is not initialized");
-	ASSERT_TRUE((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
-	return pointer->was_pressed[(int32)key];
+	CUSTOM_ASSERT(pointer, "Pointer is not initialized");
+	CUSTOM_ASSERT((s32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
+	return pointer->was_pressed[(s32)key];
 }
 
 inline bool pointer_get_current_state(Input_Pointer *pointer, Pointer_Keys key) {
-	ASSERT_TRUE(pointer, "Pointer is not initialized");
-	ASSERT_TRUE((int32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
-	return pointer->is_pressed[(int32)key];
+	CUSTOM_ASSERT(pointer, "Pointer is not initialized");
+	CUSTOM_ASSERT((s32)key < POINTER_KEYS_NUMBER, "Pointer key is out of range");
+	return pointer->is_pressed[(s32)key];
 }
 
 inline bool pointer_get_transition_pressed(Input_Pointer *pointer, Pointer_Keys key) {

@@ -8,13 +8,13 @@ namespace globals {
 	static RGBA_Data  render_buffer;
 	static Image_Data render_buffer_f;
 
-	static int32  delta_time;
-	static int64  uptime;
-	static uint64 frame_timestamp;
+	static s32  delta_time;
+	static s64  uptime;
+	static u64 frame_timestamp;
 
-	static thread_local uint32 random_state;
+	static thread_local u32 random_state;
 	
-	static int64 const time_precision = 1000000;
+	static s64 const time_precision = 1000000;
 }
 
 //
@@ -90,7 +90,7 @@ namespace globals {
 		globals::render_buffer    = platform_data->render_buffer_image;
 		globals::render_buffer_f  = platform_data->render_buffer_image_f;
 
-		globals::delta_time       = (int32)mul_div(platform_data->time.last_frame_duration, time_precision, platform_data->time.precision);
+		globals::delta_time       = (s32)mul_div(platform_data->time.last_frame_duration, time_precision, platform_data->time.precision);
 		globals::uptime           = mul_div(platform_data->time.since_start, time_precision, platform_data->time.precision);
 		globals::frame_timestamp  = platform_data->time.frame_timestamp;
 		
@@ -111,8 +111,8 @@ namespace globals {
 		}
 	}
 
-	inline float get_delta_seconds() {
-		return (float)delta_time / time_precision;
+	inline r32 get_delta_seconds() {
+		return (r32)delta_time / time_precision;
 	}
 }
 

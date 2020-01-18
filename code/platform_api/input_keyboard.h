@@ -1,4 +1,4 @@
-enum struct Keyboard_Keys : uint8 {
+enum struct Keyboard_Keys : u8 {
 	None,
 	// Numbers (10)
 	N0,
@@ -67,28 +67,28 @@ enum struct Keyboard_Keys : uint8 {
 	//
 	Last,
 };
-UNDERLYING_TYPE_META(Keyboard_Keys, uint8)
+UNDERLYING_TYPE_META(Keyboard_Keys, u8)
 IS_ENUM_META(Keyboard_Keys)
 
-static int32 const KEYBOARD_KEYS_NUMBER = (int32)Keyboard_Keys::Last;
+static s32 const KEYBOARD_KEYS_NUMBER = (s32)Keyboard_Keys::Last;
 
 struct Input_Keyboard {
-	int8 was_pressed[KEYBOARD_KEYS_NUMBER];
-	int8 is_pressed[KEYBOARD_KEYS_NUMBER];
+	s8 was_pressed[KEYBOARD_KEYS_NUMBER];
+	s8 is_pressed[KEYBOARD_KEYS_NUMBER];
 };
 
-static int32 const KEYBOARD_KEYS_BYTES = sizeof(Input_Keyboard::is_pressed);
+static s32 const KEYBOARD_KEYS_BYTES = sizeof(Input_Keyboard::is_pressed);
 
 inline bool keyboard_get_previous_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
-	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
-	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
-	return keyboard->was_pressed[(int32)key];
+	CUSTOM_ASSERT(keyboard, "Keyboard is not initialized");
+	CUSTOM_ASSERT((s32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
+	return keyboard->was_pressed[(s32)key];
 }
 
 inline bool keyboard_get_current_state(Input_Keyboard *keyboard, Keyboard_Keys key) {
-	ASSERT_TRUE(keyboard, "Keyboard is not initialized");
-	ASSERT_TRUE((int32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
-	return keyboard->is_pressed[(int32)key];
+	CUSTOM_ASSERT(keyboard, "Keyboard is not initialized");
+	CUSTOM_ASSERT((s32)key < KEYBOARD_KEYS_NUMBER, "Keyboard key is out of range");
+	return keyboard->is_pressed[(s32)key];
 }
 
 inline bool keyboard_get_transition_pressed(Input_Keyboard *keyboard, Keyboard_Keys key) {
