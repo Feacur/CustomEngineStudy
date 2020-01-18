@@ -16,6 +16,10 @@
 static void platform_init(HDC hdc);
 static void platform_shutdown();
 
+constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
+	return (container & bits) == bits;
+}
+
 //
 // API implementation
 //
@@ -89,7 +93,7 @@ void * wgl_get_proc_address(cstring name) {
 	return address;
 }
 
-cstring wgl_get_extensions_string(HDC hdc) {
+static cstring wgl_get_extensions_string(HDC hdc) {
 	if (wgl.GetExtensionsStringARB) {
 		return wgl.GetExtensionsStringARB(hdc);
 	}
@@ -99,10 +103,10 @@ cstring wgl_get_extensions_string(HDC hdc) {
 	return NULL;
 }
 
-static bool contains_subword(cstring container, cstring value) {
-	CUSTOM_ASSERT(value, "extension is nullptr");
-	CUSTOM_ASSERT(*value != '\0', "extension is empty");
-	CUSTOM_ASSERT(!strchr(value, ' '), "extension contains spaces: '%s'", value);
+static bool contains_full_word(cstring container, cstring value) {
+	CUSTOM_ASSERT(value, "value is nullptr");
+	CUSTOM_ASSERT(*value != '\0', "value is empty");
+	CUSTOM_ASSERT(!strchr(value, ' '), "value contains spaces: '%s'", value);
 
 	cstring start = container;
 	while (true)
@@ -110,7 +114,6 @@ static bool contains_subword(cstring container, cstring value) {
 		cstring where = strstr(start, value);
 		if (!where) { return false; }
 
-		// @Note: make sure a word has been found, not a substring
 		cstring terminator = where + strlen(value);
 		if (where == start || *(where - 1) == ' ') {
 			if (*terminator == ' ' || *terminator == '\0')
@@ -150,8 +153,8 @@ static void load_extension_functions_through_dummy() {
 }
 #undef LOAD_EXTENSION_FUNCTION
 
-#define CHECK_EXTENSION(name) wgl.name = contains_subword(extensions_string, "WGL_" #name)
-void check_extension_through_dummy(HDC hdc) {
+#define CHECK_EXTENSION(name) wgl.name = contains_full_word(extensions_string, "WGL_" #name)
+static void check_extension_through_dummy(HDC hdc) {
 	cstring extensions_string = wgl_get_extensions_string(hdc);
 	if (!extensions_string) {
 		CUSTOM_ASSERT(false, "failed to load extensions string");
@@ -208,27 +211,11 @@ static void load_extensions(HDC hdc) {
 	wgl.DeleteContext(dummy_hrc);
 }
 
-static void platform_init(HDC hdc) {
-	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
-	if (!opengl_handle) {
-		CUSTOM_ASSERT(false, "can't load " OPENGL_LIBRARY_NAME);
-		return;
-	}
-
-	wgl.instance = opengl_handle;
-	load_opengl_functions();
-	load_extensions(hdc);
-}
-
-static void platform_shutdown() {
-	FreeLibrary(wgl.instance);
-}
-
 #define ADD_ATTRIBUTE_KEY(key) {\
 	CUSTOM_ASSERT(count < cap, "attributes capacity reached");\
 	keys[count++] = key;\
 }
-int add_atribute_keys(int * keys, int cap) {
+static int add_atribute_keys(int * keys, int cap) {
 	int count = 0;
 	ADD_ATTRIBUTE_KEY(WGL_SUPPORT_OPENGL_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
@@ -271,14 +258,15 @@ int add_atribute_keys(int * keys, int cap) {
 }
 #undef ADD_ATTRIBUTE
 
-int choose_pixel_format_arb(HDC hdc) {
+static int choose_pixel_format_arb(HDC hdc) {
 	// https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 	// The number of pixel formats for the device context.
 	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
-	int const attribute = WGL_NUMBER_PIXEL_FORMATS_ARB;
-	int nativeCount;
-	if (!wgl.GetPixelFormatAttribivARB(hdc, NULL, NULL, 1, &attribute, &nativeCount)) {
-		CUSTOM_ASSERT(false, "failed to get pixel format attribute");
+	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
+	int formats_count;
+	if (!wgl.GetPixelFormatAttribivARB(hdc, 0, 0, 1, &formats_request, &formats_count)) {
+		CUSTOM_ASSERT(false, "failed to count pixel formats");
+		return 0;
 	}
 
 	int const attr_cap = 40;
@@ -286,5 +274,91 @@ int choose_pixel_format_arb(HDC hdc) {
 	int attr_vals[attr_cap] = {};
 	int attr_count = add_atribute_keys(attr_keys, attr_cap);
 
+	for (int i = 0; i < formats_count; ++i)
+	{
+		int pixel_format = i + 1;
+		if (!wgl.GetPixelFormatAttribivARB(hdc, pixel_format, 0, attr_count, attr_keys, attr_vals)) {
+			CUSTOM_ASSERT(false, "failed to get pixel format %d values", pixel_format);
+		}
+	}
+
 	return 0;
+}
+
+static int choose_pixel_format_legacy(HDC hdc) {
+	int formats_count = DescribePixelFormat(
+		hdc, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL
+	);
+
+	for (int i = 0; i < formats_count; ++i)
+	{
+	}
+
+	return 0;
+}
+
+static void craete_context(HDC hdc) {
+	int pixel_format;
+	if (wgl.ARB_pixel_format) {
+		pixel_format = choose_pixel_format_arb(hdc);
+	}
+	else {
+		pixel_format = choose_pixel_format_legacy(hdc);
+	}
+
+	PIXELFORMATDESCRIPTOR pfd;
+	if (!DescribePixelFormat(hdc, pixel_format, sizeof(pfd), &pfd)) {
+		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format);
+		return;
+	}
+
+	if (!SetPixelFormat(hdc, pixel_format, &pfd)) {
+		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format);
+		return;
+	}
+
+	int const attr_cap = 40;
+	int attr_pair[attr_cap * 2] = {};
+
+	HGLRC share_hrc = NULL;
+	HGLRC hrc = wgl.CreateContextAttribsARB(hdc, share_hrc, attr_pair);
+	if (!hrc) {
+		DWORD const error = GetLastError();
+		if (bits_are_set(error, ERROR_INVALID_VERSION_ARB)) {
+			CUSTOM_ASSERT(false, "'0x%x' failed to create context: invalid version", error);
+		}
+		else if (bits_are_set(error, ERROR_INVALID_PROFILE_ARB)) {
+			CUSTOM_ASSERT(false, "'0x%x' failed to create context: invalid profile", error);
+		}
+		else if (bits_are_set(error, ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB)) {
+			CUSTOM_ASSERT(false, "'0x%x' failed to create context: incopatible device context", error);
+		}
+		else {
+			CUSTOM_ASSERT(false, "'0x%x' failed to create context: unknown", error);
+		}
+		return;
+	}
+
+	HGLRC hrc_2 = wgl.CreateContext(hdc);
+}
+
+static void platform_init(HDC hdc) {
+	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
+	if (!opengl_handle) {
+		CUSTOM_ASSERT(false, "can't load " OPENGL_LIBRARY_NAME);
+		return;
+	}
+
+	wgl.instance = opengl_handle;
+	load_opengl_functions();
+	load_extensions(hdc);
+
+	craete_context(hdc);
+
+	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
+	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
+}
+
+static void platform_shutdown() {
+	FreeLibrary(wgl.instance);
 }
