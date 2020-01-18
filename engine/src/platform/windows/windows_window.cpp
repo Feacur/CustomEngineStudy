@@ -1,8 +1,7 @@
 #include "custom_pch.h"
-#include "engine/platform/platform_window.h"
 #include "engine/debug/log.h"
-
-#include "windows_opengl_context.h"
+#include "engine/platform/platform_window.h"
+#include "engine/platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>

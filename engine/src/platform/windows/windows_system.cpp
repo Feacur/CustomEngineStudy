@@ -1,6 +1,6 @@
 #include "custom_pch.h"
-#include "engine/platform/platform_system.h"
 #include "engine/debug/log.h"
+#include "engine/platform/platform_system.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
