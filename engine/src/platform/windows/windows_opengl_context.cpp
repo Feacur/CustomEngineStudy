@@ -108,13 +108,13 @@ static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(void);
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings, custom::Pixel_Format * hint);
 static bool platform_swap_interval(HDC hdc, s32);
-static void platform_swap_buffers(HDC hdc, bool doublebuffer);
 
 namespace custom
 {
 	Opengl_Context::Opengl_Context(uptr hdc, custom::Context_Settings * settings, custom::Pixel_Format * hint)
 		: m_hdc(hdc)
 		, m_hrc(NULL)
+		, m_is_vsync(false)
 	{
 		platform_init_wgl();
 
@@ -135,12 +135,19 @@ namespace custom
 	
 	void Opengl_Context::set_vsync(s32 value)
 	{
-		m_is_vsync = platform_swap_interval((HDC)m_hdc, value);
+		if (wgl.pixel_format.doublebuffer) {
+			m_is_vsync = platform_swap_interval((HDC)m_hdc, value);
+		}
 	}
 
 	void Opengl_Context::swap_buffers()
 	{
-		platform_swap_buffers((HDC)m_hdc, wgl.pixel_format.doublebuffer);
+		if (wgl.pixel_format.doublebuffer) {
+			SwapBuffers((HDC)m_hdc);
+		}
+		else {
+			glFlush();
+		}
 	}
 }
 
@@ -399,29 +406,29 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc, custom::Contex
 
 		custom::Pixel_Format pf = {};
 		pf.id = pf_id;
-		pf.redBits      = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
-		pf.greenBits    = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
-		pf.blueBits     = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
-		pf.alphaBits    = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
-		pf.depthBits    = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
-		pf.stencilBits  = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
+		pf.red_bits     = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
+		pf.green_bits   = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
+		pf.blue_bits    = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
+		pf.alpha_bits   = GET_ATTRIBUTE_VALUE(WGL_ALPHA_BITS_ARB);
+		pf.depth_bits   = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
+		pf.stencil_bits = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
 		pf.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
 
 		pf_list[pf_count++] = pf;
 
 		/*
 		Pixel_Format_Aux pfa = {};
-		pfa.redShift   = GET_ATTRIBUTE_VALUE(WGL_RED_SHIFT_ARB);
-		pfa.greenShift = GET_ATTRIBUTE_VALUE(WGL_GREEN_SHIFT_ARB);
-		pfa.blueShift  = GET_ATTRIBUTE_VALUE(WGL_BLUE_SHIFT_ARB);
-		pfa.alphaShift = GET_ATTRIBUTE_VALUE(WGL_ALPHA_SHIFT_ARB);
+		pfa.red_shift   = GET_ATTRIBUTE_VALUE(WGL_RED_SHIFT_ARB);
+		pfa.green_shift = GET_ATTRIBUTE_VALUE(WGL_GREEN_SHIFT_ARB);
+		pfa.blue_shift  = GET_ATTRIBUTE_VALUE(WGL_BLUE_SHIFT_ARB);
+		pfa.alpha_shift = GET_ATTRIBUTE_VALUE(WGL_ALPHA_SHIFT_ARB);
 		//
-		pfa.accumRedBits   = GET_ATTRIBUTE_VALUE(WGL_ACCUM_RED_BITS_ARB);
-		pfa.accumGreenBits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_GREEN_BITS_ARB);
-		pfa.accumBlueBits  = GET_ATTRIBUTE_VALUE(WGL_ACCUM_BLUE_BITS_ARB);
-		pfa.accumAlphaBits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_ALPHA_BITS_ARB);
+		pfa.accum_red_bits   = GET_ATTRIBUTE_VALUE(WGL_ACCUM_RED_BITS_ARB);
+		pfa.accum_green_bits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_GREEN_BITS_ARB);
+		pfa.accum_blue_bits  = GET_ATTRIBUTE_VALUE(WGL_ACCUM_BLUE_BITS_ARB);
+		pfa.accum_alpha_bits = GET_ATTRIBUTE_VALUE(WGL_ACCUM_ALPHA_BITS_ARB);
 		//
-		pfa.auxBuffers = GET_ATTRIBUTE_VALUE(WGL_AUX_BUFFERS_ARB);
+		pfa.aux_buffers = GET_ATTRIBUTE_VALUE(WGL_AUX_BUFFERS_ARB);
 		pfa.samples = GET_ATTRIBUTE_VALUE(WGL_SAMPLES_ARB);
 		//
 		pfa.stereo = GET_ATTRIBUTE_VALUE(WGL_STEREO_ARB);
@@ -464,29 +471,29 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 
 		custom::Pixel_Format pf = {};
 		pf.id = pf_id;
-		pf.redBits      = pfd.cRedBits;
-		pf.greenBits    = pfd.cGreenBits;
-		pf.blueBits     = pfd.cBlueBits;
-		pf.alphaBits    = pfd.cAlphaBits;
-		pf.depthBits    = pfd.cDepthBits;
-		pf.stencilBits  = pfd.cStencilBits;
+		pf.red_bits     = pfd.cRedBits;
+		pf.green_bits   = pfd.cGreenBits;
+		pf.blue_bits    = pfd.cBlueBits;
+		pf.alpha_bits   = pfd.cAlphaBits;
+		pf.depth_bits   = pfd.cDepthBits;
+		pf.stencil_bits = pfd.cStencilBits;
 		pf.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
 
 		pf_list[pf_count++] = pf;
 
 		/*
 		Pixel_Format_Aux pfa = {};
-		pfa.redShift   = pfd.cRedShift;
-		pfa.greenShift = pfd.cGreenShift;
-		pfa.blueShift  = pfd.cBlueShift;
-		pfa.alphaShift = pfd.cAlphaShift;
+		pfa.red_shift   = pfd.cRedShift;
+		pfa.green_shift = pfd.cGreenShift;
+		pfa.blue_shift  = pfd.cBlueShift;
+		pfa.alpha_shift = pfd.cAlphaShift;
 		//
-		pfa.accumRedBits   = pfd.cAccumRedBits;
-		pfa.accumGreenBits = pfd.cAccumGreenBits;
-		pfa.accumBlueBits  = pfd.cAccumBlueBits;
-		pfa.accumAlphaBits = pfd.cAccumAlphaBits;
+		pfa.accum_red_bits   = pfd.cAccumRedBits;
+		pfa.accum_green_bits = pfd.cAccumGreenBits;
+		pfa.accum_blue_bits  = pfd.cAccumBlueBits;
+		pfa.accum_alpha_bits = pfd.cAccumAlphaBits;
 		//
-		pfa.auxBuffers = pfd.cAuxBuffers;
+		pfa.aux_buffers = pfd.cAuxBuffers;
 		pfa.samples = 0;
 		//
 		pfa.stereo = bits_are_set(pfd.dwFlags, PFD_STEREO);
@@ -499,30 +506,56 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	return pf_list;
 }
 
-static int find_best_pixel_format(custom::Pixel_Format * list, custom::Pixel_Format * hint) {
-	custom::Pixel_Format local_hint = *hint;
-	custom::Pixel_Format best_match = {};
-	for (custom::Pixel_Format * pf = list; pf && pf->id; ++pf)
+static inline int get_rgb_distance(custom::Pixel_Format * a, custom::Pixel_Format * b) {
+	int v1 = (a->red_bits   - b->red_bits);
+	int v2 = (a->green_bits - b->green_bits);
+	int v3 = (a->blue_bits  - b->blue_bits);
+	return v1 * v1 + v2 * v2 + v3 * v3;
+}
+
+static inline int get_ads_distance(custom::Pixel_Format * a, custom::Pixel_Format * b) {
+	int v1 = (a->alpha_bits   - b->alpha_bits);
+	int v2 = (a->depth_bits   - b->depth_bits);
+	int v3 = (a->stencil_bits - b->stencil_bits);
+	return v1 * v1 + v2 * v2 + v3 * v3;
+}
+
+static custom::Pixel_Format * find_best_pixel_format(custom::Pixel_Format * list, custom::Pixel_Format * hint) {
+	custom::Pixel_Format * match = list;
+	int match_dist = get_rgb_distance(match, hint)
+	               + get_ads_distance(match, hint);
+	for (custom::Pixel_Format * pf = list + 1; pf && pf->id; ++pf)
 	{
-		if (pf->doublebuffer != local_hint.doublebuffer) { continue; }
+		// @Note: should satisfy minimal requirements
+		if (pf->doublebuffer != hint->doublebuffer) { continue; }
 
-		if (pf->redBits     < local_hint.redBits)     { continue; }
-		if (pf->greenBits   < local_hint.greenBits)   { continue; }
-		if (pf->blueBits    < local_hint.blueBits)    { continue; }
-		if (pf->alphaBits   < local_hint.alphaBits)   { continue; }
-		if (pf->depthBits   < local_hint.depthBits)   { continue; }
-		if (pf->stencilBits < local_hint.stencilBits) { continue; }
+		// @Note: might loosen this restrictions
+		//        GLFW deems hint as a vague target
+		//             * prefers not to miss alpha-depth-stencil bits
+		//             * seeks the closest RGB set
+		//             * seeks the closest alpha-depth-stencil set
+		//        SDL deems hint as the minimum
+		//            * seeks the closest
+		if (pf->red_bits     < hint->red_bits)     { continue; }
+		if (pf->green_bits   < hint->green_bits)   { continue; }
+		if (pf->blue_bits    < hint->blue_bits)    { continue; }
+		if (pf->alpha_bits   < hint->alpha_bits)   { continue; }
+		if (pf->depth_bits   < hint->depth_bits)   { continue; }
+		if (pf->stencil_bits < hint->stencil_bits) { continue; }
 
-		// @Todo: implement/take better algorithm
-		best_match = *pf;
-		break;
+		// @Note: select the closest
+		int pf_dist = get_rgb_distance(pf, hint)
+		            + get_ads_distance(pf, hint);
+		if (pf_dist >= match_dist) { continue; }
+
+		match = pf;
+		match_dist = pf_dist;
 	}
-	*hint = best_match;
-	return (int)best_match.id;
+	return match;
 }
 
 // @Note: might well used built-in ChoosePixelFormatARB(...), too
-static int get_pixel_format(HDC hdc, custom::Context_Settings * settings, custom::Pixel_Format * hint) {
+static custom::Pixel_Format choose_pixel_format(HDC hdc, custom::Context_Settings * settings, custom::Pixel_Format * hint) {
 	custom::Pixel_Format * list;
 	if (wgl.ARB_pixel_format) {
 		list = allocate_pixel_formats_arb(hdc, settings);
@@ -531,11 +564,11 @@ static int get_pixel_format(HDC hdc, custom::Context_Settings * settings, custom
 		list = allocate_pixel_formats_legacy(hdc);
 	}
 
-	if (!list) { return 0; }
-	int pf_id = find_best_pixel_format(list, hint);
+	if (!list) { return {}; }
+	custom::Pixel_Format pf = *find_best_pixel_format(list, hint);
 	free(list);
 
-	return pf_id;
+	return pf;
 }
 
 #define SET_ATTRIBUTE(key, value) {\
@@ -705,20 +738,20 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_S
 		}
 	}
 
-	int pf_id = get_pixel_format(hdc, settings, hint);
-	wgl.pixel_format = *hint;
+	custom::Pixel_Format pf = choose_pixel_format(hdc, settings, hint);
+	wgl.pixel_format = pf;
 
 	PIXELFORMATDESCRIPTOR pfd;
-	if (!DescribePixelFormat(hdc, pf_id, sizeof(pfd), &pfd)) {
+	if (!DescribePixelFormat(hdc, pf.id, sizeof(pfd), &pfd)) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pf_id);
+		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pf.id);
 		return NULL;
 	}
 	wgl.pfd = pfd;
 
-	if (!SetPixelFormat(hdc, pf_id, &pfd)) {
+	if (!SetPixelFormat(hdc, pf.id, &pfd)) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to set pixel format %d", pf_id);
+		CUSTOM_ASSERT(false, "failed to set pixel format %d", pf.id);
 		return NULL;
 	}
 
@@ -742,15 +775,4 @@ static bool platform_swap_interval(HDC hdc, s32 value) {
 		return wgl.SwapIntervalEXT(value);
 	}
 	return false;
-}
-
-static void platform_swap_buffers(HDC hdc, bool doublebuffer) {
-	// https://www.khronos.org/opengl/wiki/Swap_Interval
-	// https://www.khronos.org/opengl/wiki/Common_Mistakes#glFinish_and_glFlush
-	if (wgl.pixel_format.doublebuffer) {
-		SwapBuffers(hdc);
-	}
-	else {
-		glFlush();
-	}
 }

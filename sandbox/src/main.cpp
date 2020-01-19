@@ -38,13 +38,13 @@ int main(int argc, char * argv[]) {
 	context_settings.minor_version = 3;
 
 	custom::Pixel_Format pixel_format_hint = {};
-	pixel_format_hint.redBits      =  8;
-	pixel_format_hint.greenBits    =  8;
-	pixel_format_hint.blueBits     =  8;
-	pixel_format_hint.alphaBits    =  8;
-	pixel_format_hint.depthBits    = 24;
-	pixel_format_hint.stencilBits  =  8;
-	pixel_format_hint.doublebuffer = true;
+	pixel_format_hint.red_bits      =  8;
+	pixel_format_hint.green_bits    =  8;
+	pixel_format_hint.blue_bits     =  8;
+	pixel_format_hint.alpha_bits    =  8;
+	pixel_format_hint.depth_bits    = 24;
+	pixel_format_hint.stencil_bits  =  0;
+	pixel_format_hint.doublebuffer  = true;
 
 	window.init_context(&context_settings, &pixel_format_hint);
 	window.set_vsync(1);
