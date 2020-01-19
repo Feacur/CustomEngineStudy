@@ -4,7 +4,7 @@
 #include "engine/math/linear.h"
 #include "engine/input/key_codes.h"
 #include "engine/input/mouse_codes.h"
-#include "engine/platform/platform_window.h"
+#include "engine/client_api/platform_window.h"
 #include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -40,7 +40,7 @@ namespace custom
 {
 	Window::Window()
 		: should_close(false)
-		, m_rendering_context(nullptr)
+		, m_graphics_context(nullptr)
 	{
 		// @Bug: is this error prone to register a window class like that?
 		static ATOM const window_atom = register_window_class();
@@ -57,35 +57,35 @@ namespace custom
 
 	Window::~Window()
 	{
-		delete m_rendering_context;
-		m_rendering_context = nullptr;
+		delete m_graphics_context;
+		m_graphics_context = nullptr;
 		DestroyWindow((HWND)m_handle);
 		m_handle = 0;
 	}
 
 	void Window::init_context(Context_Settings * settings, Pixel_Format * hint)
 	{
-		if (m_rendering_context) {
+		if (m_graphics_context) {
 			CUSTOM_ASSERT(false, "trying to create a second rendering context");
 			return;
 		}
 		HDC hdc = GetDC((HWND)m_handle);
-		m_rendering_context = new Opengl_Context((uptr)hdc, settings, hint);
+		m_graphics_context = new Opengl_Context((uptr)hdc, settings, hint);
 	}
 
 	void Window::update()
 	{
-		m_rendering_context->swap_buffers();
+		m_graphics_context->swap_buffers();
 	}
 
 	void Window::set_vsync(s32 value)
 	{
-		m_rendering_context->set_vsync(1);
+		m_graphics_context->set_vsync(1);
 	}
 
 	bool Window::is_vsync() const
 	{
-		return m_rendering_context->is_vsync();
+		return m_graphics_context->is_vsync();
 	}
 
 	void Window::set_header(cstring value) const

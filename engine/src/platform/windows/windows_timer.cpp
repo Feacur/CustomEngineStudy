@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/platform/platform_timer.h"
+#include "engine/client_api/platform_timer.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	// #define WIN32_LEAN_AND_MEAN

@@ -1,13 +1,13 @@
 #pragma once
 #include "engine/core/code.h"
-#include "engine/platform/rendering_context.h"
+#include "graphics_context.h"
 
 namespace custom
 {
 	struct Context_Settings;
 	struct Pixel_Format;
 
-	class Opengl_Context : public Rendering_Context
+	class Opengl_Context : public Graphics_Context
 	{
 	public:
 		Opengl_Context(uptr hdc, Context_Settings * settings, Pixel_Format * hint);

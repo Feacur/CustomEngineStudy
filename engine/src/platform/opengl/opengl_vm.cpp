@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/platform/opengl_renderer.h"
+#include "engine/client_api/opengl_vm.h"
 
 #include <glad/glad.h>
 

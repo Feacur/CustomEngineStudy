@@ -12,9 +12,8 @@
 #include "engine/input/key_codes.h"
 #include "engine/input/mouse_codes.h"
 
-#include "engine/platform/platform_system.h"
-#include "engine/platform/platform_timer.h"
-#include "engine/platform/platform_window.h"
-#include "engine/platform/opengl_renderer.h"
-
-#include "engine/platform/rendering_context_settings.h"
+#include "engine/client_api/platform_system.h"
+#include "engine/client_api/platform_timer.h"
+#include "engine/client_api/platform_window.h"
+#include "engine/client_api/graphics_context_settings.h"
+#include "engine/client_api/opengl_vm.h"

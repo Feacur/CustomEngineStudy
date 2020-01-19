@@ -3,7 +3,7 @@
 
 namespace custom
 {
-	class Rendering_Context;
+	class Graphics_Context;
 	struct Context_Settings;
 	struct Pixel_Format;
 
@@ -26,6 +26,6 @@ namespace custom
 
 	private:
 		uptr m_handle;
-		Rendering_Context * m_rendering_context;
+		Graphics_Context * m_graphics_context;
 	};
 }
