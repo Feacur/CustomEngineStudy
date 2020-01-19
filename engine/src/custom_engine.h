@@ -2,6 +2,13 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 
+#include "engine/math/scalar.h"
+#include "engine/math/bitwise.h"
+#include "engine/math/hashing.h"
+#include "engine/math/random.h"
+#include "engine/math/linear.h"
+#include "engine/math/linear_random.h"
+
 #include "engine/platform/platform_system.h"
 #include "engine/platform/platform_timer.h"
 #include "engine/platform/platform_window.h"
