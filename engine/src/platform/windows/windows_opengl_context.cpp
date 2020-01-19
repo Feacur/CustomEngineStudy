@@ -551,6 +551,8 @@ static custom::Pixel_Format * find_best_pixel_format(custom::Pixel_Format * list
 		match = pf;
 		match_dist = pf_dist;
 	}
+	// @Todo: probably then seek for bits only if can't match the requested doublebuffer?
+	//        and then launch loose GLFW-like heuristic? overkill?
 	return match;
 }
 
