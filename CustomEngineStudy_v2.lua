@@ -52,7 +52,10 @@ workspace "CustomEngineStudy_v2"
 		-- }
 
 	filter "system:windows"
-		defines "WIN32_LEAN_AND_MEAN"
+		defines {
+			"WIN32_LEAN_AND_MEAN",
+			"NOMINMAX",
+		}
 
 	filter "kind:StaticLib"
 		defines "CUSTOM_STATIC_LIBRARY"

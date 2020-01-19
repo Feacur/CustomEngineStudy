@@ -46,8 +46,15 @@ typedef uintptr_t uptr;
 #define CUSTOM_FILE_AND_LINE __FILE__ ":" CUSTOM_STRINGIFY_A_MACRO(__LINE__)
 #define C_ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
-#undef min
-#undef max
+#if !defined(__cplusplus)
+	#define constexpr
+#endif
+
+#if !defined(NOMINMAX)
+	// @Note: <Windows.h> leaks junk even with WIN32_LEAN_AND_MEAN
+	#undef min
+	#undef max
+#endif
 
 // OS detection
 #if defined(_WIN64) || defined(_WIN32)

@@ -2,6 +2,8 @@
 #include "engine/core/code.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
+	// #define WIN32_LEAN_AND_MEAN
+	// #define NOMINMAX
 	#include <Windows.h>
 	#include <glad/glad.h>
 #endif
