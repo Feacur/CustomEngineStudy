@@ -1,5 +1,9 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
+#include "engine/math/bitwise.h"
+#include "engine/math/linear.h"
+#include "engine/input/key_codes.h"
+#include "engine/input/mouse_codes.h"
 #include "engine/platform/platform_window.h"
 #include "platform/opengl_context.h"
 
@@ -8,6 +12,17 @@
 	// #define NOMINMAX
 	#include <Windows.h>
 #endif
+
+static ivec2 window_size;
+inline ivec2 get_window_size(HWND window) {
+	RECT client_rect;
+	GetClientRect(window, &client_rect);
+	return {client_rect.right, client_rect.bottom};
+}
+
+#include "windows_input_keyboard.h"
+#include "windows_input_mouse.h"
+#include "windows_input_raw.h"
 
 static LPTSTR const window_class_name = TEXT("custom engine");
 
@@ -32,6 +47,10 @@ namespace custom
 
 		HWND hwnd = create_window();
 		m_handle = (uptr)hwnd;
+
+		#if defined(CUSTOM_FEATURE_RAW_INPUT)
+		raw_input_init(hwnd);
+		#endif
 
 		if (!root_hwnd) { root_hwnd = hwnd; }
 	}
@@ -120,9 +139,11 @@ static HWND create_window(void) {
 // input
 //
 
-static void process_message_raw(HWND hwnd, LPARAM lParam) { /**/ }
-static void process_message_keyboard(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
-static void process_message_mouse(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
+#if !defined(CUSTOM_FEATURE_RAW_INPUT)
+	static void process_message_raw(HWND hwnd, LPARAM lParam) { /**/ }
+#else
+	static void raw_input_callback(HWND window, RAWHID const & data) { /*not implemented*/ }
+#endif
 
 //
 // window procedure callback
@@ -133,7 +154,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
 		case WM_INPUT: {
-			process_message_raw(hwnd, lParam);
+			process_message_raw(hwnd, wParam, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
@@ -207,6 +228,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// https://docs.microsoft.com/en-us/windows/win32/winmsg/window-notifications
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
+			window_size = get_window_size(hwnd);
 			if (wParam == SIZE_MINIMIZED) {
 			}
 			else if (wParam == SIZE_MAXIMIZED) {
@@ -218,11 +240,13 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_SIZING: {
 			// Sent to a window that the user is resizing.
+			window_size = get_window_size(hwnd);
 			return TRUE; // An application should return TRUE if it processes this message.
 		}
 
 		case WM_EXITSIZEMOVE: {
 			// Sent one time to a window, after it has exited the moving or sizing modal loop.
+			window_size = get_window_size(hwnd);
 			return 0; // An application should return zero if it processes this message.
 		} break;
 

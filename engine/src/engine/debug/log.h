@@ -7,9 +7,9 @@
 #endif
 
 #if defined(_MSC_VER)
-	#define FUNCTION_NAME __FUNCTION__
+	#define CUSTOM_FUNCTION_NAME __FUNCTION__
 #else
-	#define FUNCTION_NAME
+	#define CUSTOM_FUNCTION_NAME
 #endif
 
 #define CUSTOM_FORMAT(kind, format) "[" #kind "]: " format "\n\tat: " CUSTOM_FILE_AND_LINE "\n"

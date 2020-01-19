@@ -164,7 +164,7 @@ constexpr inline T bits_to_zero(T container, T bits) { return container & ~bits;
 
 #define SOMEWHAT_A_SINGLETON_BOILERPLATE(type)\
 public:\
-	inline static type & get() { return s_instance; }\
+	static inline type & get() { return s_instance; }\
 private:\
 	static type s_instance;\
 	type();\

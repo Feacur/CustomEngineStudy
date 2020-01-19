@@ -669,6 +669,8 @@ static void platform_init_wgl(void) {
 	wgl.instance = opengl_handle;
 	load_opengl_functions();
 
+	// @Note: should a dummy window class be created here, too?
+
 	// @Note: the reason behind this dummy window
 	// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-setpixelformat
 	// If hdc references a window, calling the SetPixelFormat function also changes the pixel format of the window. Setting the pixel format of a window more than once can lead to significant complications for the Window Manager and for multithread applications, so it is not allowed. An application can only set the pixel format of a window one time. Once a window's pixel format is set, it cannot be changed.

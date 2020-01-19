@@ -96,3 +96,9 @@ static void signal_handler(int value) {
 	}
 	custom::System::get().should_close = true;
 }
+
+// GetSystemMetrics with SM_CXSCREEN and SM_CYSCREEN
+// ivec2 monitor_size = {
+// 	(s32)GetDeviceCaps(device_context, HORZRES),
+// 	(s32)GetDeviceCaps(device_context, VERTRES)
+// };

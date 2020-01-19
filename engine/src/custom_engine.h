@@ -9,6 +9,9 @@
 #include "engine/math/linear.h"
 #include "engine/math/linear_random.h"
 
+#include "engine/input/key_codes.h"
+#include "engine/input/mouse_codes.h"
+
 #include "engine/platform/platform_system.h"
 #include "engine/platform/platform_timer.h"
 #include "engine/platform/platform_window.h"

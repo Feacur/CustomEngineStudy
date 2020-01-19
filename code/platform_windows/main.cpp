@@ -373,7 +373,7 @@ void process_messages(HWND window) {
 }
 
 #if defined(FEATURE_RAW_INPUT)
-void process_raw_input_callback(HWND window, RAWHID const & data) { }
+static void raw_input_callback(HWND window, RAWHID const & data) { }
 #else
 void register_raw_input(HWND window) { }
 void process_raw_input(HWND window, LPARAM lParam) { }
