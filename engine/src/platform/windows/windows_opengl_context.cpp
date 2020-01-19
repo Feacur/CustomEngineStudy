@@ -683,8 +683,7 @@ static HWND create_dummy_window(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
 	HWND hwnd = CreateWindowEx(
 		dwExStyle,
-		// @Note: match with the core window class name
-		TEXT("custom engine"), TEXT(""),
+		TEXT(CUSTOM_WINDOW_CLASS_NAME), TEXT(""),
 		dwStyle,
 		// int X, Y, nWidth, nHeight
 		0, 0, 1, 1,

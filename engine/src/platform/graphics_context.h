@@ -1,6 +1,8 @@
 #pragma once
 #include "engine/core/code.h"
 
+#define CUSTOM_WINDOW_CLASS_NAME "custom engine"
+
 namespace custom
 {
 	class Graphics_Context

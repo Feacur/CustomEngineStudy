@@ -2,8 +2,13 @@
 
 #if defined(CUSTOM_PRECOMPILED_HEADER)
 
+// core
 #include <signal.h>
 
+// vendor
+#include <glad/glad.h>
+
+// platform
 #if defined(_WIN64) || defined(_WIN32)
 	// #define WIN32_LEAN_AND_MEAN
 	// #define NOMINMAX

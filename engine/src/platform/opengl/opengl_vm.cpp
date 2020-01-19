@@ -2,7 +2,9 @@
 #include "engine/debug/log.h"
 #include "engine/client_api/opengl_vm.h"
 
-#include <glad/glad.h>
+#if !defined(CUSTOM_PRECOMPILED_HEADER)
+	#include <glad/glad.h>
+#endif
 
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 

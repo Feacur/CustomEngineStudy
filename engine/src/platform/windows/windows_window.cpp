@@ -24,8 +24,6 @@ inline ivec2 get_window_size(HWND window) {
 #include "windows_input_mouse.h"
 #include "windows_input_raw.h"
 
-static LPTSTR const window_class_name = TEXT("custom engine");
-
 //
 // API implementation
 //
@@ -106,7 +104,7 @@ static ATOM register_window_class(void) {
 	window_class.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	window_class.lpfnWndProc   = window_procedure;
 	window_class.hCursor       = LoadCursor(0, IDC_ARROW);
-	window_class.lpszClassName = window_class_name;
+	window_class.lpszClassName = TEXT(CUSTOM_WINDOW_CLASS_NAME);
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerclassexa
 	ATOM window_class_atom = RegisterClassEx(&window_class);
@@ -125,7 +123,7 @@ static HWND create_window(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
 	HWND hwnd = CreateWindowEx(
 		dwExStyle,
-		window_class_name, TEXT(""),
+		TEXT(CUSTOM_WINDOW_CLASS_NAME), TEXT(""),
 		dwStyle,
 		// int X, Y, nWidth, nHeight
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
