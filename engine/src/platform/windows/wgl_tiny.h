@@ -6,8 +6,8 @@ typedef BOOL  (WINAPI DeleteContext_func)(HGLRC oldContext);
 typedef PROC  (WINAPI GetProcAddress_func)(LPCSTR lpszProc);
 typedef BOOL  (WINAPI MakeCurrent_func)(HDC hDc, HGLRC newContext);
 typedef BOOL  (WINAPI ShareLists_func)(HGLRC hrcSrvShare, HGLRC hrcSrvSource);
-typedef HDC   (WINAPI GetCurrentDC_func)(void);
-typedef HGLRC (WINAPI GetCurrentContext_func)(void);
+// typedef HDC   (WINAPI GetCurrentDC_func)(void);
+// typedef HGLRC (WINAPI GetCurrentContext_func)(void);
 
 // https://www.khronos.org/registry/OpenGL/extensions/EXT
 typedef cstring (WINAPI GetExtensionsStringEXT_func)(void);

@@ -1,6 +1,5 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/platform/platform_window.h"
 #include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -12,6 +11,7 @@
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-pixelformatdescriptor
+// https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/
 
 // https://github.com/glfw/glfw/blob/master/src/wgl_context.c
 // https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
@@ -85,8 +85,8 @@ struct Wgl_Context
 	GetProcAddress_func    * GetProcAddress;
 	MakeCurrent_func       * MakeCurrent;
 	ShareLists_func        * ShareLists;
-	GetCurrentDC_func      * GetCurrentDC;
-	GetCurrentContext_func * GetCurrentContext;
+	// GetCurrentDC_func      * GetCurrentDC;
+	// GetCurrentContext_func * GetCurrentContext;
 
 	// EXT functions
 	GetExtensionsStringEXT_func    * GetExtensionsStringEXT;
@@ -165,17 +165,16 @@ static void log_last_error() {
 static Wgl_Context wgl;
 
 static void * wgl_get_proc_address(cstring name);
-static void platform_init_wgl(HDC dummy_hdc);
-static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
-static void platform_shutdown();
+static void platform_init_wgl(void);
+static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
 static void platform_swap_interval(HDC hdc, s32);
 static void platform_swap_buffers(HDC hdc, bool doublebuffer);
 
 namespace custom
 {
-	Opengl_Context::Opengl_Context(uptr target_graphics_context)
-		: m_target_graphics_context(target_graphics_context)
-		, m_dummy_window(nullptr)
+	Opengl_Context::Opengl_Context(uptr hdc)
+		: m_hdc(hdc)
+		, m_hrc(NULL)
 	{
 		Context_Settings settings = {};
 		settings.api               = Context_Api::OpenGL;
@@ -197,13 +196,11 @@ namespace custom
 		pf_hint.stencilBits  =  8;
 		pf_hint.doublebuffer = true;
 
-		m_dummy_window = new Window(true);
-		HDC dummy_hdc = GetDC((HWND)m_dummy_window->get_handle());
-		platform_init_wgl(dummy_hdc);
+		platform_init_wgl();
 
-		HDC hdc = (HDC)target_graphics_context;
-		platform_create_context(hdc, NULL, settings, pf_hint);
+		m_hrc = (uptr)platform_create_context((HDC)hdc, NULL, settings, pf_hint);
 
+		// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-wglgetprocaddress
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(glad_status, "failed to initialize glad");
@@ -211,21 +208,19 @@ namespace custom
 
 	Opengl_Context::~Opengl_Context()
 	{
-		platform_shutdown();
-		delete m_dummy_window;
-		m_dummy_window = nullptr;
+		wgl.MakeCurrent(NULL, NULL);
+		wgl.DeleteContext((HGLRC)m_hrc);
+		FreeLibrary(wgl.instance);
 	}
 	
 	void Opengl_Context::swap_interval(s32 value)
 	{
-		HDC hdc = (HDC)m_target_graphics_context;
-		platform_swap_interval(hdc, value);
+		platform_swap_interval((HDC)m_hdc, value);
 	}
 
 	void Opengl_Context::swap_buffers()
 	{
-		HDC hdc = (HDC)m_target_graphics_context;
-		platform_swap_buffers(hdc, wgl.pixel_format.doublebuffer);
+		platform_swap_buffers((HDC)m_hdc, wgl.pixel_format.doublebuffer);
 	}
 }
 
@@ -285,13 +280,13 @@ static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(GetProcAddress, true);
 	LOAD_OPENGL_FUNCTION(MakeCurrent,    true);
 	LOAD_OPENGL_FUNCTION(ShareLists,     true);
-	LOAD_OPENGL_FUNCTION(GetCurrentDC,   true);
-	LOAD_OPENGL_FUNCTION(GetCurrentContext, true);
+	// LOAD_OPENGL_FUNCTION(GetCurrentDC,   true);
+	// LOAD_OPENGL_FUNCTION(GetCurrentContext, true);
 }
 #undef LOAD_OPENGL_FUNCTION
 
 #define LOAD_EXTENSION_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
-static void load_extension_functions_through_dummy() {
+static void load_extension_functions() {
 	// EXT functions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
@@ -305,8 +300,8 @@ static void load_extension_functions_through_dummy() {
 #undef LOAD_EXTENSION_FUNCTION
 
 #define CHECK_EXTENSION(name) wgl.name = contains_full_word(extensions_string, "WGL_" #name)
-static void check_extension_through_dummy(HDC dummy_hdc) {
-	cstring extensions_string = wgl_get_extensions_string(dummy_hdc);
+static void check_extension(HDC hdc) {
+	cstring extensions_string = wgl_get_extensions_string(hdc);
 	if (!extensions_string) {
 		CUSTOM_ASSERT(false, "failed to load extensions string");
 		return;
@@ -329,48 +324,45 @@ static void check_extension_through_dummy(HDC dummy_hdc) {
 }
 #undef CHECK_EXTENSION
 
-static void load_extensions(HDC dummy_hdc) {
-	PIXELFORMATDESCRIPTOR dummy_pfd = {};
-	dummy_pfd.nSize        = sizeof(dummy_pfd);
-	dummy_pfd.nVersion     = 1;
-	dummy_pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	dummy_pfd.iPixelType   = PFD_TYPE_RGBA;
-	dummy_pfd.cColorBits   = 8 * 3;
-	// dummy_pfd.cDepthBits   = 8 * 3;
-	// dummy_pfd.cStencilBits = 8 * 1;
+static void load_extensions(HDC hdc) {
+	PIXELFORMATDESCRIPTOR pfd = {};
+	pfd.nSize        = sizeof(pfd);
+	pfd.nVersion     = 1;
+	pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.iPixelType   = PFD_TYPE_RGBA;
+	pfd.cColorBits   = 8 * 3;
+	// pfd.cDepthBits   = 8 * 3;
+	// pfd.cStencilBits = 8 * 1;
 
-	int dummy_pixel_format_id = ChoosePixelFormat(dummy_hdc, &dummy_pfd);
-	if (!dummy_pixel_format_id) {
+	int pixel_format_id = ChoosePixelFormat(hdc, &pfd);
+	if (!pixel_format_id) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to describe dummy pixel format");
+		CUSTOM_ASSERT(false, "failed to describe pixel format");
 		return;
 	}
 
-	if (!SetPixelFormat(dummy_hdc, dummy_pixel_format_id, &dummy_pfd)) {
+	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to set dummy pixel format");
+		CUSTOM_ASSERT(false, "failed to set pixel format");
 		return;
 	}
 
-	HGLRC dummy_hrc = wgl.CreateContext(dummy_hdc);
-	if (!dummy_hrc) {
-		CUSTOM_ASSERT(false, "failed to create dummy rendering context");
+	HGLRC hrc = wgl.CreateContext(hdc);
+	if (!hrc) {
+		CUSTOM_ASSERT(false, "failed to create rendering context");
 		return;
 	}
 
-	HDC current_hdc = wgl.GetCurrentDC();
-	HGLRC current_hrc = wgl.GetCurrentContext();
-
-	if (!wgl.MakeCurrent(dummy_hdc, dummy_hrc)) {
-		CUSTOM_ASSERT(false, "failed to make dummy rendering context the current one");
+	if (!wgl.MakeCurrent(hdc, hrc)) {
+		CUSTOM_ASSERT(false, "failed to make rendering context the current one");
 	}
 	else {
-		load_extension_functions_through_dummy();
-		check_extension_through_dummy(dummy_hdc);
+		load_extension_functions();
+		check_extension(hdc);
 	}
 
-	wgl.MakeCurrent(current_hdc, current_hrc);
-	wgl.DeleteContext(dummy_hrc);
+	wgl.MakeCurrent(NULL, NULL);
+	wgl.DeleteContext(hrc);
 }
 
 #define ADD_ATTRIBUTE_KEY(key) {\
@@ -723,7 +715,29 @@ static HGLRC create_context_legacy(HDC hdc, HGLRC share_hrc) {
 	return hrc;
 }
 
-static void platform_init_wgl(HDC dummy_hdc) {
+static HWND create_dummy_window(void) {
+	DWORD     dwExStyle  = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR;
+	DWORD     dwStyle    = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	HWND      hWndParent = HWND_DESKTOP;
+	HMENU     hMenu      = NULL;
+	HINSTANCE hInstance  = GetModuleHandle(NULL);
+	LPVOID    lpParam    = NULL;
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexa
+	HWND hwnd = CreateWindowEx(
+		dwExStyle,
+		// @Note: match with the core window class name
+		TEXT("custom engine"), TEXT(""),
+		dwStyle,
+		// int X, Y, nWidth, nHeight
+		0, 0, 1, 1,
+		hWndParent, hMenu, hInstance, lpParam
+	);
+	CUSTOM_ASSERT(hwnd, "failed to create window");
+	return hwnd;
+}
+
+static void platform_init_wgl(void) {
 	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
 	if (!opengl_handle) {
 		CUSTOM_ASSERT(false, "failed to load " OPENGL_LIBRARY_NAME);
@@ -732,25 +746,38 @@ static void platform_init_wgl(HDC dummy_hdc) {
 
 	wgl.instance = opengl_handle;
 	load_opengl_functions();
-	load_extensions(dummy_hdc);
+
+	// @Note: the reason behind this dummy window
+	// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-setpixelformat
+	// If hdc references a window, calling the SetPixelFormat function also changes the pixel format of the window. Setting the pixel format of a window more than once can lead to significant complications for the Window Manager and for multithread applications, so it is not allowed. An application can only set the pixel format of a window one time. Once a window's pixel format is set, it cannot be changed.
+	// You should select a pixel format in the device context before calling the wglCreateContext function. The wglCreateContext function creates a rendering context for drawing on the device in the selected pixel format of the device context.
+	// An OpenGL window has its own pixel format. Because of this, only device contexts retrieved for the client area of an OpenGL window are allowed to draw into the window. As a result, an OpenGL window should be created with the WS_CLIPCHILDREN and WS_CLIPSIBLINGS styles. Additionally, the window class attribute should not include the CS_PARENTDC style.
+	HWND hwnd = create_dummy_window();
+	HDC hdc = GetDC(hwnd);
+
+	load_extensions(hdc);
+
+	// @Note: is ReleaseDC necessary here?
+	ReleaseDC(hwnd, hdc);
+	DestroyWindow(hwnd);
 }
 
-static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint) {
+static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint) {
 	if (settings.api == Context_Api::OpenGL) {
 		if (settings.forward && !wgl.ARB_create_context) {
 			CUSTOM_ASSERT(false, "forward compatible OpenGL context requires 'ARB_create_context'");
-			return;
+			return NULL;
 		}
 
 		if (settings.profile_bit && !wgl.ARB_create_context_profile) {
 			CUSTOM_ASSERT(false, "OpenGL profile requires 'ARB_create_context_profile'");
-			return;
+			return NULL;
 		}
 	}
 	else if (settings.api == Context_Api::OpenGL_ES) {
 		if (!wgl.EXT_create_context_es2_profile) {
 			CUSTOM_ASSERT(false, "OpenGL ES requires 'EXT_create_context_es2_profile'");
-			return;
+			return NULL;
 		}
 	}
 
@@ -762,18 +789,16 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings s
 	if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd)) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format_id);
-		return;
+		return NULL;
 	}
 	wgl.pfd = pfd;
 
-	// If hdc references a window, calling the SetPixelFormat function also changes the pixel format of the window. Setting the pixel format of a window more than once can lead to significant complications for the Window Manager and for multithread applications, so it is not allowed. An application can only set the pixel format of a window one time. Once a window's pixel format is set, it cannot be changed.
 	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format_id);
-		return;
+		return NULL;
 	}
 
-	// You should select a pixel format in the device context before calling the wglCreateContext function. The wglCreateContext function creates a rendering context for drawing on the device in the selected pixel format of the device context.
 	HGLRC hrc;
 	if (wgl.ARB_create_context) {
 		hrc = create_context_arb(hdc, share_hrc, settings);
@@ -785,10 +810,8 @@ static void platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings s
 	if (hrc && !wgl.MakeCurrent(hdc, hrc)) {
 		CUSTOM_ASSERT(false, "failed to make context current");
 	}
-}
 
-static void platform_shutdown() {
-	FreeLibrary(wgl.instance);
+	return hrc;
 }
 
 static void platform_swap_interval(HDC hdc, s32 value) {

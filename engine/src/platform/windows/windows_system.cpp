@@ -13,8 +13,8 @@
 // API implementation
 //
 
-static bool platform_poll_events();
-static ULONGLONG platform_get_system_time();
+static bool platform_poll_events(void);
+static ULONGLONG platform_get_system_time(void);
 static void signal_handler(int value);
 
 namespace custom
@@ -51,7 +51,7 @@ namespace custom
 // platform implementation
 //
 
-static bool platform_poll_events() {
+static bool platform_poll_events(void) {
 	bool quit_request = false;
 	MSG message = {};
 	while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
@@ -70,7 +70,7 @@ static bool platform_poll_events() {
 	return quit_request;
 }
 
-static ULONGLONG platform_get_system_time() {
+static ULONGLONG platform_get_system_time(void) {
 	FILETIME file_time;
 	GetSystemTimeAsFileTime(&file_time);
 

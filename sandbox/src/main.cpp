@@ -25,7 +25,7 @@ int main(int argc, char * argv[]) {
 	custom::System & system = custom::System::get();
 	custom::Timer  & timer = custom::Timer::get();
 
-	custom::Window window(false);
+	custom::Window window;
 	window.init_context();
 
 	custom::Opengl_Renderer renderer;

@@ -11,7 +11,7 @@ namespace custom
 		bool should_close;
 
 	public:
-		Window(bool is_dummy);
+		Window();
 		~Window();
 
 		void init_context();
