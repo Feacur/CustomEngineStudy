@@ -20,9 +20,9 @@ namespace custom
 
 		void update();
 
-		void set_header(cstring value);
-
-		uptr $() { return m_handle; }
+		void set_vsync(s32 value);
+		bool is_vsync() const;
+		void set_header(cstring value) const;
 
 	private:
 		uptr m_handle;

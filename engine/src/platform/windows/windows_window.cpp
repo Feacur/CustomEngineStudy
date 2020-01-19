@@ -50,15 +50,24 @@ namespace custom
 		}
 		HDC hdc = GetDC((HWND)m_handle);
 		m_rendering_context = new Opengl_Context((uptr)hdc, settings, hint);
-		m_rendering_context->swap_interval(1);
 	}
 
 	void Window::update()
 	{
 		m_rendering_context->swap_buffers();
 	}
-	
-	void Window::set_header(cstring value)
+
+	void Window::set_vsync(s32 value)
+	{
+		m_rendering_context->set_vsync(1);
+	}
+
+	bool Window::is_vsync() const
+	{
+		return m_rendering_context->is_vsync();
+	}
+
+	void Window::set_header(cstring value) const
 	{
 		SetWindowText((HWND)m_handle, value);
 	}

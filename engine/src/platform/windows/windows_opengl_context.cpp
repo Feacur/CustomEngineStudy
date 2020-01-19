@@ -107,7 +107,7 @@ static Wgl_Context wgl;
 static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(void);
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings, custom::Pixel_Format * hint);
-static void platform_swap_interval(HDC hdc, s32);
+static bool platform_swap_interval(HDC hdc, s32);
 static void platform_swap_buffers(HDC hdc, bool doublebuffer);
 
 namespace custom
@@ -133,9 +133,9 @@ namespace custom
 		FreeLibrary(wgl.instance);
 	}
 	
-	void Opengl_Context::swap_interval(s32 value)
+	void Opengl_Context::set_vsync(s32 value)
 	{
-		platform_swap_interval((HDC)m_hdc, value);
+		m_is_vsync = platform_swap_interval((HDC)m_hdc, value);
 	}
 
 	void Opengl_Context::swap_buffers()
@@ -735,10 +735,11 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_S
 	return hrc;
 }
 
-static void platform_swap_interval(HDC hdc, s32 value) {
+static bool platform_swap_interval(HDC hdc, s32 value) {
 	if (wgl.EXT_swap_control) {
-		wgl.SwapIntervalEXT(value);
+		return wgl.SwapIntervalEXT(value);
 	}
+	return false;
 }
 
 static void platform_swap_buffers(HDC hdc, bool doublebuffer) {

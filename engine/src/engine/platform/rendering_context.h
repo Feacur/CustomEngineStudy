@@ -7,7 +7,8 @@ namespace custom
 	{
 	public:
 		virtual ~Rendering_Context() = default;
-		virtual void swap_interval(s32 value) = 0;
+		virtual void set_vsync(s32 value) = 0;
+		virtual bool is_vsync() const = 0;
 		virtual void swap_buffers() = 0;
 	};
 }

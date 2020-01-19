@@ -18,10 +18,16 @@ static void display_performace(custom::Window & window, u64 duration, u64 precis
 	#define DISPLAY_PERFORMANCE(window, duration, precision)
 #endif
 
-int main(int argc, char * argv[]) {
+static u64 get_last_frame_ticks(custom::Timer & timer, custom::Window const & window) {
 	static u64 const duration  = 16666;
 	static u64 const precision = 1000000;
+	if (window.is_vsync()) {
+		return timer.snapshot();
+	}
+	return timer.wait_next_frame(duration, precision);
+}
 
+int main(int argc, char * argv[]) {
 	custom::System & system = custom::System::get();
 	custom::Timer  & timer = custom::Timer::get();
 
@@ -41,6 +47,7 @@ int main(int argc, char * argv[]) {
 	pixel_format_hint.doublebuffer = true;
 
 	window.init_context(&context_settings, &pixel_format_hint);
+	window.set_vsync(1);
 
 	custom::Opengl_Renderer renderer;
 
@@ -48,8 +55,7 @@ int main(int argc, char * argv[]) {
 	while (true) {
 		if (system.should_close) { break; }
 		if (window.should_close) { break; }
-
-		u64 last_frame_ticks = timer.wait_next_frame(duration, precision);
+		u64 last_frame_ticks = get_last_frame_ticks(timer, window);
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, ticks_per_second);
 		system.update();
 		renderer.update();

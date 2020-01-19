@@ -16,6 +16,7 @@ namespace custom
 	public:
 		~Timer();
 
+		u64 snapshot();
 		u64 wait_next_frame(u64 duration, u64 precision);
 
 		u64 get_ticks_per_second() { return m_ticks_per_second; }

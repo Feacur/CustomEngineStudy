@@ -40,6 +40,15 @@ namespace custom
 
 	Timer::~Timer() = default;
 
+	u64 Timer::snapshot()
+	{
+		u64 current_ticks = (u64)platform_get_counter();
+		u64 frame_ticks = current_ticks - m_frame_start_ticks;
+		m_frame_start_ticks = current_ticks;
+		return frame_ticks;
+
+	}
+
 	u64 Timer::wait_next_frame(u64 duration, u64 precision)
 	{
 		u64 duration_ticks = mul_div(duration, m_ticks_per_second, precision);
