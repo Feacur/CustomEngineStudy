@@ -26,7 +26,21 @@ int main(int argc, char * argv[]) {
 	custom::Timer  & timer = custom::Timer::get();
 
 	custom::Window window;
-	window.init_context();
+
+	custom::Context_Settings context_settings = {};
+	context_settings.major_version = 4;
+	context_settings.minor_version = 3;
+
+	custom::Pixel_Format pixel_format_hint = {};
+	pixel_format_hint.redBits      =  8;
+	pixel_format_hint.greenBits    =  8;
+	pixel_format_hint.blueBits     =  8;
+	pixel_format_hint.alphaBits    =  8;
+	pixel_format_hint.depthBits    = 24;
+	pixel_format_hint.stencilBits  =  8;
+	pixel_format_hint.doublebuffer = true;
+
+	window.init_context(&context_settings, &pixel_format_hint);
 
 	custom::Opengl_Renderer renderer;
 

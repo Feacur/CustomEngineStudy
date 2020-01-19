@@ -1,11 +1,7 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
+#include "engine/platform/rendering_context_settings.h"
 #include "platform/opengl_context.h"
-
-#if !defined(CUSTOM_PRECOMPILED_HEADER)
-	#include <Windows.h>
-	#include <glad/glad.h>
-#endif
 
 #include "wgl_tiny.h"
 
@@ -18,62 +14,6 @@
 // https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
 
 #define OPENGL_LIBRARY_NAME "opengl32.dll"
-
-struct Pixel_Format
-{
-	uptr id;
-	//
-	int  redBits;
-	int  greenBits;
-	int  blueBits;
-	int  alphaBits;
-	//
-	int  depthBits;
-	int  stencilBits;
-	//
-	bool doublebuffer;
-};
-
-struct Pixel_Format_Aux
-{
-	int  redShift;
-	int  greenShift;
-	int  blueShift;
-	int  alphaShift;
-	//
-	int  accumRedBits;
-	int  accumGreenBits;
-	int  accumBlueBits;
-	int  accumAlphaBits;
-	//
-	int  auxBuffers;
-	int  samples;
-	//
-	bool stereo;
-	// bool sRGB;
-	// bool transparent;
-};
-
-enum struct Context_Api
-{
-	OpenGL,
-	OpenGL_ES,
-};
-
-struct Context_Settings
-{
-	Context_Api api;
-	int  forward;
-	int  profile_bit;
-	//
-	int  major_version;
-	int  minor_version;
-	int  robustness;
-	int  release_behaviour;
-	//
-	bool debug;
-	bool opengl_no_error;
-};
 
 struct Wgl_Context
 {
@@ -117,7 +57,7 @@ struct Wgl_Context
 	bool ARB_create_context_profile;
 
 	// current pixel_format
-	Pixel_Format pixel_format;
+	custom::Pixel_Format pixel_format;
 	PIXELFORMATDESCRIPTOR pfd;
 };
 
@@ -166,39 +106,19 @@ static Wgl_Context wgl;
 
 static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(void);
-static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint);
+static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings, custom::Pixel_Format * hint);
 static void platform_swap_interval(HDC hdc, s32);
 static void platform_swap_buffers(HDC hdc, bool doublebuffer);
 
 namespace custom
 {
-	Opengl_Context::Opengl_Context(uptr hdc)
+	Opengl_Context::Opengl_Context(uptr hdc, custom::Context_Settings * settings, custom::Pixel_Format * hint)
 		: m_hdc(hdc)
 		, m_hrc(NULL)
 	{
-		Context_Settings settings = {};
-		settings.api               = Context_Api::OpenGL;
-		settings.forward           = false;
-		settings.profile_bit       = 0; // WGL_CONTEXT_CORE_PROFILE_BIT_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
-		settings.major_version     = 4;
-		settings.minor_version     = 3;
-		settings.robustness        = 0; // WGL_NO_RESET_NOTIFICATION_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB
-		settings.release_behaviour = 0; // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB
-		settings.debug             = false;
-		settings.opengl_no_error   = false;
-
-		Pixel_Format pf_hint = {};
-		pf_hint.redBits      =  8;
-		pf_hint.greenBits    =  8;
-		pf_hint.blueBits     =  8;
-		pf_hint.alphaBits    =  8;
-		pf_hint.depthBits    = 24;
-		pf_hint.stencilBits  =  8;
-		pf_hint.doublebuffer = true;
-
 		platform_init_wgl();
 
-		m_hrc = (uptr)platform_create_context((HDC)hdc, NULL, settings, pf_hint);
+		m_hrc = (uptr)platform_create_context((HDC)hdc, NULL, settings, hint);
 
 		// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-wglgetprocaddress
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
@@ -334,14 +254,14 @@ static void load_extensions(HDC hdc) {
 	// pfd.cDepthBits   = 8 * 3;
 	// pfd.cStencilBits = 8 * 1;
 
-	int pixel_format_id = ChoosePixelFormat(hdc, &pfd);
-	if (!pixel_format_id) {
+	int pf_id = ChoosePixelFormat(hdc, &pfd);
+	if (!pf_id) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to describe pixel format");
 		return;
 	}
 
-	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
+	if (!SetPixelFormat(hdc, pf_id, &pfd)) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to set pixel format");
 		return;
@@ -369,7 +289,7 @@ static void load_extensions(HDC hdc) {
 	CUSTOM_ASSERT(count < cap, "attributes capacity reached");\
 	keys[count++] = key;\
 }
-static int add_atribute_keys(int * keys, int cap, Context_Settings settings) {
+static int add_atribute_keys(int * keys, int cap, custom::Context_Settings * settings) {
 	int count = 0;
 	ADD_ATTRIBUTE_KEY(WGL_SUPPORT_OPENGL_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
@@ -402,12 +322,12 @@ static int add_atribute_keys(int * keys, int cap, Context_Settings settings) {
 		ADD_ATTRIBUTE_KEY(WGL_SAMPLES_ARB);
 	}
 
-	if (settings.api == Context_Api::OpenGL) {
+	if (settings->api == custom::Context_Api::OpenGL) {
 		if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
 			ADD_ATTRIBUTE_KEY(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
 		}
 	}
-	else if (settings.api == Context_Api::OpenGL_ES) {
+	else if (settings->api == custom::Context_Api::OpenGL_ES) {
 		if (wgl.EXT_colorspace) {
 			ADD_ATTRIBUTE_KEY(WGL_COLORSPACE_EXT);
 		}
@@ -425,7 +345,7 @@ int get_value(int * keys, int * vals, int key) {
 }
 
 #define GET_ATTRIBUTE_VALUE(key) get_value(attr_keys, attr_vals, key)
-static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings settings) {
+static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc, custom::Context_Settings * settings) {
 	// The number of pixel formats for the device context.
 	// The <iLayerPlane> and <iPixelFormat> parameters are ignored
 	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
@@ -442,11 +362,11 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 	int attr_count = add_atribute_keys(attr_keys, attr_cap, settings);
 
 	int pf_count = 0;
-	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
+	CREATE_ARRAY(custom::Pixel_Format, formats_count, pf_list);
 	for (int i = 0; i < formats_count; ++i) {
-		int pixel_format_id = i + 1;
-		if (!wgl.GetPixelFormatAttribivARB(hdc, pixel_format_id, 0, attr_count, attr_keys, attr_vals)) {
-			CUSTOM_WARN("failed to get pixel format %d values", pixel_format_id);
+		int pf_id = i + 1;
+		if (!wgl.GetPixelFormatAttribivARB(hdc, pf_id, 0, attr_count, attr_keys, attr_vals)) {
+			CUSTOM_WARN("failed to get pixel format %d values", pf_id);
 			continue;
 		}
 		// should support
@@ -455,14 +375,14 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 		if (GET_ATTRIBUTE_VALUE(WGL_PIXEL_TYPE_ARB) != WGL_TYPE_RGBA_ARB) {
 			continue;
 		}
-		if (settings.api == Context_Api::OpenGL) {
+		if (settings->api == custom::Context_Api::OpenGL) {
 			if (wgl.ARB_framebuffer_sRGB || wgl.EXT_framebuffer_sRGB) {
 				if (!GET_ATTRIBUTE_VALUE(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB)) {
 					continue;
 				}
 			}
 		}
-		else if (settings.api == Context_Api::OpenGL_ES) {
+		else if (settings->api == custom::Context_Api::OpenGL_ES) {
 			if (wgl.EXT_colorspace) {
 				if (GET_ATTRIBUTE_VALUE(WGL_COLORSPACE_EXT) != WGL_COLORSPACE_SRGB_EXT) {
 					continue;
@@ -477,8 +397,8 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 			continue;
 		}
 
-		Pixel_Format pf = {};
-		pf.id = pixel_format_id;
+		custom::Pixel_Format pf = {};
+		pf.id = pf_id;
 		pf.redBits      = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
 		pf.greenBits    = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
 		pf.blueBits     = GET_ATTRIBUTE_VALUE(WGL_BLUE_BITS_ARB);
@@ -487,7 +407,7 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 		pf.stencilBits  = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
 		pf.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
 
-		pixel_formats[pf_count++] = pf;
+		pf_list[pf_count++] = pf;
 
 		/*
 		Pixel_Format_Aux pfa = {};
@@ -509,12 +429,12 @@ static Pixel_Format * allocate_pixel_formats_arb(HDC hdc, Context_Settings setti
 		*/
 	}
 
-	pixel_formats[pf_count].id = NULL;
-	return pixel_formats;
+	pf_list[pf_count].id = NULL;
+	return pf_list;
 }
 #undef GET_ATTRIBUTE_VALUE
 
-static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
+static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	int formats_count = DescribePixelFormat(
 		hdc, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL
 	);
@@ -522,14 +442,14 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	if (!formats_count) { return NULL; }
 
 	int pf_count = 0;
-	CREATE_ARRAY(Pixel_Format, formats_count, pixel_formats);
+	CREATE_ARRAY(custom::Pixel_Format, formats_count, pf_list);
 	for (int i = 0; i < formats_count; ++i) {
-		int pixel_format_id = i + 1;
+		int pf_id = i + 1;
 		PIXELFORMATDESCRIPTOR pfd;
-		if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd))
+		if (!DescribePixelFormat(hdc, pf_id, sizeof(pfd), &pfd))
 		{
 			LOG_LAST_ERROR();
-			CUSTOM_WARN("failed to describe pixel format %d", pixel_format_id);
+			CUSTOM_WARN("failed to describe pixel format %d", pf_id);
 			continue;
 		}
 		// should support
@@ -542,8 +462,8 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		if (bits_are_set(pfd.dwFlags, PFD_SUPPORT_GDI)) { continue; }
 		if (bits_are_set(pfd.dwFlags, PFD_GENERIC_FORMAT)) { continue; }
 
-		Pixel_Format pf = {};
-		pf.id = pixel_format_id;
+		custom::Pixel_Format pf = {};
+		pf.id = pf_id;
 		pf.redBits      = pfd.cRedBits;
 		pf.greenBits    = pfd.cGreenBits;
 		pf.blueBits     = pfd.cBlueBits;
@@ -552,7 +472,7 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		pf.stencilBits  = pfd.cStencilBits;
 		pf.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
 
-		pixel_formats[pf_count++] = pf;
+		pf_list[pf_count++] = pf;
 
 		/*
 		Pixel_Format_Aux pfa = {};
@@ -575,45 +495,47 @@ static Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		*/
 	}
 
-	pixel_formats[pf_count].id = NULL;
-	return pixel_formats;
+	pf_list[pf_count].id = NULL;
+	return pf_list;
 }
 
-static int find_best_pixel_format(Pixel_Format * formats, Pixel_Format pf_hint, Pixel_Format * out) {
-	Pixel_Format best_match = {};
-	for (Pixel_Format * format = formats; format && format->id; ++format)
+static int find_best_pixel_format(custom::Pixel_Format * list, custom::Pixel_Format * hint) {
+	custom::Pixel_Format local_hint = *hint;
+	custom::Pixel_Format best_match = {};
+	for (custom::Pixel_Format * pf = list; pf && pf->id; ++pf)
 	{
-		if (format->doublebuffer != pf_hint.doublebuffer) { continue; }
+		if (pf->doublebuffer != local_hint.doublebuffer) { continue; }
 
-		if (format->redBits     < pf_hint.redBits)     { continue; }
-		if (format->greenBits   < pf_hint.greenBits)   { continue; }
-		if (format->blueBits    < pf_hint.blueBits)    { continue; }
-		if (format->alphaBits   < pf_hint.alphaBits)   { continue; }
-		if (format->depthBits   < pf_hint.depthBits)   { continue; }
-		if (format->stencilBits < pf_hint.stencilBits) { continue; }
+		if (pf->redBits     < local_hint.redBits)     { continue; }
+		if (pf->greenBits   < local_hint.greenBits)   { continue; }
+		if (pf->blueBits    < local_hint.blueBits)    { continue; }
+		if (pf->alphaBits   < local_hint.alphaBits)   { continue; }
+		if (pf->depthBits   < local_hint.depthBits)   { continue; }
+		if (pf->stencilBits < local_hint.stencilBits) { continue; }
 
 		// @Todo: implement/take better algorithm
-		best_match = *format;
+		best_match = *pf;
 		break;
 	}
-	if (out) { *out = best_match; }
+	*hint = best_match;
 	return (int)best_match.id;
 }
 
-static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings settings, Pixel_Format * out) {
-	Pixel_Format * pixel_formats;
+// @Note: might well used built-in ChoosePixelFormatARB(...), too
+static int get_pixel_format(HDC hdc, custom::Context_Settings * settings, custom::Pixel_Format * hint) {
+	custom::Pixel_Format * list;
 	if (wgl.ARB_pixel_format) {
-		pixel_formats = allocate_pixel_formats_arb(hdc, settings);
+		list = allocate_pixel_formats_arb(hdc, settings);
 	}
 	else {
-		pixel_formats = allocate_pixel_formats_legacy(hdc);
+		list = allocate_pixel_formats_legacy(hdc);
 	}
 
-	if (!pixel_formats) { return 0; }
-	int pixel_format_id = find_best_pixel_format(pixel_formats, pf_hint, out);
-	free(pixel_formats);
+	if (!list) { return 0; }
+	int pf_id = find_best_pixel_format(list, hint);
+	free(list);
 
-	return pixel_format_id;
+	return pf_id;
 }
 
 #define SET_ATTRIBUTE(key, value) {\
@@ -621,7 +543,7 @@ static int get_pixel_format(HDC hdc, Pixel_Format pf_hint, Context_Settings sett
 	attr_pair[attr_count++] = key;\
 	attr_pair[attr_count++] = value;\
 }
-static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, Context_Settings settings) {
+static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings) {
 	int const attr_cap = 64 * 2;
 	int attr_pair[attr_cap] = {};
 	int attr_count = 0;
@@ -629,43 +551,43 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, Context_Settings setti
 	int profile_mask = 0;
 	int context_flags = 0;
 
-	if (settings.api == Context_Api::OpenGL) {
-		if (settings.forward) {
+	if (settings->api == custom::Context_Api::OpenGL) {
+		if (settings->forward) {
 			context_flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 		}
-		if (settings.profile_bit) {
-			profile_mask |= settings.profile_bit;
+		if (settings->profile_bit) {
+			profile_mask |= settings->profile_bit;
 		}
 	}
-	else if (settings.api == Context_Api::OpenGL_ES) {
+	else if (settings->api == custom::Context_Api::OpenGL_ES) {
 		profile_mask |= WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
 	}
 
-	if (settings.major_version != 1 || settings.minor_version != 0) {
-		SET_ATTRIBUTE(WGL_CONTEXT_MAJOR_VERSION_ARB, settings.major_version);
-		SET_ATTRIBUTE(WGL_CONTEXT_MINOR_VERSION_ARB, settings.minor_version);
+	if (settings->major_version != 1 || settings->minor_version != 0) {
+		SET_ATTRIBUTE(WGL_CONTEXT_MAJOR_VERSION_ARB, settings->major_version);
+		SET_ATTRIBUTE(WGL_CONTEXT_MINOR_VERSION_ARB, settings->minor_version);
 	}
 
-	if (settings.robustness && wgl.ARB_create_context_robustness) {
+	if (settings->robustness && wgl.ARB_create_context_robustness) {
 		SET_ATTRIBUTE(
 			WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
-			settings.robustness
+			settings->robustness
 		);
 		context_flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
 	}
 
-	if (settings.release_behaviour && wgl.ARB_context_flush_control) {
+	if (settings->release_behaviour && wgl.ARB_context_flush_control) {
 		SET_ATTRIBUTE(
 			WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
-			settings.release_behaviour
+			settings->release_behaviour
 		);
 	}
 
-	if (settings.debug) {
+	if (settings->debug) {
 		context_flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
 	}
 
-	if (settings.opengl_no_error && wgl.ARB_create_context_no_error) {
+	if (settings->opengl_no_error && wgl.ARB_create_context_no_error) {
 		SET_ATTRIBUTE(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, true);
 	}
 
@@ -762,40 +684,39 @@ static void platform_init_wgl(void) {
 	DestroyWindow(hwnd);
 }
 
-static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, Context_Settings settings, Pixel_Format pf_hint) {
-	if (settings.api == Context_Api::OpenGL) {
-		if (settings.forward && !wgl.ARB_create_context) {
+static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings, custom::Pixel_Format * hint) {
+	if (settings->api == custom::Context_Api::OpenGL) {
+		if (settings->forward && !wgl.ARB_create_context) {
 			CUSTOM_ASSERT(false, "forward compatible OpenGL context requires 'ARB_create_context'");
 			return NULL;
 		}
 
-		if (settings.profile_bit && !wgl.ARB_create_context_profile) {
+		if (settings->profile_bit && !wgl.ARB_create_context_profile) {
 			CUSTOM_ASSERT(false, "OpenGL profile requires 'ARB_create_context_profile'");
 			return NULL;
 		}
 	}
-	else if (settings.api == Context_Api::OpenGL_ES) {
+	else if (settings->api == custom::Context_Api::OpenGL_ES) {
 		if (!wgl.EXT_create_context_es2_profile) {
 			CUSTOM_ASSERT(false, "OpenGL ES requires 'EXT_create_context_es2_profile'");
 			return NULL;
 		}
 	}
 
-	Pixel_Format pixel_format = {};
-	int pixel_format_id = get_pixel_format(hdc, pf_hint, settings, &pixel_format);
-	wgl.pixel_format = pixel_format;
+	int pf_id = get_pixel_format(hdc, settings, hint);
+	wgl.pixel_format = *hint;
 
 	PIXELFORMATDESCRIPTOR pfd;
-	if (!DescribePixelFormat(hdc, pixel_format_id, sizeof(pfd), &pfd)) {
+	if (!DescribePixelFormat(hdc, pf_id, sizeof(pfd), &pfd)) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pixel_format_id);
+		CUSTOM_ASSERT(false, "failed to describe pixel format %d", pf_id);
 		return NULL;
 	}
 	wgl.pfd = pfd;
 
-	if (!SetPixelFormat(hdc, pixel_format_id, &pfd)) {
+	if (!SetPixelFormat(hdc, pf_id, &pfd)) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to set pixel format %d", pixel_format_id);
+		CUSTOM_ASSERT(false, "failed to set pixel format %d", pf_id);
 		return NULL;
 	}
 

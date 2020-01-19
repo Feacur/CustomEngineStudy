@@ -4,7 +4,9 @@
 namespace custom
 {
 	class Rendering_Context;
- 
+	struct Context_Settings;
+	struct Pixel_Format;
+
 	class Window
 	{
 	public:
@@ -14,13 +16,13 @@ namespace custom
 		Window();
 		~Window();
 
-		void init_context();
+		void init_context(Context_Settings * settings, Pixel_Format * hint);
 
 		void update();
 
 		void set_header(cstring value);
 
-		uptr get_handle() { return m_handle; }
+		uptr $() { return m_handle; }
 
 	private:
 		uptr m_handle;

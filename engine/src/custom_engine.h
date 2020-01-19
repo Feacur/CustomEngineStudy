@@ -6,3 +6,5 @@
 #include "engine/platform/platform_timer.h"
 #include "engine/platform/platform_window.h"
 #include "engine/platform/opengl_renderer.h"
+
+#include "engine/platform/rendering_context_settings.h"

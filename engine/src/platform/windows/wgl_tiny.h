@@ -1,4 +1,10 @@
 #pragma once
+#include "engine/core/code.h"
+
+#if !defined(CUSTOM_PRECOMPILED_HEADER)
+	#include <Windows.h>
+	#include <glad/glad.h>
+#endif
 
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/
 typedef HGLRC (WINAPI CreateContext_func)(HDC hDc);

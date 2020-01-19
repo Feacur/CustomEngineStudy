@@ -42,14 +42,14 @@ namespace custom
 		m_handle = 0;
 	}
 
-	void Window::init_context()
+	void Window::init_context(Context_Settings * settings, Pixel_Format * hint)
 	{
 		if (m_rendering_context) {
 			CUSTOM_ASSERT(false, "trying to create a second rendering context");
 			return;
 		}
 		HDC hdc = GetDC((HWND)m_handle);
-		m_rendering_context = new Opengl_Context((uptr)hdc);
+		m_rendering_context = new Opengl_Context((uptr)hdc, settings, hint);
 		m_rendering_context->swap_interval(1);
 	}
 
