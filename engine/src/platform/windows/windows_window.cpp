@@ -20,9 +20,9 @@ inline ivec2 get_window_size(HWND window) {
 	return {client_rect.right, client_rect.bottom};
 }
 
+#include "windows_input_raw.h"
 #include "windows_input_keyboard.h"
 #include "windows_input_mouse.h"
-#include "windows_input_raw.h"
 
 //
 // API implementation
@@ -138,7 +138,7 @@ static HWND create_window(void) {
 //
 
 #if !defined(CUSTOM_FEATURE_RAW_INPUT)
-	static void process_message_raw(HWND hwnd, LPARAM lParam) { /**/ }
+	static void process_message_raw(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
 #else
 	static void raw_input_callback(HWND window, RAWHID const & data) { /*not implemented*/ }
 #endif
