@@ -66,7 +66,7 @@ static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 }
 
 #if !defined(CUSTOM_SHIPPING)
-static void log_last_error() {
+static void log_last_error(cstring source) {
 	DWORD const error = GetLastError();
 	if (!error) { return; }
 
@@ -82,14 +82,14 @@ static void log_last_error() {
 	);
 
 	if (size) {
-		CUSTOM_ERROR("'0x%x' system error: %s", error, message_buffer);
+		CUSTOM_ERROR("'0x%x' system error: %s\n\tlog source: %s", error, message_buffer, source);
 		LocalFree(message_buffer);
 	}
 	else {
-		CUSTOM_ERROR("'0x%x' system error: unknown", error);
+		CUSTOM_ERROR("'0x%x' system error: unknown\n\tlog source: %s", error, source);
 	}
 }
-	#define LOG_LAST_ERROR() log_last_error()
+	#define LOG_LAST_ERROR() log_last_error(CUSTOM_FILE_AND_LINE)
 #else
 	#define LOG_LAST_ERROR()
 #endif
@@ -161,6 +161,7 @@ static void * wgl_get_proc_address(cstring name) {
 	if (!address) {
 		address = GetProcAddress(wgl.instance, name);
 	}
+	// if (!address) { CUSTOM_WARN("missing an OpenGL function: %s", name); }
 	return address;
 }
 
