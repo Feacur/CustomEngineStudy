@@ -128,9 +128,9 @@ namespace custom
 
 	Opengl_Context::~Opengl_Context()
 	{
-		wgl.MakeCurrent(NULL, NULL);
-		wgl.DeleteContext((HGLRC)m_hrc);
-		FreeLibrary(wgl.instance);
+		wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
+		wgl.DeleteContext((HGLRC)m_hrc); LOG_LAST_ERROR();
+		FreeLibrary(wgl.instance); LOG_LAST_ERROR();
 	}
 	
 	void Opengl_Context::set_vsync(s32 value)
@@ -275,7 +275,7 @@ static void load_extensions(HDC hdc) {
 		return;
 	}
 
-	HGLRC hrc = wgl.CreateContext(hdc);
+	HGLRC hrc = wgl.CreateContext(hdc); LOG_LAST_ERROR();
 	if (!hrc) {
 		CUSTOM_ASSERT(false, "failed to create rendering context");
 		return;
@@ -287,10 +287,10 @@ static void load_extensions(HDC hdc) {
 	else {
 		load_extension_functions();
 		check_extension(hdc);
-	}
+	} LOG_LAST_ERROR();
 
-	wgl.MakeCurrent(NULL, NULL);
-	wgl.DeleteContext(hrc);
+	wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
+	wgl.DeleteContext(hrc); LOG_LAST_ERROR();
 }
 
 #define ADD_ATTRIBUTE_KEY(key) {\
@@ -359,6 +359,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc, custom::Contex
 	int const formats_request = WGL_NUMBER_PIXEL_FORMATS_ARB;
 	int formats_count;
 	if (!wgl.GetPixelFormatAttribivARB(hdc, 0, 0, 1, &formats_request, &formats_count)) {
+		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to count pixel formats");
 		return NULL;
 	}
@@ -374,6 +375,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc, custom::Contex
 	for (int i = 0; i < formats_count; ++i) {
 		int pf_id = i + 1;
 		if (!wgl.GetPixelFormatAttribivARB(hdc, pf_id, 0, attr_count, attr_keys, attr_vals)) {
+			LOG_LAST_ERROR();
 			CUSTOM_WARN("failed to get pixel format %d values", pf_id);
 			continue;
 		}
@@ -653,13 +655,16 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc, custom::Context_Settin
 			CUSTOM_ASSERT(false, "'0x%x' failed to create context: unknown", error);
 		}
 		return NULL;
-	}
+	} LOG_LAST_ERROR();
 
 	return hrc;
 }
 #undef SET_ATTRIBUTE
 
 static HGLRC create_context_legacy(HDC hdc, HGLRC share_hrc) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-wglcreatecontext
+	// A rendering context is not the same as a device context. Set the pixel format of the device context before creating a rendering context. For more information on setting the device context's pixel format, see the SetPixelFormat function.
+	// To use OpenGL, you create a rendering context, select it as a thread's current rendering context, and then call OpenGL functions. When you are finished with the rendering context, you dispose of it by calling the wglDeleteContext function.
 	HGLRC hrc = wgl.CreateContext(hdc);
 	if (!hrc) {
 		CUSTOM_ASSERT(false, "failed to create context");
@@ -697,6 +702,7 @@ static HWND create_dummy_window(void) {
 static void platform_init_wgl(void) {
 	HINSTANCE opengl_handle = LoadLibrary(TEXT(OPENGL_LIBRARY_NAME));
 	if (!opengl_handle) {
+		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to load " OPENGL_LIBRARY_NAME);
 		return;
 	}
@@ -717,8 +723,8 @@ static void platform_init_wgl(void) {
 	load_extensions(hdc);
 
 	// @Note: is ReleaseDC necessary here?
-	ReleaseDC(hwnd, hdc);
-	DestroyWindow(hwnd);
+	ReleaseDC(hwnd, hdc); LOG_LAST_ERROR();
+	DestroyWindow(hwnd); LOG_LAST_ERROR();
 }
 
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_Settings * settings, custom::Pixel_Format * hint) {
@@ -765,9 +771,20 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc, custom::Context_S
 		hrc = create_context_legacy(hdc, share_hrc);
 	}
 
+	// https://docs.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-wglmakecurrent
+	// The hdc parameter must refer to a drawing surface supported by OpenGL. It need not be the same hdc that was passed to wglCreateContext when hglrc was created, but it must be on the same device and have the same pixel format. GDI transformation and clipping in hdc are not supported by the rendering context. The current rendering context uses the hdc device context until the rendering context is no longer current.
+	// Before switching to the new rendering context, OpenGL flushes any previous rendering context that was current to the calling thread.
+	// A thread can have one current rendering context. A process can have multiple rendering contexts by means of multithreading. A thread must set a current rendering context before calling any OpenGL functions. Otherwise, all OpenGL calls are ignored.
+	// A rendering context can be current to only one thread at a time. You cannot make a rendering context current to multiple threads.
+	// An application can perform multithread drawing by making different rendering contexts current to different threads, supplying each thread with its own rendering context and device context.
+	// If an error occurs, the wglMakeCurrent function makes the thread's current rendering context not current before returning.
 	if (hrc && !wgl.MakeCurrent(hdc, hrc)) {
+		LOG_LAST_ERROR();
+		wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
+		wgl.DeleteContext(hrc); LOG_LAST_ERROR();
+		hrc = NULL;
 		CUSTOM_ASSERT(false, "failed to make context current");
-	}
+	} LOG_LAST_ERROR();
 
 	return hrc;
 }
