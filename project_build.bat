@@ -1,5 +1,6 @@
 @echo off
 
+rem https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=vs-2019
 rem https://docs.microsoft.com/en-us/cpp/build/reference/compiling-a-c-cpp-program?view=vs-2019
 rem https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=vs-2019
 rem https://docs.microsoft.com/en-us/cpp/build/reference/lib-reference?view=vs-2019
@@ -16,10 +17,11 @@ rem read batch file arguments
 set compilation_unit=%1
 set target_name=%2
 set kind=%3
-set architecture=%4
-set configuration=%5
-set defines=%6
-set libraries=%7
+set architecture_compiler=%4
+set architecture_target=%5
+set configuration=%6
+set defines=%7
+set libraries=%8
 
 if [%compilation_unit%] == [] (
 	echo provide compilation unit [*.cpp]
@@ -36,8 +38,13 @@ if [%kind%] == [] (
 	exit /b 0
 )
 
-if [%architecture%] == [] (
-	echo provide architecture [x64, x86]
+if [%architecture_compiler%] == [] (
+	echo provide architecture_compiler [x64, x86]
+	exit /b 0
+)
+
+if [%architecture_target%] == [] (
+	echo provide architecture_target [x64, x86, arm, arm64]
 	exit /b 0
 )
 
@@ -58,7 +65,8 @@ rem clean batch file arguments
 set compilation_unit=%compilation_unit:"=%
 set target_name=%target_name:"=%
 set kind=%kind:"=%
-set architecture=%architecture:"=%
+set architecture_compiler=%architecture_compiler:"=%
+set architecture_target=%architecture_target:"=%
 set configuration=%configuration:"=%
 set defines=%defines:"=%
 set libraries=%libraries:"=%
@@ -271,7 +279,7 @@ if %kind% == SharedLib (
 	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
 )
 set linker=%linker% -WX
-set linker=%linker% -MACHINE:%architecture:x=X%
+set linker=%linker% -MACHINE:%architecture_target:x=X%
 
 rem set linker=%linker% -MANIFEST:EMBED
 rem set linker=%linker% -MANIFESTUAC:"level='asInvoker' uiAccess='false'"
@@ -324,9 +332,9 @@ if %kind% == StaticLib (
 	rem use int main(...) { }
 	rem set linker=%linker% -ENTRY:mainCRTStartup
 	rem set linker=%linker% -ENTRY:wmainCRTStartu
-	if %architecture% == x64 (
+	if %architecture_target% == x64 (
 		set linker=%linker% -SUBSYSTEM:CONSOLE,5.02
-	) else if %architecture% == x86 (
+	) else if %architecture_target% == x86 (
 		set linker=%linker% -SUBSYSTEM:CONSOLE,5.01
 	) else (
 		set linker=%linker% -SUBSYSTEM:CONSOLE
@@ -335,9 +343,9 @@ if %kind% == StaticLib (
 	rem use int __stdcall WinMain(...) { }
 	rem set linker=%linker% -ENTRY:WinMainCRTStartup
 	rem set linker=%linker% -ENTRY:wWinMainCRTStartup
-	if %architecture% == x64 (
+	if %architecture_target% == x64 (
 		set linker=%linker% -SUBSYSTEM:WINDOWS,5.02
-	) else if %architecture% == x86 (
+	) else if %architecture_target% == x86 (
 		set linker=%linker% -SUBSYSTEM:WINDOWS,5.01
 	) else (
 		set linker=%linker% -SUBSYSTEM:WINDOWS
@@ -351,7 +359,7 @@ set lib_manager=-NOLOGO
 set lib_manager=%lib_manager% "%intermediate_location%\*.obj"
 set lib_manager=%lib_manager% -OUT:"%target_location%\%target_name%.lib"
 set lib_manager=%lib_manager% -WX
-set lib_manager=%lib_manager% -MACHINE:%architecture:x=X%
+set lib_manager=%lib_manager% -MACHINE:%architecture_target:x=X%
 
 rem //
 rem // >> CL
@@ -369,7 +377,11 @@ rem popd
 
 rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
-call "vcvarsall.bat" %architecture%
+if %architecture_compiler% == %architecture_target% (
+	call "vcvarsall.bat" %architecture_compiler%
+) else (
+	call "vcvarsall.bat" %architecture_compiler%_%architecture_target%
+)
 popd
 
 rem -showIncludes: List Include Files

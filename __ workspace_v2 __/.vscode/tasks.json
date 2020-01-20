@@ -13,7 +13,7 @@
             "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
                 "CustomEngineStudy_v2.sln",
-                "x64", "Shipping",
+                "x64", "x64", "Shipping",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -27,7 +27,7 @@
             "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
                 "CustomEngineStudy_v2.sln",
-                "x64", "Development",
+                "x64", "x64", "Development",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",
@@ -41,7 +41,7 @@
             "command": "${workspaceFolder}/../solution_build.bat",
             "args": [
                 "CustomEngineStudy_v2.sln",
-                "x64", "Debug",
+                "x64", "x64", "Debug",
             ],
             "problemMatcher": "$msCompile",
             "type": "shell",

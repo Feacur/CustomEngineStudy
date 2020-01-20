@@ -14,7 +14,7 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Shipping",
+                "ConsoleApp", "x64", "x64", "Shipping",
                 "", // defines
                 "", // libraries
             ],
@@ -31,7 +31,7 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Development",
+                "ConsoleApp", "x64", "x64", "Development",
                 "", // defines
                 "", // libraries
             ],
@@ -48,7 +48,7 @@
             "args": [
                 "${workspaceFolder}/main.c",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Debug",
+                "ConsoleApp", "x64", "x64", "Debug",
                 "", // defines
                 "", // libraries
             ],

@@ -14,7 +14,7 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Shipping",
+                "ConsoleApp", "x64", "x64", "Shipping",
                 "-D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib",
             ],
@@ -31,7 +31,7 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Development",
+                "ConsoleApp", "x64", "x64", "Development",
                 "-D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib",
             ],
@@ -48,7 +48,7 @@
             "args": [
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolderBasename}",
-                "ConsoleApp", "x64", "Debug",
+                "ConsoleApp", "x64", "x64", "Debug",
                 "-D WIN32_LEAN_AND_MEAN",
                 "user32.lib gdi32.lib",
             ],

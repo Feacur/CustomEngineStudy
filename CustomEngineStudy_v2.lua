@@ -2,7 +2,7 @@ include "./premake5_customizations.lua"
 
 workspace "CustomEngineStudy_v2"
 	-- toolset ("msc")
-	architecture "x86_64"
+	architecture "x86_64" -- x86, x86_64, ARM
 	systemversion "latest"
 	startproject "sandbox"
 	warnings "Extra"
