@@ -7,10 +7,12 @@ namespace custom
 	struct Context_Settings;
 	struct Pixel_Format;
 
+	// @Note: a C++ class - probably better using std::shared_ptr<T>
+	//        otherwise it's just "risky" to give out an instance
 	class Window
 	{
 	public:
-		bool should_close;
+		static bool should_close;
 
 	public:
 		Window();

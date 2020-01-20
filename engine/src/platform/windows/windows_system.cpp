@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/client_api/platform_system.h"
+#include "engine/api/system.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	// #define WIN32_LEAN_AND_MEAN
@@ -21,11 +21,7 @@ static void signal_handler(int value);
 
 namespace custom
 {
-	System System::s_instance;
-
-	System::System()
-		: should_close(false)
-	{
+	void system_init() {
 		signal(SIGABRT, signal_handler);
 		// signal(SIGFPE, SIG_DFL);
 		// signal(SIGILL, SIG_DFL);
@@ -34,15 +30,13 @@ namespace custom
 		signal(SIGTERM, signal_handler);
 	}
 
-	System::~System() = default;
-
-	void System::update()
+	void system_update()
 	{
 		bool quit_request = platform_poll_events();
-		if (quit_request) { should_close = true; }
+		if (quit_request) { system.should_close = true; }
 	}
 
-	u64 System::get_system_time()
+	u64 system_get_time()
 	{
 		ULONGLONG system_time = platform_get_system_time();
 		return (u64)system_time;
@@ -94,7 +88,7 @@ static void signal_handler(int value) {
 		case SIGTERM: CUSTOM_ERROR("Terminate signal");         break; // Termination request sent to program.
 		default:      CUSTOM_ERROR("Unknown signal");           break; // ?
 	}
-	custom::System::get().should_close = true;
+	custom::system.should_close = true;
 }
 
 // GetSystemMetrics with SM_CXSCREEN and SM_CYSCREEN

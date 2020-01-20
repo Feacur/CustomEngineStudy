@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/client_api/opengl_vm.h"
+#include "engine/api/rendering_vm.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
@@ -21,7 +21,7 @@ static void opengl_message_callback(
 
 namespace custom
 {
-	Opengl_Renderer::Opengl_Renderer()
+	Rendering_VM::Rendering_VM()
 	{
 		#if !defined(GES_SHIPPING)
 			glEnable(GL_DEBUG_OUTPUT);
@@ -45,9 +45,9 @@ namespace custom
 		// glCullFace(GL_BACK);
 	}
 
-	Opengl_Renderer::~Opengl_Renderer() = default;
+	Rendering_VM::~Rendering_VM() = default;
 
-	void Opengl_Renderer::update()
+	void Rendering_VM::update()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}

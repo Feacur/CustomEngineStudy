@@ -3,11 +3,11 @@
 
 namespace custom
 {
-	class Opengl_Renderer
+	class Rendering_VM
 	{
 	public:
-		Opengl_Renderer();
-		~Opengl_Renderer();
+		Rendering_VM();
+		~Rendering_VM();
 
 		void update();
 	};

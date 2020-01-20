@@ -5,7 +5,7 @@ namespace custom
 {
 	enum struct Mouse_Code : u8 {
 		None,
-		Key1, Key2, Key3,
+		Key1, Key2, Key3, Key4, Key5,
 		Last
 	};
 	UNDERLYING_TYPE_META(Mouse_Code, u8)

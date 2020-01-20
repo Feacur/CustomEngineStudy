@@ -3,6 +3,7 @@
 
 namespace custom
 {
+	// @Note: too OpenGL-specific, I suppose?
 	enum struct Context_Api
 	{
 		OpenGL,

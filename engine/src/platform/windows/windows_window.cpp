@@ -4,7 +4,7 @@
 #include "engine/math/linear.h"
 #include "engine/input/key_codes.h"
 #include "engine/input/mouse_codes.h"
-#include "engine/client_api/platform_window.h"
+#include "engine/api/window.h"
 #include "platform/opengl_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -28,8 +28,6 @@ inline ivec2 get_window_size(HWND window) {
 // API implementation
 //
 
-static HWND root_hwnd;
-
 static ATOM register_window_class(void);
 static HWND create_window(void);
 static HWND create_dummy_window(void);
@@ -37,8 +35,7 @@ static HWND create_dummy_window(void);
 namespace custom
 {
 	Window::Window()
-		: should_close(false)
-		, m_graphics_context(nullptr)
+		: m_graphics_context(nullptr)
 	{
 		// @Bug: is this error prone to register a window class like that?
 		static ATOM const window_atom = register_window_class();
@@ -49,8 +46,6 @@ namespace custom
 		#if defined(CUSTOM_FEATURE_RAW_INPUT)
 		raw_input_init(hwnd);
 		#endif
-
-		if (!root_hwnd) { root_hwnd = hwnd; }
 	}
 
 	Window::~Window()
@@ -149,6 +144,7 @@ static HWND create_window(void) {
 //
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static HWND root_hwnd = NULL;
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
 		case WM_INPUT: {
@@ -186,7 +182,9 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
 		case WM_RBUTTONDOWN:
-		case WM_RBUTTONUP: {
+		case WM_RBUTTONUP:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONUP: {
 			process_message_mouse(hwnd, wParam, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
@@ -224,6 +222,14 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		} break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/winmsg/window-notifications
+		case WM_CREATE: {
+			if (!root_hwnd) {
+				root_hwnd = hwnd;
+				custom::Window::should_close = false;
+			}
+			return 0; // If an application processes this message, it should return zero to continue creation of the window.
+		} break;
+
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
 			window_size = get_window_size(hwnd);
@@ -250,15 +256,19 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_CLOSE: {
 			// Sent as a signal that a window or an application should terminate.
-			DestroyWindow(hwnd); // Go to WM_DESTROY
+			if (root_hwnd == hwnd) {
+				root_hwnd = NULL;
+				custom::Window::should_close = true;
+			}
+			// DestroyWindow(hwnd); // Go to WM_DESTROY
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
+		// @Note: pass the responsibility to the default procedure
 		case WM_DESTROY: {
 			// Sent when a window is being destroyed. It is sent to the window procedure of the window being destroyed after the window is removed from the screen.
 			if (root_hwnd == hwnd) {
-				// @Note: seems to be a sensible solution
-				// https://github.com/antmicro/ecos/blob/master/packages/services/gfx/mw/current/src/mwin/windefw.c
+				root_hwnd = NULL;
 				PostQuitMessage(0); // Go to WM_QUIT
 			}
 			return 0; // If an application processes this message, it should return zero.

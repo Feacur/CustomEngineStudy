@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/debug/log.h"
-#include "engine/client_api/graphics_context_settings.h"
+#include "engine/api/rendering_settings.h"
 #include "platform/opengl_context.h"
 
 #include "wgl_tiny.h"

@@ -161,12 +161,3 @@ constexpr inline T operator~(T v) {\
 constexpr inline bool bits_are_set(T container, T bits) { return (container & bits) == bits; }\
 constexpr inline T bits_to_zero(T container, T bits) { return container & ~bits; }
 #endif // defined(__cplusplus)
-
-#define SOMEWHAT_A_SINGLETON_BOILERPLATE(type)\
-public:\
-	static inline type & get() { return s_instance; }\
-private:\
-	static type s_instance;\
-	type();\
-	type(type const &);\
-	void operator=(type const &);
