@@ -38,8 +38,8 @@ int main(int argc, char * argv[]) {
 	//        is cool, right? not much beneficial, and potentially malicious, though.
 
 	custom::Context_Settings context_settings = {};
-	context_settings.major_version = 4;
-	context_settings.minor_version = 3;
+	context_settings.major_version = 1;
+	context_settings.minor_version = 0;
 
 	custom::Pixel_Format pixel_format_hint = {};
 	pixel_format_hint.red_bits     = 8;
@@ -47,7 +47,7 @@ int main(int argc, char * argv[]) {
 	pixel_format_hint.blue_bits    = 8;
 	pixel_format_hint.alpha_bits   = 8;
 	pixel_format_hint.depth_bits   = 24;
-	pixel_format_hint.stencil_bits = 0;
+	pixel_format_hint.stencil_bits = 8;
 	pixel_format_hint.doublebuffer = true;
 
 	// @Note: it's silly to init a context and then manually create a renderer.

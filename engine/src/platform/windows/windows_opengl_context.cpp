@@ -5,13 +5,30 @@
 
 #include "wgl_tiny.h"
 
+// https://en.wikipedia.org/wiki/OpenGL
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-pixelformatdescriptor
 // https://mariuszbartosik.com/opengl-4-x-initialization-in-windows-without-a-framework/
 
+// https://www.glfw.org/docs/latest/context_guide.html
+
 // https://github.com/glfw/glfw/blob/master/src/wgl_context.c
 // https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
 // https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
+
+// https://www.khronos.org/opengl/wiki/OpenGL_Context
+// A context stores all of the state associated with this instance of OpenGL.
+// Think of a context as an object that holds all of OpenGL;
+// when a context is destroyed, OpenGL is destroyed.
+// In order for any OpenGL commands to work, a context must be current
+
+// https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
+// * OpenGL context creation is governed by platform-specific APIs.
+// * When you create your HWND, you need to make sure that it has the CS_OWNDC set for its style.
+// * The function you use to get WGL extensions is, itself, an OpenGL extension.
+//   All we need to do is create a dummy context to get function pointers.
+//   Windows does not allow the user to change the pixel format of a window. You get to set it exactly once.
+//   Therefore, if you want to use a different pixel format from the one your fake context used (for sRGB or multisample framebuffers, or just different bit-depths of buffers), you must destroy the window entirely and recreate it after we are finished with the dummy context.
 
 #define OPENGL_LIBRARY_NAME "opengl32.dll"
 
@@ -82,11 +99,11 @@ static void log_last_error(cstring source) {
 	);
 
 	if (size) {
-		CUSTOM_ERROR("'0x%x' system error: %s\n\tlog source: %s", error, message_buffer, source);
+		CUSTOM_MESSAGE("'0x%x' system error: %s\n\tlog source: %s", error, message_buffer, source);
 		LocalFree(message_buffer);
 	}
 	else {
-		CUSTOM_ERROR("'0x%x' system error: unknown\n\tlog source: %s", error, source);
+		CUSTOM_MESSAGE("'0x%x' system error: unknown\n\tlog source: %s", error, source);
 	}
 }
 	#define LOG_LAST_ERROR() log_last_error(CUSTOM_FILE_AND_LINE)
@@ -124,6 +141,16 @@ namespace custom
 		int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(glad_status, "failed to initialize glad");
+
+		CUSTOM_MESSAGE(
+			"OpenGL info:"
+			"\n  - vendor:   %s"
+			"\n  - renderer: %s"
+			"\n  - version:  %s",
+			glGetString(GL_VENDOR),
+			glGetString(GL_RENDERER),
+			glGetString(GL_VERSION)
+		);
 	}
 
 	Opengl_Context::~Opengl_Context()
@@ -161,7 +188,7 @@ static void * wgl_get_proc_address(cstring name) {
 	if (!address) {
 		address = GetProcAddress(wgl.instance, name);
 	}
-	// if (!address) { CUSTOM_WARN("missing an OpenGL function: %s", name); }
+	// if (!address) { CUSTOM_MESSAGE("missing an OpenGL function: %s", name); }
 	return address;
 }
 
@@ -376,7 +403,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc, custom::Contex
 		int pf_id = i + 1;
 		if (!wgl.GetPixelFormatAttribivARB(hdc, pf_id, 0, attr_count, attr_keys, attr_vals)) {
 			LOG_LAST_ERROR();
-			CUSTOM_WARN("failed to get pixel format %d values", pf_id);
+			CUSTOM_MESSAGE("failed to get pixel format %d values", pf_id);
 			continue;
 		}
 		// should support
@@ -459,7 +486,7 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		if (!DescribePixelFormat(hdc, pf_id, sizeof(pfd), &pfd))
 		{
 			LOG_LAST_ERROR();
-			CUSTOM_WARN("failed to describe pixel format %d", pf_id);
+			CUSTOM_MESSAGE("failed to describe pixel format %d", pf_id);
 			continue;
 		}
 		// should support

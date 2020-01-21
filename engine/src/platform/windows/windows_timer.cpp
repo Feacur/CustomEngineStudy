@@ -16,10 +16,10 @@
 // @Todo: scope each frame or scope entire runtime?
 #define TIME_RESOLUTION 1
 #define TIME_BEGIN() if (timeBeginPeriod(TIME_RESOLUTION) != TIMERR_NOERROR) {\
-	CUSTOM_WARN("failed to adjust timer precision");\
+	CUSTOM_MESSAGE("failed to adjust timer precision");\
 }
 #define TIME_END() if (timeEndPeriod(TIME_RESOLUTION) != TIMERR_NOERROR) {\
-	CUSTOM_WARN("failed to adjust timer precision");\
+	CUSTOM_MESSAGE("failed to adjust timer precision");\
 }
 
 //
