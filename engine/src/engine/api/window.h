@@ -9,6 +9,7 @@ namespace custom
 
 	// @Note: a C++ class - probably better using std::shared_ptr<T>
 	//        otherwise it's just "risky" to give out an instance
+	//        and then have it copy-destructed or something
 	class Window
 	{
 	public:

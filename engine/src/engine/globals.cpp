@@ -7,11 +7,6 @@
 namespace custom
 {
 	System system = {};
-
 	Timer timer = {};
-	u64 millisecond = 1000;
-	u64 microsecond = 1000000;
-	u64 nanosecond  = 1000000000;
-
 	bool Window::should_close = false;
 }
