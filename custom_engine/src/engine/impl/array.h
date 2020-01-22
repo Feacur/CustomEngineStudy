@@ -55,6 +55,9 @@ void Array<T>::resize(u32 amount)
 
 template<typename T>
 void Array<T>::add() {
+	if (count == capacity) {
+		resize(1 + capacity * 2);
+	}
 	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	++count;
 }
@@ -77,7 +80,7 @@ void Array<T>::insert(u32 i) {
 
 template<typename T>
 void Array<T>::insert(u32 i, T const & value) {
-	insert();
+	insert(i);
 	data[i] = value;
 }
 
@@ -101,7 +104,7 @@ void Array<T>::remove_ordered(u32 i) {
 
 template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::Array_Fixed(u16 count)
-	: count(source.count)
+	: count(count)
 	// , bytes() // @Note: clear to zero
 { }
 
@@ -157,7 +160,7 @@ void Array_Fixed<T, capacity>::insert(u16 i) {
 
 template<typename T, u16 capacity>
 void Array_Fixed<T, capacity>::insert(u16 i, T const & value) {
-	insert();
+	insert(i);
 	data[i] = value;
 }
 
