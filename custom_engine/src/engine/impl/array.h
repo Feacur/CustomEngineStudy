@@ -5,6 +5,8 @@
 
 namespace custom {
 
+#define CUSTOM_GROWTH_FORMULA (1 + capacity * 2)
+
 template<typename T>
 Array<T>::Array(u32 capacity, u32 count)
 	: data(NULL)
@@ -13,13 +15,12 @@ Array<T>::Array(u32 capacity, u32 count)
 {
 	CUSTOM_ASSERT(count <= capacity, "count exceeds capacity");
 	if (capacity) {
-		resize(capacity);
+		set_capacity(capacity);
 	}
 }
 	
 template<typename T>
-Array<T>::~Array()
-{
+Array<T>::~Array() {
 	free(data);
 	data = NULL;
 	capacity = count = 0;
@@ -38,25 +39,45 @@ inline T & Array<T>::operator[](u32 i) {
 }
 
 template<typename T>
-void Array<T>::resize(u32 amount)
-{
+void Array<T>::set_capacity(u32 amount) {
 	if (data) {
-		data = (T *)realloc(data, amount * sizeof(T));
-		// if (amount > capacity) { // @Note: clear to zero
-		// 	memset(data + capacity, 0, (amount - capacity) * sizeof(T));
-		// }
+		if (amount) {
+			data = (T *)realloc(data, amount * sizeof(T));
+			// if (amount > capacity) { // @Note: clear to zero
+			// 	memset(data + capacity, 0, (amount - capacity) * sizeof(T));
+			// }
+		}
+		else {
+			free(data);
+		}
 	}
 	else {
 		data = (T *)malloc(amount * sizeof(T));
 		// data = (T *)calloc(amount, sizeof(T)); // @Note: clear to zero
 	}
 	capacity = amount;
+	if (count > capacity) {
+		count = capacity;
+	}
+}
+
+template<typename T>
+void Array<T>::ensure_capacity(u32 amount) {
+	if (amount > capacity) {
+		// u32 growth = CUSTOM_GROWTH_FORMULA;
+		// if (growth > amount) {
+		// 	set_capacity(growth);
+		// }
+		// else {
+			set_capacity(amount);
+		// }
+	}
 }
 
 template<typename T>
 void Array<T>::add() {
 	if (count == capacity) {
-		resize(1 + capacity * 2);
+		set_capacity(CUSTOM_GROWTH_FORMULA);
 	}
 	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	++count;
@@ -117,8 +138,7 @@ Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source)
 }
 
 template<typename T, u16 capacity>
-inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source)
-{
+inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source) {
 	CUSTOM_ASSERT(bytes != source.bytes, "assigning itself");
 	memcpy(bytes, source.bytes, sizeof(bytes));
 	count = source.count;

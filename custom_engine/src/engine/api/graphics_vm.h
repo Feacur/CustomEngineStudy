@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/collection_types.h"
+#include "engine/api/command_buffer.h"
 
 namespace custom {
 
@@ -8,7 +8,7 @@ struct Graphics_VM
 	Graphics_VM();
 	~Graphics_VM();
 
-	void render(Array<u8> const & data);
+	void render(Command_Buffer & command_buffer);
 };
 
 }

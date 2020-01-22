@@ -17,7 +17,8 @@ struct Array
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
 
-	void resize(u32 amount);
+	void set_capacity(u32 amount);
+	void ensure_capacity(u32 amount);
 
 	void add();
 	void add(T const & value);

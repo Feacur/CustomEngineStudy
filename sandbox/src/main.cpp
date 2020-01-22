@@ -45,17 +45,26 @@ int main(int argc, char * argv[]) {
 
 	custom::Graphics_VM gvm;
 
-	custom::Array<u8> gvm_data(1024 * 1024, 0);
+	custom::Command_Buffer gvm_buffer;
+	gvm_buffer.bytecode.set_capacity(1024 * 1024);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
 		if (custom::Window::should_close) { break; }
-		gvm_data.count = 0;
+
+		gvm_buffer.offset = 0;
+		gvm_buffer.bytecode.count = 0;
+		gvm_buffer.write((u8)255);
+
+		cstring msg = "Hello, World!";
+		u32 msg_len = sizeof("Hello, World!");
+		gvm_buffer.write(msg_len);
+		gvm_buffer.write(msg, msg_len);
 
 		u64 last_frame_ticks = get_last_frame_ticks(window.is_vsync());
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer.ticks_per_second);
 		custom::system_update();
-		gvm.render(gvm_data);
+		gvm.render(gvm_buffer);
 		window.update();
 	}
 

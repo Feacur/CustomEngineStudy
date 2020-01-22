@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/api/graphics_vm.h"
-#include "engine/impl/array.h"
+#include "engine/impl/command_buffer.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
@@ -56,9 +56,16 @@ Graphics_VM::Graphics_VM()
 
 Graphics_VM::~Graphics_VM() = default;
 
-void Graphics_VM::render(Array<u8> const & data)
+void Graphics_VM::render(Command_Buffer & command_buffer)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	u8 instruction = *command_buffer.read<u8>();
+	if (instruction == 255) {
+		u32 length = *command_buffer.read<u32>();
+		cstring message = command_buffer.read<char>(length);
+		CUSTOM_MESSAGE(message);
+	}
 }
 
 }
