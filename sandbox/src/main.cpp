@@ -43,15 +43,19 @@ int main(int argc, char * argv[]) {
 	window.init_context();
 	window.set_vsync(1);
 
-	custom::Rendering_VM renderer;
+	custom::Graphics_VM gvm;
+
+	custom::Array<u8> gvm_data(1024 * 1024, 0);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
 		if (custom::Window::should_close) { break; }
+		gvm_data.count = 0;
+
 		u64 last_frame_ticks = get_last_frame_ticks(window.is_vsync());
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer.ticks_per_second);
 		custom::system_update();
-		renderer.update();
+		gvm.render(gvm_data);
 		window.update();
 	}
 

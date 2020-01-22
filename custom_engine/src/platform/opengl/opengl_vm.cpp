@@ -1,5 +1,5 @@
 #include "custom_pch.h"
-#include "engine/api/rendering_vm.h"
+#include "engine/api/graphics_vm.h"
 #include "engine/impl/array.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -23,7 +23,7 @@ static void opengl_message_callback(
 
 namespace custom {
 
-Rendering_VM::Rendering_VM()
+Graphics_VM::Graphics_VM()
 {
 	GLint versionMajor;
 	glGetIntegerv(GL_MAJOR_VERSION, &versionMajor);
@@ -54,9 +54,9 @@ Rendering_VM::Rendering_VM()
 	// glCullFace(GL_BACK);
 }
 
-Rendering_VM::~Rendering_VM() = default;
+Graphics_VM::~Graphics_VM() = default;
 
-void Rendering_VM::update()
+void Graphics_VM::render(Array<u8> const & data)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

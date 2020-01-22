@@ -14,7 +14,7 @@
 #include "engine/api/timer.h"
 #include "engine/api/window.h"
 #include "engine/api/rendering_settings.h"
-#include "engine/api/rendering_vm.h"
+#include "engine/api/graphics_vm.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/math_scalar.h"
