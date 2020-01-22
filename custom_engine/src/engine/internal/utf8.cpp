@@ -4,6 +4,7 @@
 #include "engine/debug/log.h"
 
 // https://en.wikipedia.org/wiki/UTF-8
+// http://www.unicode.org/versions/Unicode6.2.0/UnicodeStandard-6.2.pdf
 
 namespace custom {
 namespace unicode {

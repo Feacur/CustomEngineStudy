@@ -4,9 +4,7 @@
 #include "engine/debug/log.h"
 
 namespace custom {
-//
-// language facilities
-//
+
 template<typename T>
 Array<T>::Array(u16 capacity, u16 count)
 	: data(NULL)
@@ -39,9 +37,6 @@ inline T & Array<T>::operator[](u32 i) {
 	return data[i];
 }
 
-//
-// API
-//
 template<typename T>
 void Array<T>::resize(u32 amount)
 {
@@ -93,9 +88,5 @@ inline T & Array_Fixed<T, capacity>::operator[](u32 i) {
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
-
-//
-// API
-//
 
 }

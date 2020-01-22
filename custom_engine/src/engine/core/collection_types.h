@@ -9,24 +9,14 @@ struct Array
 	T * data;
 	u32 capacity, count;
 
-	//
-	// language facilities
-	//
 	Array(u16 capacity = 0, u16 count = 0);
+	Array(Array const & source) = delete;
 	~Array();
 
+	Array & operator=(Array const & source) = delete;
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
 
-	//
-	// should not be copied (or should it be?)
-	//
-	Array(Array const & source) = delete;
-	Array & operator=(Array const & source) = delete;
-
-	//
-	// API
-	//
 	void resize(u32 amount);
 };
 
@@ -40,9 +30,6 @@ struct Array_Fixed
 	};
 	u16 count;
 
-	//
-	// language facilities
-	//
 	Array_Fixed(u16 count = 0);
 	Array_Fixed(Array_Fixed const & source);
 	~Array_Fixed() = default;
@@ -50,10 +37,6 @@ struct Array_Fixed
 	Array_Fixed & operator=(Array_Fixed const & source);
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
-
-	//
-	// API
-	//
 };
 
 }
