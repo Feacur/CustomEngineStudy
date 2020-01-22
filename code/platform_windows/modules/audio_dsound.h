@@ -123,7 +123,7 @@ void reinit_sound_buffer(HWND window) {
 
 	sound_buffer.running_sample_byte = write_cursor;
 
-	CUSTOM_TRACE("Initialized direct sound");
+	CUSTOM_MESSAGE("Initialized direct sound");
 }
 
 void play_sound_buffer() {
@@ -137,7 +137,7 @@ void play_sound_buffer() {
 		HRESULT result_Play = sound_buffer.secondary_buffer->Play(0, 0, DSBPLAY_LOOPING);
 		CUSTOM_ASSERT(result_Play == DS_OK, "Can't play direct sound buffer");
 		
-		CUSTOM_TRACE("Playing direct sound buffer");
+		CUSTOM_MESSAGE("Playing direct sound buffer");
 	}
 	// else if (isPlaying) {
 	// 	HRESULT result_Play = sound_buffer.secondary_buffer->Stop();

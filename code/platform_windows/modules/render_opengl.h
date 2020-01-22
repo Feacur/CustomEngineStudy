@@ -70,7 +70,7 @@ void init_opengl(HDC device_context) {
 		return;
 	}
 
-	CUSTOM_INFO("vendor '%s'; renderer '%s'; version '%s'", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+	CUSTOM_MESSAGE("vendor '%s'; renderer '%s'; version '%s'", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
 	wglSwapIntervalEXT = (wglSwapIntervalEXT_func *)wglGetProcAddress("wglSwapIntervalEXT");
 	if (wglSwapIntervalEXT) {

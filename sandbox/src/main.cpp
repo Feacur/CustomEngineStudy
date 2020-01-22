@@ -37,23 +37,10 @@ int main(int argc, char * argv[]) {
 	// @Note: on the other hand, automatic call of a constructor for a global instance
 	//        is cool, right? not much beneficial, and potentially malicious, though.
 
-	custom::Context_Settings context_settings = {};
-	context_settings.major_version = 1;
-	context_settings.minor_version = 0;
-
-	custom::Pixel_Format pixel_format_hint = {};
-	pixel_format_hint.red_bits     = 8;
-	pixel_format_hint.green_bits   = 8;
-	pixel_format_hint.blue_bits    = 8;
-	pixel_format_hint.alpha_bits   = 8;
-	pixel_format_hint.depth_bits   = 24;
-	pixel_format_hint.stencil_bits = 8;
-	pixel_format_hint.doublebuffer = true;
-
 	// @Note: it's silly to init a context and then manually create a renderer.
 	//        probably it's better to construct a renderer with
 	custom::Window window;
-	window.init_context(&context_settings, &pixel_format_hint);
+	window.init_context();
 	window.set_vsync(1);
 
 	custom::Rendering_VM renderer;

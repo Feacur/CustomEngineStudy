@@ -184,7 +184,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	platform_data.transient_memory.data = (u8 *)allocate_memory(platform_data.transient_memory.capacity);
 	CUSTOM_ASSERT(platform_data.transient_memory.data, "Can't allocate transient memory");
 	
-	CUSTOM_TRACE("Allocated general memory");
+	CUSTOM_MESSAGE("Allocated general memory");
 	
 	//
 	// Initialize performance counters
@@ -204,7 +204,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 		(s32)GetDeviceCaps(device_context, VERTRES)
 	};
 	
-	CUSTOM_TRACE("Initialized performance counters");
+	CUSTOM_MESSAGE("Initialized performance counters");
 
 	//
 	// Initialize OpenGL
@@ -236,7 +236,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 	pointer_keys_mode     = Pointer_Mode::Direct;
 	#endif
 	
-	CUSTOM_TRACE("Started main cycle");
+	CUSTOM_MESSAGE("Started main cycle");
 
 	game_code = {};
 	platform_data.keep_alive = true;
@@ -354,7 +354,7 @@ int platform_windows_main(HINSTANCE hInstance, cstring exe_path) {
 
 	DestroyWindow(window);
 	
-	CUSTOM_TRACE("Finished running");
+	CUSTOM_MESSAGE("Finished running");
 	return 0;
 }
 
