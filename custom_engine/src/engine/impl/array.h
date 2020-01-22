@@ -6,7 +6,7 @@
 namespace custom {
 
 template<typename T>
-Array<T>::Array(u16 capacity, u16 count)
+Array<T>::Array(u32 capacity, u32 count)
 	: data(NULL)
 	, capacity(0)
 	, count(count)
@@ -53,9 +53,52 @@ void Array<T>::resize(u32 amount)
 	capacity = amount;
 }
 
-//
-// language facilities
-//
+template<typename T>
+void Array<T>::add() {
+	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
+	++count;
+}
+
+template<typename T>
+void Array<T>::add(T const & value) {
+	u32 i = count;
+	add();
+	data[i] = value;
+}
+
+template<typename T>
+void Array<T>::insert(u32 i) {
+	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
+	CUSTOM_ASSERT(i <= count, "index exceeds count");
+	memmove(data + i + 1, data + i, (count - i)  * sizeof(T));
+	++count;
+
+}
+
+template<typename T>
+void Array<T>::insert(u32 i, T const & value) {
+	insert();
+	data[i] = value;
+}
+
+template<typename T>
+void Array<T>::remove(u32 i) {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	CUSTOM_ASSERT(i < count, "index exceeds count");
+	--count;
+	if (i != count) {
+		data[i] = data[count];
+	}
+}
+
+template<typename T>
+void Array<T>::remove_ordered(u32 i) {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	CUSTOM_ASSERT(i < count, "index exceeds count");
+	--count;
+	memmove(data + i, data + i + 1, (count - i) * sizeof(T));
+}
+
 template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 	: count(source.count)
@@ -66,27 +109,72 @@ template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source)
 	: count(source.count)
 {
-	memcpy(bytes, source.bytes, sizeof(bytes));
+	memmove(bytes, source.bytes, sizeof(bytes));
 }
 
 template<typename T, u16 capacity>
 inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source)
 {
-	memcpy(bytes, source.bytes, sizeof(bytes));
+	memmove(bytes, source.bytes, sizeof(bytes));
 	count = source.count;
 	return *this;
 }
 
 template<typename T, u16 capacity>
-inline T const & Array_Fixed<T, capacity>::operator[](u32 i) const {
+inline T const & Array_Fixed<T, capacity>::operator[](u16 i) const {
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
 
 template<typename T, u16 capacity>
-inline T & Array_Fixed<T, capacity>::operator[](u32 i) {
+inline T & Array_Fixed<T, capacity>::operator[](u16 i) {
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::add() {
+	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
+	++count;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::add(T const & value) {
+	u16 i = count;
+	add();
+	data[i] = value;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::insert(u16 i) {
+	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
+	CUSTOM_ASSERT(i <= count, "index exceeds count");
+	memmove(data + i + 1, data + i, (count - i)  * sizeof(T));
+	++count;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::insert(u16 i, T const & value) {
+	insert();
+	data[i] = value;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::remove(u16 i) {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	CUSTOM_ASSERT(i < count, "index exceeds count");
+	--count;
+	if (i != count) {
+		data[i] = data[count];
+	}
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::remove_ordered(u16 i) {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	CUSTOM_ASSERT(i < count, "index exceeds count");
+	--count;
+	memmove(data + i, data + i + 1, (count - i) * sizeof(T));
 }
 
 }

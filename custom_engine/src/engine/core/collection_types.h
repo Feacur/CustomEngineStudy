@@ -9,7 +9,7 @@ struct Array
 	T * data;
 	u32 capacity, count;
 
-	Array(u16 capacity = 0, u16 count = 0);
+	Array(u32 capacity = 0, u32 count = 0);
 	Array(Array const & source) = delete;
 	~Array();
 
@@ -18,6 +18,15 @@ struct Array
 	T & operator[](u32 i);
 
 	void resize(u32 amount);
+
+	void add();
+	void add(T const & value);
+
+	void insert(u32 i);
+	void insert(u32 i, T const & value);
+
+	void remove(u32 i);
+	void remove_ordered(u32 i);
 };
 
 template<typename T, u16 capacity>
@@ -35,8 +44,17 @@ struct Array_Fixed
 	~Array_Fixed() = default;
 
 	Array_Fixed & operator=(Array_Fixed const & source);
-	T const & operator[](u32 i) const;
-	T & operator[](u32 i);
+	T const & operator[](u16 i) const;
+	T & operator[](u16 i);
+
+	void add();
+	void add(T const & value);
+
+	void insert(u16 i);
+	void insert(u16 i, T const & value);
+
+	void remove(u16 i);
+	void remove_ordered(u16 i);
 };
 
 }
