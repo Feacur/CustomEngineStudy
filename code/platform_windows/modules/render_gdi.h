@@ -123,7 +123,7 @@ void reinit_render_buffer(HWND window) {
 	// After setting the STRETCH_HALFTONE stretching mode, an application must call the SetBrushOrgEx function to set the brush origin. If it fails to do so, brush misalignment occurs.
 	// SetBrushOrgEx(device_context, 0, 0, NULL);
 
-	CUSTOM_TRACE("Reinitialized GDI parameters");
+	CUSTOM_MESSAGE("Reinitialized GDI parameters");
 }
 
 void display_render_buffer(HDC device_context) {

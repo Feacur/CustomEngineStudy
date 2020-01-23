@@ -18,7 +18,7 @@ project "sandbox"
 	}
 
 	includedirs {
-		sandbox_to_root .. "/engine/%{engine_includes.engine}",
+		sandbox_to_root .. "/custom_engine/%{engine_includes.custom_engine}",
 	}
 
 	defines {
@@ -26,7 +26,7 @@ project "sandbox"
 	}
 
 	links {
-		"engine",
+		"custom_engine",
 	}
 
 	postbuildcommands {

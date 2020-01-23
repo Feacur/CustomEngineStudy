@@ -31,7 +31,7 @@ else {\
 	code->ROUTINE_NAME = NULL;\
 }\
 if (!code->ROUTINE_NAME) {\
-	CUSTOM_WARN("Can't find '" #ROUTINE_NAME "' handler in the game code library");\
+	CUSTOM_MESSAGE("Can't find '" #ROUTINE_NAME "' handler in the game code library");\
 	code->ROUTINE_NAME = &ROUTINE_NAME##_stub;\
 }
 
@@ -61,7 +61,7 @@ void reinit_game_code(Game_Code * code) {
 
 		load_game_code(code, runtime_library_name);
 		code->creation_time = creation_time;
-		CUSTOM_TRACE("Reloaded game code library");
+		CUSTOM_MESSAGE("Reloaded game code library");
 	}
 }
 

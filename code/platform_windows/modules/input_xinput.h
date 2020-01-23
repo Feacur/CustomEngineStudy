@@ -46,7 +46,7 @@ void load_xinput()
 	VERIFY_PROCEDURE(XInputGetState)
 	VERIFY_PROCEDURE(XInputSetState)
 	
-	CUSTOM_TRACE("Initialized xinput");
+	CUSTOM_MESSAGE("Initialized xinput");
 }
 
 #undef LOAD_PROCEDURE
