@@ -1,9 +1,5 @@
 #define SHARED_MATH_BITWISE
 
-#if !defined(SHARED_CODE)
-	#error include "shared/code.h"
-#endif
-
 #if defined(__cplusplus)
 	#define BIT(T, index) static_cast<T>(static_cast<T>(1) << index)
 #else

@@ -1,4 +1,7 @@
 #include "shared/code.h"
+#include "shared/types.h"
+#include "shared/meta.h"
+#include "shared/log.h"
 #include "shared/math_scalar.h"
 #include "shared/math_hashing.h"
 #include "shared/math_random.h"

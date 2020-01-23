@@ -1,9 +1,5 @@
 #define SHARED_MATH_HASHING
 
-#if !defined(SHARED_CODE)
-	#error include "shared/code.h"
-#endif
-
 // https://en.wikipedia.org/wiki/Xorshift
 // https://en.wikipedia.org/wiki/Lehmer_random_number_generator
 // https://en.wikipedia.org/wiki/Jenkins_hash_function

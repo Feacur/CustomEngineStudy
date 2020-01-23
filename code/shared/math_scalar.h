@@ -1,9 +1,5 @@
 #define SHARED_MATH_SCALAR
 
-#if !defined(SHARED_CODE)
-	#error include "shared/code.h"
-#endif
-
 static r32 const epsilon    = 0.00001f;
 static r32 const pi         = 3.14159265359f;
 static r32 const tau        = pi * 2; // 6.28318530718f
