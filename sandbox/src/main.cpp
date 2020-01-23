@@ -48,18 +48,27 @@ int main(int argc, char * argv[]) {
 	custom::Command_Buffer gvm_buffer;
 	gvm_buffer.bytecode.set_capacity(1024 * 1024);
 
+	cstring msg_ptr1 = "hello, pointer 1!";
+	cstring msg_ptr2 = "hello, pointer 2!";
+	cstring msg = "hello, world!";
+	u32 msg_len_full = (u32)strlen(msg) + 1;
+
 	while (true) {
 		if (custom::system.should_close) { break; }
 		if (custom::Window::should_close) { break; }
 
 		gvm_buffer.offset = 0;
 		gvm_buffer.bytecode.count = 0;
-		gvm_buffer.write((u8)255);
 
-		cstring msg = "Hello, World!";
-		u32 msg_len = sizeof("Hello, World!");
-		gvm_buffer.write(msg_len);
-		gvm_buffer.write(msg, msg_len);
+		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
+		gvm_buffer.write(msg_ptr1);
+
+		gvm_buffer.write(custom::Graphics_Instruction::Print_Inline);
+		gvm_buffer.write(msg_len_full);
+		gvm_buffer.write(msg, msg_len_full);
+
+		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
+		gvm_buffer.write(msg_ptr2);
 
 		u64 last_frame_ticks = get_last_frame_ticks(window.is_vsync());
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer.ticks_per_second);

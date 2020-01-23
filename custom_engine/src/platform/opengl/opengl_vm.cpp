@@ -60,11 +60,31 @@ void Graphics_VM::render(Command_Buffer & command_buffer)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	u8 instruction = *command_buffer.read<u8>();
-	if (instruction == 255) {
-		u32 length = *command_buffer.read<u32>();
-		cstring message = command_buffer.read<char>(length);
-		CUSTOM_MESSAGE(message);
+	while (command_buffer.offset < command_buffer.bytecode.count) {
+		Graphics_Instruction instruction = *command_buffer.read<Graphics_Instruction>();
+
+		if (instruction == Graphics_Instruction::None) {
+			CUSTOM_ASSERT(false, "null instruction encountered");
+		}
+
+		if (instruction == Graphics_Instruction::Last) {
+			CUSTOM_ASSERT(false, "non-instruction encountered");
+		}
+
+		if (instruction == Graphics_Instruction::Print_Pointer) {
+			cstring message = *command_buffer.read<cstring>();
+			CUSTOM_MESSAGE("print pointer: %s", message);
+			continue;
+		}
+
+		if (instruction == Graphics_Instruction::Print_Inline) {
+			u32 length = *command_buffer.read<u32>();
+			cstring message = command_buffer.read<char const>(length);
+			CUSTOM_MESSAGE("print inline: %d %s", length, message);
+			continue;
+		}
+		
+		CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
 	}
 }
 

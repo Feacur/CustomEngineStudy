@@ -3,6 +3,14 @@
 
 namespace custom {
 
+enum struct Graphics_Instruction : u8
+{
+	None,
+	Print_Pointer,
+	Print_Inline,
+	Last,
+};
+
 struct Graphics_VM
 {
 	Graphics_VM();

@@ -11,11 +11,11 @@
 // namespace custom {
 
 enum struct Raw_Input_Device_Usage : USHORT {
-	pointer  = 0x01,
-	mouse    = 0x02,
-	joystick = 0x04,
-	gamepad  = 0x05,
-	keyboard = 0x06,
+	Pointer  = 0x01,
+	Mouse    = 0x02,
+	Joystick = 0x04,
+	Gamepad  = 0x05,
+	Keyboard = 0x06,
 };
 UNDERLYING_TYPE_META(Raw_Input_Device_Usage, USHORT)
 IS_ENUM_META(Raw_Input_Device_Usage)
@@ -36,8 +36,8 @@ static constexpr inline RAWINPUTDEVICE raw_input_device(HWND window, USHORT usag
 static void raw_input_init(HWND window) {
 	using U = meta::underlying_type<Raw_Input_Device_Usage>::type;
 	RAWINPUTDEVICE devices[] = {
-		raw_input_device(window, (U)Raw_Input_Device_Usage::keyboard, 0),
-		raw_input_device(window, (U)Raw_Input_Device_Usage::mouse, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::Keyboard, 0),
+		raw_input_device(window, (U)Raw_Input_Device_Usage::Mouse, 0),
 	};
 	RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE));
 }
