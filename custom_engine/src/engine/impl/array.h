@@ -5,8 +5,6 @@
 
 namespace custom {
 
-#define CUSTOM_GROWTH_FORMULA (1 + capacity * 2)
-
 template<typename T>
 Array<T>::Array(u32 capacity, u32 count)
 	: data(NULL)
@@ -64,45 +62,51 @@ void Array<T>::set_capacity(u32 amount) {
 template<typename T>
 void Array<T>::ensure_capacity(u32 amount) {
 	if (amount > capacity) {
-		// u32 growth = CUSTOM_GROWTH_FORMULA;
-		// if (growth > amount) {
-		// 	set_capacity(growth);
-		// }
-		// else {
-			set_capacity(amount);
-		// }
+		// @Note: might require mul_div(...)
+		set_capacity((amount + 1) * 3 / 2);
 	}
 }
 
 template<typename T>
-void Array<T>::add() {
-	if (count == capacity) {
-		set_capacity(CUSTOM_GROWTH_FORMULA);
-	}
-	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
-	++count;
+void Array<T>::push() {
+	ensure_capacity(++count);
 }
 
 template<typename T>
-void Array<T>::add(T const & value) {
-	u32 i = count;
-	add();
-	data[i] = value;
+void Array<T>::push(T const & value) {
+	ensure_capacity(count + 1);
+	data[count++] = value;
+}
+
+template<typename T>
+void Array<T>::push_range(u32 amount) {
+	ensure_capacity(count += amount);
+}
+
+template<typename T>
+void Array<T>::push_range(T const * values, u32 amount) {
+	ensure_capacity(count + amount);
+	memcpy(data + count, values, amount * sizeof(T));
+	count += amount;
 }
 
 template<typename T>
 void Array<T>::insert(u32 i) {
-	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	CUSTOM_ASSERT(i <= count, "index exceeds count");
-	memcpy(data + i + 1, data + i, (count - i)  * sizeof(T));
-	++count;
-
+	ensure_capacity(++count);
+	memcpy(data + i + 1, data + i, (count - 1 - i)  * sizeof(T));
 }
 
 template<typename T>
 void Array<T>::insert(u32 i, T const & value) {
 	insert(i);
 	data[i] = value;
+}
+
+template<typename T>
+void Array<T>::pop() {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	--count;
 }
 
 template<typename T>
@@ -158,30 +162,47 @@ inline T & Array_Fixed<T, capacity>::operator[](u16 i) {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::add() {
+void Array_Fixed<T, capacity>::push() {
 	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	++count;
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::add(T const & value) {
-	u16 i = count;
-	add();
-	data[i] = value;
+void Array_Fixed<T, capacity>::push(T const & value) {
+	data[count++] = value;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::push_range(u16 amount) {
+	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
+	count += amount;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::push_range(T const * values, u16 amount) {
+	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
+	memcpy(data + count, values, amount * sizeof(T));
+	count += amount;
 }
 
 template<typename T, u16 capacity>
 void Array_Fixed<T, capacity>::insert(u16 i) {
 	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	CUSTOM_ASSERT(i <= count, "index exceeds count");
-	memcpy(data + i + 1, data + i, (count - i)  * sizeof(T));
 	++count;
+	memcpy(data + i + 1, data + i, (count - 1 - i)  * sizeof(T));
 }
 
 template<typename T, u16 capacity>
 void Array_Fixed<T, capacity>::insert(u16 i, T const & value) {
 	insert(i);
 	data[i] = value;
+}
+
+template<typename T, u16 capacity>
+void Array_Fixed<T, capacity>::pop() {
+	CUSTOM_ASSERT(count > 0, "count is zero");
+	--count;
 }
 
 template<typename T, u16 capacity>

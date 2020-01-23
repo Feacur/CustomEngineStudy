@@ -20,12 +20,14 @@ struct Array
 	void set_capacity(u32 amount);
 	void ensure_capacity(u32 amount);
 
-	void add();
-	void add(T const & value);
-
+	void push();
+	void push(T const & value);
+	void push_range(u32 amount);
+	void push_range(T const * values, u32 amount);
 	void insert(u32 i);
 	void insert(u32 i, T const & value);
 
+	void pop();
 	void remove(u32 i);
 	void remove_ordered(u32 i);
 };
@@ -48,12 +50,14 @@ struct Array_Fixed
 	T const & operator[](u16 i) const;
 	T & operator[](u16 i);
 
-	void add();
-	void add(T const & value);
-
+	void push();
+	void push(T const & value);
+	void push_range(u16 amount);
+	void push_range(T const * values, u16 amount);
 	void insert(u16 i);
 	void insert(u16 i, T const & value);
 
+	void pop();
 	void remove(u16 i);
 	void remove_ordered(u16 i);
 };

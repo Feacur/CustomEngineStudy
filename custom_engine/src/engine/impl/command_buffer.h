@@ -7,15 +7,12 @@ namespace custom {
 
 template<typename T>
 void Command_Buffer::write(T const * data, u32 count) {
-	u32 bytes_to_write = count * sizeof(T);
-	bytecode.ensure_capacity(bytecode.count + bytes_to_write);
-	memcpy(bytecode.data + bytecode.count, data, bytes_to_write);
-	bytecode.count += bytes_to_write;
+	bytecode.push_range((u8 *)data, count * sizeof(T));
 }
 
 template<typename T>
-void Command_Buffer::write(T const & data) {
-	write(&data, 1);
+void Command_Buffer::write(T const & datum) {
+	bytecode.push_range((u8 *)&datum, sizeof(T));
 }
 
 template<typename T>

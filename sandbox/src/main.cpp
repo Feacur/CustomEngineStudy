@@ -46,7 +46,6 @@ int main(int argc, char * argv[]) {
 	custom::Graphics_VM gvm;
 
 	custom::Command_Buffer gvm_buffer;
-	gvm_buffer.bytecode.set_capacity(1024 * 1024);
 
 	cstring msg_ptr1 = "hello, pointer 1!";
 	cstring msg_ptr2 = "hello, pointer 2!";

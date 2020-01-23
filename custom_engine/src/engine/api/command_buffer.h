@@ -12,7 +12,7 @@ struct Command_Buffer
 	void write(T const * data, u32 count);
 
 	template<typename T>
-	void write(T const & data);
+	void write(T const & datum);
 
 	template<typename T>
 	T const * read(u32 count = 1);
