@@ -17,7 +17,7 @@
 #include "engine/api/command_buffer.h"
 #include "engine/api/graphics_vm.h"
 
-#include "engine/impl/array.h"
+// #include "engine/impl/array.h"
 #include "engine/impl/command_buffer.h"
 #include "engine/impl/math_scalar.h"
 #include "engine/impl/math_bitwise.h"

@@ -35,11 +35,7 @@ struct Array
 template<typename T, u16 capacity>
 struct Array_Fixed
 {
-	union
-	{
-		T data[capacity];
-		u8 bytes[capacity * sizeof(T)];
-	};
+	T data[capacity];
 	u16 count;
 
 	Array_Fixed(u16 count = 0);

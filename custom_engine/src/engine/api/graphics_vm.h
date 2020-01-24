@@ -1,5 +1,6 @@
 #pragma once
-#include "engine/api/command_buffer.h"
+#include "engine/core/types.h"
+#include "engine/core/meta.h"
 
 namespace custom {
 
@@ -26,6 +27,10 @@ enum struct Graphics_Instruction : u8
 	Print_Inline,
 	Last,
 };
+UNDERLYING_TYPE_META(Graphics_Instruction, u8)
+IS_ENUM_META(Graphics_Instruction)
+
+struct Command_Buffer;
 
 struct Graphics_VM
 {
