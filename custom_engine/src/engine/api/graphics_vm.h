@@ -10,6 +10,8 @@ enum struct Graphics_Instruction : u8
 	//
 	Viewport, // x, y, width, height
 	//
+	Prepare_Uniform,
+	//
 	Allocate_Shader,
 	Allocate_Texture,
 	Allocate_Mesh,
@@ -22,7 +24,8 @@ enum struct Graphics_Instruction : u8
 	Use_Texture,
 	Use_Mesh,
 	//
-	Set_Uniform,
+	Load_Uniform,
+	Load_Texture,
 	//
 	Draw,
 	Overlay,

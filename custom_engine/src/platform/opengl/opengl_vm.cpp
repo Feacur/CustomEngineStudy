@@ -89,6 +89,12 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Viewport: {
 			CUSTOM_MESSAGE("// @Todo: Viewport");
+			// glViewport(x, y, width, height);
+		} return;
+
+		//
+		case custom::Graphics_Instruction::Prepare_Uniform: {
+			CUSTOM_MESSAGE("// @Todo: Prepare_Uniform");
 		} return;
 
 		//
@@ -101,10 +107,51 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case custom::Graphics_Instruction::Allocate_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Texture");
+			// GLenum internal_format = GL_RGBA8;
+			// glCreateTextures(GL_TEXTURE_2D, 1, &id);
+			// glTextureStorage2D(id, 1, internal_format, width, height);
+			// glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			// glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			// glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			// glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		} return;
 
 		case custom::Graphics_Instruction::Allocate_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
+			
+			// glGenVertexArrays(1, &id);
+			// glBindVertexArray(id);
+
+			// glBindBuffer(GL_ARRAY_BUFFER, id);
+			// glCreateBuffers(1, &id);
+			// glBindBuffer(GL_ARRAY_BUFFER, id);
+			// glBufferData(GL_ARRAY_BUFFER, count * sizeof(float), vertices, GL_STATIC_DRAW);
+
+			// u32 stride = 0;
+			// for (auto & element : bufferLayout)
+			// {
+			// 	stride += element.GetSize();
+			// }
+			// for (auto const & element : bufferLayout)
+			// {
+			// 	glEnableVertexAttribArray(vertexAttribIndex);
+			// 	glVertexAttribPointer(
+			// 		vertexAttribIndex,
+			// 		element.GetComponentCount(),
+			// 		ShaderDataTypeOpenGLBaseType(element.Type),
+			// 		element.Normalized ? GL_TRUE : GL_FALSE,
+			// 		stride,
+			// 		(void const *)offset
+			// 	);
+			// 	offset += element.GetSize();
+			// 	vertexAttribIndex++;
+			// }
+
+			// 
+			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+			// glCreateBuffers(1, &id);
+			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+			// glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u32), indices, GL_STATIC_DRAW);
 		} return;
 
 		//
@@ -115,10 +162,14 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case custom::Graphics_Instruction::Free_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Free_Texture");
+			// glDeleteTextures(1, &id);
 		} return;
 
 		case custom::Graphics_Instruction::Free_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Free_Mesh");
+			// glDeleteBuffers(GL_ARRAY_BUFFER, &id);
+			// glDeleteBuffers(GL_ELEMENT_ARRAY_BUFFER, &id);
+			// glDeleteVertexArrays(1, &id);
 		} return;
 
 		//
@@ -129,15 +180,18 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case custom::Graphics_Instruction::Use_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Use_Texture");
+			// glBindTextureUnit(slot, id); // load uniform int slot beforehand
 		} return;
 
 		case custom::Graphics_Instruction::Use_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Use_Mesh");
+			// glBindVertexArray(id);
+			// @Todo: potentially rebind indices buffer?
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Set_Uniform: {
-			CUSTOM_MESSAGE("// @Todo: Set_Uniform");
+		case custom::Graphics_Instruction::Load_Uniform: {
+			CUSTOM_MESSAGE("// @Todo: Load_Uniform");
 			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
 			// glUniform1f(location, value);
 			// glUniform1i(location, value);
@@ -145,13 +199,24 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// glUniform1iv(location, count, values_pointer);
 		} return;
 
+		case custom::Graphics_Instruction::Load_Texture: {
+			CUSTOM_MESSAGE("// @Todo: Load_Texture");
+			// GLenum data_format = GL_RGBA;
+			// glTextureSubImage2D(id, 0, 0, 0, width, height, data_format, GL_UNSIGNED_BYTE, data);
+		} return;
+
 		//
 		case custom::Graphics_Instruction::Draw: {
 			CUSTOM_MESSAGE("// @Todo: Draw");
+			// glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
 		case custom::Graphics_Instruction::Overlay: {
 			CUSTOM_MESSAGE("// @Todo: Overlay");
+			// send to a vertex shader indices [0, 1, 2]
+			// glDrawArrays(GL_TRIANGLES, 0, 3);
+			// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
+			// https://twitter.com/nice_byte/status/1093355080235999232
 		} return;
 	}
 
@@ -345,3 +410,80 @@ static GLuint create_program(cstring source)
 
 	return program_id;
 }
+
+// static GLenum ShaderDataTypeOpenGLBaseType(ShaderDataType type)
+// {
+// 	GES_PROFILE_FUNCTION();
+// 	switch(type)
+// 	{
+// 		case ShaderDataType::Float1: return GL_FLOAT;
+// 		case ShaderDataType::Float2: return GL_FLOAT;
+// 		case ShaderDataType::Float3: return GL_FLOAT;
+// 		case ShaderDataType::Float4: return GL_FLOAT;
+// 		case ShaderDataType::Mat3:   return GL_FLOAT;
+// 		case ShaderDataType::Mat4:   return GL_FLOAT;
+// 		case ShaderDataType::Int1:   return GL_INT;
+// 		case ShaderDataType::Int2:   return GL_INT;
+// 		case ShaderDataType::Int3:   return GL_INT;
+// 		case ShaderDataType::Int4:   return GL_INT;
+// 		case ShaderDataType::Bool:   return GL_BOOL;
+// 	}
+// 	GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
+// 	return 0;
+// }
+
+// enum class ShaderDataType
+// {
+// 	None = 0,
+// 	Float1,
+// 	Float2,
+// 	Float3,
+// 	Float4,
+// 	Mat3,
+// 	Mat4,
+// 	Int1,
+// 	Int2,
+// 	Int3,
+// 	Int4,
+// 	Bool,
+// };
+
+// static u32 ShaderDataTypeComponentCount(ShaderDataType type)
+// {
+// 	switch(type)
+// 	{
+// 		case ShaderDataType::Float1: return 1;
+// 		case ShaderDataType::Float2: return 2;
+// 		case ShaderDataType::Float3: return 3;
+// 		case ShaderDataType::Float4: return 4;
+// 		case ShaderDataType::Mat3:   return 3 * 3;
+// 		case ShaderDataType::Mat4:   return 4 * 4;
+// 		case ShaderDataType::Int1:   return 1;
+// 		case ShaderDataType::Int2:   return 2;
+// 		case ShaderDataType::Int3:   return 3;
+// 		case ShaderDataType::Int4:   return 4;
+// 		case ShaderDataType::Bool:   return 1;
+// 	}
+// 	// GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
+// 	return 0;
+// }
+
+// static u32 ShaderDataTypeSingleSize(ShaderDataType type)
+// {
+// 	switch(type)
+// 	{
+// 		case ShaderDataType::Float1: return sizeof(r32);
+// 		case ShaderDataType::Float2: return sizeof(r32);
+// 		case ShaderDataType::Float3: return sizeof(r32);
+// 		case ShaderDataType::Float4: return sizeof(r32);
+// 		case ShaderDataType::Mat3:   return sizeof(r32);
+// 		case ShaderDataType::Mat4:   return sizeof(r32);
+// 		case ShaderDataType::Int1:   return sizeof(s32);
+// 		case ShaderDataType::Int2:   return sizeof(s32);
+// 		case ShaderDataType::Int3:   return sizeof(s32);
+// 		case ShaderDataType::Int4:   return sizeof(s32);
+// 		case ShaderDataType::Bool:   return sizeof(s8);
+// 	}
+// 	// GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
+// 	return 0;
+// }
