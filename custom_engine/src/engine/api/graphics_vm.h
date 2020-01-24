@@ -20,8 +20,12 @@ enum struct Graphics_Instruction : u8
 	//
 	Use_Shader,
 	Use_Texture,
-	Draw_Mesh,
-	Draw_Overlay,
+	Use_Mesh,
+	//
+	Set_Uniform,
+	//
+	Draw,
+	Overlay,
 	//
 	Print_Pointer,
 	Print_Inline,

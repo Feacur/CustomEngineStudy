@@ -12,16 +12,24 @@
 
 typedef GLchar const * glstring;
 
-static void opengl_message_callback(
-	unsigned source, unsigned type, unsigned id, unsigned severity,
-	int length, cstring message, void const * userParam
-);
+struct ShaderProps
+{
+	GLenum   type;
+	cstring version;
+	cstring defines;
+};
 
 //
 // API implementation
 //
 
 static void consume_single_instruction(custom::Command_Buffer const & command_buffer);
+
+static void opengl_message_callback(
+	unsigned source, unsigned type, unsigned id, unsigned severity,
+	int length, cstring message, void const * userParam
+);
+static GLuint create_program(cstring source);
 
 namespace custom {
 
@@ -86,6 +94,9 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Allocate_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Shader");
+			cstring source = *command_buffer.read<cstring>();
+			GLuint id = create_program(source);
+			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
 		} return;
 
 		case custom::Graphics_Instruction::Allocate_Texture: {
@@ -99,6 +110,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Free_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Free_Shader");
+			// glDeleteProgram(id);
 		} return;
 
 		case custom::Graphics_Instruction::Free_Texture: {
@@ -112,18 +124,34 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Use_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Use_Shader");
+			// glUseProgram(id);
 		} return;
 
 		case custom::Graphics_Instruction::Use_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Use_Texture");
 		} return;
 
-		case custom::Graphics_Instruction::Draw_Mesh: {
-			CUSTOM_MESSAGE("// @Todo: Draw_Mesh");
+		case custom::Graphics_Instruction::Use_Mesh: {
+			CUSTOM_MESSAGE("// @Todo: Use_Mesh");
 		} return;
 
-		case custom::Graphics_Instruction::Draw_Overlay: {
-			CUSTOM_MESSAGE("// @Todo: Draw_Overlay");
+		//
+		case custom::Graphics_Instruction::Set_Uniform: {
+			CUSTOM_MESSAGE("// @Todo: Set_Uniform");
+			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
+			// glUniform1f(location, value);
+			// glUniform1i(location, value);
+			// glUniform1fv(location, count, values_pointer);
+			// glUniform1iv(location, count, values_pointer);
+		} return;
+
+		//
+		case custom::Graphics_Instruction::Draw: {
+			CUSTOM_MESSAGE("// @Todo: Draw");
+		} return;
+
+		case custom::Graphics_Instruction::Overlay: {
+			CUSTOM_MESSAGE("// @Todo: Overlay");
 		} return;
 	}
 
@@ -229,3 +257,91 @@ static void opengl_message_callback(
 	);
 }
 #endif
+
+static bool verify_compilation(GLuint shader)
+{
+	GLint is_compiled = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
+	if (is_compiled == GL_TRUE) { return true; }
+
+	// @Note: linker will inform of the errors anyway
+	GLint max_length = 0;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
+
+	custom::Array<GLchar> info_log(max_length);
+	glGetShaderInfoLog(shader, max_length, &max_length, info_log.data);
+	CUSTOM_MESSAGE("failed to compile shader:\n%s", info_log.data);
+
+	return false;
+}
+
+static bool verify_linking(GLuint program)
+{
+	GLint is_linked = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, (int*)&is_linked);
+	if (is_linked == GL_TRUE) { return true; }
+
+	GLint max_length = 0;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
+
+	custom::Array<GLchar> info_log(max_length);
+	glGetProgramInfoLog(program, max_length, &max_length, info_log.data);
+	CUSTOM_MESSAGE("failed to link program:\n%s", info_log.data);
+
+	return false;
+}
+
+static GLuint create_program(cstring source)
+{
+	// @Todo: read this meta info from outside?
+	static ShaderProps compilations_props[] = {
+		{ GL_VERTEX_SHADER,   "#version 330 core\n", "#define VERTEX_SECTION\n" },
+		{ GL_FRAGMENT_SHADER, "#version 330 core\n", "#define FRAGMENT_SECTION\n" },
+		// { GL_GEOMETRY_SHADER, "#version 330 core\n", "#define GEOMETRY_SECTION\n" },
+		// { GL_COMPUTE_SHADER,  "#version 430 core\n", "#define COMPUTE_SECTION\n" },
+		// { GL_TESS_CONTROL_SHADER,    "#version 400 core\n", "#define TESSELATION_CONTROL_SECTION\n" },
+		// { GL_TESS_EVALUATION_SHADER, "#version 400 core\n", "#define TESSELATION_EVALUATION_SECTION\n" },
+	};
+	u8 const compilations_props_count = C_ARRAY_LENGTH(compilations_props);
+
+	// Compile shaders
+	GLuint shader_ids[4] = {};
+	for (u8 i = 0; i < compilations_props_count; i++)
+	{
+		glstring code[] = { compilations_props[i].version, compilations_props[i].defines, source };
+		GLuint shader_id = glCreateShader(compilations_props[i].type);
+		glShaderSource(shader_id, C_ARRAY_LENGTH(code), code, 0);
+		glCompileShader(shader_id);
+		shader_ids[i] = shader_id;
+	}
+
+	bool is_compiled = true;
+	for (u8 i = 0; i < compilations_props_count; i++)
+	{
+		bool isOk = verify_compilation(shader_ids[i]);
+		is_compiled = is_compiled && isOk;
+	}
+
+	// Link the program
+	GLuint program_id = glCreateProgram();
+	for (u8 i = 0; i < compilations_props_count; i++) {
+		glAttachShader(program_id, shader_ids[i]);
+	}
+	glLinkProgram(program_id);
+	bool is_linked = verify_linking(program_id);
+
+	// Free shader resources
+	for (u8 i = 0; i < compilations_props_count; i++) {
+		glDetachShader(program_id, shader_ids[i]);
+	}
+	for (u8 i = 0; i < compilations_props_count; i++) {
+		glDeleteShader(shader_ids[i]);
+	}
+
+	if (!is_compiled || !is_linked) {
+		glDeleteProgram(program_id);
+		return 0;
+	}
+
+	return program_id;
+}
