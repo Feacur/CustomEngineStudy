@@ -272,6 +272,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 			// Sent when a window is being destroyed. It is sent to the window procedure of the window being destroyed after the window is removed from the screen.
 			if (root_hwnd == hwnd) {
 				root_hwnd = NULL;
+				// @Todo: clean up graphics context
 				PostQuitMessage(0); // Go to WM_QUIT
 			}
 			return 0; // If an application processes this message, it should return zero.

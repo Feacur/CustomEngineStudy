@@ -16,7 +16,7 @@ void Command_Buffer::write(T const & datum) {
 }
 
 template<typename T>
-T const * Command_Buffer::read(u32 count) {
+T const * Command_Buffer::read(u32 count) const {
 	CUSTOM_ASSERT(offset + count * sizeof(T) <= bytecode.count, "reading past written instructions");
 	T * data = (T *)(bytecode.data + offset);
 	offset += count * sizeof(T);

@@ -21,6 +21,8 @@ static void opengl_message_callback(
 // API implementation
 //
 
+static void consume_single_instruction(custom::Command_Buffer const & command_buffer);
+
 namespace custom {
 
 Graphics_VM::Graphics_VM()
@@ -56,38 +58,107 @@ Graphics_VM::Graphics_VM()
 
 Graphics_VM::~Graphics_VM() = default;
 
-void Graphics_VM::render(Command_Buffer & command_buffer)
+void Graphics_VM::render(Command_Buffer const & command_buffer)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	while (command_buffer.offset < command_buffer.bytecode.count) {
-		Graphics_Instruction instruction = *command_buffer.read<Graphics_Instruction>();
-
-		if (instruction == Graphics_Instruction::None) {
-			CUSTOM_ASSERT(false, "null instruction encountered");
-		}
-
-		if (instruction == Graphics_Instruction::Last) {
-			CUSTOM_ASSERT(false, "non-instruction encountered");
-		}
-
-		if (instruction == Graphics_Instruction::Print_Pointer) {
-			cstring message = *command_buffer.read<cstring>();
-			CUSTOM_MESSAGE("print pointer: %s", message);
-			continue;
-		}
-
-		if (instruction == Graphics_Instruction::Print_Inline) {
-			u32 length = *command_buffer.read<u32>();
-			cstring message = command_buffer.read<char const>(length);
-			CUSTOM_MESSAGE("print inline: %d %s", length, message);
-			continue;
-		}
-		
-		CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
+		consume_single_instruction(command_buffer);
 	}
 }
 
+}
+
+//
+// instruction implementation
+//
+
+static void consume_single_instruction(custom::Command_Buffer const & command_buffer)
+{
+	custom::Graphics_Instruction instruction = *command_buffer.read<custom::Graphics_Instruction>();
+	switch (instruction)
+	{
+		//
+		case custom::Graphics_Instruction::Viewport: {
+			CUSTOM_MESSAGE("// @Todo: Viewport");
+		} return;
+
+		//
+		case custom::Graphics_Instruction::Allocate_Shader: {
+			CUSTOM_MESSAGE("// @Todo: Allocate_Shader");
+		} return;
+
+		case custom::Graphics_Instruction::Allocate_Texture: {
+			CUSTOM_MESSAGE("// @Todo: Allocate_Texture");
+		} return;
+
+		case custom::Graphics_Instruction::Allocate_Mesh: {
+			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
+		} return;
+
+		//
+		case custom::Graphics_Instruction::Free_Shader: {
+			CUSTOM_MESSAGE("// @Todo: Free_Shader");
+		} return;
+
+		case custom::Graphics_Instruction::Free_Texture: {
+			CUSTOM_MESSAGE("// @Todo: Free_Texture");
+		} return;
+
+		case custom::Graphics_Instruction::Free_Mesh: {
+			CUSTOM_MESSAGE("// @Todo: Free_Mesh");
+		} return;
+
+		//
+		case custom::Graphics_Instruction::Use_Shader: {
+			CUSTOM_MESSAGE("// @Todo: Use_Shader");
+		} return;
+
+		case custom::Graphics_Instruction::Use_Texture: {
+			CUSTOM_MESSAGE("// @Todo: Use_Texture");
+		} return;
+
+		case custom::Graphics_Instruction::Draw_Mesh: {
+			CUSTOM_MESSAGE("// @Todo: Draw_Mesh");
+		} return;
+
+		case custom::Graphics_Instruction::Draw_Overlay: {
+			CUSTOM_MESSAGE("// @Todo: Draw_Overlay");
+		} return;
+	}
+
+	// test
+	switch (instruction)
+	{
+		case custom::Graphics_Instruction::Print_Pointer: {
+			cstring message = *command_buffer.read<cstring>();
+			CUSTOM_MESSAGE("print pointer: %s", message);
+		} return;
+
+		case custom::Graphics_Instruction::Print_Inline: {
+			u32 length = *command_buffer.read<u32>();
+			cstring message = command_buffer.read<char const>(length);
+			CUSTOM_MESSAGE("print inline: %d %s", length, message);
+		} return;
+	}
+
+	// error
+	switch (instruction)
+	{
+		case custom::Graphics_Instruction::None: {
+			CUSTOM_ASSERT(false, "null instruction encountered");
+		} return;
+
+		case custom::Graphics_Instruction::Last: {
+			CUSTOM_ASSERT(false, "non-instruction encountered");
+		} return;
+	}
+
+	if (instruction < custom::Graphics_Instruction::Last) {
+		CUSTOM_ASSERT(false, "unhandled instruction encountered: %d", instruction);
+	}
+
+	CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
 }
 
 //
