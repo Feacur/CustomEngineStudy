@@ -69,8 +69,8 @@ void set_render_buffer_size(Vector2i size) {
 		free_memory(render_buffer.image_f.data);
 	}
 	
-	size.x = round_up_with_step(size.x, 4);
-	size.y = round_up_with_step(size.y, 4);
+	size.x = align_up(size.x, 4);
+	size.y = align_up(size.y, 4);
 
 	// Windows GDI expects ARGB image format
 	render_buffer.image.offsets[0] = 16;

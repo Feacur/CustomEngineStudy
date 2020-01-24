@@ -16,6 +16,9 @@ struct Command_Buffer
 
 	template<typename T>
 	T const * read(u32 count = 1) const;
+
+	template<typename T>
+	void copy(T * out, u32 count = 1) const;
 };
 
 }

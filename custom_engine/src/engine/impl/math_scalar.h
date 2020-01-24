@@ -114,9 +114,8 @@ constexpr inline s32 absolute(s32 value) {
 	return value >= 0 ? value : -value;
 }
 
-constexpr inline s32 round_up_with_step(s32 value, s32 step) {
-	s32 reminder = (value % step);
-	return (reminder < 1) ? value : (value + (step - reminder));
+constexpr inline s32 align_up(s32 value, s32 step) {
+	return ((value + step - 1) / step) * step;
 }
 
 //
