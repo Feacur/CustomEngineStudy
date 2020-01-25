@@ -6,13 +6,19 @@
 
 namespace custom {
 
+// @Note: might come in handy in case of some portabiliy issues?
+// #define alignof(type) ({ \
+// 	struct s { char c; type d; }; \
+// 	offsetof(struct s, d); \
+// })
+
 // @Note: it might be beneficial to align written data for future reads
 //        - either because of performance of loading loading data
 //        - or because of potential read failures and system failures
 //        alternatively do not 'read', but 'copy' data
 //        *disclaimer*: didn't check actual benefits here; rather making
 //        a proof of concept code for now
-#define CUSTOM_GET_PADDING(T, value) (((value + sizeof(T) - 1u) / sizeof(T)) * sizeof(T) - value)
+#define CUSTOM_GET_PADDING(T, value) (((value + alignof(T) - 1u) / alignof(T)) * alignof(T) - value)
 // #if !defined(CUSTOM_GET_PADDING)
 // 	#define CUSTOM_GET_PADDING(T, value) 0
 // #endif

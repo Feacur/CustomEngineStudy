@@ -52,13 +52,21 @@ int main(int argc, char * argv[]) {
 	cstring msg = "hello, world!";
 	u32 msg_len_full = (u32)strlen(msg) + 1;
 
+	ivec2 viewport_position = {};
+	ivec2 viewport_size = window->get_size();
+	gvm_buffer.write(custom::Graphics_Instruction::Viewport);
+	gvm_buffer.write(viewport_position);
+	gvm_buffer.write(viewport_size);
+
 	while (true) {
 		if (custom::system.should_close) { break; }
 		if (custom::Window::should_close) { break; }
 
-		gvm_buffer.offset = 0;
-		gvm_buffer.bytecode.count = 0;
+		// prepare for a frame
+		u64 last_frame_ticks = get_last_frame_ticks(window->is_vsync());
+		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
 
+		// process the frame
 		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
 		gvm_buffer.write(msg_ptr1);
 
@@ -69,11 +77,13 @@ int main(int argc, char * argv[]) {
 		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
 		gvm_buffer.write(msg_ptr2);
 
-		u64 last_frame_ticks = get_last_frame_ticks(window->is_vsync());
-		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
 		custom::system_update();
 		gvm.render(gvm_buffer);
 		window->update();
+
+		// clean up after the frame
+		gvm_buffer.offset = 0;
+		gvm_buffer.bytecode.count = 0;
 	}
 
 	delete window;

@@ -6,7 +6,10 @@ namespace custom {
 struct Command_Buffer
 {
 	Array<u8> bytecode;
-	mutable u32 offset; // @Todo: make it an explicit parameter of read(...)?
+	mutable u32 offset;
+
+	Command_Buffer();
+	~Command_Buffer();
 
 	template<typename T>
 	void write(T const * data, u32 count);

@@ -1,4 +1,5 @@
 #include "custom_pch.h"
+#include "engine/core/math_types.h"
 #include "engine/api/graphics_vm.h"
 #include "engine/impl/command_buffer.h"
 
@@ -89,6 +90,8 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Viewport: {
 			CUSTOM_MESSAGE("// @Todo: Viewport");
+			ivec2 const * position = command_buffer.read<ivec2>();
+			ivec2 const * size     = command_buffer.read<ivec2>();
 			// glViewport(x, y, width, height);
 		} return;
 
