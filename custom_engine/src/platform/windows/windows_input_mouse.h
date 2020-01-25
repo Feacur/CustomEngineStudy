@@ -4,14 +4,14 @@ static POINT os_input_mouse_screen;
 static POINT os_input_mouse_client;
 
 static ivec2 get_mouse_window(POINT point) {
-	return {point.x, window_size.y - (point.y + 1)};
+	return {point.x, root_window_size.y - (point.y + 1)};
 }
 
 static bool mouse_is_inside() {
 	return os_input_mouse_client.x >= 0
 		&& os_input_mouse_client.y >= 0
-		&& os_input_mouse_client.x <  window_size.x
-		&& os_input_mouse_client.y <  window_size.y;
+		&& os_input_mouse_client.x <  root_window_size.x
+		&& os_input_mouse_client.y <  root_window_size.y;
 }
 
 // namespace custom {

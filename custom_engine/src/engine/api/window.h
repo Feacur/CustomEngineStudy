@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/types.h"
+#include "engine/core/math_types.h"
 
 namespace custom {
 
@@ -21,7 +21,9 @@ struct Window
 
 	void set_vsync(s32 value);
 	bool is_vsync() const;
+
 	void set_header(cstring value) const;
+	ivec2 get_size() const;
 
 private:
 	uptr m_handle;

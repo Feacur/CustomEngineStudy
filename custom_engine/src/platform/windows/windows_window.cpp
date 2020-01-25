@@ -6,7 +6,6 @@
 #include "engine/core/key_codes.h"
 #include "engine/core/mouse_codes.h"
 #include "engine/impl/math_bitwise.h"
-#include "engine/impl/math_linear.h"
 #include "engine/debug/log.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -15,7 +14,8 @@
 	#include <Windows.h>
 #endif
 
-static ivec2 window_size;
+// @Todo: put all relevant data into the Window object and give out to a user a pointer only
+static ivec2 root_window_size;
 inline ivec2 get_window_size(HWND window) {
 	RECT client_rect;
 	GetClientRect(window, &client_rect);
@@ -86,6 +86,11 @@ bool Window::is_vsync() const
 void Window::set_header(cstring value) const
 {
 	SetWindowText((HWND)m_handle, value);
+}
+
+ivec2 Window::get_size() const
+{
+	return get_window_size((HWND)m_handle);
 }
 
 }
@@ -235,7 +240,9 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
-			window_size = get_window_size(hwnd);
+			if (root_hwnd == hwnd) {
+				root_window_size = get_window_size(hwnd);
+			}
 			if (wParam == SIZE_MINIMIZED) {
 			}
 			else if (wParam == SIZE_MAXIMIZED) {
@@ -247,13 +254,17 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_SIZING: {
 			// Sent to a window that the user is resizing.
-			window_size = get_window_size(hwnd);
+			if (root_hwnd == hwnd) {
+				root_window_size = get_window_size(hwnd);
+			}
 			return TRUE; // An application should return TRUE if it processes this message.
 		}
 
 		case WM_EXITSIZEMOVE: {
 			// Sent one time to a window, after it has exited the moving or sizing modal loop.
-			window_size = get_window_size(hwnd);
+			if (root_hwnd == hwnd) {
+				root_window_size = get_window_size(hwnd);
+			}
 			return 0; // An application should return zero if it processes this message.
 		} break;
 
