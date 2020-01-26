@@ -7,6 +7,7 @@
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
+	#include <new>
 #endif
 
 // https://www.khronos.org/registry/OpenGL/index_gl.php
@@ -27,7 +28,7 @@ namespace OpenGL {
 	struct Program
 	{
 		GLuint id;
-		custom::Array<GLuint> uniforms;
+		custom::Array<GLuint> uniforms; // @Todo: use fixed?
 	};
 	template struct custom::Array<Program>;
 
@@ -51,16 +52,22 @@ namespace OpenGL {
 
 	struct Buffer
 	{
-		GLuint handle;
+		GLuint id;
 		custom::Array<Attribute> attributes; // @Todo: use fixed?
 	};
 	template struct custom::Array<Buffer>; // @Todo: use fixed?
 
+	struct Indices
+	{
+		GLuint id;
+		u32 count;
+	};
+
 	struct Mesh
 	{
-		GLuint handle;
+		GLuint id;
 		custom::Array<Buffer> buffers; // @Todo: use fixed?
-		GLuint indices;
+		Indices indices;
 	};
 	template struct custom::Array<Mesh>;
 
@@ -139,7 +146,7 @@ static GLenum Get_Comparison(Comparison value) {
 		case Comparison::Greater: return GL_GREATER;
 		case Comparison::True:    return GL_ALWAYS;
 	}
-	CUSTOM_ASSERT(false, "unknown depth mode %d", value);
+	CUSTOM_ASSERT(false, "unknown comparison %d", value);
 	return GL_NONE;
 }
 
@@ -154,7 +161,54 @@ static GLenum Get_Operation(Operation value) {
 		case Operation::Decr_Wrap: return GL_DECR_WRAP;
 		case Operation::Invert:    return GL_INVERT;
 	}
-	CUSTOM_ASSERT(false, "unknown depth mode %d", value);
+	CUSTOM_ASSERT(false, "unknown operation %d", value);
+	return GL_NONE;
+}
+
+static GLenum Get_Internal_Format(Texture_Format value, Data_Type type) {
+	switch (type) {
+		case Data_Type::U8: switch (value) {
+			case Texture_Format::R:       return GL_R8;
+			case Texture_Format::RG:      return GL_RG8;
+			case Texture_Format::RGB:     return GL_RGB8;
+			case Texture_Format::RGBA:    return GL_RGBA8;
+			case Texture_Format::Stencil: return GL_STENCIL_INDEX8;
+		} break;
+		case Data_Type::U32: switch (value) {
+			case Texture_Format::Depth: return GL_DEPTH_COMPONENT24;
+		} break;
+		case Data_Type::U24_8: switch (value) {
+			case Texture_Format::DStencil: return GL_DEPTH24_STENCIL8;
+		} break;
+	}
+	CUSTOM_ASSERT(false, "unknown texture format %d with type %d", value, type);
+	return GL_NONE;
+}
+
+static GLenum Get_Data_Format(Texture_Format value) {
+	switch (value) {
+		case Texture_Format::R:        return GL_RED;
+		case Texture_Format::RG:       return GL_RG;
+		case Texture_Format::RGB:      return GL_RGB;
+		case Texture_Format::RGBA:     return GL_RGBA;
+		case Texture_Format::Depth:    return GL_DEPTH_COMPONENT;
+		case Texture_Format::DStencil: return GL_DEPTH_STENCIL;
+		case Texture_Format::Stencil:  return GL_STENCIL_INDEX;
+	}
+	CUSTOM_ASSERT(false, "unknown texture format %d", value);
+	return GL_NONE;
+}
+
+static GLenum Get_Data_Type(Data_Type value) {
+	switch (value) {
+		case Data_Type::U8:    return GL_UNSIGNED_BYTE;
+		case Data_Type::U16:   return GL_UNSIGNED_SHORT;
+		case Data_Type::U32:   return GL_UNSIGNED_INT;
+		case Data_Type::U24_8: return GL_UNSIGNED_INT_24_8;
+		case Data_Type::F16:   return GL_HALF_FLOAT;
+		case Data_Type::F32:   return GL_FLOAT;
+	}
+	CUSTOM_ASSERT(false, "unknown data type %d", value);
 	return GL_NONE;
 }
 
@@ -314,20 +368,36 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		//
 		case Graphics_Instruction::Allocate_Shader: {
-			CUSTOM_MESSAGE("// @Todo: Allocate_Shader");
 			u32     asset_id = *command_buffer.read<u32>();
 			u32     length   = *command_buffer.read<u32>();
 			cstring source   =  command_buffer.read<char>(length);
 
-			GLuint id = create_program(source);
+			ogl.programs.ensure_capacity(asset_id + 1);
+			OpenGL::Program * resource = new (&ogl.programs[asset_id]) OpenGL::Program;
+
+			resource->id = create_program(source);
+
+			// @Todo: process uniforms
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
 		} return;
 
 		case Graphics_Instruction::Allocate_Texture: {
-			CUSTOM_MESSAGE("// @Todo: Allocate_Texture");
-			// GLenum internal_format = GL_RGBA8;
-			// glCreateTextures(GL_TEXTURE_2D, 1, &id);
-			// glTextureStorage2D(id, 1, internal_format, width, height);
+			u32   asset_id = *command_buffer.read<u32>();
+			ivec2 size     = *command_buffer.read<ivec2>();
+			Texture_Format format = *command_buffer.read<Texture_Format>();
+			Data_Type      type   = *command_buffer.read<Data_Type>();
+
+			ogl.textures.ensure_capacity(asset_id + 1);
+			OpenGL::Texture * resource = new (&ogl.textures[asset_id]) OpenGL::Texture;
+
+			glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
+			glTextureStorage2D(
+				resource->id, 1,
+				Get_Internal_Format(format, type),
+				size.x, size.y
+			);
+
+			// @Todo: setup filtering
 			// glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			// glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			// glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -336,6 +406,11 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case Graphics_Instruction::Allocate_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
+			u32   asset_id = *command_buffer.read<u32>();
+
+			ogl.meshes.ensure_capacity(asset_id + 1);
+			OpenGL::Mesh * resource = new (&ogl.meshes[asset_id]) OpenGL::Mesh;
+
 			// glGenVertexArrays(1, &id);
 			// glBindVertexArray(id);
 
@@ -373,42 +448,63 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		//
 		case Graphics_Instruction::Free_Shader: {
-			CUSTOM_MESSAGE("// @Todo: Free_Shader");
-			// glDeleteProgram(id);
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Program * resource = &ogl.programs[asset_id];
+			glDeleteProgram(resource->id);
+			resource->OpenGL::Program::~Program();
 		} return;
 
 		case Graphics_Instruction::Free_Texture: {
-			CUSTOM_MESSAGE("// @Todo: Free_Texture");
-			// glDeleteTextures(1, &id);
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			glDeleteTextures(1, &resource->id);
+			resource->OpenGL::Texture::~Texture();
 		} return;
 
 		case Graphics_Instruction::Free_Mesh: {
-			CUSTOM_MESSAGE("// @Todo: Free_Mesh");
-			// glDeleteBuffers(GL_ARRAY_BUFFER, &id);
-			// glDeleteBuffers(GL_ELEMENT_ARRAY_BUFFER, &id);
-			// glDeleteVertexArrays(1, &id);
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			for (u32 i = 0; i < resource->buffers.count; ++i) {
+				glDeleteBuffers(GL_ARRAY_BUFFER, &resource->buffers[i].id);
+			}
+			glDeleteBuffers(GL_ELEMENT_ARRAY_BUFFER, &resource->indices.id);
+			glDeleteVertexArrays(1, &resource->id);
+			resource->OpenGL::Mesh::~Mesh();
 		} return;
 
 		//
 		case Graphics_Instruction::Use_Shader: {
-			CUSTOM_MESSAGE("// @Todo: Use_Shader");
-			// glUseProgram(id);
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Program * resource = &ogl.programs[asset_id];
+			glUseProgram(resource->id);
 		} return;
 
 		case Graphics_Instruction::Use_Texture: {
-			CUSTOM_MESSAGE("// @Todo: Use_Texture");
-			// glBindTextureUnit(slot, id); // load uniform int slot beforehand
+			u32 asset_id = *command_buffer.read<u32>();
+			u32 slot     = *command_buffer.read<u32>();
+
+			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			glBindTextureUnit(slot, resource->id);
 		} return;
 
 		case Graphics_Instruction::Use_Mesh: {
-			CUSTOM_MESSAGE("// @Todo: Use_Mesh");
-			// glBindVertexArray(id);
-			// @Todo: potentially rebind indices buffer?
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			glBindVertexArray(resource->id);
+			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
 		} return;
 
 		//
 		case Graphics_Instruction::Load_Uniform: {
 			CUSTOM_MESSAGE("// @Todo: Load_Uniform");
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Program * resource = &ogl.programs[asset_id];
 			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
 			// glUniform1f(location, value);
 			// glUniform1i(location, value);
@@ -417,21 +513,35 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		case Graphics_Instruction::Load_Texture: {
-			CUSTOM_MESSAGE("// @Todo: Load_Texture");
-			// GLenum data_format = GL_RGBA;
-			// glTextureSubImage2D(id, 0, 0, 0, width, height, data_format, GL_UNSIGNED_BYTE, data);
+			u32   asset_id = *command_buffer.read<u32>();
+			ivec2 size     = *command_buffer.read<ivec2>();
+			Texture_Format format = *command_buffer.read<Texture_Format>();
+			Data_Type      type   = *command_buffer.read<Data_Type>();
+
+			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			glTextureSubImage2D(
+				resource->id,
+				0, 0, 0,
+				size.x, size.y,
+				Get_Data_Format(format),
+				Get_Data_Type(type),
+				NULL // data
+			);
+
+			// @Todo: specify data
 		} return;
 
 		//
 		case Graphics_Instruction::Draw: {
-			CUSTOM_MESSAGE("// @Todo: Draw");
-			// glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+			u32 asset_id = *command_buffer.read<u32>();
+
+			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			glDrawElements(GL_TRIANGLES, resource->indices.count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
 		case Graphics_Instruction::Overlay: {
-			CUSTOM_MESSAGE("// @Todo: Overlay");
 			// send to a vertex shader indices [0, 1, 2]
-			// glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 			// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
 			// https://twitter.com/nice_byte/status/1093355080235999232
 		} return;

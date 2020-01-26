@@ -10,6 +10,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <new>
+
 #if defined(_MSC_VER)
 	#include <intrin.h>
 #elif defined(__GNUC__) || defined(__clang__)

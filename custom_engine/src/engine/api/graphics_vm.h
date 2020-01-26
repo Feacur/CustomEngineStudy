@@ -76,6 +76,31 @@ enum struct Cull_Mode : u8
 UNDERLYING_TYPE_META(Cull_Mode, u8)
 IS_ENUM_META(Cull_Mode)
 
+enum struct Texture_Format : u8
+{
+	R,
+	RG,
+	RGB,
+	RGBA,
+	Depth,
+	DStencil,
+	Stencil,
+};
+UNDERLYING_TYPE_META(Texture_Format, u8)
+IS_ENUM_META(Texture_Format)
+
+enum struct Data_Type : u8
+{
+	U8,
+	U16,
+	U32,
+	U24_8,
+	F16,
+	F32,
+};
+UNDERLYING_TYPE_META(Data_Type, u8)
+IS_ENUM_META(Data_Type)
+
 enum struct Graphics_Instruction : u8
 {
 	None,
