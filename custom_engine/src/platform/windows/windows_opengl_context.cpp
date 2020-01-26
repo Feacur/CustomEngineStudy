@@ -40,7 +40,7 @@
 
 #define OPENGL_LIBRARY_NAME "opengl32.dll"
 
-struct Wgl_Context
+struct Wgl_Data
 {
 	HINSTANCE instance;
 
@@ -106,7 +106,7 @@ static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 //
 
 // @Todo: put into rendering context object?
-static Wgl_Context wgl;
+static Wgl_Data wgl;
 
 static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(void);

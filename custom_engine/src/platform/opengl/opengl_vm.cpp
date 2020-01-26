@@ -1,6 +1,8 @@
 #include "custom_pch.h"
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_vm.h"
+#include "engine/impl/array.h"
+#include "engine/impl/array_fixed.h"
 #include "engine/impl/command_buffer.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -15,10 +17,62 @@ typedef GLchar const * glstring;
 
 struct ShaderProps
 {
-	GLenum   type;
+	GLenum  type;
 	cstring version;
 	cstring defines;
 };
+
+namespace OpenGL {
+
+	struct Program
+	{
+		GLuint id;
+		custom::Array<GLuint> uniforms;
+	};
+	template struct custom::Array<Program>;
+
+	struct Texture
+	{
+		GLuint id;
+		// ivec2 size;
+		// GLenum format;
+		// GLenum format;
+		// GLenum min_filter, max_filter;
+		// GLenum wrap_s, wrap_t;
+	};
+	template struct custom::Array<Texture>;
+
+	struct Attribute
+	{
+		GLenum type;
+		GLint  count;
+	};
+	template struct custom::Array_Fixed<Attribute, 4>;
+
+	struct Buffer
+	{
+		GLuint handle;
+		custom::Array_Fixed<Attribute, 4> attributes;
+	};
+	template struct custom::Array<Buffer>;
+
+	struct Mesh
+	{
+		GLuint handle;
+		custom::Array<Buffer> buffers;
+		GLuint indices;
+	};
+	template struct custom::Array<Mesh>;
+
+	struct Data
+	{
+		custom::Array<Program> programs;
+		custom::Array<Texture> textures;
+		custom::Array<Mesh>    meshes;
+	};
+}
+
+static OpenGL::Data ogl;
 
 //
 // API implementation
@@ -89,10 +143,9 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	{
 		//
 		case custom::Graphics_Instruction::Viewport: {
-			CUSTOM_MESSAGE("// @Todo: Viewport");
-			ivec2 const * position = command_buffer.read<ivec2>();
-			ivec2 const * size     = command_buffer.read<ivec2>();
-			// glViewport(x, y, width, height);
+			ivec2 pos  = *command_buffer.read<ivec2>();
+			ivec2 size = *command_buffer.read<ivec2>();
+			glViewport(pos.x, pos.y, size.x, size.y);
 		} return;
 
 		//
@@ -103,7 +156,10 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		//
 		case custom::Graphics_Instruction::Allocate_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Shader");
-			cstring source = *command_buffer.read<cstring>();
+			u32     asset_id = *command_buffer.read<u32>();
+			u32     length   = *command_buffer.read<u32>();
+			cstring source   =  command_buffer.read<char>(length);
+
 			GLuint id = create_program(source);
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
 		} return;
@@ -121,7 +177,6 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case custom::Graphics_Instruction::Allocate_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
-			
 			// glGenVertexArrays(1, &id);
 			// glBindVertexArray(id);
 
@@ -233,7 +288,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case custom::Graphics_Instruction::Print_Inline: {
 			u32 length = *command_buffer.read<u32>();
-			cstring message = command_buffer.read<char const>(length);
+			cstring message = command_buffer.read<char>(length);
 			CUSTOM_MESSAGE("print inline: %d %s", length, message);
 		} return;
 	}
@@ -251,7 +306,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	}
 
 	if (instruction < custom::Graphics_Instruction::Last) {
-		CUSTOM_ASSERT(false, "unhandled instruction encountered: %d", instruction);
+		CUSTOM_ASSERT(false, "unidd instruction encountered: %d", instruction);
 	}
 
 	CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
@@ -326,34 +381,34 @@ static void opengl_message_callback(
 }
 #endif
 
-static bool verify_compilation(GLuint shader)
+static bool verify_compilation(GLuint id)
 {
-	GLint is_compiled = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &is_compiled);
-	if (is_compiled == GL_TRUE) { return true; }
+	GLint status = 0;
+	glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+	if (status == GL_TRUE) { return true; }
 
 	// @Note: linker will inform of the errors anyway
 	GLint max_length = 0;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &max_length);
+	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &max_length);
 
 	custom::Array<GLchar> info_log(max_length);
-	glGetShaderInfoLog(shader, max_length, &max_length, info_log.data);
+	glGetShaderInfoLog(id, max_length, &max_length, info_log.data);
 	CUSTOM_MESSAGE("failed to compile shader:\n%s", info_log.data);
 
 	return false;
 }
 
-static bool verify_linking(GLuint program)
+static bool verify_linking(GLuint id)
 {
-	GLint is_linked = 0;
-	glGetProgramiv(program, GL_LINK_STATUS, (int*)&is_linked);
-	if (is_linked == GL_TRUE) { return true; }
+	GLint status = 0;
+	glGetProgramiv(id, GL_LINK_STATUS, &status);
+	if (status == GL_TRUE) { return true; }
 
 	GLint max_length = 0;
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
+	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &max_length);
 
 	custom::Array<GLchar> info_log(max_length);
-	glGetProgramInfoLog(program, max_length, &max_length, info_log.data);
+	glGetProgramInfoLog(id, max_length, &max_length, info_log.data);
 	CUSTOM_MESSAGE("failed to link program:\n%s", info_log.data);
 
 	return false;
