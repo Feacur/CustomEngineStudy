@@ -47,19 +47,19 @@ namespace OpenGL {
 		GLenum type;
 		GLint  count;
 	};
-	template struct custom::Array_Fixed<Attribute, 4>;
+	template struct custom::Array<Attribute>; // @Todo: use fixed?
 
 	struct Buffer
 	{
 		GLuint handle;
-		custom::Array_Fixed<Attribute, 4> attributes;
+		custom::Array<Attribute> attributes; // @Todo: use fixed?
 	};
-	template struct custom::Array<Buffer>;
+	template struct custom::Array<Buffer>; // @Todo: use fixed?
 
 	struct Mesh
 	{
 		GLuint handle;
-		custom::Array<Buffer> buffers;
+		custom::Array<Buffer> buffers; // @Todo: use fixed?
 		GLuint indices;
 	};
 	template struct custom::Array<Mesh>;
@@ -78,8 +78,6 @@ static OpenGL::Data ogl;
 // API implementation
 //
 
-static void consume_single_instruction(custom::Command_Buffer const & command_buffer);
-
 static void opengl_message_callback(
 	unsigned source, unsigned type, unsigned id, unsigned severity,
 	int length, cstring message, void const * userParam
@@ -88,15 +86,18 @@ static GLuint create_program(cstring source);
 
 namespace custom {
 
+static void consume_single_instruction(Command_Buffer const & command_buffer);
+
 Graphics_VM::Graphics_VM()
 {
-	GLint versionMajor;
-	glGetIntegerv(GL_MAJOR_VERSION, &versionMajor);
-	GLint versionMinor;
-	glGetIntegerv(GL_MINOR_VERSION, &versionMinor);
-
 	#if !defined(GES_SHIPPING)
-	if (versionMajor == 4 && versionMinor >= 3 || versionMajor > 4) {
+	GLint version_major;
+	glGetIntegerv(GL_MAJOR_VERSION, &version_major);
+	GLint version_minor;
+	glGetIntegerv(GL_MINOR_VERSION, &version_minor);
+	CUSTOM_MESSAGE("OpenGL version %d.%d", version_major, version_minor);
+
+	if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(opengl_message_callback, nullptr);
@@ -104,27 +105,16 @@ Graphics_VM::Graphics_VM()
 	}
 	#endif
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_DEPTH_TEST);
-	// glDepthFunc(GL_LESS);
+	// glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	// glDepthRangef(0.0f, 1.0f);
 	// glClearDepth(1.0f);
-
-	// glEnable(GL_CULL_FACE);
 	// glFrontFace(GL_CCW);
-	// glCullFace(GL_BACK);
 }
 
 Graphics_VM::~Graphics_VM() = default;
 
 void Graphics_VM::render(Command_Buffer const & command_buffer)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	while (command_buffer.offset < command_buffer.bytecode.count) {
 		consume_single_instruction(command_buffer);
 	}
@@ -136,25 +126,194 @@ void Graphics_VM::render(Command_Buffer const & command_buffer)
 // instruction implementation
 //
 
+namespace custom {
+
+static GLenum Get_Comparison(Comparison value) {
+	switch (value) {
+		case Comparison::False:   return GL_NONE;
+		case Comparison::Less:    return GL_LESS;
+		case Comparison::LEqual:  return GL_LEQUAL;
+		case Comparison::Equal:   return GL_EQUAL;
+		case Comparison::NEqual:  return GL_NOTEQUAL;
+		case Comparison::GEqual:  return GL_GEQUAL;
+		case Comparison::Greater: return GL_GREATER;
+		case Comparison::True:    return GL_ALWAYS;
+	}
+	CUSTOM_ASSERT(false, "unknown depth mode %d", value);
+	return GL_NONE;
+}
+
+static GLenum Get_Operation(Operation value) {
+	switch (value) {
+		case Operation::Keep:      return GL_KEEP;
+		case Operation::Zero:      return GL_ZERO;
+		case Operation::Replace:   return GL_REPLACE;
+		case Operation::Incr:      return GL_INCR;
+		case Operation::Incr_Wrap: return GL_INCR_WRAP;
+		case Operation::Decr:      return GL_DECR;
+		case Operation::Decr_Wrap: return GL_DECR_WRAP;
+		case Operation::Invert:    return GL_INVERT;
+	}
+	CUSTOM_ASSERT(false, "unknown depth mode %d", value);
+	return GL_NONE;
+}
+
 static void consume_single_instruction(custom::Command_Buffer const & command_buffer)
 {
-	custom::Graphics_Instruction instruction = *command_buffer.read<custom::Graphics_Instruction>();
+	Graphics_Instruction instruction = *command_buffer.read<Graphics_Instruction>();
 	switch (instruction)
 	{
 		//
-		case custom::Graphics_Instruction::Viewport: {
+		case Graphics_Instruction::Viewport: {
 			ivec2 pos  = *command_buffer.read<ivec2>();
 			ivec2 size = *command_buffer.read<ivec2>();
 			glViewport(pos.x, pos.y, size.x, size.y);
 		} return;
 
+		case Graphics_Instruction::Clear: {
+			GLbitfield gl_clear_flags = 0;
+			Clear_Flags clear_flags = *command_buffer.read<Clear_Flags>();
+			if (bits_are_set(clear_flags, Clear_Flags::Color)) {
+				gl_clear_flags |= GL_COLOR_BUFFER_BIT;
+			}
+			if (bits_are_set(clear_flags, Clear_Flags::Depth)) {
+				gl_clear_flags |= GL_DEPTH_BUFFER_BIT;
+			}
+			if (bits_are_set(clear_flags, Clear_Flags::Stencil)) {
+				gl_clear_flags |= GL_STENCIL_BUFFER_BIT;
+			}
+			glClear(gl_clear_flags);
+		} return;
+
+		case Graphics_Instruction::Depth_Read: {
+			u8 value = *command_buffer.read<u8>();
+			if (value) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			else {
+				glDisable(GL_DEPTH_TEST);
+			}
+		} return;
+
+		case Graphics_Instruction::Depth_Write: {
+			u8 value = *command_buffer.read<u8>();
+			glDepthMask(value);
+		} return;
+
+		case Graphics_Instruction::Depth_Comparison: {
+			Comparison value = *command_buffer.read<Comparison>();
+			glDepthFunc(Get_Comparison(value));
+		} return;
+
+		case Graphics_Instruction::Color_Write: {
+			Color_Write value = *command_buffer.read<Color_Write>();
+			glColorMask(
+				bits_are_set(value, Color_Write::R),
+				bits_are_set(value, Color_Write::G),
+				bits_are_set(value, Color_Write::B),
+				bits_are_set(value, Color_Write::A)
+			);
+		} return;
+
+		case Graphics_Instruction::Stencil_Read: {
+			u8 value = *command_buffer.read<u8>();
+			if (value) {
+				glEnable(GL_STENCIL_TEST);
+			}
+			else {
+				glDisable(GL_STENCIL_TEST);
+			}
+		} return;
+
+		case Graphics_Instruction::Stencil_Write: {
+			u32 value = *command_buffer.read<u32>();
+			glStencilMask(value);
+		} return;
+
+		case Graphics_Instruction::Stencil_Comparison: {
+			Comparison value = *command_buffer.read<Comparison>();
+			u8 ref  = *command_buffer.read<u8>();
+			u8 mask = *command_buffer.read<u8>();
+			glStencilFunc(Get_Comparison(value), ref, mask);
+		} return;
+
+		case Graphics_Instruction::Stencil_Operation: {
+			// stencil test + depth test
+			Operation fail_any  = *command_buffer.read<Operation>();
+			Operation succ_fail = *command_buffer.read<Operation>();
+			Operation succ_succ = *command_buffer.read<Operation>();
+			glStencilOp(
+				Get_Operation(fail_any),
+				Get_Operation(succ_fail),
+				Get_Operation(succ_succ)
+			);
+		} return;
+
+		case Graphics_Instruction::Stencil_Mask: {
+			u8 mask = *command_buffer.read<u8>();
+			glStencilMask(mask);
+		} return;
+
+		case Graphics_Instruction::Blend_Mode: {
+			Blend_Mode value = *command_buffer.read<Blend_Mode>();
+
+			if (value == Blend_Mode::Opaque) {
+				glDisable(GL_BLEND);
+			}
+			else {
+				glEnable(GL_BLEND);
+			}
+
+			switch (value) {
+				case Blend_Mode::Alpha:
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					// glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // premultiply alpha
+					return;
+				case Blend_Mode::Additive:
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+					// glBlendFunc(GL_ONE, GL_ONE); // premultiply additive
+					return;
+				case Blend_Mode::Multiply:
+					glBlendFunc(GL_DST_COLOR, GL_ZERO);
+					// glBlendFunc(GL_ZERO, GL_SRC_COLOR); // just the same
+					return;
+			}
+
+			CUSTOM_ASSERT(false, "unknown blend mode %d", value);
+		} return;
+
+		case Graphics_Instruction::Cull_Mode: {
+			Cull_Mode value = *command_buffer.read<Cull_Mode>();
+
+			if (value == Cull_Mode::None) {
+				glDisable(GL_CULL_FACE);
+			}
+			else {
+				glEnable(GL_CULL_FACE);
+			}
+
+			switch (value) {
+				case Cull_Mode::Back:
+					glCullFace(GL_BACK);
+					return;
+				case Cull_Mode::Front:
+					glCullFace(GL_FRONT);
+					return;
+				case Cull_Mode::Both:
+					glCullFace(GL_FRONT_AND_BACK);
+					return;
+			}
+
+			CUSTOM_ASSERT(false, "unknown cull mode %d", value);
+		} return;
+
 		//
-		case custom::Graphics_Instruction::Prepare_Uniform: {
+		case Graphics_Instruction::Prepare_Uniform: {
 			CUSTOM_MESSAGE("// @Todo: Prepare_Uniform");
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Allocate_Shader: {
+		case Graphics_Instruction::Allocate_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Shader");
 			u32     asset_id = *command_buffer.read<u32>();
 			u32     length   = *command_buffer.read<u32>();
@@ -164,7 +323,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
 		} return;
 
-		case custom::Graphics_Instruction::Allocate_Texture: {
+		case Graphics_Instruction::Allocate_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Texture");
 			// GLenum internal_format = GL_RGBA8;
 			// glCreateTextures(GL_TEXTURE_2D, 1, &id);
@@ -175,7 +334,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		} return;
 
-		case custom::Graphics_Instruction::Allocate_Mesh: {
+		case Graphics_Instruction::Allocate_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
 			// glGenVertexArrays(1, &id);
 			// glBindVertexArray(id);
@@ -197,7 +356,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// 		vertexAttribIndex,
 			// 		element.GetComponentCount(),
 			// 		ShaderDataTypeOpenGLBaseType(element.Type),
-			// 		element.Normalized ? GL_TRUE : GL_FALSE,
+			// 		element.Normalized,
 			// 		stride,
 			// 		(void const *)offset
 			// 	);
@@ -213,17 +372,17 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Free_Shader: {
+		case Graphics_Instruction::Free_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Free_Shader");
 			// glDeleteProgram(id);
 		} return;
 
-		case custom::Graphics_Instruction::Free_Texture: {
+		case Graphics_Instruction::Free_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Free_Texture");
 			// glDeleteTextures(1, &id);
 		} return;
 
-		case custom::Graphics_Instruction::Free_Mesh: {
+		case Graphics_Instruction::Free_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Free_Mesh");
 			// glDeleteBuffers(GL_ARRAY_BUFFER, &id);
 			// glDeleteBuffers(GL_ELEMENT_ARRAY_BUFFER, &id);
@@ -231,24 +390,24 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Use_Shader: {
+		case Graphics_Instruction::Use_Shader: {
 			CUSTOM_MESSAGE("// @Todo: Use_Shader");
 			// glUseProgram(id);
 		} return;
 
-		case custom::Graphics_Instruction::Use_Texture: {
+		case Graphics_Instruction::Use_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Use_Texture");
 			// glBindTextureUnit(slot, id); // load uniform int slot beforehand
 		} return;
 
-		case custom::Graphics_Instruction::Use_Mesh: {
+		case Graphics_Instruction::Use_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Use_Mesh");
 			// glBindVertexArray(id);
 			// @Todo: potentially rebind indices buffer?
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Load_Uniform: {
+		case Graphics_Instruction::Load_Uniform: {
 			CUSTOM_MESSAGE("// @Todo: Load_Uniform");
 			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
 			// glUniform1f(location, value);
@@ -257,19 +416,19 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// glUniform1iv(location, count, values_pointer);
 		} return;
 
-		case custom::Graphics_Instruction::Load_Texture: {
+		case Graphics_Instruction::Load_Texture: {
 			CUSTOM_MESSAGE("// @Todo: Load_Texture");
 			// GLenum data_format = GL_RGBA;
 			// glTextureSubImage2D(id, 0, 0, 0, width, height, data_format, GL_UNSIGNED_BYTE, data);
 		} return;
 
 		//
-		case custom::Graphics_Instruction::Draw: {
+		case Graphics_Instruction::Draw: {
 			CUSTOM_MESSAGE("// @Todo: Draw");
 			// glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
-		case custom::Graphics_Instruction::Overlay: {
+		case Graphics_Instruction::Overlay: {
 			CUSTOM_MESSAGE("// @Todo: Overlay");
 			// send to a vertex shader indices [0, 1, 2]
 			// glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -281,12 +440,12 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	// test
 	switch (instruction)
 	{
-		case custom::Graphics_Instruction::Print_Pointer: {
+		case Graphics_Instruction::Print_Pointer: {
 			cstring message = *command_buffer.read<cstring>();
 			CUSTOM_MESSAGE("print pointer: %s", message);
 		} return;
 
-		case custom::Graphics_Instruction::Print_Inline: {
+		case Graphics_Instruction::Print_Inline: {
 			u32 length = *command_buffer.read<u32>();
 			cstring message = command_buffer.read<char>(length);
 			CUSTOM_MESSAGE("print inline: %d %s", length, message);
@@ -296,20 +455,22 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	// error
 	switch (instruction)
 	{
-		case custom::Graphics_Instruction::None: {
+		case Graphics_Instruction::None: {
 			CUSTOM_ASSERT(false, "null instruction encountered");
 		} return;
 
-		case custom::Graphics_Instruction::Last: {
+		case Graphics_Instruction::Last: {
 			CUSTOM_ASSERT(false, "non-instruction encountered");
 		} return;
 	}
 
-	if (instruction < custom::Graphics_Instruction::Last) {
+	if (instruction < Graphics_Instruction::Last) {
 		CUSTOM_ASSERT(false, "unidd instruction encountered: %d", instruction);
 	}
 
 	CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
+}
+
 }
 
 //
@@ -385,7 +546,7 @@ static bool verify_compilation(GLuint id)
 {
 	GLint status = 0;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &status);
-	if (status == GL_TRUE) { return true; }
+	if (status) { return true; }
 
 	// @Note: linker will inform of the errors anyway
 	GLint max_length = 0;
@@ -402,7 +563,7 @@ static bool verify_linking(GLuint id)
 {
 	GLint status = 0;
 	glGetProgramiv(id, GL_LINK_STATUS, &status);
-	if (status == GL_TRUE) { return true; }
+	if (status) { return true; }
 
 	GLint max_length = 0;
 	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &max_length);

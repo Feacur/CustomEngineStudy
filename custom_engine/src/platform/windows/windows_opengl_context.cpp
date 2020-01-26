@@ -135,10 +135,12 @@ Opengl_Context::Opengl_Context(uptr hdc)
 		"OpenGL info:"
 		"\n  - vendor:   %s"
 		"\n  - renderer: %s"
-		"\n  - version:  %s",
+		"\n  - version:  %s"
+		"\n  - shaders:  %s",
 		glGetString(GL_VENDOR),
 		glGetString(GL_RENDERER),
-		glGetString(GL_VERSION)
+		glGetString(GL_VERSION),
+		glGetString(GL_SHADING_LANGUAGE_VERSION)
 	);
 }
 

@@ -27,6 +27,23 @@ static u64 get_last_frame_ticks(bool is_vsync) {
 	return custom::timer_wait_next_frame(duration, precision);
 }
 
+static void reset_graphics_settings(custom::Command_Buffer & gvm_buffer) {
+	gvm_buffer.write(custom::Graphics_Instruction::Depth_Read);
+	gvm_buffer.write((u8)1);
+
+	gvm_buffer.write(custom::Graphics_Instruction::Depth_Write);
+	gvm_buffer.write((u8)1);
+
+	gvm_buffer.write(custom::Graphics_Instruction::Depth_Comparison);
+	gvm_buffer.write(custom::Comparison::Less);
+
+	gvm_buffer.write(custom::Graphics_Instruction::Blend_Mode);
+	gvm_buffer.write(custom::Blend_Mode::Alpha);
+
+	gvm_buffer.write(custom::Graphics_Instruction::Cull_Mode);
+	gvm_buffer.write(custom::Cull_Mode::Back);
+}
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -46,11 +63,7 @@ int main(int argc, char * argv[]) {
 	custom::Graphics_VM gvm;
 
 	custom::Command_Buffer gvm_buffer;
-
-	cstring msg_ptr1 = "hello, pointer 1!";
-	cstring msg_ptr2 = "hello, pointer 2!";
-	cstring msg = "hello, world!";
-	u32 msg_len_full = (u32)strlen(msg) + 1;
+	reset_graphics_settings(gvm_buffer);
 
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
@@ -67,15 +80,8 @@ int main(int argc, char * argv[]) {
 		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
 
 		// process the frame
-		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
-		gvm_buffer.write(msg_ptr1);
-
-		gvm_buffer.write(custom::Graphics_Instruction::Print_Inline);
-		gvm_buffer.write(msg_len_full);
-		gvm_buffer.write(msg, msg_len_full);
-
-		gvm_buffer.write(custom::Graphics_Instruction::Print_Pointer);
-		gvm_buffer.write(msg_ptr2);
+		gvm_buffer.write(custom::Graphics_Instruction::Clear);
+		gvm_buffer.write(custom::Clear_Flags::Color | custom::Clear_Flags::Depth);
 
 		custom::system_update();
 		gvm.render(gvm_buffer);
