@@ -36,7 +36,7 @@ project "custom_engine"
 	-- }
 
 	postbuildcommands {
-		-- ("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
+		("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
 	}
 
 	filter "system:windows"
