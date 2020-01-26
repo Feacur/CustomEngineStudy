@@ -19,6 +19,8 @@ project "sandbox"
 
 	includedirs {
 		sandbox_to_root .. "/custom_engine/%{engine_includes.custom_engine}",
+		-- sandbox_to_root .. "/custom_engine/%{engine_includes.imgui}",
+		-- sandbox_to_root .. "/custom_engine/%{engine_includes.lua}",
 	}
 
 	defines {
@@ -30,7 +32,7 @@ project "sandbox"
 	}
 
 	postbuildcommands {
-		-- ("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
+		("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
 	}
 
 	filter {}

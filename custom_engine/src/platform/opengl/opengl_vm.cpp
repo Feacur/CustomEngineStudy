@@ -124,6 +124,12 @@ void Graphics_VM::render(Command_Buffer const & command_buffer)
 {
 	while (command_buffer.offset < command_buffer.bytecode.count) {
 		consume_single_instruction(command_buffer);
+		#if !defined(CUSTOM_SHIPPING)
+			static GLenum error = 0;
+			while ((error = glGetError()) != GL_NO_ERROR) {
+				CUSTOM_ASSERT(false, "OpenGL error %x", error);
+			}
+		#endif
 	}
 }
 
@@ -135,7 +141,7 @@ void Graphics_VM::render(Command_Buffer const & command_buffer)
 
 namespace custom {
 
-static GLenum Get_Comparison(Comparison value) {
+static GLenum get_comparison(Comparison value) {
 	switch (value) {
 		case Comparison::False:   return GL_NONE;
 		case Comparison::Less:    return GL_LESS;
@@ -150,7 +156,7 @@ static GLenum Get_Comparison(Comparison value) {
 	return GL_NONE;
 }
 
-static GLenum Get_Operation(Operation value) {
+static GLenum get_operation(Operation value) {
 	switch (value) {
 		case Operation::Keep:      return GL_KEEP;
 		case Operation::Zero:      return GL_ZERO;
@@ -165,7 +171,7 @@ static GLenum Get_Operation(Operation value) {
 	return GL_NONE;
 }
 
-static GLenum Get_Internal_Format(Texture_Format value, Data_Type type) {
+static GLenum get_internal_format(Texture_Format value, Data_Type type) {
 	switch (type) {
 		case Data_Type::U8: switch (value) {
 			case Texture_Format::R:       return GL_R8;
@@ -185,7 +191,7 @@ static GLenum Get_Internal_Format(Texture_Format value, Data_Type type) {
 	return GL_NONE;
 }
 
-static GLenum Get_Data_Format(Texture_Format value) {
+static GLenum get_data_format(Texture_Format value) {
 	switch (value) {
 		case Texture_Format::R:        return GL_RED;
 		case Texture_Format::RG:       return GL_RG;
@@ -199,7 +205,21 @@ static GLenum Get_Data_Format(Texture_Format value) {
 	return GL_NONE;
 }
 
-static GLenum Get_Data_Type(Data_Type value) {
+static GLenum get_bpp(Texture_Format value) {
+	switch (value) {
+		case Texture_Format::R:        return 1;
+		case Texture_Format::RG:       return 2;
+		case Texture_Format::RGB:      return 3;
+		case Texture_Format::RGBA:     return 4;
+		case Texture_Format::Depth:    return 3;
+		case Texture_Format::DStencil: return 4;
+		case Texture_Format::Stencil:  return 1;
+	}
+	CUSTOM_ASSERT(false, "unknown texture format %d", value);
+	return 0;
+}
+
+static GLenum get_data_type(Data_Type value) {
 	switch (value) {
 		case Data_Type::U8:    return GL_UNSIGNED_BYTE;
 		case Data_Type::U16:   return GL_UNSIGNED_SHORT;
@@ -256,7 +276,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 
 		case Graphics_Instruction::Depth_Comparison: {
 			Comparison value = *command_buffer.read<Comparison>();
-			glDepthFunc(Get_Comparison(value));
+			glDepthFunc(get_comparison(value));
 		} return;
 
 		case Graphics_Instruction::Color_Write: {
@@ -288,7 +308,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			Comparison value = *command_buffer.read<Comparison>();
 			u8 ref  = *command_buffer.read<u8>();
 			u8 mask = *command_buffer.read<u8>();
-			glStencilFunc(Get_Comparison(value), ref, mask);
+			glStencilFunc(get_comparison(value), ref, mask);
 		} return;
 
 		case Graphics_Instruction::Stencil_Operation: {
@@ -297,9 +317,9 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			Operation succ_fail = *command_buffer.read<Operation>();
 			Operation succ_succ = *command_buffer.read<Operation>();
 			glStencilOp(
-				Get_Operation(fail_any),
-				Get_Operation(succ_fail),
-				Get_Operation(succ_succ)
+				get_operation(fail_any),
+				get_operation(succ_fail),
+				get_operation(succ_succ)
 			);
 		} return;
 
@@ -393,15 +413,15 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
 			glTextureStorage2D(
 				resource->id, 1,
-				Get_Internal_Format(format, type),
+				get_internal_format(format, type),
 				size.x, size.y
 			);
 
 			// @Todo: setup filtering
-			// glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			// glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			// glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			// glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		} return;
 
 		case Graphics_Instruction::Allocate_Mesh: {
@@ -517,18 +537,19 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			ivec2 size     = *command_buffer.read<ivec2>();
 			Texture_Format format = *command_buffer.read<Texture_Format>();
 			Data_Type      type   = *command_buffer.read<Data_Type>();
+			u8 const * data = command_buffer.read<u8>(
+				size.x * size.y * get_bpp(format)
+			);
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
 				resource->id,
 				0, 0, 0,
 				size.x, size.y,
-				Get_Data_Format(format),
-				Get_Data_Type(type),
-				NULL // data
+				get_data_format(format),
+				get_data_type(type),
+				data
 			);
-
-			// @Todo: specify data
 		} return;
 
 		//
@@ -575,7 +596,7 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	}
 
 	if (instruction < Graphics_Instruction::Last) {
-		CUSTOM_ASSERT(false, "unidd instruction encountered: %d", instruction);
+		CUSTOM_ASSERT(false, "unhandled instruction encountered: %d", instruction);
 	}
 
 	CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);

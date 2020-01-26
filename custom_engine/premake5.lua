@@ -25,7 +25,15 @@ project "custom_engine"
 
 	includedirs {
 		"%{engine_includes.custom_engine}",
+		-- "%{engine_includes.imgui}",
+		-- "%{engine_includes.lua}",
+		"%{engine_includes.stb_image}",
 	}
+
+	-- links {
+	-- 	"imgui",
+	-- 	"lua",
+	-- }
 
 	postbuildcommands {
 		-- ("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
@@ -33,6 +41,8 @@ project "custom_engine"
 
 	filter "system:windows"
 		defines "WIN32_LEAN_AND_MEAN"
+
+	filter "system:windows"
 		links {
 			-- "user32",
 			-- "gdi32",
@@ -42,6 +52,15 @@ project "custom_engine"
 			"src/platform/windows/**.h",
 			"src/platform/windows/**.cpp",
 		}
+
+	-- filter "system:windows or macosx or linux or bsd"
+	-- 	defines "GLFW_INCLUDE_NONE"
+	-- 	links "glfw"
+	-- 	files {
+	-- 		"src/platform/glfw/**.h",
+	-- 		"src/platform/glfw/**.cpp",
+	-- 	}
+	-- 	includedirs "%{engine_includes.glfw}"
 
 	filter "system:windows or macosx or linux or bsd"
 		links "glad"

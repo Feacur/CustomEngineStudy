@@ -78,6 +78,7 @@ IS_ENUM_META(Cull_Mode)
 
 enum struct Texture_Format : u8
 {
+	None,
 	R,
 	RG,
 	RGB,
@@ -91,6 +92,7 @@ IS_ENUM_META(Texture_Format)
 
 enum struct Data_Type : u8
 {
+	None,
 	U8,
 	U16,
 	U32,

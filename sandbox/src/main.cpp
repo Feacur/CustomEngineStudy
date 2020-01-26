@@ -65,6 +65,10 @@ int main(int argc, char * argv[]) {
 	custom::Command_Buffer gvm_buffer;
 	reset_graphics_settings(gvm_buffer);
 
+	custom::load_image("assets/textures/checkerboard.png", 0, gvm_buffer);
+	gvm_buffer.write(custom::Graphics_Instruction::Free_Texture);
+	gvm_buffer.write((u32)0);
+
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
 	gvm_buffer.write(custom::Graphics_Instruction::Viewport);
