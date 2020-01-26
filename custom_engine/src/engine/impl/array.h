@@ -3,6 +3,8 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 
+#include <utility>
+
 namespace custom {
 
 template<typename T>
@@ -16,13 +18,95 @@ Array<T>::Array(u32 capacity, u32 count)
 		set_capacity(capacity);
 	}
 }
-	
+
+#if defined(CUSTOM_ARRAY_POD) // constructor
+	#if defined(CUSTOM_ARRAY_WARN) // constructor
+	template<typename T>
+	Array<T>::Array(Array<T> const & source) {
+		CUSTOM_ASSERT(false, "ERROR! copying an array");
+	}
+	template<typename T>
+	Array<T>::Array(Array<T> && source) {
+		CUSTOM_ASSERT(false, "ERROR! moving an array");
+	}
+	#endif // defined(CUSTOM_ARRAY_WARN) // constructor
+#else
+template<typename T>
+Array<T>::Array(Array<T> const & source)
+	: data(NULL)
+	, capacity(0)
+	, count(source.count)
+{
+	CUSTOM_ASSERT(data != source.data, "moving itself");
+	CUSTOM_MESSAGE("WARNING! copying an array of size %d", source.count);
+	set_capacity(source.count);
+	memcpy(data, source.data, source.count * sizeof(T));
+}
+
+template<typename T>
+Array<T>::Array(Array<T> && source)
+	: data(source.data)
+	, capacity(source.count)
+	, count(source.count)
+{
+	CUSTOM_ASSERT(data != source.data, "moving itself");
+	CUSTOM_MESSAGE("WARNING! moving an array");
+	source.data = NULL;
+	source.capacity = NULL;
+	source.count = NULL;
+}
+#endif // defined(CUSTOM_ARRAY_POD) // constructor
+
 template<typename T>
 Array<T>::~Array() {
 	free(data);
 	data = NULL;
 	capacity = count = 0;
 }
+
+#if defined(CUSTOM_ARRAY_POD) // operator=
+	#if defined(CUSTOM_ARRAY_WARN) // operator=
+	template<typename T>
+	Array<T> & Array<T>::operator=(Array<T> const & source) {
+		CUSTOM_ASSERT(false, "ERROR! copying an array");
+		return *this;
+	}
+	template<typename T>
+	Array<T> & Array<T>::operator=(Array<T> && source) {
+		CUSTOM_ASSERT(false, "ERROR! moving an array");
+		return *this;
+	}
+	#endif // defined(CUSTOM_ARRAY_WARN) // operator=
+#else
+template<typename T>
+Array<T> & Array<T>::operator=(Array<T> const & source) {
+	CUSTOM_ASSERT(data != source.data, "copying itself");
+	CUSTOM_MESSAGE("WARNING! copying an array of size %d", source.count);
+	set_capacity(source.count);
+	memcpy(data, source.data, source.count * sizeof(T));
+	count = source.count;
+	return *this;
+}
+
+template<typename T>
+Array<T> & Array<T>::operator=(Array<T> && source) {
+	CUSTOM_ASSERT(data != source.data, "moving itself");
+	CUSTOM_MESSAGE("WARNING! moving an array");
+	free(data);
+	data = NULL;
+	capacity = count = 0;
+
+	data = source.data;
+	capacity = source.capacity;
+	count = source.count;
+
+	source.data = NULL;
+	source.capacity = NULL;
+	source.count = NULL;
+
+	return *this;
+}
+#endif // defined(CUSTOM_ARRAY_POD) // operator=
 
 template<typename T>
 inline T const & Array<T>::operator[](u32 i) const {
@@ -78,6 +162,12 @@ void Array<T>::push(T const & value) {
 	data[count++] = value;
 }
 
+// template<typename T>
+// void Array<T>::push_move(T && value) {
+// 	ensure_capacity(count + 1);
+// 	data[count++] = std::move(value);
+// }
+
 template<typename T>
 void Array<T>::push_range(u32 amount) {
 	ensure_capacity(count += amount);
@@ -103,6 +193,12 @@ void Array<T>::insert(u32 i, T const & value) {
 	data[i] = value;
 }
 
+// template<typename T>
+// void Array<T>::insert_move(u32 i, T && value) {
+// 	insert(i);
+// 	data[i] = std::move(value);
+// }
+
 template<typename T>
 void Array<T>::pop() {
 	CUSTOM_ASSERT(count > 0, "count is zero");
@@ -121,102 +217,6 @@ void Array<T>::remove(u32 i) {
 
 template<typename T>
 void Array<T>::remove_ordered(u32 i) {
-	CUSTOM_ASSERT(count > 0, "count is zero");
-	CUSTOM_ASSERT(i < count, "index exceeds count");
-	--count;
-	memcpy(data + i, data + i + 1, (count - i) * sizeof(T));
-}
-
-template<typename T, u16 capacity>
-Array_Fixed<T, capacity>::Array_Fixed(u16 count)
-	: count(count)
-	// , bytes() // @Note: clear to zero
-{ }
-
-template<typename T, u16 capacity>
-Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source)
-	: count(source.count)
-{
-	CUSTOM_ASSERT(bytes != source.bytes, "assigning itself");
-	memcpy(bytes, source.bytes, sizeof(bytes));
-}
-
-template<typename T, u16 capacity>
-inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source) {
-	CUSTOM_ASSERT(bytes != source.bytes, "assigning itself");
-	memcpy(bytes, source.bytes, sizeof(bytes));
-	count = source.count;
-	return *this;
-}
-
-template<typename T, u16 capacity>
-inline T const & Array_Fixed<T, capacity>::operator[](u16 i) const {
-	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
-	return data[i];
-}
-
-template<typename T, u16 capacity>
-inline T & Array_Fixed<T, capacity>::operator[](u16 i) {
-	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
-	return data[i];
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push() {
-	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
-	++count;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push(T const & value) {
-	data[count++] = value;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push_range(u16 amount) {
-	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
-	count += amount;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push_range(T const * values, u16 amount) {
-	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
-	memcpy(data + count, values, amount * sizeof(T));
-	count += amount;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::insert(u16 i) {
-	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
-	CUSTOM_ASSERT(i <= count, "index exceeds count");
-	++count;
-	memcpy(data + i + 1, data + i, (count - 1 - i)  * sizeof(T));
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::insert(u16 i, T const & value) {
-	insert(i);
-	data[i] = value;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::pop() {
-	CUSTOM_ASSERT(count > 0, "count is zero");
-	--count;
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::remove(u16 i) {
-	CUSTOM_ASSERT(count > 0, "count is zero");
-	CUSTOM_ASSERT(i < count, "index exceeds count");
-	--count;
-	if (i != count) {
-		data[i] = data[count];
-	}
-}
-
-template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::remove_ordered(u16 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
 	--count;

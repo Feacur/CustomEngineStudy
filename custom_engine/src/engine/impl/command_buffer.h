@@ -1,6 +1,6 @@
 #pragma once
 #include "engine/api/command_buffer.h"
-// #include "engine/impl/array.h"
+#include "engine/impl/array.h"
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 
