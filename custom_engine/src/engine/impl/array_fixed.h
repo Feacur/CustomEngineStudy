@@ -10,26 +10,23 @@ Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 	: count(count)
 { }
 
-template<typename T, u16 capacity>
-Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source)
-	: count(source.count)
-{
-	CUSTOM_ASSERT(data != source.data, "assigning itself");
-	CUSTOM_MESSAGE("WARNING! copying a fixed array of size %d", capacity);
-	memcpy(data, source.data, source.count * sizeof(T));
-}
+#if !defined(CUSTOM_SHIPPING)
+	template<typename T, u16 capacity>
+	Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source) {
+		CUSTOM_ASSERT(false, "ERROR! copying a fixed array");
+	}
+#endif
 
 template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::~Array_Fixed() = default;
 
-template<typename T, u16 capacity>
-inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source) {
-	CUSTOM_ASSERT(data != source.data, "assigning itself");
-	CUSTOM_MESSAGE("WARNING! copying a fixed array of size %d", capacity);
-	memcpy(data, source.data, source.count * sizeof(T));
-	count = source.count;
-	return *this;
-}
+#if !defined(CUSTOM_SHIPPING)
+	template<typename T, u16 capacity>
+	inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source) {
+		CUSTOM_MESSAGE("WARNING! copying a fixed array");
+		return *this;
+	}
+#endif
 
 template<typename T, u16 capacity>
 inline T const & Array_Fixed<T, capacity>::operator[](u16 i) const {

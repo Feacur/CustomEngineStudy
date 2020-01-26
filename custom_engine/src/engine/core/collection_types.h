@@ -1,8 +1,8 @@
 #pragma once
 #include "engine/core/types.h"
 
-#define CUSTOM_ARRAY_POD
-#define CUSTOM_ARRAY_WARN
+// @Note: this code implies POD types
+//        all of the T, Array<T>, Array_Fixed<T, N>
 
 namespace custom {
 
@@ -13,16 +13,14 @@ struct Array
 	u32 capacity, count;
 
 	Array(u32 capacity = 0, u32 count = 0);
-	#if !defined(CUSTOM_ARRAY_POD) || defined(CUSTOM_ARRAY_WARN) // constructor
-	Array(Array const & source);
-	Array(Array && source);
-	#endif // !defined(CUSTOM_ARRAY_POD) || defined(CUSTOM_ARRAY_WARN) // constructor
+	#if !defined(CUSTOM_SHIPPING)
+		Array(Array const & source); // @Note: warn if a copy occures
+	#endif
 	~Array();
 
-	#if !defined(CUSTOM_ARRAY_POD) || defined(CUSTOM_ARRAY_WARN) // operator=
-	Array & operator=(Array const & source);
-	Array & operator=(Array && source);
-	#endif // !defined(CUSTOM_ARRAY_POD) || defined(CUSTOM_ARRAY_WARN) // operator=
+	#if !defined(CUSTOM_SHIPPING)
+		Array & operator=(Array const & source); // @Note: warn if a copy occures
+	#endif
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
 
@@ -31,12 +29,11 @@ struct Array
 
 	void push();
 	void push(T const & value);
-	// void push_move(T && value);
 	void push_range(u32 amount);
 	void push_range(T const * values, u32 amount);
+
 	void insert(u32 i);
 	void insert(u32 i, T const & value);
-	// void insert_move(u32 i, T && value);
 
 	void pop();
 	void remove(u32 i);
@@ -50,10 +47,14 @@ struct Array_Fixed
 	u16 count;
 
 	Array_Fixed(u16 count = 0);
-	Array_Fixed(Array_Fixed const & source);
+	#if !defined(CUSTOM_SHIPPING)
+		Array_Fixed(Array_Fixed const & source); // @Note: warn if a copy occures
+	#endif
 	~Array_Fixed();
 
-	Array_Fixed & operator=(Array_Fixed const & source);
+	#if !defined(CUSTOM_SHIPPING)
+		Array_Fixed & operator=(Array_Fixed const & source); // @Note: warn if a copy occures
+	#endif
 	T const & operator[](u16 i) const;
 	T & operator[](u16 i);
 
@@ -61,6 +62,7 @@ struct Array_Fixed
 	void push(T const & value);
 	void push_range(u16 amount);
 	void push_range(T const * values, u16 amount);
+
 	void insert(u16 i);
 	void insert(u16 i, T const & value);
 
