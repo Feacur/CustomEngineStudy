@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/api/command_buffer.h"
+#include "engine/api/bytecode.h"
 #include "engine/impl/array.h"
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
@@ -24,39 +24,39 @@ namespace custom {
 // #endif
 
 template<typename T>
-void Command_Buffer::write(T const * data, u32 count) {
+void Bytecode::write(T const * data, u32 count) {
 	#if defined(CUSTOM_GET_PADDING)
-	bytecode.push_range(CUSTOM_GET_PADDING(T, bytecode.count));
+	buffer.push_range(CUSTOM_GET_PADDING(T, buffer.count));
 	#endif
-	bytecode.push_range((u8 *)data, count * sizeof(T));
+	buffer.push_range((u8 *)data, count * sizeof(T));
 }
 
 template<typename T>
-void Command_Buffer::write(T const & datum) {
+void Bytecode::write(T const & datum) {
 	#if defined(CUSTOM_GET_PADDING)
-	bytecode.push_range(CUSTOM_GET_PADDING(T, bytecode.count));
+	buffer.push_range(CUSTOM_GET_PADDING(T, buffer.count));
 	#endif
-	bytecode.push_range((u8 *)&datum, sizeof(T));
+	buffer.push_range((u8 *)&datum, sizeof(T));
 }
 
 template<typename T>
-T const * Command_Buffer::read(u32 count) const {
+T const * Bytecode::read(u32 count) const {
 	#if defined(CUSTOM_GET_PADDING)
 	offset += CUSTOM_GET_PADDING(T, offset);
 	#endif
-	CUSTOM_ASSERT(offset + count * sizeof(T) <= bytecode.count, "reading past written instructions");
-	T * data = (T *)(bytecode.data + offset);
+	CUSTOM_ASSERT(offset + count * sizeof(T) <= buffer.count, "reading past written instructions");
+	T * data = (T *)(buffer.data + offset);
 	offset += count * sizeof(T);
 	return data;
 }
 
 template<typename T>
-void Command_Buffer::copy(T * out, u32 count) const {
+void Bytecode::copy(T * out, u32 count) const {
 	#if defined(CUSTOM_GET_PADDING)
 	offset += CUSTOM_GET_PADDING(T, offset);
 	#endif
-	CUSTOM_ASSERT(offset + count * sizeof(T) <= bytecode.count, "reading past written instructions");
-	memcpy(out, bytecode.data + offset, count * sizeof(T));
+	CUSTOM_ASSERT(offset + count * sizeof(T) <= buffer.count, "reading past written instructions");
+	memcpy(out, buffer.data + offset, count * sizeof(T));
 	offset += count * sizeof(T);
 }
 

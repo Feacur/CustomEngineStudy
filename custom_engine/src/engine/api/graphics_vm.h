@@ -4,6 +4,19 @@
 #include "engine/impl/math_bitwise.h"
 
 namespace custom {
+struct Bytecode;
+}
+
+namespace custom {
+namespace graphics {
+
+struct VM
+{
+	VM();
+	~VM();
+
+	void render(Bytecode const & bc);
+};
 
 enum struct Clear_Flags : u8
 {
@@ -118,7 +131,7 @@ enum struct Wrap_Mode : u8
 UNDERLYING_TYPE_META(Wrap_Mode, u8)
 IS_ENUM_META(Wrap_Mode)
 
-enum struct Graphics_Instruction : u8
+enum struct Instruction : u8
 {
 	None,
 	//
@@ -160,17 +173,7 @@ enum struct Graphics_Instruction : u8
 	Print_Inline,
 	Last,
 };
-UNDERLYING_TYPE_META(Graphics_Instruction, u8)
-IS_ENUM_META(Graphics_Instruction)
+UNDERLYING_TYPE_META(Instruction, u8)
+IS_ENUM_META(Instruction)
 
-struct Command_Buffer;
-
-struct Graphics_VM
-{
-	Graphics_VM();
-	~Graphics_VM();
-
-	void render(Command_Buffer const & command_buffer);
-};
-
-}
+}}

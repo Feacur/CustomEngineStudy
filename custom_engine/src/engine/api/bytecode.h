@@ -3,13 +3,13 @@
 
 namespace custom {
 
-struct Command_Buffer
+struct Bytecode
 {
-	Array<u8> bytecode;
+	Array<u8> buffer;
 	mutable u32 offset;
 
-	Command_Buffer();
-	~Command_Buffer();
+	Bytecode();
+	~Bytecode();
 
 	template<typename T>
 	void write(T const * data, u32 count);

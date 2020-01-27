@@ -27,22 +27,32 @@ static u64 get_last_frame_ticks(bool is_vsync) {
 	return custom::timer_wait_next_frame(duration, precision);
 }
 
-static void reset_graphics_settings(custom::Command_Buffer & gvm_buffer) {
-	gvm_buffer.write(custom::Graphics_Instruction::Depth_Read);
-	gvm_buffer.write((u8)1);
+namespace custom {
+namespace graphics {
 
-	gvm_buffer.write(custom::Graphics_Instruction::Depth_Write);
-	gvm_buffer.write((u8)1);
+static void reset_settings(Bytecode & bc) {
+	bc.write(Instruction::Depth_Read);
+	bc.write((u8)1);
 
-	gvm_buffer.write(custom::Graphics_Instruction::Depth_Comparison);
-	gvm_buffer.write(custom::Comparison::Less);
+	bc.write(Instruction::Depth_Write);
+	bc.write((u8)1);
 
-	gvm_buffer.write(custom::Graphics_Instruction::Blend_Mode);
-	gvm_buffer.write(custom::Blend_Mode::Alpha);
+	bc.write(Instruction::Depth_Comparison);
+	bc.write(Comparison::Less);
 
-	gvm_buffer.write(custom::Graphics_Instruction::Cull_Mode);
-	gvm_buffer.write(custom::Cull_Mode::Back);
+	bc.write(Instruction::Blend_Mode);
+	bc.write(Blend_Mode::Alpha);
+
+	bc.write(Instruction::Cull_Mode);
+	bc.write(Cull_Mode::Back);
 }
+
+static void clear(Bytecode & bc) {
+	bc.write(Instruction::Clear);
+	bc.write(Clear_Flags::Color | Clear_Flags::Depth);
+}
+
+}}
 
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
@@ -60,20 +70,20 @@ int main(int argc, char * argv[]) {
 	window->init_context();
 	window->set_vsync(1);
 
-	custom::Graphics_VM gvm;
+	custom::graphics::VM gvm;
 
-	custom::Command_Buffer gvm_buffer;
-	reset_graphics_settings(gvm_buffer);
+	custom::Bytecode gbc;
+	custom::graphics::reset_settings(gbc);
 
-	custom::load_image(gvm_buffer, 0, "assets/textures/checkerboard.png");
-	gvm_buffer.write(custom::Graphics_Instruction::Free_Texture);
-	gvm_buffer.write((u32)0);
+	custom::load_image(gbc, 0, "assets/textures/checkerboard.png");
+	gbc.write(custom::graphics::Instruction::Free_Texture);
+	gbc.write((u32)0);
 
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
-	gvm_buffer.write(custom::Graphics_Instruction::Viewport);
-	gvm_buffer.write(viewport_position);
-	gvm_buffer.write(viewport_size);
+	gbc.write(custom::graphics::Instruction::Viewport);
+	gbc.write(viewport_position);
+	gbc.write(viewport_size);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -84,16 +94,14 @@ int main(int argc, char * argv[]) {
 		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
 
 		// process the frame
-		gvm_buffer.write(custom::Graphics_Instruction::Clear);
-		gvm_buffer.write(custom::Clear_Flags::Color | custom::Clear_Flags::Depth);
-
 		custom::system_update();
-		gvm.render(gvm_buffer);
+		custom::graphics::clear(gbc);
+		gvm.render(gbc);
 		window->update();
 
 		// clean up after the frame
-		gvm_buffer.offset = 0;
-		gvm_buffer.bytecode.count = 0;
+		gbc.offset = 0;
+		gbc.buffer.count = 0;
 	}
 
 	delete window;

@@ -3,7 +3,7 @@
 #include "engine/api/graphics_vm.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
-#include "engine/impl/command_buffer.h"
+#include "engine/impl/bytecode.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
@@ -86,16 +86,17 @@ static OpenGL::Data ogl;
 //
 
 static void opengl_message_callback(
-	unsigned source, unsigned type, unsigned id, unsigned severity,
-	int length, cstring message, void const * userParam
+	GLenum source, GLenum type, GLuint id, GLenum severity,
+	GLsizei length, glstring message, void const * userParam
 );
 static GLuint create_program(cstring source);
 
 namespace custom {
+namespace graphics {
 
-static void consume_single_instruction(Command_Buffer const & command_buffer);
+static void consume_single_instruction(Bytecode const & bc);
 
-Graphics_VM::Graphics_VM()
+VM::VM()
 {
 	#if !defined(GES_SHIPPING)
 	GLint version_major;
@@ -118,12 +119,12 @@ Graphics_VM::Graphics_VM()
 	// glFrontFace(GL_CCW);
 }
 
-Graphics_VM::~Graphics_VM() = default;
+VM::~VM() = default;
 
-void Graphics_VM::render(Command_Buffer const & command_buffer)
+void VM::render(Bytecode const & bc)
 {
-	while (command_buffer.offset < command_buffer.bytecode.count) {
-		consume_single_instruction(command_buffer);
+	while (bc.offset < bc.buffer.count) {
+		consume_single_instruction(bc);
 		#if !defined(CUSTOM_SHIPPING)
 			static GLenum error = 0;
 			while ((error = glGetError()) != GL_NO_ERROR) {
@@ -133,13 +134,14 @@ void Graphics_VM::render(Command_Buffer const & command_buffer)
 	}
 }
 
-}
+}}
 
 //
 // instruction implementation
 //
 
 namespace custom {
+namespace graphics {
 
 static GLenum get_comparison(Comparison value) {
 	switch (value) {
@@ -331,21 +333,21 @@ static GLenum get_data_type_size(Data_Type value) {
 	return 0;
 }
 
-static void consume_single_instruction(custom::Command_Buffer const & command_buffer)
+static void consume_single_instruction(Bytecode const & bc)
 {
-	Graphics_Instruction instruction = *command_buffer.read<Graphics_Instruction>();
+	Instruction instruction = *bc.read<Instruction>();
 	switch (instruction)
 	{
 		//
-		case Graphics_Instruction::Viewport: {
-			ivec2 pos  = *command_buffer.read<ivec2>();
-			ivec2 size = *command_buffer.read<ivec2>();
+		case Instruction::Viewport: {
+			ivec2 pos  = *bc.read<ivec2>();
+			ivec2 size = *bc.read<ivec2>();
 			glViewport(pos.x, pos.y, size.x, size.y);
 		} return;
 
-		case Graphics_Instruction::Clear: {
+		case Instruction::Clear: {
 			GLbitfield gl_clear_flags = 0;
-			Clear_Flags clear_flags = *command_buffer.read<Clear_Flags>();
+			Clear_Flags clear_flags = *bc.read<Clear_Flags>();
 			if (bits_are_set(clear_flags, Clear_Flags::Color)) {
 				gl_clear_flags |= GL_COLOR_BUFFER_BIT;
 			}
@@ -358,8 +360,8 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			glClear(gl_clear_flags);
 		} return;
 
-		case Graphics_Instruction::Depth_Read: {
-			u8 value = *command_buffer.read<u8>();
+		case Instruction::Depth_Read: {
+			u8 value = *bc.read<u8>();
 			if (value) {
 				glEnable(GL_DEPTH_TEST);
 			}
@@ -368,18 +370,18 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			}
 		} return;
 
-		case Graphics_Instruction::Depth_Write: {
-			u8 value = *command_buffer.read<u8>();
+		case Instruction::Depth_Write: {
+			u8 value = *bc.read<u8>();
 			glDepthMask(value);
 		} return;
 
-		case Graphics_Instruction::Depth_Comparison: {
-			Comparison value = *command_buffer.read<Comparison>();
+		case Instruction::Depth_Comparison: {
+			Comparison value = *bc.read<Comparison>();
 			glDepthFunc(get_comparison(value));
 		} return;
 
-		case Graphics_Instruction::Color_Write: {
-			Color_Write value = *command_buffer.read<Color_Write>();
+		case Instruction::Color_Write: {
+			Color_Write value = *bc.read<Color_Write>();
 			glColorMask(
 				bits_are_set(value, Color_Write::R),
 				bits_are_set(value, Color_Write::G),
@@ -388,8 +390,8 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			);
 		} return;
 
-		case Graphics_Instruction::Stencil_Read: {
-			u8 value = *command_buffer.read<u8>();
+		case Instruction::Stencil_Read: {
+			u8 value = *bc.read<u8>();
 			if (value) {
 				glEnable(GL_STENCIL_TEST);
 			}
@@ -398,23 +400,23 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			}
 		} return;
 
-		case Graphics_Instruction::Stencil_Write: {
-			u32 value = *command_buffer.read<u32>();
+		case Instruction::Stencil_Write: {
+			u32 value = *bc.read<u32>();
 			glStencilMask(value);
 		} return;
 
-		case Graphics_Instruction::Stencil_Comparison: {
-			Comparison value = *command_buffer.read<Comparison>();
-			u8 ref  = *command_buffer.read<u8>();
-			u8 mask = *command_buffer.read<u8>();
+		case Instruction::Stencil_Comparison: {
+			Comparison value = *bc.read<Comparison>();
+			u8 ref  = *bc.read<u8>();
+			u8 mask = *bc.read<u8>();
 			glStencilFunc(get_comparison(value), ref, mask);
 		} return;
 
-		case Graphics_Instruction::Stencil_Operation: {
+		case Instruction::Stencil_Operation: {
 			// stencil test + depth test
-			Operation fail_any  = *command_buffer.read<Operation>();
-			Operation succ_fail = *command_buffer.read<Operation>();
-			Operation succ_succ = *command_buffer.read<Operation>();
+			Operation fail_any  = *bc.read<Operation>();
+			Operation succ_fail = *bc.read<Operation>();
+			Operation succ_succ = *bc.read<Operation>();
 			glStencilOp(
 				get_operation(fail_any),
 				get_operation(succ_fail),
@@ -422,13 +424,13 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			);
 		} return;
 
-		case Graphics_Instruction::Stencil_Mask: {
-			u8 mask = *command_buffer.read<u8>();
+		case Instruction::Stencil_Mask: {
+			u8 mask = *bc.read<u8>();
 			glStencilMask(mask);
 		} return;
 
-		case Graphics_Instruction::Blend_Mode: {
-			Blend_Mode value = *command_buffer.read<Blend_Mode>();
+		case Instruction::Blend_Mode: {
+			Blend_Mode value = *bc.read<Blend_Mode>();
 
 			if (value == Blend_Mode::Opaque) {
 				glDisable(GL_BLEND);
@@ -455,8 +457,8 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			CUSTOM_ASSERT(false, "unknown blend mode %d", value);
 		} return;
 
-		case Graphics_Instruction::Cull_Mode: {
-			Cull_Mode value = *command_buffer.read<Cull_Mode>();
+		case Instruction::Cull_Mode: {
+			Cull_Mode value = *bc.read<Cull_Mode>();
 
 			if (value == Cull_Mode::None) {
 				glDisable(GL_CULL_FACE);
@@ -481,15 +483,15 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case Graphics_Instruction::Prepare_Uniform: {
+		case Instruction::Prepare_Uniform: {
 			CUSTOM_MESSAGE("// @Todo: Prepare_Uniform");
 		} return;
 
 		//
-		case Graphics_Instruction::Allocate_Shader: {
-			u32     asset_id = *command_buffer.read<u32>();
-			u32     length   = *command_buffer.read<u32>();
-			cstring source   =  command_buffer.read<char>(length);
+		case Instruction::Allocate_Shader: {
+			u32     asset_id = *bc.read<u32>();
+			u32     length   = *bc.read<u32>();
+			cstring source   =  bc.read<char>(length);
 
 			ogl.programs.ensure_capacity(asset_id + 1);
 			OpenGL::Program * resource = new (&ogl.programs[asset_id]) OpenGL::Program;
@@ -500,16 +502,16 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
 		} return;
 
-		case Graphics_Instruction::Allocate_Texture: {
-			u32   asset_id = *command_buffer.read<u32>();
-			ivec2 size     = *command_buffer.read<ivec2>();
-			u8           channels     = *command_buffer.read<u8>();
-			Data_Type    data_type    = *command_buffer.read<Data_Type>();
-			Texture_Type texture_type = *command_buffer.read<Texture_Type>();
-			Filter_Mode  texture_filter = *command_buffer.read<Filter_Mode>();
-			Filter_Mode  mipmap_filter  = *command_buffer.read<Filter_Mode>();
-			Wrap_Mode    wrap_mode_x = *command_buffer.read<Wrap_Mode>();
-			Wrap_Mode    wrap_mode_y = *command_buffer.read<Wrap_Mode>();
+		case Instruction::Allocate_Texture: {
+			u32   asset_id = *bc.read<u32>();
+			ivec2 size     = *bc.read<ivec2>();
+			u8           channels     = *bc.read<u8>();
+			Data_Type    data_type    = *bc.read<Data_Type>();
+			Texture_Type texture_type = *bc.read<Texture_Type>();
+			Filter_Mode  texture_filter = *bc.read<Filter_Mode>();
+			Filter_Mode  mipmap_filter  = *bc.read<Filter_Mode>();
+			Wrap_Mode    wrap_mode_x = *bc.read<Wrap_Mode>();
+			Wrap_Mode    wrap_mode_y = *bc.read<Wrap_Mode>();
 
 			ogl.textures.ensure_capacity(asset_id + 1);
 			OpenGL::Texture * resource = new (&ogl.textures[asset_id]) OpenGL::Texture;
@@ -527,9 +529,9 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
 		} return;
 
-		case Graphics_Instruction::Allocate_Mesh: {
+		case Instruction::Allocate_Mesh: {
 			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
-			u32   asset_id = *command_buffer.read<u32>();
+			u32   asset_id = *bc.read<u32>();
 
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			OpenGL::Mesh * resource = new (&ogl.meshes[asset_id]) OpenGL::Mesh;
@@ -570,24 +572,24 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case Graphics_Instruction::Free_Shader: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Free_Shader: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Program * resource = &ogl.programs[asset_id];
 			glDeleteProgram(resource->id);
 			resource->OpenGL::Program::~Program();
 		} return;
 
-		case Graphics_Instruction::Free_Texture: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Free_Texture: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
 			resource->OpenGL::Texture::~Texture();
 		} return;
 
-		case Graphics_Instruction::Free_Mesh: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Free_Mesh: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
@@ -599,23 +601,23 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case Graphics_Instruction::Use_Shader: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Use_Shader: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Program * resource = &ogl.programs[asset_id];
 			glUseProgram(resource->id);
 		} return;
 
-		case Graphics_Instruction::Use_Texture: {
-			u32 asset_id = *command_buffer.read<u32>();
-			u32 slot     = *command_buffer.read<u32>();
+		case Instruction::Use_Texture: {
+			u32 asset_id = *bc.read<u32>();
+			u32 slot     = *bc.read<u32>();
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glBindTextureUnit(slot, resource->id);
 		} return;
 
-		case Graphics_Instruction::Use_Mesh: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Use_Mesh: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
 			glBindVertexArray(resource->id);
@@ -623,9 +625,9 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case Graphics_Instruction::Load_Uniform: {
+		case Instruction::Load_Uniform: {
 			CUSTOM_MESSAGE("// @Todo: Load_Uniform");
-			u32 asset_id = *command_buffer.read<u32>();
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Program * resource = &ogl.programs[asset_id];
 			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
@@ -635,13 +637,14 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			// glUniform1iv(location, count, values_pointer);
 		} return;
 
-		case Graphics_Instruction::Load_Texture: {
-			u32   asset_id = *command_buffer.read<u32>();
-			ivec2 size     = *command_buffer.read<ivec2>();
-			u8           channels     = *command_buffer.read<u8>();
-			Data_Type    data_type    = *command_buffer.read<Data_Type>();
-			Texture_Type texture_type = *command_buffer.read<Texture_Type>();
-			u8 const * data = command_buffer.read<u8>(
+		case Instruction::Load_Texture: {
+			u32   asset_id = *bc.read<u32>();
+			ivec2 size     = *bc.read<ivec2>();
+			u8           channels     = *bc.read<u8>();
+			Data_Type    data_type    = *bc.read<Data_Type>();
+			Texture_Type texture_type = *bc.read<Texture_Type>();
+			// @Change: receive a pointer, then free if needed?
+			u8 const * data = bc.read<u8>(
 				size.x * size.y * channels * get_data_type_size(data_type)
 			);
 
@@ -657,14 +660,14 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		} return;
 
 		//
-		case Graphics_Instruction::Draw: {
-			u32 asset_id = *command_buffer.read<u32>();
+		case Instruction::Draw: {
+			u32 asset_id = *bc.read<u32>();
 
 			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
 			glDrawElements(GL_TRIANGLES, resource->indices.count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
-		case Graphics_Instruction::Overlay: {
+		case Instruction::Overlay: {
 			// send to a vertex shader indices [0, 1, 2]
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
@@ -675,14 +678,14 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	// test
 	switch (instruction)
 	{
-		case Graphics_Instruction::Print_Pointer: {
-			cstring message = *command_buffer.read<cstring>();
+		case Instruction::Print_Pointer: {
+			cstring message = *bc.read<cstring>();
 			CUSTOM_MESSAGE("print pointer: %s", message);
 		} return;
 
-		case Graphics_Instruction::Print_Inline: {
-			u32 length = *command_buffer.read<u32>();
-			cstring message = command_buffer.read<char>(length);
+		case Instruction::Print_Inline: {
+			u32 length = *bc.read<u32>();
+			cstring message = bc.read<char>(length);
 			CUSTOM_MESSAGE("print inline: %d %s", length, message);
 		} return;
 	}
@@ -690,23 +693,23 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 	// error
 	switch (instruction)
 	{
-		case Graphics_Instruction::None: {
+		case Instruction::None: {
 			CUSTOM_ASSERT(false, "null instruction encountered");
 		} return;
 
-		case Graphics_Instruction::Last: {
+		case Instruction::Last: {
 			CUSTOM_ASSERT(false, "non-instruction encountered");
 		} return;
 	}
 
-	if (instruction < Graphics_Instruction::Last) {
+	if (instruction < Instruction::Last) {
 		CUSTOM_ASSERT(false, "unhandled instruction encountered: %d", instruction);
 	}
 
 	CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction);
 }
 
-}
+}}
 
 //
 // platform implementation
