@@ -23,7 +23,7 @@ static void describe_texture(
 }
 
 void load_image(Bytecode & bc, u32 asset_id, cstring path) {
-	static graphics::Data_Type const data_type = graphics::Data_Type::U8;
+	static graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	stbi_set_flip_vertically_on_load(1);
@@ -48,7 +48,7 @@ void load_image(Bytecode & bc, u32 asset_id, cstring path) {
 }
 
 void load_imagef(Bytecode & bc, u32 asset_id, cstring path) {
-	static graphics::Data_Type const data_type = graphics::Data_Type::R32;
+	static graphics::Data_Type const data_type = graphics::Data_Type::r32;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	stbi_set_flip_vertically_on_load(1);
@@ -73,7 +73,7 @@ void load_imagef(Bytecode & bc, u32 asset_id, cstring path) {
 }
 
 void load_image16(Bytecode & bc, u32 asset_id, cstring path) {
-	static graphics::Data_Type const data_type = graphics::Data_Type::U16;
+	static graphics::Data_Type const data_type = graphics::Data_Type::u16;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	stbi_set_flip_vertically_on_load(1);
@@ -95,6 +95,12 @@ void load_image16(Bytecode & bc, u32 asset_id, cstring path) {
 	bc.write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);
+}
+
+void load_shader(Bytecode & bc, u32 asset_id, cstring path) {
+}
+
+void load_quad(Bytecode & bc, u32 asset_id) {
 }
 
 }

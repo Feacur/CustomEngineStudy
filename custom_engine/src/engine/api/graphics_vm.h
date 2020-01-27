@@ -102,12 +102,14 @@ IS_ENUM_META(Texture_Type)
 
 enum struct Data_Type : u8
 {
-	None,
-	U8,
-	U16,
-	U32,
-	R16,
-	R32,
+	tex,
+	s8, s16, s32,
+	u8, u16, u32,
+	r32, r64,
+	vec2, vec3, vec4,
+	ivec2, ivec3, ivec4,
+	uvec2, uvec3, uvec4,
+	mat2, mat3, mat4,
 };
 UNDERLYING_TYPE_META(Data_Type, u8)
 IS_ENUM_META(Data_Type)

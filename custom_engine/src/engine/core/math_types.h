@@ -69,6 +69,30 @@ struct ivec3 {
 #endif // defined(__cplusplus) // ivec3
 };
 
+struct ivec4 {
+	union {
+		struct { ivec3 xyz; s32 w; };
+		struct { s32 x; ivec3 yzw; };
+		struct { vec2 xy; ivec2 zw; };
+		struct { s32 x; ivec2 yz; s32 w; };
+		struct { s32 x, y, z, w; };
+		s32 data[4];
+	};
+	
+#if defined(__cplusplus) // ivec4
+	constexpr inline s32 & operator[](size_t i) { return data[i]; }
+	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // ivec4
+};
+
+struct uvec2 { u32 data[2]; };
+struct uvec3 { u32 data[3]; };
+struct uvec4 { u32 data[4]; };
+
+struct mat2 { vec2 data[2]; };
+struct mat3 { vec3 data[3]; };
+struct mat4 { vec4 data[4]; };
+
 // @Note
 // vector structs have duplicate names in them
 // though it seems to be OK, as their layout matches

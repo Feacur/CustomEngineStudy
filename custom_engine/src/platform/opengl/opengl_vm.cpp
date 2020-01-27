@@ -176,31 +176,25 @@ static GLenum get_operation(Operation value) {
 static GLenum get_internal_format(Texture_Type texture_type, Data_Type data_type, u8 channels) {
 	switch (texture_type) {
 		case Texture_Type::Color: switch (data_type) {
-			case Data_Type::U8: switch (channels) {
+			case Data_Type::u8: switch (channels) {
 				case 1: return GL_R8;
 				case 2: return GL_RG8;
 				case 3: return GL_RGB8;
 				case 4: return GL_RGBA8;
 			} break;
-			case Data_Type::U16: switch (channels) {
+			case Data_Type::u16: switch (channels) {
 				case 1: return GL_R16;
 				case 2: return GL_RG16;
 				case 3: return GL_RGB16;
 				case 4: return GL_RGBA16;
 			} break;
-			case Data_Type::U32: switch (channels) {
+			case Data_Type::u32: switch (channels) {
 				case 1: return GL_R32UI;
 				case 2: return GL_RG32UI;
 				case 3: return GL_RGB32UI;
 				case 4: return GL_RGBA32UI;
 			} break;
-			case Data_Type::R16: switch (channels) {
-				case 1: return GL_R16F;
-				case 2: return GL_RG16F;
-				case 3: return GL_RGB16F;
-				case 4: return GL_RGBA16F;
-			} break;
-			case Data_Type::R32: switch (channels) {
+			case Data_Type::r32: switch (channels) {
 				case 1: return GL_R32F;
 				case 2: return GL_RG32F;
 				case 3: return GL_RGB32F;
@@ -209,18 +203,18 @@ static GLenum get_internal_format(Texture_Type texture_type, Data_Type data_type
 		} break;
 
 		case Texture_Type::Depth: switch (data_type) {
-			case Data_Type::U16: return GL_DEPTH_COMPONENT16;
-			case Data_Type::U32: return GL_DEPTH_COMPONENT24;
-			case Data_Type::R32: return GL_DEPTH_COMPONENT32F;
+			case Data_Type::u16: return GL_DEPTH_COMPONENT16;
+			case Data_Type::u32: return GL_DEPTH_COMPONENT24;
+			case Data_Type::r32: return GL_DEPTH_COMPONENT32F;
 		} break;
 
 		case Texture_Type::DStencil: switch (data_type) {
-			case Data_Type::U32: return GL_DEPTH24_STENCIL8;
-			case Data_Type::R32: return GL_DEPTH32F_STENCIL8;
+			case Data_Type::u32: return GL_DEPTH24_STENCIL8;
+			case Data_Type::r32: return GL_DEPTH32F_STENCIL8;
 		}
 
 		case Texture_Type::Stencil: switch (data_type) {
-			case Data_Type::U8: return GL_STENCIL_INDEX8;
+			case Data_Type::u8: return GL_STENCIL_INDEX8;
 		}
 	}
 	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d and channels count %d", texture_type, data_type, channels);
@@ -295,43 +289,64 @@ static GLenum get_wrap_mode(Wrap_Mode value) {
 static GLenum get_data_type(Texture_Type texture_type, Data_Type data_type) {
 	switch (texture_type) {
 		case Texture_Type::Color: switch (data_type) {
-			case Data_Type::U8:  return GL_UNSIGNED_BYTE;
-			case Data_Type::U16: return GL_UNSIGNED_SHORT;
-			case Data_Type::U32: return GL_UNSIGNED_INT;
-			case Data_Type::R16: return GL_HALF_FLOAT;
-			case Data_Type::R32: return GL_FLOAT;
+			case Data_Type::u8:  return GL_UNSIGNED_BYTE;
+			case Data_Type::u16: return GL_UNSIGNED_SHORT;
+			case Data_Type::u32: return GL_UNSIGNED_INT;
+			case Data_Type::r32: return GL_FLOAT;
 		} break;
 
 		case Texture_Type::Depth: switch (data_type) {
-			case Data_Type::U16: return GL_UNSIGNED_SHORT;
-			case Data_Type::U32: return GL_UNSIGNED_INT;
-			case Data_Type::R32: return GL_FLOAT;
+			case Data_Type::u16: return GL_UNSIGNED_SHORT;
+			case Data_Type::u32: return GL_UNSIGNED_INT;
+			case Data_Type::r32: return GL_FLOAT;
 		} break;
 
 		case Texture_Type::DStencil: switch (data_type) {
-			case Data_Type::U32: return GL_UNSIGNED_INT_24_8;
-			case Data_Type::R32: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+			case Data_Type::u32: return GL_UNSIGNED_INT_24_8;
+			case Data_Type::r32: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
 		}
 
 		case Texture_Type::Stencil: switch (data_type) {
-			case Data_Type::U8: return GL_UNSIGNED_BYTE;
+			case Data_Type::u8: return GL_UNSIGNED_BYTE;
 		}
 	}
 	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d", texture_type, data_type);
 	return GL_NONE;
 }
 
-static GLenum get_data_type_size(Data_Type value) {
-	switch (value) {
-		case Data_Type::U8:  return sizeof(u8);
-		case Data_Type::U16: return sizeof(u16);
-		case Data_Type::U32: return sizeof(u32);
-		case Data_Type::R16: return sizeof(r32) / 2;
-		case Data_Type::R32: return sizeof(r32);
+// #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
+// static u8 get_data_type_size(Data_Type value) {
+// 	switch (value) {
+// 		case Data_Type::tex: return sizeof(s32);
+// 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
+// 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
+// 		CASE_IMPL(r32); CASE_IMPL(r64);
+// 		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
+// 		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
+// 		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
+// 		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
+// 	}
+// 	CUSTOM_ASSERT(false, "unknown data type %d", value);
+// 	return 0;
+// }
+// #undef CASE_IMPL
+
+#define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
+static void const * read_inline(Bytecode const & bc, Data_Type type, u32 count) {
+	switch (type) {
+		case Data_Type::tex: return bc.read<s32>();
+		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
+		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
+		CASE_IMPL(r32); CASE_IMPL(r64);
+		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
+		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
+		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
+		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
 	}
-	CUSTOM_ASSERT(false, "unknown data type %d", value);
-	return 0;
+	CUSTOM_ASSERT(false, "unknown data type %d", type);
+	return NULL;
 }
+#undef CASE_IMPL
 
 static void consume_single_instruction(Bytecode const & bc)
 {
@@ -610,7 +625,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Use_Texture: {
 			u32 asset_id = *bc.read<u32>();
-			u32 slot     = *bc.read<u32>();
+			s32 slot     = *bc.read<s32>();
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glBindTextureUnit(slot, resource->id);
@@ -626,15 +641,34 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		//
 		case Instruction::Load_Uniform: {
-			CUSTOM_MESSAGE("// @Todo: Load_Uniform");
-			u32 asset_id = *bc.read<u32>();
+			// @Todo: automize location with some asset_id
+			s32 location = *bc.read<s32>();
+			Data_Type type = *bc.read<Data_Type>();
+			u32 count = *bc.read<u32>();
+			void const * data = read_inline(bc, type, count);
 
-			OpenGL::Program * resource = &ogl.programs[asset_id];
-			// glUniformMatrix4fv(location, 1, GL_FALSE, value_pointer);
-			// glUniform1f(location, value);
-			// glUniform1i(location, value);
-			// glUniform1fv(location, count, values_pointer);
-			// glUniform1iv(location, count, values_pointer);
+			switch (type) {
+				case Data_Type::tex: glUniform1iv(location, count, (s32 *)data); break;
+
+				case Data_Type::r32:  glUniform1fv(location, count, (r32 *)data); break;
+				case Data_Type::vec2: glUniform2fv(location, count, (r32 *)data); break;
+				case Data_Type::vec3: glUniform3fv(location, count, (r32 *)data); break;
+				case Data_Type::vec4: glUniform4fv(location, count, (r32 *)data); break;
+
+				case Data_Type::s32:   glUniform1iv(location, count, (s32 *)data); break;
+				case Data_Type::ivec2: glUniform2iv(location, count, (s32 *)data); break;
+				case Data_Type::ivec3: glUniform3iv(location, count, (s32 *)data); break;
+				case Data_Type::ivec4: glUniform4iv(location, count, (s32 *)data); break;
+
+				case Data_Type::u32:   glUniform1uiv(location, count, (u32 *)data); break;
+				case Data_Type::uvec2: glUniform2uiv(location, count, (u32 *)data); break;
+				case Data_Type::uvec3: glUniform3uiv(location, count, (u32 *)data); break;
+				case Data_Type::uvec4: glUniform4uiv(location, count, (u32 *)data); break;
+
+				case Data_Type::mat2: glUniformMatrix2fv(location, count, false, (r32 *)data); break;
+				case Data_Type::mat3: glUniformMatrix3fv(location, count, false, (r32 *)data); break;
+				case Data_Type::mat4: glUniformMatrix4fv(location, count, false, (r32 *)data); break;
+			}
 		} return;
 
 		case Instruction::Load_Texture: {
@@ -643,10 +677,8 @@ static void consume_single_instruction(Bytecode const & bc)
 			u8           channels     = *bc.read<u8>();
 			Data_Type    data_type    = *bc.read<Data_Type>();
 			Texture_Type texture_type = *bc.read<Texture_Type>();
-			// @Change: receive a pointer, then free if needed?
-			u8 const * data = bc.read<u8>(
-				size.x * size.y * channels * get_data_type_size(data_type)
-			);
+			// @Change: receive a pointer instead, then free if needed?
+			void const * data = read_inline(bc, data_type, size.x * size.y * channels);
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
