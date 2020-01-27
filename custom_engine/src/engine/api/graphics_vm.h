@@ -76,19 +76,16 @@ enum struct Cull_Mode : u8
 UNDERLYING_TYPE_META(Cull_Mode, u8)
 IS_ENUM_META(Cull_Mode)
 
-enum struct Texture_Format : u8
+enum struct Texture_Type : u8
 {
 	None,
-	R,
-	RG,
-	RGB,
-	RGBA,
+	Color,
 	Depth,
 	DStencil,
 	Stencil,
 };
-UNDERLYING_TYPE_META(Texture_Format, u8)
-IS_ENUM_META(Texture_Format)
+UNDERLYING_TYPE_META(Texture_Type, u8)
+IS_ENUM_META(Texture_Type)
 
 enum struct Data_Type : u8
 {
@@ -96,12 +93,30 @@ enum struct Data_Type : u8
 	U8,
 	U16,
 	U32,
-	U24_8,
-	F16,
-	F32,
+	R16,
+	R32,
 };
 UNDERLYING_TYPE_META(Data_Type, u8)
 IS_ENUM_META(Data_Type)
+
+enum struct Filter_Mode : u8
+{
+	None,
+	Point,
+	Linear,
+};
+UNDERLYING_TYPE_META(Filter_Mode, u8)
+IS_ENUM_META(Filter_Mode)
+
+enum struct Wrap_Mode : u8
+{
+	Repeat,
+	Clamp,
+	Mirror_Repeat,
+	Mirror_Clamp,
+};
+UNDERLYING_TYPE_META(Wrap_Mode, u8)
+IS_ENUM_META(Wrap_Mode)
 
 enum struct Graphics_Instruction : u8
 {

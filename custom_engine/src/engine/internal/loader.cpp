@@ -10,38 +10,84 @@
 
 namespace custom {
 
-static Texture_Format get_texture_format(s32 value) {
-	switch (value)
-	{
-		case 1: return Texture_Format::R;
-		case 2: return Texture_Format::RG;
-		case 3: return Texture_Format::RGB;
-		case 4: return Texture_Format::RGBA;
-	}
-	CUSTOM_ASSERT(false, "not supported channels count %d", value);
-	return Texture_Format::None;
+static void describe_texture(Command_Buffer & command_buffer, u32 asset_id, ivec2 size, u8 channels, Data_Type data_type, Texture_Type texture_type) {
+	command_buffer.write(asset_id);
+	command_buffer.write(size);
+	command_buffer.write(channels);
+	command_buffer.write(data_type);
+	command_buffer.write(texture_type);
 }
 
-void load_image(cstring path, u32 asset_id, Command_Buffer & command_buffer) {
+void load_image(Command_Buffer & command_buffer, u32 asset_id, cstring path) {
+	static Data_Type const data_type = Data_Type::U8;
+	static Texture_Type const texture_type = Texture_Type::Color;
+
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
 	stbi_uc * data = stbi_load(path, &size.x, &size.y, &channels, 0);
+	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
-	Texture_Format format = get_texture_format(channels);
-
+	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	command_buffer.write(Graphics_Instruction::Allocate_Texture);
-	command_buffer.write(asset_id);
-	command_buffer.write(size);
-	command_buffer.write(format);
-	command_buffer.write(Data_Type::U8);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
+	command_buffer.write(Filter_Mode::Linear); command_buffer.write(Filter_Mode::None);
+	command_buffer.write(Wrap_Mode::Repeat); command_buffer.write(Wrap_Mode::Repeat);
 
+	// @Note: upload actual texture data; might stream it later
 	command_buffer.write(Graphics_Instruction::Load_Texture);
-	command_buffer.write(asset_id);
-	command_buffer.write(size);
-	command_buffer.write(format);
-	command_buffer.write(Data_Type::U8);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
+	command_buffer.write(data, size.x * size.y * channels);
+
+	stbi_image_free(data);
+}
+
+void load_imagef(Command_Buffer & command_buffer, u32 asset_id, cstring path) {
+	static Data_Type const data_type = Data_Type::R32;
+	static Texture_Type const texture_type = Texture_Type::Color;
+
+	stbi_set_flip_vertically_on_load(1);
+
+	ivec2 size;
+	s32 channels;
+	float * data = stbi_loadf(path, &size.x, &size.y, &channels, 0);
+	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
+
+	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+	command_buffer.write(Graphics_Instruction::Allocate_Texture);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
+	command_buffer.write(Filter_Mode::Linear); command_buffer.write(Filter_Mode::None);
+	command_buffer.write(Wrap_Mode::Repeat); command_buffer.write(Wrap_Mode::Repeat);
+
+	// @Note: upload actual texture data; might stream it later
+	command_buffer.write(Graphics_Instruction::Load_Texture);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
+	command_buffer.write(data, size.x * size.y * channels);
+
+	stbi_image_free(data);
+}
+
+void load_image16(Command_Buffer & command_buffer, u32 asset_id, cstring path) {
+	static Data_Type const data_type = Data_Type::U16;
+	static Texture_Type const texture_type = Texture_Type::Color;
+
+	stbi_set_flip_vertically_on_load(1);
+
+	ivec2 size;
+	s32 channels;
+	stbi_us * data = stbi_load_16(path, &size.x, &size.y, &channels, 0);
+	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
+
+	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+	command_buffer.write(Graphics_Instruction::Allocate_Texture);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
+	command_buffer.write(Filter_Mode::Linear); command_buffer.write(Filter_Mode::None);
+	command_buffer.write(Wrap_Mode::Repeat); command_buffer.write(Wrap_Mode::Repeat);
+
+	// @Note: upload actual texture data; might stream it later
+	command_buffer.write(Graphics_Instruction::Load_Texture);
+	describe_texture(command_buffer, asset_id, size, (u8)channels, data_type, texture_type);
 	command_buffer.write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);

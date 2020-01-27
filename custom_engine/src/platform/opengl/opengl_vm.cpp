@@ -127,7 +127,7 @@ void Graphics_VM::render(Command_Buffer const & command_buffer)
 		#if !defined(CUSTOM_SHIPPING)
 			static GLenum error = 0;
 			while ((error = glGetError()) != GL_NO_ERROR) {
-				CUSTOM_ASSERT(false, "OpenGL error %x", error);
+				CUSTOM_ASSERT(false, "OpenGL error 0x%x", error);
 			}
 		#endif
 	}
@@ -171,65 +171,164 @@ static GLenum get_operation(Operation value) {
 	return GL_NONE;
 }
 
-static GLenum get_internal_format(Texture_Format value, Data_Type type) {
-	switch (type) {
-		case Data_Type::U8: switch (value) {
-			case Texture_Format::R:       return GL_R8;
-			case Texture_Format::RG:      return GL_RG8;
-			case Texture_Format::RGB:     return GL_RGB8;
-			case Texture_Format::RGBA:    return GL_RGBA8;
-			case Texture_Format::Stencil: return GL_STENCIL_INDEX8;
+static GLenum get_internal_format(Texture_Type texture_type, Data_Type data_type, u8 channels) {
+	switch (texture_type) {
+		case Texture_Type::Color: switch (data_type) {
+			case Data_Type::U8: switch (channels) {
+				case 1: return GL_R8;
+				case 2: return GL_RG8;
+				case 3: return GL_RGB8;
+				case 4: return GL_RGBA8;
+			} break;
+			case Data_Type::U16: switch (channels) {
+				case 1: return GL_R16;
+				case 2: return GL_RG16;
+				case 3: return GL_RGB16;
+				case 4: return GL_RGBA16;
+			} break;
+			case Data_Type::U32: switch (channels) {
+				case 1: return GL_R32UI;
+				case 2: return GL_RG32UI;
+				case 3: return GL_RGB32UI;
+				case 4: return GL_RGBA32UI;
+			} break;
+			case Data_Type::R16: switch (channels) {
+				case 1: return GL_R16F;
+				case 2: return GL_RG16F;
+				case 3: return GL_RGB16F;
+				case 4: return GL_RGBA16F;
+			} break;
+			case Data_Type::R32: switch (channels) {
+				case 1: return GL_R32F;
+				case 2: return GL_RG32F;
+				case 3: return GL_RGB32F;
+				case 4: return GL_RGBA32F;
+			} break;
 		} break;
-		case Data_Type::U32: switch (value) {
-			case Texture_Format::Depth: return GL_DEPTH_COMPONENT24;
+
+		case Texture_Type::Depth: switch (data_type) {
+			case Data_Type::U16: return GL_DEPTH_COMPONENT16;
+			case Data_Type::U32: return GL_DEPTH_COMPONENT24;
+			case Data_Type::R32: return GL_DEPTH_COMPONENT32F;
 		} break;
-		case Data_Type::U24_8: switch (value) {
-			case Texture_Format::DStencil: return GL_DEPTH24_STENCIL8;
-		} break;
+
+		case Texture_Type::DStencil: switch (data_type) {
+			case Data_Type::U32: return GL_DEPTH24_STENCIL8;
+			case Data_Type::R32: return GL_DEPTH32F_STENCIL8;
+		}
+
+		case Texture_Type::Stencil: switch (data_type) {
+			case Data_Type::U8: return GL_STENCIL_INDEX8;
+		}
 	}
-	CUSTOM_ASSERT(false, "unknown texture format %d with type %d", value, type);
+	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d and channels count %d", texture_type, data_type, channels);
 	return GL_NONE;
 }
 
-static GLenum get_data_format(Texture_Format value) {
-	switch (value) {
-		case Texture_Format::R:        return GL_RED;
-		case Texture_Format::RG:       return GL_RG;
-		case Texture_Format::RGB:      return GL_RGB;
-		case Texture_Format::RGBA:     return GL_RGBA;
-		case Texture_Format::Depth:    return GL_DEPTH_COMPONENT;
-		case Texture_Format::DStencil: return GL_DEPTH_STENCIL;
-		case Texture_Format::Stencil:  return GL_STENCIL_INDEX;
+static GLenum get_data_format(Texture_Type texture_type, u8 channels) {
+	switch (texture_type) {
+		case Texture_Type::Color: switch (channels) {
+			case 1: return GL_RED;
+			case 2: return GL_RG;
+			case 3: return GL_RGB;
+			case 4: return GL_RGBA;
+		} break;
+
+		case Texture_Type::Depth:
+			return GL_DEPTH_COMPONENT;
+
+		case Texture_Type::DStencil:
+			return GL_DEPTH_STENCIL;
+
+		case Texture_Type::Stencil:
+			return GL_STENCIL_INDEX;
 	}
-	CUSTOM_ASSERT(false, "unknown texture format %d", value);
+	CUSTOM_ASSERT(false, "unknown texture type %d and channels count %d", texture_type, channels);
 	return GL_NONE;
 }
 
-static GLenum get_bpp(Texture_Format value) {
-	switch (value) {
-		case Texture_Format::R:        return 1;
-		case Texture_Format::RG:       return 2;
-		case Texture_Format::RGB:      return 3;
-		case Texture_Format::RGBA:     return 4;
-		case Texture_Format::Depth:    return 3;
-		case Texture_Format::DStencil: return 4;
-		case Texture_Format::Stencil:  return 1;
+static GLenum get_min_filter(Filter_Mode texture_filter, Filter_Mode mipmap_filter) {
+	switch (mipmap_filter) {
+		case Filter_Mode::None: switch (texture_filter) {
+			case Filter_Mode::None:   return GL_NEAREST;
+			case Filter_Mode::Point:  return GL_NEAREST;
+			case Filter_Mode::Linear: return GL_LINEAR;
+		} break;
+		case Filter_Mode::Point: switch (texture_filter) {
+			case Filter_Mode::None:   return GL_NEAREST_MIPMAP_NEAREST;
+			case Filter_Mode::Point:  return GL_NEAREST_MIPMAP_NEAREST;
+			case Filter_Mode::Linear: return GL_LINEAR_MIPMAP_NEAREST;
+		} break;
+		case Filter_Mode::Linear: switch (texture_filter) {
+			case Filter_Mode::None:   return GL_LINEAR_MIPMAP_NEAREST;
+			case Filter_Mode::Point:  return GL_LINEAR_MIPMAP_NEAREST;
+			case Filter_Mode::Linear: return GL_LINEAR_MIPMAP_LINEAR;
+		} break;
 	}
-	CUSTOM_ASSERT(false, "unknown texture format %d", value);
-	return 0;
+	CUSTOM_ASSERT(false, "unknown texture filter %d and mipmap filter %d", texture_filter, mipmap_filter);
+	return GL_NONE;
 }
 
-static GLenum get_data_type(Data_Type value) {
+static GLenum get_mag_filter(Filter_Mode value) {
 	switch (value) {
-		case Data_Type::U8:    return GL_UNSIGNED_BYTE;
-		case Data_Type::U16:   return GL_UNSIGNED_SHORT;
-		case Data_Type::U32:   return GL_UNSIGNED_INT;
-		case Data_Type::U24_8: return GL_UNSIGNED_INT_24_8;
-		case Data_Type::F16:   return GL_HALF_FLOAT;
-		case Data_Type::F32:   return GL_FLOAT;
+		case Filter_Mode::None:   return GL_NEAREST;
+		case Filter_Mode::Point:  return GL_NEAREST;
+		case Filter_Mode::Linear: return GL_LINEAR;
+	}
+	CUSTOM_ASSERT(false, "unknown filter mode %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_wrap_mode(Wrap_Mode value) {
+	switch (value) {
+		case Wrap_Mode::Repeat: return GL_REPEAT;
+		case Wrap_Mode::Clamp:  return GL_CLAMP_TO_EDGE;
+		case Wrap_Mode::Mirror_Repeat: return GL_MIRRORED_REPEAT;
+		case Wrap_Mode::Mirror_Clamp:  return GL_MIRROR_CLAMP_TO_EDGE;
+	}
+	CUSTOM_ASSERT(false, "unknown wrap mode %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_data_type(Texture_Type texture_type, Data_Type data_type) {
+	switch (texture_type) {
+		case Texture_Type::Color: switch (data_type) {
+			case Data_Type::U8:  return GL_UNSIGNED_BYTE;
+			case Data_Type::U16: return GL_UNSIGNED_SHORT;
+			case Data_Type::U32: return GL_UNSIGNED_INT;
+			case Data_Type::R16: return GL_HALF_FLOAT;
+			case Data_Type::R32: return GL_FLOAT;
+		} break;
+
+		case Texture_Type::Depth: switch (data_type) {
+			case Data_Type::U16: return GL_UNSIGNED_SHORT;
+			case Data_Type::U32: return GL_UNSIGNED_INT;
+			case Data_Type::R32: return GL_FLOAT;
+		} break;
+
+		case Texture_Type::DStencil: switch (data_type) {
+			case Data_Type::U32: return GL_UNSIGNED_INT_24_8;
+			case Data_Type::R32: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+		}
+
+		case Texture_Type::Stencil: switch (data_type) {
+			case Data_Type::U8: return GL_UNSIGNED_BYTE;
+		}
+	}
+	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d", texture_type, data_type);
+	return GL_NONE;
+}
+
+static GLenum get_data_type_size(Data_Type value) {
+	switch (value) {
+		case Data_Type::U8:  return sizeof(u8);
+		case Data_Type::U16: return sizeof(u16);
+		case Data_Type::U32: return sizeof(u32);
+		case Data_Type::R16: return sizeof(r32) / 2;
+		case Data_Type::R32: return sizeof(r32);
 	}
 	CUSTOM_ASSERT(false, "unknown data type %d", value);
-	return GL_NONE;
+	return 0;
 }
 
 static void consume_single_instruction(custom::Command_Buffer const & command_buffer)
@@ -404,8 +503,13 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		case Graphics_Instruction::Allocate_Texture: {
 			u32   asset_id = *command_buffer.read<u32>();
 			ivec2 size     = *command_buffer.read<ivec2>();
-			Texture_Format format = *command_buffer.read<Texture_Format>();
-			Data_Type      type   = *command_buffer.read<Data_Type>();
+			u8           channels     = *command_buffer.read<u8>();
+			Data_Type    data_type    = *command_buffer.read<Data_Type>();
+			Texture_Type texture_type = *command_buffer.read<Texture_Type>();
+			Filter_Mode  texture_filter = *command_buffer.read<Filter_Mode>();
+			Filter_Mode  mipmap_filter  = *command_buffer.read<Filter_Mode>();
+			Wrap_Mode    wrap_mode_x = *command_buffer.read<Wrap_Mode>();
+			Wrap_Mode    wrap_mode_y = *command_buffer.read<Wrap_Mode>();
 
 			ogl.textures.ensure_capacity(asset_id + 1);
 			OpenGL::Texture * resource = new (&ogl.textures[asset_id]) OpenGL::Texture;
@@ -413,15 +517,14 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 			glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
 			glTextureStorage2D(
 				resource->id, 1,
-				get_internal_format(format, type),
+				get_internal_format(texture_type, data_type, channels),
 				size.x, size.y
 			);
 
-			// @Todo: setup filtering
-			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(texture_filter, mipmap_filter));
+			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(texture_filter));
+			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
+			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
 		} return;
 
 		case Graphics_Instruction::Allocate_Mesh: {
@@ -535,19 +638,20 @@ static void consume_single_instruction(custom::Command_Buffer const & command_bu
 		case Graphics_Instruction::Load_Texture: {
 			u32   asset_id = *command_buffer.read<u32>();
 			ivec2 size     = *command_buffer.read<ivec2>();
-			Texture_Format format = *command_buffer.read<Texture_Format>();
-			Data_Type      type   = *command_buffer.read<Data_Type>();
+			u8           channels     = *command_buffer.read<u8>();
+			Data_Type    data_type    = *command_buffer.read<Data_Type>();
+			Texture_Type texture_type = *command_buffer.read<Texture_Type>();
 			u8 const * data = command_buffer.read<u8>(
-				size.x * size.y * get_bpp(format)
+				size.x * size.y * channels * get_data_type_size(data_type)
 			);
 
 			OpenGL::Texture * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
 				resource->id,
-				0, 0, 0,
-				size.x, size.y,
-				get_data_format(format),
-				get_data_type(type),
+				0,
+				0, 0, size.x, size.y,
+				get_data_format(texture_type, channels),
+				get_data_type(texture_type, data_type),
 				data
 			);
 		} return;
@@ -658,13 +762,14 @@ static void opengl_message_callback(
 		default:                             severity_string = "unknown"; break;
 	}
 
-
 	CUSTOM_MESSAGE(
 		"OpenGL message:"
+		"\n  %d"
 		"\n  %s"
 		"\n  - type:     %s"
 		"\n  - severity: %s"
 		"\n  - source:   %s",
+		id,
 		message,
 		type_string,
 		severity_string,

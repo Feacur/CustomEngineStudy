@@ -4,6 +4,8 @@
 
 namespace custom {
 
-void load_image(cstring path, u32 asset_id, Command_Buffer & command_buffer);
+void load_image(Command_Buffer & command_buffer, u32 asset_id, cstring path);
+void load_imagef(Command_Buffer & command_buffer, u32 asset_id, cstring path);
+void load_image16(Command_Buffer & command_buffer, u32 asset_id, cstring path);
 
 }
