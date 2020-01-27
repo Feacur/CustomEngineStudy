@@ -75,9 +75,9 @@ int main(int argc, char * argv[]) {
 	custom::Bytecode gbc;
 	custom::graphics::reset_settings(gbc);
 
-	// custom::load_shader(gbc, 0, "assets/shaders/renderer2d.glsl");
+	custom::load_shader(gbc, 0, "assets/shaders/renderer2d.glsl");
 	custom::load_image(gbc, 0, "assets/textures/checkerboard.png");
-	// custom::load_quad(gbc, 0);
+	custom::load_quad(gbc, 0);
 
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
@@ -85,15 +85,21 @@ int main(int argc, char * argv[]) {
 	gbc.write(viewport_position);
 	gbc.write(viewport_size);
 
-	// gbc.write(custom::graphics::Instruction::Use_Shader);
-	// gbc.write((u32)0);
+	gbc.write(custom::graphics::Instruction::Use_Shader);
+	gbc.write((u32)0);
+
+	gbc.write(custom::graphics::Instruction::Load_Uniform);
+	gbc.write((s32)0);
+	gbc.write(custom::graphics::Data_Type::tex);
+	gbc.write((u32)1);
+	gbc.write((s32)0);
 
 	gbc.write(custom::graphics::Instruction::Use_Texture);
 	gbc.write((u32)0);
 	gbc.write((s32)0);
 
-	// gbc.write(custom::graphics::Instruction::Use_Mesh);
-	// gbc.write((u32)0);
+	gbc.write(custom::graphics::Instruction::Use_Mesh);
+	gbc.write((u32)0);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -108,8 +114,8 @@ int main(int argc, char * argv[]) {
 		// @Todo: input, logic
 
 		custom::graphics::clear(gbc);
-		// gbc.write(custom::graphics::Instruction::Draw);
-		// gbc.write((u32)0);
+		gbc.write(custom::graphics::Instruction::Draw);
+		gbc.write((u32)0);
 
 		gvm.render(gbc);
 		window->update();

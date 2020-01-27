@@ -545,45 +545,58 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Allocate_Mesh: {
-			CUSTOM_MESSAGE("// @Todo: Allocate_Mesh");
-			u32   asset_id = *bc.read<u32>();
+			u32 asset_id = *bc.read<u32>();
+			u32          vcount   = *bc.read<u32>();
+			void const * vertices = read_inline(bc, Data_Type::r32, vcount);
+			u32          icount  = *bc.read<u32>();
+			void const * indices = read_inline(bc, Data_Type::u32, icount);
 
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			OpenGL::Mesh * resource = new (&ogl.meshes[asset_id]) OpenGL::Mesh;
 
-			// glGenVertexArrays(1, &id);
-			// glBindVertexArray(id);
+			resource->buffers.push();
+			glCreateBuffers(1, &resource->buffers[0].id);
+			glBindBuffer(GL_ARRAY_BUFFER, resource->buffers[0].id);
+			glBufferData(GL_ARRAY_BUFFER, vcount * sizeof(r32), vertices, GL_STATIC_DRAW);
 
-			// glBindBuffer(GL_ARRAY_BUFFER, id);
-			// glCreateBuffers(1, &id);
-			// glBindBuffer(GL_ARRAY_BUFFER, id);
-			// glBufferData(GL_ARRAY_BUFFER, count * sizeof(float), vertices, GL_STATIC_DRAW);
+			resource->indices.count = icount;
+			glCreateBuffers(1, &resource->indices.id);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, icount * sizeof(u32), indices, GL_STATIC_DRAW);
 
-			// u32 stride = 0;
-			// for (auto & element : bufferLayout)
-			// {
-			// 	stride += element.GetSize();
-			// }
-			// for (auto const & element : bufferLayout)
-			// {
-			// 	glEnableVertexAttribArray(vertexAttribIndex);
-			// 	glVertexAttribPointer(
-			// 		vertexAttribIndex,
-			// 		element.GetComponentCount(),
-			// 		ShaderDataTypeOpenGLBaseType(element.Type),
-			// 		element.Normalized,
-			// 		stride,
-			// 		(void const *)offset
-			// 	);
-			// 	offset += element.GetSize();
-			// 	vertexAttribIndex++;
-			// }
+			// @Todo: correctly chart attributes
+			glGenVertexArrays(1, &resource->id);
+			glBindVertexArray(resource->id);
 
-			// 
-			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-			// glCreateBuffers(1, &id);
-			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-			// glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u32), indices, GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, resource->buffers[0].id);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+
+			u32 cc1 = 3;
+			u32 cc2 = 2;
+			u32 stride = (cc1 + cc2) * sizeof(r32);
+
+			uintptr_t attrib_offset = 0;
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(
+				0,
+				cc1,
+				GL_FLOAT,
+				false,
+				stride,
+				(void const *)attrib_offset
+			);
+
+			attrib_offset += cc1 * sizeof(r32);
+			
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(
+				1,
+				cc2,
+				GL_FLOAT,
+				false,
+				stride,
+				(void const *)attrib_offset
+			);
 		} return;
 
 		//

@@ -10,6 +10,39 @@
 
 namespace custom {
 
+static cstring const shader_test = R"(
+// name: renderer2d
+// version: 330 core
+
+// section: VERTEX_SECTION
+#if defined(VERTEX_SECTION)
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoord;
+
+out vec2 v_TexCoord;
+
+void main()
+{
+	v_TexCoord = a_TexCoord;
+	gl_Position = vec4(a_Position, 1.0);
+}
+#endif // defined(VERTEX_SECTION)
+
+// section: FRAGMENT_SECTION
+#if defined(FRAGMENT_SECTION)
+in vec2 v_TexCoord;
+
+uniform sampler2D u_Texture;
+
+layout(location = 0) out vec4 color;
+
+void main()
+{
+	color = texture(u_Texture, v_TexCoord);
+}
+#endif // defined(FRAGMENT_SECTION)
+)";
+
 static void describe_texture(
 	Bytecode & bc,
 	u32 asset_id, ivec2 size, u8 channels,
@@ -98,9 +131,34 @@ void load_image16(Bytecode & bc, u32 asset_id, cstring path) {
 }
 
 void load_shader(Bytecode & bc, u32 asset_id, cstring path) {
+	u32 len = (u32)strlen(shader_test) + 1;
+
+	bc.write(graphics::Instruction::Allocate_Shader);
+	bc.write(asset_id);
+	bc.write(len);
+	bc.write(shader_test, len);
 }
 
 void load_quad(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Allocate_Mesh);
+	bc.write(asset_id);
+
+	r32 const vertices[] = {
+		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
+		/*position*/  0.5f, -0.5f, 0.0f, /*UV*/ 1.0f, 0.0f,
+		/*position*/  0.5f,  0.5f, 0.0f, /*UV*/ 1.0f, 1.0f,
+		/*position*/ -0.5f,  0.5f, 0.0f, /*UV*/ 0.0f, 1.0f,
+	};
+
+	u32 const indices[] = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+
+	bc.write((u32)C_ARRAY_LENGTH(vertices));
+	bc.write((r32 *)vertices, C_ARRAY_LENGTH(vertices));
+	bc.write((u32)C_ARRAY_LENGTH(indices));
+	bc.write((u32 *)indices, C_ARRAY_LENGTH(indices));
 }
 
 }
