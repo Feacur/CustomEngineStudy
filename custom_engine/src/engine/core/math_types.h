@@ -1,102 +1,103 @@
 #pragma once
 #include "engine/core/types.h"
 
-struct vec2 {
+template<typename T>
+struct xvec2 {
 	union {
-		struct { r32 x, y; };
-		r32 data[2];
+		struct { T x, y; };
+		T data[2];
 	};
 
-#if defined(__cplusplus) // vec2
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // vec2
+#if defined(__cplusplus) // xvec2
+	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // xvec2
 };
 
-struct vec3 {
+template<typename T>
+struct xvec3 {
 	union {
-		struct { vec2 xy; r32 z; };
-		struct { r32 x; vec2 yz; };
-		struct { r32 x, y, z; };
-		r32 data[3];
+		struct { xvec2<T> xy; T z; };
+		struct { T x; xvec2<T> yz; };
+		struct { T x, y, z; };
+		T data[3];
 	};
 
-#if defined(__cplusplus) // vec3
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // vec3
+#if defined(__cplusplus) // xvec3
+	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // xvec3
 };
 
-struct vec4 {
+template<typename T>
+struct xvec4 {
 	union {
-		struct { vec3 xyz; r32 w; };
-		struct { r32 x; vec3 yzw; };
-		struct { vec2 xy; vec2 zw; };
-		struct { r32 x; vec2 yz; r32 w; };
-		struct { r32 x, y, z, w; };
-		r32 data[4];
+		struct { xvec3<T> xyz; T w; };
+		struct { T x; xvec3<T> yzw; };
+		struct { xvec2<T> xy; xvec2<T> zw; };
+		struct { T x; xvec2<T> yz; T w; };
+		struct { T x, y, z, w; };
+		T data[4];
 	};
 
-#if defined(__cplusplus) // vec4
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // vec4
+#if defined(__cplusplus) // xvec4
+	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // xvec4
 };
-
-struct ivec2 {
-	union {
-		struct { s32 x, y; };
-		s32 data[2];
-	};
-	
-#if defined(__cplusplus) // ivec2
-	constexpr inline s32 & operator[](size_t i) { return data[i]; }
-	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // ivec2
-};
-
-struct ivec3 {
-	union {
-		struct { ivec2 xy; s32 z; };
-		struct { s32 x; ivec2 yz; };
-		struct { s32 x, y, z; };
-		s32 data[3];
-	};
-	
-#if defined(__cplusplus) // ivec3
-	constexpr inline s32 & operator[](size_t i) { return data[i]; }
-	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // ivec3
-};
-
-struct ivec4 {
-	union {
-		struct { ivec3 xyz; s32 w; };
-		struct { s32 x; ivec3 yzw; };
-		struct { vec2 xy; ivec2 zw; };
-		struct { s32 x; ivec2 yz; s32 w; };
-		struct { s32 x, y, z, w; };
-		s32 data[4];
-	};
-	
-#if defined(__cplusplus) // ivec4
-	constexpr inline s32 & operator[](size_t i) { return data[i]; }
-	constexpr inline s32 const & operator[](size_t i) const { return data[i]; }
-#endif // defined(__cplusplus) // ivec4
-};
-
-struct uvec2 { u32 data[2]; };
-struct uvec3 { u32 data[3]; };
-struct uvec4 { u32 data[4]; };
-
-struct mat2 { vec2 data[2]; };
-struct mat3 { vec3 data[3]; };
-struct mat4 { vec4 data[4]; };
 
 // @Note
 // vector structs have duplicate names in them
 // though it seems to be OK, as their layout matches
 // still, debugger draws them ugly
+
+typedef xvec2<r32> vec2;
+typedef xvec3<r32> vec3;
+typedef xvec4<r32> vec4;
+
+typedef xvec2<s32> ivec2;
+typedef xvec3<s32> ivec3;
+typedef xvec4<s32> ivec4;
+
+typedef xvec2<u32> uvec2;
+typedef xvec3<u32> uvec3;
+typedef xvec4<u32> uvec4;
+
+struct mat2 {
+	union {
+		vec2 axes[2];
+		r32 data[2 * 2];
+	};
+
+#if defined(__cplusplus) // mat2
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // mat2
+};
+
+struct mat3 {
+	union {
+		vec3 axes[3];
+		r32 data[3 * 3];
+	};
+
+#if defined(__cplusplus) // mat3
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // mat3
+};
+
+struct mat4 {
+	union {
+		vec4 axes[4];
+		r32 data[4 * 4];
+	};
+
+#if defined(__cplusplus) // mat4
+	constexpr inline r32 operator[](size_t i) { return data[i]; }
+	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+#endif // defined(__cplusplus) // mat4
+};
 
 typedef ivec2 icomplex;
 typedef vec2  complex;

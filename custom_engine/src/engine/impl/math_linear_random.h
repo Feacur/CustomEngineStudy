@@ -10,8 +10,8 @@ inline vec4 random4_01(u32 * state) { return {random_01(state), random_01(state)
 inline T name##_radius01(u32 * state) {\
 	T point;\
 	do {\
-		point = name##_01(state) * 2 - 1;\
-	} while (magnitude_squared(point) > 1);\
+		point = name##_01(state) * 2.0f - 1.0f;\
+	} while (magnitude_squared(point) > 1.0f);\
 	return point;\
 }
 

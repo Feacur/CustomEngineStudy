@@ -2,34 +2,17 @@
 #include "engine/core/math_types.h"
 #include "engine/impl/math_scalar.h"
 
-constexpr inline ivec2 civec2(s32 x, s32 y) { return {x, y}; }
-constexpr inline ivec3 civec3(s32 x, s32 y, s32 z) { return {x, y, z}; }
-
-constexpr inline vec2 cvec2(r32 x, r32 y) { return {x, y}; }
-constexpr inline vec3 cvec3(r32 x, r32 y, r32 z) { return {x, y, z}; }
-constexpr inline vec4 cvec4(r32 x, r32 y, r32 z, r32 w) { return {x, y, z, w}; }
-
 //
 //
 //
 
-constexpr inline s32 cross_product(ivec2 first, ivec2 second) {
+template<typename T>
+constexpr inline T cross_product(xvec2<T> first, xvec2<T> second) {
 	return first.x * second.y - first.y * second.x;
 }
 
-constexpr inline ivec3 cross_product(ivec3 first, ivec3 second) {
-	return {
-		first.y * second.z - first.z * second.y,
-		first.z * second.x - first.x * second.z,
-		first.x * second.y - first.y * second.x
-	};
-}
-
-constexpr inline r32 cross_product(vec2 first, vec2 second) {
-	return first.x * second.y - first.y * second.x;
-}
-
-constexpr inline vec3 cross_product(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> cross_product(xvec3<T> first, xvec3<T> second) {
 	return {
 		first.y * second.z - first.z * second.y,
 		first.z * second.x - first.x * second.z,
@@ -38,629 +21,226 @@ constexpr inline vec3 cross_product(vec3 first, vec3 second) {
 }
 
 //
-// ivec2 routines
-// Applications: 2d position
-//
-
-#if defined(__cplusplus) // operator ivec2
-constexpr inline bool operator==(ivec2 first, ivec2 second) {
-	return (first.x == second.x)
-	    && (first.y == second.y);
-}
-
-constexpr inline bool operator!=(ivec2 first, ivec2 second) {
-	return (first.x != second.x)
-	    || (first.y != second.y);
-}
-
-constexpr inline ivec2 operator+(ivec2 first, ivec2 second) {
-	return {
-		first.x + second.x,
-		first.y + second.y
-	};
-}
-
-constexpr inline ivec2 operator+(ivec2 first, s32 second) {
-	return {
-		first.x + second,
-		first.y + second
-	};
-}
-
-constexpr inline ivec2 operator-(ivec2 first, ivec2 second) {
-	return {
-		first.x - second.x,
-		first.y - second.y
-	};
-}
-
-constexpr inline ivec2 operator-(ivec2 first, s32 second) {
-	return {
-		first.x - second,
-		first.y - second
-	};
-}
-
-constexpr inline ivec2 operator-(ivec2 value) {
-	return {
-		-value.x,
-		-value.y
-	};
-}
-
-constexpr inline ivec2 operator*(ivec2 first, s32 second) {
-	return {
-		first.x * second,
-		first.y * second
-	};
-}
-
-constexpr inline ivec2 operator*(ivec2 first, ivec2 second) {
-	return {
-		first.x * second.x,
-		first.y * second.y
-	};
-}
-
-constexpr inline ivec2 operator/(ivec2 first, s32 second) {
-	return {
-		first.x / second,
-		first.y / second
-	};
-}
-
-constexpr inline ivec2 operator/(ivec2 first, ivec2 second) {
-	return {
-		first.x / second.x,
-		first.y / second.y
-	};
-}
-
-constexpr inline ivec2 operator%(ivec2 first, s32 second) {
-	return {
-		first.x % second,
-		first.y % second
-	};
-}
-
-constexpr inline ivec2 operator%(ivec2 first, ivec2 second) {
-	return {
-		first.x % second.x,
-		first.y % second.y
-	};
-}
-
-constexpr inline ivec2 & operator+=(ivec2 & first, ivec2 const & second) {
-	first.x += second.x;
-	first.y += second.y;
-	return first;
-}
-
-constexpr inline ivec2 & operator+=(ivec2 & first, s32 second) {
-	first.x += second;
-	first.y += second;
-	return first;
-}
-
-constexpr inline ivec2 & operator-=(ivec2 & first, ivec2 const & second) {
-	first.x -= second.x;
-	first.y -= second.y;
-	return first;
-}
-
-constexpr inline ivec2 & operator-=(ivec2 & first, s32 second) {
-	first.x -= second;
-	first.y -= second;
-	return first;
-}
-
-constexpr inline ivec2 & operator*=(ivec2 & first, ivec2 const & second) {
-	first.x *= second.x;
-	first.y *= second.y;
-	return first;
-}
-
-constexpr inline ivec2 & operator*=(ivec2 & first, s32 second) {
-	first.x *= second;
-	first.y *= second;
-	return first;
-}
-
-constexpr inline ivec2 & operator/=(ivec2 & first, ivec2 const & second) {
-	first.x /= second.x;
-	first.y /= second.y;
-	return first;
-}
-
-constexpr inline ivec2 & operator/=(ivec2 & first, s32 second) {
-	first.x /= second;
-	first.y /= second;
-	return first;
-}
-
-constexpr inline ivec2 & operator%=(ivec2 & first, ivec2 const & second) {
-	first.x %= second.x;
-	first.y %= second.y;
-	return first;
-}
-
-constexpr inline ivec2 & operator%=(ivec2 & first, s32 second) {
-	first.x %= second;
-	first.y %= second;
-	return first;
-}
-#endif // defined(__cplusplus) // operator ivec2
-
-constexpr inline s32 dot_product(ivec2 first, ivec2 second) {
-	return first.x * second.x
-	     + first.y * second.y;
-}
-
-constexpr inline ivec2 min(ivec2 first, ivec2 second) {
-	return {
-		min(first.x, second.x),
-		min(first.y, second.y)
-	};
-}
-
-constexpr inline ivec2 max(ivec2 first, ivec2 second) {
-	return {
-		max(first.x, second.x),
-		max(first.y, second.y)
-	};
-}
-
-constexpr inline s32 min(ivec2 value) {
-	return min(value.x, value.y);
-}
-
-constexpr inline s32 max(ivec2 value) {
-	return max(value.x, value.y);
-}
-
-constexpr inline ivec2 absolute(ivec2 value) {
-	return {
-		absolute(value.x),
-		absolute(value.y)
-	};
-}
-
-constexpr inline ivec2 sign(ivec2 value) {
-	return {
-		sign(value.x),
-		sign(value.y)
-	};
-}
-
-constexpr inline ivec2 interpolate(ivec2 from, ivec2 to, s32 mul, s32 div) {
-	return {
-		interpolate(from.x, to.x, mul, div),
-		interpolate(from.y, to.y, mul, div)
-	};
-}
-
-//
-// ivec3 routines
-// Applications: 3d position
-//
-
-#if defined(__cplusplus) // operator ivec3
-constexpr inline bool operator==(ivec3 first, ivec3 second) {
-	return (first.x == second.x)
-	    && (first.y == second.y)
-	    && (first.z == second.z);
-}
-
-constexpr inline bool operator!=(ivec3 first, ivec3 second) {
-	return (first.x != second.x)
-	    || (first.y != second.y)
-	    || (first.z != second.z);
-}
-
-constexpr inline ivec3 operator+(ivec3 first, ivec3 second) {
-	return {
-		first.x + second.x,
-		first.y + second.y,
-		first.z + second.z
-	};
-}
-
-constexpr inline ivec3 operator+(ivec3 first, s32 second) {
-	return {
-		first.x + second,
-		first.y + second,
-		first.z + second
-	};
-}
-
-constexpr inline ivec3 operator-(ivec3 first, ivec3 second) {
-	return {
-		first.x - second.x,
-		first.y - second.y,
-		first.z - second.z
-	};
-}
-
-constexpr inline ivec3 operator-(ivec3 first, s32 second) {
-	return {
-		first.x - second,
-		first.y - second,
-		first.z - second
-	};
-}
-
-constexpr inline ivec3 operator-(ivec3 value) {
-	return {
-		-value.x,
-		-value.y,
-		-value.z
-	};
-}
-
-constexpr inline ivec3 operator*(ivec3 first, s32 second) {
-	return {
-		first.x * second,
-		first.y * second,
-		first.z * second
-	};
-}
-
-constexpr inline ivec3 operator*(ivec3 first, ivec3 second) {
-	return {
-		first.x * second.x,
-		first.y * second.y,
-		first.z * second.z
-	};
-}
-
-constexpr inline ivec3 operator/(ivec3 first, s32 second) {
-	return {
-		first.x / second,
-		first.y / second,
-		first.z / second
-	};
-}
-
-constexpr inline ivec3 operator/(ivec3 first, ivec3 second) {
-	return {
-		first.x / second.x,
-		first.y / second.y,
-		first.z / second.z
-	};
-}
-
-constexpr inline ivec3 operator%(ivec3 first, s32 second) {
-	return {
-		first.x % second,
-		first.y % second,
-		first.z % second
-	};
-}
-
-constexpr inline ivec3 operator%(ivec3 first, ivec3 second) {
-	return {
-		first.x % second.x,
-		first.y % second.y,
-		first.z % second.z
-	};
-}
-
-constexpr inline ivec3 & operator+=(ivec3 & first, ivec3 const & second) {
-	first.x += second.x;
-	first.y += second.y;
-	first.z += second.z;
-	return first;
-}
-
-constexpr inline ivec3 & operator+=(ivec3 & first, s32 second) {
-	first.x += second;
-	first.y += second;
-	first.z += second;
-	return first;
-}
-
-constexpr inline ivec3 & operator-=(ivec3 & first, ivec3 const & second) {
-	first.x -= second.x;
-	first.y -= second.y;
-	first.z -= second.z;
-	return first;
-}
-
-constexpr inline ivec3 & operator-=(ivec3 & first, s32 second) {
-	first.x -= second;
-	first.y -= second;
-	first.z -= second;
-	return first;
-}
-
-constexpr inline ivec3 & operator*=(ivec3 & first, ivec3 const & second) {
-	first.x *= second.x;
-	first.y *= second.y;
-	first.z *= second.z;
-	return first;
-}
-
-constexpr inline ivec3 & operator*=(ivec3 & first, s32 second) {
-	first.x *= second;
-	first.y *= second;
-	first.z *= second;
-	return first;
-}
-
-constexpr inline ivec3 & operator/=(ivec3 & first, ivec3 const & second) {
-	first.x /= second.x;
-	first.y /= second.y;
-	first.z /= second.z;
-	return first;
-}
-
-constexpr inline ivec3 & operator/=(ivec3 & first, s32 second) {
-	first.x /= second;
-	first.y /= second;
-	first.z /= second;
-	return first;
-}
-
-constexpr inline ivec3 & operator%=(ivec3 & first, ivec3 const & second) {
-	first.x %= second.x;
-	first.y %= second.y;
-	first.z %= second.z;
-	return first;
-}
-
-constexpr inline ivec3 & operator%=(ivec3 & first, s32 second) {
-	first.x %= second;
-	first.y %= second;
-	first.z %= second;
-	return first;
-}
-#endif // defined(__cplusplus) // operator ivec3
-
-constexpr inline s32 dot_product(ivec3 first, ivec3 second) {
-	return first.x * second.x
-	     + first.y * second.y
-	     + first.z * second.z;
-}
-
-constexpr inline ivec3 min(ivec3 first, ivec3 second) {
-	return {
-		min(first.x, second.x),
-		min(first.y, second.y),
-		min(first.z, second.z)
-	};
-}
-
-constexpr inline ivec3 max(ivec3 first, ivec3 second) {
-	return {
-		max(first.x, second.x),
-		max(first.y, second.y),
-		max(first.z, second.z)
-	};
-}
-
-constexpr inline s32 min(ivec3 value) {
-	return min(min(value.x, value.y), value.z);
-}
-
-constexpr inline s32 max(ivec3 value) {
-	return max(max(value.x, value.y), value.z);
-}
-
-constexpr inline ivec3 absolute(ivec3 value) {
-	return {
-		absolute(value.x),
-		absolute(value.y),
-		absolute(value.z)
-	};
-}
-
-constexpr inline ivec3 sign(ivec3 value) {
-	return {
-		sign(value.x),
-		sign(value.y),
-		sign(value.z)
-	};
-}
-
-constexpr inline ivec3 interpolate(ivec3 from, ivec3 to, s32 mul, s32 div) {
-	return {
-		interpolate(from.x, to.x, mul, div),
-		interpolate(from.y, to.y, mul, div),
-		interpolate(from.z, to.z, mul, div)
-	};
-}
-
-//
-// vec2 routines
+// xvec2<T> routines
 // Applications: 2d position, 2d rotation as complex number, 2d scale, 2d direction
 //
 
-#if defined(__cplusplus) // operator vec2
-constexpr inline bool operator==(vec2 first, vec2 second) {
+#if defined(__cplusplus) // operator xvec2<T>
+template<typename T>
+constexpr inline bool operator==(xvec2<T> first, xvec2<T> second) {
 	return (first.x == second.x)
 	    && (first.y == second.y);
 }
 
-constexpr inline bool operator!=(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline bool operator!=(xvec2<T> first, xvec2<T> second) {
 	return (first.x != second.x)
 	    || (first.y != second.y);
 }
 
-constexpr inline vec2 operator+(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> operator+(xvec2<T> first, xvec2<T> second) {
 	return {
 		first.x + second.x,
 		first.y + second.y
 	};
 }
 
-constexpr inline vec2 operator+(vec2 first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> operator+(xvec2<T> first, T second) {
 	return {
 		first.x + second,
 		first.y + second
 	};
 }
 
-constexpr inline vec2 operator-(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> operator-(xvec2<T> first, xvec2<T> second) {
 	return {
 		first.x - second.x,
 		first.y - second.y
 	};
 }
 
-constexpr inline vec2 operator-(vec2 first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> operator-(xvec2<T> first, T second) {
 	return {
 		first.x - second,
 		first.y - second
 	};
 }
 
-constexpr inline vec2 operator-(vec2 value) {
+template<typename T>
+constexpr inline xvec2<T> operator-(xvec2<T> value) {
 	return {
 		-value.x,
 		-value.y
 	};
 }
 
-constexpr inline vec2 operator*(vec2 first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> operator*(xvec2<T> first, T second) {
 	return {
 		first.x * second,
 		first.y * second
 	};
 }
 
-constexpr inline vec2 operator*(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> operator*(xvec2<T> first, xvec2<T> second) {
 	return {
 		first.x * second.x,
 		first.y * second.y
 	};
 }
 
-constexpr inline vec2 operator/(vec2 first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> operator/(xvec2<T> first, T second) {
 	return {
 		first.x / second,
 		first.y / second
 	};
 }
 
-constexpr inline vec2 operator/(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> operator/(xvec2<T> first, xvec2<T> second) {
 	return {
 		first.x / second.x,
 		first.y / second.y
 	};
 }
 
-constexpr inline vec2 & operator+=(vec2 & first, vec2 const & second) {
+template<typename T>
+constexpr inline xvec2<T> & operator+=(xvec2<T> & first, xvec2<T> const & second) {
 	first.x += second.x;
 	first.y += second.y;
 	return first;
 }
 
-constexpr inline vec2 & operator+=(vec2 & first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> & operator+=(xvec2<T> & first, T second) {
 	first.x += second;
 	first.y += second;
 	return first;
 }
 
-constexpr inline vec2 & operator-=(vec2 & first, vec2 const & second) {
+template<typename T>
+constexpr inline xvec2<T> & operator-=(xvec2<T> & first, xvec2<T> const & second) {
 	first.x -= second.x;
 	first.y -= second.y;
 	return first;
 }
 
-constexpr inline vec2 & operator-=(vec2 & first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> & operator-=(xvec2<T> & first, T second) {
 	first.x -= second;
 	first.y -= second;
 	return first;
 }
 
-constexpr inline vec2 & operator*=(vec2 & first, vec2 const & second) {
+template<typename T>
+constexpr inline xvec2<T> & operator*=(xvec2<T> & first, xvec2<T> const & second) {
 	first.x *= second.x;
 	first.y *= second.y;
 	return first;
 }
 
-constexpr inline vec2 & operator*=(vec2 & first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> & operator*=(xvec2<T> & first, T second) {
 	first.x *= second;
 	first.y *= second;
 	return first;
 }
 
-constexpr inline vec2 & operator/=(vec2 & first, vec2 const & second) {
+template<typename T>
+constexpr inline xvec2<T> & operator/=(xvec2<T> & first, xvec2<T> const & second) {
 	first.x /= second.x;
 	first.y /= second.y;
 	return first;
 }
 
-constexpr inline vec2 & operator/=(vec2 & first, r32 second) {
+template<typename T>
+constexpr inline xvec2<T> & operator/=(xvec2<T> & first, T second) {
 	first.x /= second;
 	first.y /= second;
 	return first;
 }
-#endif // defined(__cplusplus) // operator vec2
+#endif // defined(__cplusplus) // operator xvec2<T>
 
-constexpr inline r32 dot_product(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline T dot_product(xvec2<T> first, xvec2<T> second) {
 	return first.x * second.x
 	     + first.y * second.y;
 }
 
-constexpr inline vec2 min(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> min(xvec2<T> first, xvec2<T> second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y)
 	};
 }
 
-constexpr inline vec2 max(vec2 first, vec2 second) {
+template<typename T>
+constexpr inline xvec2<T> max(xvec2<T> first, xvec2<T> second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y)
 	};
 }
 
-constexpr inline r32 min(vec2 value) {
+template<typename T>
+constexpr inline T min(xvec2<T> value) {
 	return min(value.x, value.y);
 }
 
-constexpr inline r32 max(vec2 value) {
+template<typename T>
+constexpr inline T max(xvec2<T> value) {
 	return max(value.x, value.y);
 }
 
-constexpr inline vec2 absolute(vec2 value) {
+template<typename T>
+constexpr inline xvec2<T> absolute(xvec2<T> value) {
 	return {
 		absolute(value.x),
 		absolute(value.y)
 	};
 }
 
-constexpr inline vec2 sign(vec2 value) {
+template<typename T>
+constexpr inline xvec2<T> sign(xvec2<T> value) {
 	return {
 		sign(value.x),
 		sign(value.y)
 	};
 }
 
-constexpr inline vec2 interpolate(vec2 from, vec2 to, r32 fraction) {
+template<typename T>
+constexpr inline xvec2<T> interpolate(xvec2<T> from, xvec2<T> to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction)
 	};
 }
 
-inline vec2 square_root(vec2 value) {
+template<typename T>
+inline xvec2<T> square_root(xvec2<T> value) {
 	return {
 		square_root(value.x),
 		square_root(value.y)
 	};
 }
 
-inline vec2 sine(vec2 value) {
+template<typename T>
+inline xvec2<T> sine(xvec2<T> value) {
 	return {
 		sine(value.x),
 		sine(value.y)
 	};
 }
 
-inline vec2 cosine(vec2 value) {
+template<typename T>
+inline xvec2<T> cosine(xvec2<T> value) {
 	return {
 		cosine(value.x),
 		cosine(value.y)
@@ -668,24 +248,27 @@ inline vec2 cosine(vec2 value) {
 }
 
 //
-// vec3 routines
+// xvec3<T> routines
 // Applications: 3d position, 3d rotation as euler angles, 3d scale, 3d direction
 //
 
-#if defined(__cplusplus) // operator vec3
-constexpr inline bool operator==(vec3 first, vec3 second) {
+#if defined(__cplusplus) // operator xvec3<T>
+template<typename T>
+constexpr inline bool operator==(xvec3<T> first, xvec3<T> second) {
 	return (first.x == second.x)
 	    && (first.y == second.y)
 	    && (first.z == second.z);
 }
 
-constexpr inline bool operator!=(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline bool operator!=(xvec3<T> first, xvec3<T> second) {
 	return (first.x != second.x)
 	    || (first.y != second.y)
 	    || (first.z != second.z);
 }
 
-constexpr inline vec3 operator+(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> operator+(xvec3<T> first, xvec3<T> second) {
 	return {
 		first.x + second.x,
 		first.y + second.y,
@@ -693,7 +276,8 @@ constexpr inline vec3 operator+(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline vec3 operator+(vec3 first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> operator+(xvec3<T> first, T second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -701,7 +285,8 @@ constexpr inline vec3 operator+(vec3 first, r32 second) {
 	};
 }
 
-constexpr inline vec3 operator-(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> operator-(xvec3<T> first, xvec3<T> second) {
 	return {
 		first.x - second.x,
 		first.y - second.y,
@@ -709,7 +294,8 @@ constexpr inline vec3 operator-(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline vec3 operator-(vec3 first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> operator-(xvec3<T> first, T second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -717,7 +303,8 @@ constexpr inline vec3 operator-(vec3 first, r32 second) {
 	};
 }
 
-constexpr inline vec3 operator-(vec3 value) {
+template<typename T>
+constexpr inline xvec3<T> operator-(xvec3<T> value) {
 	return {
 		-value.x,
 		-value.y,
@@ -725,7 +312,8 @@ constexpr inline vec3 operator-(vec3 value) {
 	};
 }
 
-constexpr inline vec3 operator*(vec3 first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> operator*(xvec3<T> first, T second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -733,7 +321,8 @@ constexpr inline vec3 operator*(vec3 first, r32 second) {
 	};
 }
 
-constexpr inline vec3 operator*(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> operator*(xvec3<T> first, xvec3<T> second) {
 	return {
 		first.x * second.x,
 		first.y * second.y,
@@ -741,7 +330,8 @@ constexpr inline vec3 operator*(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline vec3 operator/(vec3 first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> operator/(xvec3<T> first, T second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -749,7 +339,8 @@ constexpr inline vec3 operator/(vec3 first, r32 second) {
 	};
 }
 
-constexpr inline vec3 operator/(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> operator/(xvec3<T> first, xvec3<T> second) {
 	return {
 		first.x / second.x,
 		first.y / second.y,
@@ -757,70 +348,80 @@ constexpr inline vec3 operator/(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline vec3 & operator+=(vec3 & first, vec3 const & second) {
+template<typename T>
+constexpr inline xvec3<T> & operator+=(xvec3<T> & first, xvec3<T> const & second) {
 	first.x += second.x;
 	first.y += second.y;
 	first.z += second.z;
 	return first;
 }
 
-constexpr inline vec3 & operator+=(vec3 & first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> & operator+=(xvec3<T> & first, T second) {
 	first.x += second;
 	first.y += second;
 	first.z += second;
 	return first;
 }
 
-constexpr inline vec3 & operator-=(vec3 & first, vec3 const & second) {
+template<typename T>
+constexpr inline xvec3<T> & operator-=(xvec3<T> & first, xvec3<T> const & second) {
 	first.x -= second.x;
 	first.y -= second.y;
 	first.z -= second.z;
 	return first;
 }
 
-constexpr inline vec3 & operator-=(vec3 & first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> & operator-=(xvec3<T> & first, T second) {
 	first.x -= second;
 	first.y -= second;
 	first.z -= second;
 	return first;
 }
 
-constexpr inline vec3 & operator*=(vec3 & first, vec3 const & second) {
+template<typename T>
+constexpr inline xvec3<T> & operator*=(xvec3<T> & first, xvec3<T> const & second) {
 	first.x *= second.x;
 	first.y *= second.y;
 	first.z *= second.z;
 	return first;
 }
 
-constexpr inline vec3 & operator*=(vec3 & first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> & operator*=(xvec3<T> & first, T second) {
 	first.x *= second;
 	first.y *= second;
 	first.z *= second;
 	return first;
 }
 
-constexpr inline vec3 & operator/=(vec3 & first, vec3 const & second) {
+template<typename T>
+constexpr inline xvec3<T> & operator/=(xvec3<T> & first, xvec3<T> const & second) {
 	first.x /= second.x;
 	first.y /= second.y;
 	first.z /= second.z;
 	return first;
 }
 
-constexpr inline vec3 & operator/=(vec3 & first, r32 second) {
+template<typename T>
+constexpr inline xvec3<T> & operator/=(xvec3<T> & first, T second) {
 	first.x /= second;
 	first.y /= second;
 	first.z /= second;
 	return first;
 }
-#endif // defined(__cplusplus) // operator vec3
+#endif // defined(__cplusplus) // operator xvec3<T>
 
-constexpr inline r32 dot_product(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline T dot_product(xvec3<T> first, xvec3<T> second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z;
 }
 
-constexpr inline vec3 min(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> min(xvec3<T> first, xvec3<T> second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y),
@@ -828,7 +429,8 @@ constexpr inline vec3 min(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline vec3 max(vec3 first, vec3 second) {
+template<typename T>
+constexpr inline xvec3<T> max(xvec3<T> first, xvec3<T> second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y),
@@ -836,15 +438,18 @@ constexpr inline vec3 max(vec3 first, vec3 second) {
 	};
 }
 
-constexpr inline r32 min(vec3 value) {
+template<typename T>
+constexpr inline T min(xvec3<T> value) {
 	return min(min(value.x, value.y), value.z);
 }
 
-constexpr inline r32 max(vec3 value) {
+template<typename T>
+constexpr inline T max(xvec3<T> value) {
 	return max(max(value.x, value.y), value.z);
 }
 
-constexpr inline vec3 absolute(vec3 value) {
+template<typename T>
+constexpr inline xvec3<T> absolute(xvec3<T> value) {
 	return {
 		absolute(value.x),
 		absolute(value.y),
@@ -852,7 +457,8 @@ constexpr inline vec3 absolute(vec3 value) {
 	};
 }
 
-constexpr inline vec3 sign(vec3 value) {
+template<typename T>
+constexpr inline xvec3<T> sign(xvec3<T> value) {
 	return {
 		sign(value.x),
 		sign(value.y),
@@ -860,7 +466,8 @@ constexpr inline vec3 sign(vec3 value) {
 	};
 }
 
-constexpr inline vec3 interpolate(vec3 from, vec3 to, r32 fraction) {
+template<typename T>
+constexpr inline xvec3<T> interpolate(xvec3<T> from, xvec3<T> to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -868,7 +475,8 @@ constexpr inline vec3 interpolate(vec3 from, vec3 to, r32 fraction) {
 	};
 }
 
-inline vec3 square_root(vec3 value) {
+template<typename T>
+inline xvec3<T> square_root(xvec3<T> value) {
 	return {
 		square_root(value.x),
 		square_root(value.y),
@@ -876,7 +484,8 @@ inline vec3 square_root(vec3 value) {
 	};
 }
 
-inline vec3 sine(vec3 value) {
+template<typename T>
+inline xvec3<T> sine(xvec3<T> value) {
 	return {
 		sine(value.x),
 		sine(value.y),
@@ -884,7 +493,8 @@ inline vec3 sine(vec3 value) {
 	};
 }
 
-inline vec3 cosine(vec3 value) {
+template<typename T>
+inline xvec3<T> cosine(xvec3<T> value) {
 	return {
 		cosine(value.x),
 		cosine(value.y),
@@ -893,26 +503,29 @@ inline vec3 cosine(vec3 value) {
 }
 
 //
-// vec4 routines
+// xvec4<T> routines
 // Applications: 3d rotation as quat, color
 //
 
-#if defined(__cplusplus) // operator vec4
-constexpr inline bool operator==(vec4 first, vec4 second) {
+#if defined(__cplusplus) // operator xvec4<T>
+template<typename T>
+constexpr inline bool operator==(xvec4<T> first, xvec4<T> second) {
 	return (first.x == second.x)
 	    && (first.y == second.y)
 	    && (first.z == second.z)
 	    && (first.w == second.w);
 }
 
-constexpr inline bool operator!=(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline bool operator!=(xvec4<T> first, xvec4<T> second) {
 	return (first.x != second.x)
 	    || (first.y != second.y)
 	    || (first.z != second.z)
 	    || (first.w != second.w);
 }
 
-constexpr inline vec4 operator+(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> operator+(xvec4<T> first, xvec4<T> second) {
 	return {
 		first.x + second.x,
 		first.y + second.y,
@@ -921,7 +534,8 @@ constexpr inline vec4 operator+(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline vec4 operator+(vec4 first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> operator+(xvec4<T> first, T second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -930,7 +544,8 @@ constexpr inline vec4 operator+(vec4 first, r32 second) {
 	};
 }
 
-constexpr inline vec4 operator-(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> operator-(xvec4<T> first, xvec4<T> second) {
 	return {
 		first.x - second.x,
 		first.y - second.y,
@@ -939,7 +554,8 @@ constexpr inline vec4 operator-(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline vec4 operator-(vec4 first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> operator-(xvec4<T> first, T second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -948,7 +564,8 @@ constexpr inline vec4 operator-(vec4 first, r32 second) {
 	};
 }
 
-constexpr inline vec4 operator-(vec4 value) {
+template<typename T>
+constexpr inline xvec4<T> operator-(xvec4<T> value) {
 	return {
 		-value.x,
 		-value.y,
@@ -957,7 +574,8 @@ constexpr inline vec4 operator-(vec4 value) {
 	};
 }
 
-constexpr inline vec4 operator*(vec4 first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> operator*(xvec4<T> first, T second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -966,7 +584,8 @@ constexpr inline vec4 operator*(vec4 first, r32 second) {
 	};
 }
 
-constexpr inline vec4 operator*(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> operator*(xvec4<T> first, xvec4<T> second) {
 	return {
 		first.x * second.x,
 		first.y * second.y,
@@ -975,7 +594,8 @@ constexpr inline vec4 operator*(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline vec4 operator/(vec4 first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> operator/(xvec4<T> first, T second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -984,7 +604,8 @@ constexpr inline vec4 operator/(vec4 first, r32 second) {
 	};
 }
 
-constexpr inline vec4 operator/(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> operator/(xvec4<T> first, xvec4<T> second) {
 	return {
 		first.x / second.x,
 		first.y / second.y,
@@ -993,7 +614,8 @@ constexpr inline vec4 operator/(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline vec4 & operator+=(vec4 & first, vec4 const & second) {
+template<typename T>
+constexpr inline xvec4<T> & operator+=(xvec4<T> & first, xvec4<T> const & second) {
 	first.x += second.x;
 	first.y += second.y;
 	first.z += second.z;
@@ -1001,7 +623,8 @@ constexpr inline vec4 & operator+=(vec4 & first, vec4 const & second) {
 	return first;
 }
 
-constexpr inline vec4 & operator+=(vec4 & first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> & operator+=(xvec4<T> & first, T second) {
 	first.x += second;
 	first.y += second;
 	first.z += second;
@@ -1009,7 +632,8 @@ constexpr inline vec4 & operator+=(vec4 & first, r32 second) {
 	return first;
 }
 
-constexpr inline vec4 & operator-=(vec4 & first, vec4 const & second) {
+template<typename T>
+constexpr inline xvec4<T> & operator-=(xvec4<T> & first, xvec4<T> const & second) {
 	first.x -= second.x;
 	first.y -= second.y;
 	first.z -= second.z;
@@ -1017,7 +641,8 @@ constexpr inline vec4 & operator-=(vec4 & first, vec4 const & second) {
 	return first;
 }
 
-constexpr inline vec4 & operator-=(vec4 & first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> & operator-=(xvec4<T> & first, T second) {
 	first.x -= second;
 	first.y -= second;
 	first.z -= second;
@@ -1025,7 +650,8 @@ constexpr inline vec4 & operator-=(vec4 & first, r32 second) {
 	return first;
 }
 
-constexpr inline vec4 & operator*=(vec4 & first, vec4 const & second) {
+template<typename T>
+constexpr inline xvec4<T> & operator*=(xvec4<T> & first, xvec4<T> const & second) {
 	first.x *= second.x;
 	first.y *= second.y;
 	first.z *= second.z;
@@ -1033,7 +659,8 @@ constexpr inline vec4 & operator*=(vec4 & first, vec4 const & second) {
 	return first;
 }
 
-constexpr inline vec4 & operator*=(vec4 & first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> & operator*=(xvec4<T> & first, T second) {
 	first.x *= second;
 	first.y *= second;
 	first.z *= second;
@@ -1041,7 +668,8 @@ constexpr inline vec4 & operator*=(vec4 & first, r32 second) {
 	return first;
 }
 
-constexpr inline vec4 & operator/=(vec4 & first, vec4 const & second) {
+template<typename T>
+constexpr inline xvec4<T> & operator/=(xvec4<T> & first, xvec4<T> const & second) {
 	first.x /= second.x;
 	first.y /= second.y;
 	first.z /= second.z;
@@ -1049,23 +677,26 @@ constexpr inline vec4 & operator/=(vec4 & first, vec4 const & second) {
 	return first;
 }
 
-constexpr inline vec4 & operator/=(vec4 & first, r32 second) {
+template<typename T>
+constexpr inline xvec4<T> & operator/=(xvec4<T> & first, T second) {
 	first.x /= second;
 	first.y /= second;
 	first.z /= second;
 	first.w /= second;
 	return first;
 }
-#endif // defined(__cplusplus) // operator vec4
+#endif // defined(__cplusplus) // operator xvec4<T>
 
-constexpr inline r32 dot_product(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline T dot_product(xvec4<T> first, xvec4<T> second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z
 	     + first.w * second.w;
 }
 
-constexpr inline vec4 min(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> min(xvec4<T> first, xvec4<T> second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y),
@@ -1074,7 +705,8 @@ constexpr inline vec4 min(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline vec4 max(vec4 first, vec4 second) {
+template<typename T>
+constexpr inline xvec4<T> max(xvec4<T> first, xvec4<T> second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y),
@@ -1083,15 +715,18 @@ constexpr inline vec4 max(vec4 first, vec4 second) {
 	};
 }
 
-constexpr inline r32 min(vec4 value) {
+template<typename T>
+constexpr inline T min(xvec4<T> value) {
 	return min(min(min(value.x, value.y), value.z), value.w);
 }
 
-constexpr inline r32 max(vec4 value) {
+template<typename T>
+constexpr inline T max(xvec4<T> value) {
 	return max(max(max(value.x, value.y), value.z), value.w);
 }
 
-constexpr inline vec4 absolute(vec4 value) {
+template<typename T>
+constexpr inline xvec4<T> absolute(xvec4<T> value) {
 	return {
 		absolute(value.x),
 		absolute(value.y),
@@ -1100,7 +735,8 @@ constexpr inline vec4 absolute(vec4 value) {
 	};
 }
 
-constexpr inline vec4 sign(vec4 value) {
+template<typename T>
+constexpr inline xvec4<T> sign(xvec4<T> value) {
 	return {
 		sign(value.x),
 		sign(value.y),
@@ -1109,7 +745,8 @@ constexpr inline vec4 sign(vec4 value) {
 	};
 }
 
-constexpr inline vec4 interpolate(vec4 from, vec4 to, r32 fraction) {
+template<typename T>
+constexpr inline xvec4<T> interpolate(xvec4<T> from, xvec4<T> to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -1118,7 +755,8 @@ constexpr inline vec4 interpolate(vec4 from, vec4 to, r32 fraction) {
 	};
 }
 
-inline vec4 square_root(vec4 value) {
+template<typename T>
+inline xvec4<T> square_root(xvec4<T> value) {
 	return {
 		square_root(value.x),
 		square_root(value.y),
@@ -1127,7 +765,8 @@ inline vec4 square_root(vec4 value) {
 	};
 }
 
-inline vec4 sine(vec4 value) {
+template<typename T>
+inline xvec4<T> sine(xvec4<T> value) {
 	return {
 		sine(value.x),
 		sine(value.y),
@@ -1136,7 +775,8 @@ inline vec4 sine(vec4 value) {
 	};
 }
 
-inline vec4 cosine(vec4 value) {
+template<typename T>
+inline xvec4<T> cosine(xvec4<T> value) {
 	return {
 		cosine(value.x),
 		cosine(value.y),
@@ -1299,7 +939,7 @@ return quat_multiply(
 );
 */
 inline quat quat_from_radians(vec3 euler_radians) {
-	auto half_radians = euler_radians / 2;
+	auto half_radians = euler_radians / 2.0f;
 	auto s = sine(half_radians);
 	auto c = cosine(half_radians);
 	return {
