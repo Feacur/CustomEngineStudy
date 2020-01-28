@@ -16,6 +16,7 @@
 #include "engine/api/rendering_settings.h"
 #include "engine/api/bytecode.h"
 #include "engine/api/graphics_vm.h"
+#include "engine/api/graphics_params.h"
 #include "engine/api/loader.h"
 
 #include "engine/impl/array.h"

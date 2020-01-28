@@ -1,6 +1,7 @@
 #include "custom_pch.h"
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_vm.h"
+#include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
@@ -121,7 +122,7 @@ VM::VM()
 
 VM::~VM() = default;
 
-void VM::render(Bytecode const & bc)
+void VM::update(Bytecode const & bc)
 {
 	while (bc.offset < bc.buffer.count) {
 		consume_single_instruction(bc);

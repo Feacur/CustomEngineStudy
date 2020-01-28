@@ -1,4 +1,5 @@
 #include "custom_engine.h"
+#include "assets/ids.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -75,9 +76,9 @@ int main(int argc, char * argv[]) {
 	custom::Bytecode gbc;
 	custom::graphics::reset_settings(gbc);
 
-	custom::load_shader(gbc, 0, "assets/shaders/renderer2d.glsl");
-	custom::load_image(gbc, 0, "assets/textures/checkerboard.png");
-	custom::load_quad(gbc, 0);
+	custom::load_shader(gbc, (u32)sandbox::Shader::renderer2d);
+	custom::load_image(gbc, (u32)sandbox::Texture::checkerboard);
+	custom::load_quad(gbc, (u32)sandbox::Mesh::quad);
 
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
@@ -86,7 +87,7 @@ int main(int argc, char * argv[]) {
 	gbc.write(viewport_size);
 
 	gbc.write(custom::graphics::Instruction::Use_Shader);
-	gbc.write((u32)0);
+	gbc.write(sandbox::Shader::renderer2d);
 
 	gbc.write(custom::graphics::Instruction::Load_Uniform);
 	gbc.write((s32)0);
@@ -95,11 +96,11 @@ int main(int argc, char * argv[]) {
 	gbc.write((s32)0);
 
 	gbc.write(custom::graphics::Instruction::Use_Texture);
-	gbc.write((u32)0);
+	gbc.write(sandbox::Texture::checkerboard);
 	gbc.write((s32)0);
 
 	gbc.write(custom::graphics::Instruction::Use_Mesh);
-	gbc.write((u32)0);
+	gbc.write(sandbox::Mesh::quad);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -115,9 +116,9 @@ int main(int argc, char * argv[]) {
 
 		custom::graphics::clear(gbc);
 		gbc.write(custom::graphics::Instruction::Draw);
-		gbc.write((u32)0);
+		gbc.write(sandbox::Mesh::quad);
 
-		gvm.render(gbc);
+		gvm.update(gbc);
 		window->update();
 
 		// clean up after the frame

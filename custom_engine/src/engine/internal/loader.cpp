@@ -2,7 +2,8 @@
 #include "engine/api/loader.h"
 #include "engine/core/code.h"
 #include "engine/core/math_types.h"
-#include "engine/api/graphics_vm.h"
+#include "engine/api/asset_lookup.h"
+#include "engine/api/graphics_params.h"
 #include "engine/impl/bytecode.h"
 #include "engine/debug/log.h"
 
@@ -55,9 +56,11 @@ static void describe_texture(
 	bc.write(texture_type);
 }
 
-void load_image(Bytecode & bc, u32 asset_id, cstring path) {
+void load_image(Bytecode & bc, u32 asset_id) {
 	static graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
+
+	cstring path = asset::texture::paths[asset_id];
 
 	stbi_set_flip_vertically_on_load(1);
 
@@ -80,9 +83,11 @@ void load_image(Bytecode & bc, u32 asset_id, cstring path) {
 	stbi_image_free(data);
 }
 
-void load_imagef(Bytecode & bc, u32 asset_id, cstring path) {
+void load_imagef(Bytecode & bc, u32 asset_id) {
 	static graphics::Data_Type const data_type = graphics::Data_Type::r32;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
+
+	cstring path = asset::texture::paths[asset_id];
 
 	stbi_set_flip_vertically_on_load(1);
 
@@ -105,9 +110,11 @@ void load_imagef(Bytecode & bc, u32 asset_id, cstring path) {
 	stbi_image_free(data);
 }
 
-void load_image16(Bytecode & bc, u32 asset_id, cstring path) {
+void load_image16(Bytecode & bc, u32 asset_id) {
 	static graphics::Data_Type const data_type = graphics::Data_Type::u16;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
+
+	cstring path = asset::texture::paths[asset_id];
 
 	stbi_set_flip_vertically_on_load(1);
 
@@ -130,7 +137,9 @@ void load_image16(Bytecode & bc, u32 asset_id, cstring path) {
 	stbi_image_free(data);
 }
 
-void load_shader(Bytecode & bc, u32 asset_id, cstring path) {
+void load_shader(Bytecode & bc, u32 asset_id) {
+	cstring path = asset::shader::paths[asset_id];
+
 	u32 len = (u32)strlen(shader_test) + 1;
 
 	bc.write(graphics::Instruction::Allocate_Shader);
@@ -140,6 +149,8 @@ void load_shader(Bytecode & bc, u32 asset_id, cstring path) {
 }
 
 void load_quad(Bytecode & bc, u32 asset_id) {
+	// cstring path = asset::mesh::paths[asset_id];
+
 	bc.write(graphics::Instruction::Allocate_Mesh);
 	bc.write(asset_id);
 
