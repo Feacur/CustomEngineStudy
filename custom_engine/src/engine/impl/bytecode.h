@@ -39,6 +39,12 @@ void Bytecode::write(T const & datum) {
 	buffer.push_range((u8 *)&datum, sizeof(T));
 }
 
+template<typename T, u32 count>
+void Bytecode::write(T const (& data)[count]) {
+	write(count);
+	write((T *)data, count);
+}
+
 template<typename T>
 T const * Bytecode::read(u32 count) const {
 	#if defined(CUSTOM_GET_PADDING)

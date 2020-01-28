@@ -57,6 +57,9 @@ static void describe_texture(
 }
 
 void load_image(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load image u8");
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -84,6 +87,9 @@ void load_image(Bytecode & bc, u32 asset_id) {
 }
 
 void load_imagef(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load image r32");
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::r32;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -111,6 +117,9 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 }
 
 void load_image16(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load image u16");
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::u16;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -138,6 +147,9 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 }
 
 void load_shader(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load shader");
+
 	cstring path = asset::shader::paths[asset_id];
 
 	u32 len = (u32)strlen(shader_test) + 1;
@@ -149,6 +161,9 @@ void load_shader(Bytecode & bc, u32 asset_id) {
 }
 
 void load_quad(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load quad");
+
 	// cstring path = asset::mesh::paths[asset_id];
 
 	bc.write(graphics::Instruction::Allocate_Mesh);
@@ -166,10 +181,8 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 		2, 3, 0,
 	};
 
-	bc.write((u32)C_ARRAY_LENGTH(vertices));
-	bc.write((r32 *)vertices, C_ARRAY_LENGTH(vertices));
-	bc.write((u32)C_ARRAY_LENGTH(indices));
-	bc.write((u32 *)indices, C_ARRAY_LENGTH(indices));
+	bc.write(vertices);
+	bc.write(indices);
 }
 
 }

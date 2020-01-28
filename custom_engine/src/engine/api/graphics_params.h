@@ -159,8 +159,9 @@ enum struct Instruction : u8
 	Draw,
 	Overlay,
 	//
-	Print_Pointer,
-	Print_Inline,
+	Message_Pointer,
+	Message_Inline,
+	//
 	Last,
 };
 UNDERLYING_TYPE_META(Instruction, u8)

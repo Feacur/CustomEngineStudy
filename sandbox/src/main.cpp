@@ -32,6 +32,9 @@ namespace custom {
 namespace graphics {
 
 static void reset_settings(Bytecode & bc) {
+	bc.write(Instruction::Message_Inline);
+	bc.write("reset settings");
+
 	bc.write(Instruction::Depth_Read);
 	bc.write((u8)1);
 

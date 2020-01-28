@@ -17,6 +17,9 @@ struct Bytecode
 	template<typename T>
 	void write(T const & datum);
 
+	template<typename T, u32 count>
+	void write(T const (& data)[count]);
+
 	template<typename T>
 	T const * read(u32 count = 1) const;
 

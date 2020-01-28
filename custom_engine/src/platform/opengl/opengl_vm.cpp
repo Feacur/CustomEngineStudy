@@ -721,18 +721,18 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 	}
 
-	// test
+	// message
 	switch (instruction)
 	{
-		case Instruction::Print_Pointer: {
+		case Instruction::Message_Pointer: {
 			cstring message = *bc.read<cstring>();
-			CUSTOM_MESSAGE("print pointer: %s", message);
+			CUSTOM_MESSAGE("OpenGL VM: %s", message);
 		} return;
 
-		case Instruction::Print_Inline: {
+		case Instruction::Message_Inline: {
 			u32 length = *bc.read<u32>();
 			cstring message = bc.read<char>(length);
-			CUSTOM_MESSAGE("print inline: %d %s", length, message);
+			CUSTOM_MESSAGE("OpenGL VM: %s", message);
 		} return;
 	}
 
