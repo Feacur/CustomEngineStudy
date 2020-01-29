@@ -17,70 +17,66 @@
 
 typedef GLchar const * glstring;
 
-struct ShaderProps
+struct Shader_Props
 {
 	GLenum  type;
 	cstring version;
 	cstring defines;
 };
 
-namespace OpenGL {
+namespace opengl {
 
-	struct Program
-	{
-		GLuint id;
-		custom::Array<GLuint> uniforms; // @Todo: use fixed?
-	};
-	template struct custom::Array<Program>;
+struct Program
+{
+	GLuint id;
+	custom::Array<GLuint> uniforms; // @Todo: use fixed?
+};
+template struct custom::Array<Program>;
 
-	struct Texture
-	{
-		GLuint id;
-		// ivec2 size;
-		// GLenum format;
-		// GLenum format;
-		// GLenum min_filter, max_filter;
-		// GLenum wrap_s, wrap_t;
-	};
-	template struct custom::Array<Texture>;
+struct Texture
+{
+	GLuint id;
+};
+template struct custom::Array<Texture>;
 
-	struct Attribute
-	{
-		GLenum type;
-		GLint  count;
-	};
-	template struct custom::Array<Attribute>; // @Todo: use fixed?
+struct Attribute
+{
+	GLenum type;
+	GLint  count;
+};
+template struct custom::Array<Attribute>; // @Todo: use fixed?
 
-	struct Buffer
-	{
-		GLuint id;
-		custom::Array<Attribute> attributes; // @Todo: use fixed?
-	};
-	template struct custom::Array<Buffer>; // @Todo: use fixed?
+struct Buffer
+{
+	GLuint id;
+	custom::Array<Attribute> attributes; // @Todo: use fixed?
+};
+template struct custom::Array<Buffer>; // @Todo: use fixed?
 
-	struct Indices
-	{
-		GLuint id;
-		u32 count;
-	};
+struct Indices
+{
+	GLuint id;
+	u32 count;
+};
 
-	struct Mesh
-	{
-		GLuint id;
-		custom::Array<Buffer> buffers; // @Todo: use fixed?
-		Indices indices;
-	};
-	template struct custom::Array<Mesh>;
+struct Mesh
+{
+	GLuint id;
+	custom::Array<Buffer> buffers; // @Todo: use fixed?
+	Indices indices;
+};
+template struct custom::Array<Mesh>;
 
-	struct Data
-	{
-		custom::Array<Program> programs;
-		custom::Array<Texture> textures;
-		custom::Array<Mesh>    meshes;
-	};
+struct Data
+{
+	custom::Array<Program> programs;
+	custom::Array<Texture> textures;
+	custom::Array<Mesh>    meshes;
+};
+
 }
 
-static OpenGL::Data ogl;
+static opengl::Data ogl;
 
 //
 // API implementation
@@ -510,7 +506,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			cstring source   =  bc.read<char>(length);
 
 			ogl.programs.ensure_capacity(asset_id + 1);
-			OpenGL::Program * resource = new (&ogl.programs[asset_id]) OpenGL::Program;
+			opengl::Program * resource = new (&ogl.programs[asset_id]) opengl::Program;
 
 			resource->id = create_program(source);
 
@@ -530,7 +526,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			Wrap_Mode    wrap_mode_y = *bc.read<Wrap_Mode>();
 
 			ogl.textures.ensure_capacity(asset_id + 1);
-			OpenGL::Texture * resource = new (&ogl.textures[asset_id]) OpenGL::Texture;
+			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 
 			glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
 			glTextureStorage2D(
@@ -553,7 +549,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			void const * indices = read_inline(bc, Data_Type::u32, icount);
 
 			ogl.meshes.ensure_capacity(asset_id + 1);
-			OpenGL::Mesh * resource = new (&ogl.meshes[asset_id]) OpenGL::Mesh;
+			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
 
 			resource->buffers.push();
 			glCreateBuffers(1, &resource->buffers[0].id);
@@ -604,36 +600,36 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Free_Shader: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Program * resource = &ogl.programs[asset_id];
+			opengl::Program * resource = &ogl.programs[asset_id];
 			glDeleteProgram(resource->id);
-			resource->OpenGL::Program::~Program();
+			resource->opengl::Program::~Program();
 		} return;
 
 		case Instruction::Free_Texture: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
-			resource->OpenGL::Texture::~Texture();
+			resource->opengl::Texture::~Texture();
 		} return;
 
 		case Instruction::Free_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
 				glDeleteBuffers(GL_ARRAY_BUFFER, &resource->buffers[i].id);
 			}
 			glDeleteBuffers(GL_ELEMENT_ARRAY_BUFFER, &resource->indices.id);
 			glDeleteVertexArrays(1, &resource->id);
-			resource->OpenGL::Mesh::~Mesh();
+			resource->opengl::Mesh::~Mesh();
 		} return;
 
 		//
 		case Instruction::Use_Shader: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Program * resource = &ogl.programs[asset_id];
+			opengl::Program * resource = &ogl.programs[asset_id];
 			glUseProgram(resource->id);
 		} return;
 
@@ -641,14 +637,14 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			s32 slot     = *bc.read<s32>();
 
-			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture * resource = &ogl.textures[asset_id];
 			glBindTextureUnit(slot, resource->id);
 		} return;
 
 		case Instruction::Use_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
 			glBindVertexArray(resource->id);
 			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
 		} return;
@@ -694,7 +690,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// @Change: receive a pointer instead, then free if needed?
 			void const * data = read_inline(bc, data_type, size.x * size.y * channels);
 
-			OpenGL::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
 				resource->id,
 				0,
@@ -709,7 +705,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Draw: {
 			u32 asset_id = *bc.read<u32>();
 
-			OpenGL::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
 			glDrawElements(GL_TRIANGLES, resource->indices.count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
@@ -863,7 +859,7 @@ static bool verify_linking(GLuint id)
 static GLuint create_program(cstring source)
 {
 	// @Todo: read this meta info from outside?
-	static ShaderProps compilations_props[] = {
+	static Shader_Props compilations_props[] = {
 		{ GL_VERTEX_SHADER,   "#version 330 core\n", "#define VERTEX_SECTION\n" },
 		{ GL_FRAGMENT_SHADER, "#version 330 core\n", "#define FRAGMENT_SECTION\n" },
 		// { GL_GEOMETRY_SHADER, "#version 330 core\n", "#define GEOMETRY_SECTION\n" },

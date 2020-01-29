@@ -7,6 +7,8 @@
 #include "engine/impl/bytecode.h"
 #include "engine/debug/log.h"
 
+// @Todo: move to a separate translation unit?
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace custom {
