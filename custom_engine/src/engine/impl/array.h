@@ -26,8 +26,7 @@ Array<T>::Array(u32 capacity, u32 count)
 
 template<typename T>
 Array<T>::~Array() {
-	free(data);
-	data = NULL;
+	free(data); data = NULL;
 	capacity = count = 0;
 }
 
@@ -53,20 +52,21 @@ inline T & Array<T>::operator[](u32 i) {
 
 template<typename T>
 void Array<T>::set_capacity(u32 amount) {
-	if (data) {
-		if (amount) {
-			data = (T *)realloc(data, amount * sizeof(T));
-		}
-		else {
-			free(data);
-		}
+	if (!amount) {
+		free(data); data = NULL;
+		capacity = count = 0;
+		return;
 	}
-	else {
-		data = (T *)malloc(amount * sizeof(T));
-	}
-	capacity = amount;
-	if (count > capacity) {
-		count = capacity;
+
+	void * new_buffer = realloc(data, amount * sizeof(T));
+	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", amount * sizeof(T));
+
+	if (new_buffer) {
+		data = (T *)new_buffer;
+		capacity = amount;
+		if (count > capacity) {
+			count = capacity;
+		}
 	}
 }
 

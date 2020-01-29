@@ -6,6 +6,7 @@ namespace sandbox {
 enum struct Shader : u32
 {
 	renderer2d,
+	device,
 	count,
 };
 UNDERLYING_TYPE_META(Shader, u32)

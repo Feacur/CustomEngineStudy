@@ -6,6 +6,7 @@ namespace asset {
 namespace shader {
 	cstring paths[] = {
 		"assets/shaders/renderer2d.glsl",
+		"assets/shaders/device.glsl",
 		NULL
 	};
 };

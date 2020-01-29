@@ -79,7 +79,7 @@ int main(int argc, char * argv[]) {
 	custom::Bytecode gbc;
 	custom::graphics::reset_settings(gbc);
 
-	custom::load_shader(gbc, (u32)sandbox::Shader::renderer2d);
+	custom::load_shader(gbc, (u32)sandbox::Shader::device);
 	custom::load_image(gbc, (u32)sandbox::Texture::checkerboard);
 	custom::load_quad(gbc, (u32)sandbox::Mesh::quad);
 
@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
 	gbc.write(viewport_size);
 
 	gbc.write(custom::graphics::Instruction::Use_Shader);
-	gbc.write(sandbox::Shader::renderer2d);
+	gbc.write(sandbox::Shader::device);
 
 	gbc.write(custom::graphics::Instruction::Load_Uniform);
 	gbc.write((s32)0);
