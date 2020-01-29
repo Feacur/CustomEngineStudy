@@ -41,7 +41,7 @@
 			// "${workspaceFolder:__ workspace_v2 __}/../custom_engine/vendor/glfw/include",
 			// "${workspaceFolder:__ workspace_v2 __}/../custom_engine/vendor/imgui",
 			// "${workspaceFolder:__ workspace_v2 __}/../custom_engine/vendor/lua/src",
-			"${workspaceFolder:__ workspace_v2 __}/../custom_engine/vendor/stb_image",
+			"${workspaceFolder:__ workspace_v2 __}/../custom_engine/vendor/stb",
 		],
 		"C_Cpp.default.defines": [],
 		"C_Cpp.intelliSenseCachePath": "${workspaceFolder:__ workspace_v2 __}/../bin-int",

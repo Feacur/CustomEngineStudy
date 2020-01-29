@@ -27,13 +27,14 @@ project "custom_engine"
 		"%{engine_includes.custom_engine}",
 		-- "%{engine_includes.imgui}",
 		-- "%{engine_includes.lua}",
-		"%{engine_includes.stb_image}",
+		"%{engine_includes.stb}",
 	}
 
-	-- links {
-	-- 	"imgui",
-	-- 	"lua",
-	-- }
+	links {
+		-- "imgui",
+		-- "lua",
+		"stb",
+	}
 
 	postbuildcommands {
 		("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
