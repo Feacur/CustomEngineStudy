@@ -12,8 +12,21 @@ namespace shader {
 };
 
 namespace texture {
+	Meta meta_presets[] = {
+		{}, // NULL
+		{
+			graphics::Filter_Mode::None, graphics::Filter_Mode::None,
+			graphics::Wrap_Mode::Repeat, graphics::Wrap_Mode::Repeat,
+		},
+	};
+
 	cstring paths[] = {
 		"assets/textures/checkerboard.png",
+		NULL
+	};
+	
+	u8 meta_ids[] = {
+		1,
 		NULL
 	};
 };
