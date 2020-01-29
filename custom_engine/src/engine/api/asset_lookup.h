@@ -6,7 +6,14 @@ namespace custom {
 namespace asset {
 
 namespace shader {
+	struct Meta
+	{
+		graphics::Shader_Part parts;
+	};
+	extern Meta meta_presets[];
+
 	extern cstring paths[];
+	extern u8 meta_ids[];
 };
 
 namespace texture {

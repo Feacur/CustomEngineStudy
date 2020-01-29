@@ -17,13 +17,6 @@
 
 typedef GLchar const * glstring;
 
-struct Shader_Props
-{
-	GLenum  type;
-	cstring version;
-	cstring defines;
-};
-
 namespace opengl {
 
 struct Program
@@ -86,7 +79,7 @@ static void opengl_message_callback(
 	GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, glstring message, void const * userParam
 );
-static GLuint create_program(cstring source);
+static GLuint create_program(cstring source, custom::graphics::Shader_Part parts);
 
 namespace custom {
 namespace graphics {
@@ -504,11 +497,12 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32     asset_id = *bc.read<u32>();
 			u32     length   = *bc.read<u32>();
 			cstring source   =  bc.read<char>(length);
+			Shader_Part parts = *bc.read<Shader_Part>();
 
 			ogl.programs.ensure_capacity(asset_id + 1);
 			opengl::Program * resource = new (&ogl.programs[asset_id]) opengl::Program;
 
-			resource->id = create_program(source);
+			resource->id = create_program(source, parts);
 
 			// @Todo: process uniforms
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
@@ -856,51 +850,72 @@ static bool verify_linking(GLuint id)
 	return false;
 }
 
-static GLuint create_program(cstring source)
+struct Shader_Props
 {
-	// @Todo: read this meta info from outside?
-	static Shader_Props compilations_props[] = {
-		{ GL_VERTEX_SHADER,   "#version 330 core\n", "#define VERTEX_SECTION\n" },
-		{ GL_FRAGMENT_SHADER, "#version 330 core\n", "#define FRAGMENT_SECTION\n" },
-		// { GL_GEOMETRY_SHADER, "#version 330 core\n", "#define GEOMETRY_SECTION\n" },
-		// { GL_COMPUTE_SHADER,  "#version 430 core\n", "#define COMPUTE_SECTION\n" },
-		// { GL_TESS_CONTROL_SHADER,    "#version 400 core\n", "#define TESSELATION_CONTROL_SECTION\n" },
-		// { GL_TESS_EVALUATION_SHADER, "#version 400 core\n", "#define TESSELATION_EVALUATION_SECTION\n" },
-	};
-	u8 const compilations_props_count = C_ARRAY_LENGTH(compilations_props);
+	GLenum  type;
+	cstring version;
+	cstring defines;
+};
+
+static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, u8 cap)
+{
+	u8 count = 0;
+
+	if (bits_are_set(parts, custom::graphics::Shader_Part::Vertex)) {
+		props[count++] = { GL_VERTEX_SHADER, "#version 330 core\n", "#define VERTEX_SECTION\n" };
+	}
+
+	if (bits_are_set(parts, custom::graphics::Shader_Part::Pixel)) {
+		props[count++] = { GL_FRAGMENT_SHADER, "#version 330 core\n", "#define FRAGMENT_SECTION\n" };
+	}
+
+	if (bits_are_set(parts, custom::graphics::Shader_Part::Geometry)) {
+		props[count++] = { GL_GEOMETRY_SHADER, "#version 330 core\n", "#define GEOMETRY_SECTION\n" };
+	}
+
+	if (bits_are_set(parts, custom::graphics::Shader_Part::Compute)) {
+		props[count++] = { GL_COMPUTE_SHADER, "#version 430 core\n", "#define COMPUTE_SECTION\n" };
+	}
+
+	return count;
+}
+
+static GLuint create_program(cstring source, custom::graphics::Shader_Part parts)
+{
+	u8 const props_cap = 4;
+	static Shader_Props props[props_cap];
+	static GLuint       shaders[props_cap];
+	u8 props_count = fill_props(parts, props, props_cap);
 
 	// Compile shaders
-	GLuint shader_ids[4] = {};
-	for (u8 i = 0; i < compilations_props_count; i++)
-	{
-		glstring code[] = { compilations_props[i].version, compilations_props[i].defines, source };
-		GLuint shader_id = glCreateShader(compilations_props[i].type);
+	for (u8 i = 0; i < props_count; ++i) {
+		glstring code[] = { props[i].version, props[i].defines, source };
+		GLuint shader_id = glCreateShader(props[i].type);
 		glShaderSource(shader_id, C_ARRAY_LENGTH(code), code, 0);
 		glCompileShader(shader_id);
-		shader_ids[i] = shader_id;
+		shaders[i] = shader_id;
 	}
 
 	bool is_compiled = true;
-	for (u8 i = 0; i < compilations_props_count; i++)
-	{
-		bool isOk = verify_compilation(shader_ids[i]);
+	for (u8 i = 0; i < props_count; ++i) {
+		bool isOk = verify_compilation(shaders[i]);
 		is_compiled = is_compiled && isOk;
 	}
 
 	// Link the program
 	GLuint program_id = glCreateProgram();
-	for (u8 i = 0; i < compilations_props_count; i++) {
-		glAttachShader(program_id, shader_ids[i]);
+	for (u8 i = 0; i < props_count; ++i) {
+		glAttachShader(program_id, shaders[i]);
 	}
 	glLinkProgram(program_id);
 	bool is_linked = verify_linking(program_id);
 
 	// Free shader resources
-	for (u8 i = 0; i < compilations_props_count; i++) {
-		glDetachShader(program_id, shader_ids[i]);
+	for (u8 i = 0; i < props_count; ++i) {
+		glDetachShader(program_id, shaders[i]);
 	}
-	for (u8 i = 0; i < compilations_props_count; i++) {
-		glDeleteShader(shader_ids[i]);
+	for (u8 i = 0; i < props_count; ++i) {
+		glDeleteShader(shaders[i]);
 	}
 
 	if (!is_compiled || !is_linked) {
@@ -910,80 +925,3 @@ static GLuint create_program(cstring source)
 
 	return program_id;
 }
-
-// static GLenum ShaderDataTypeOpenGLBaseType(ShaderDataType type)
-// {
-// 	GES_PROFILE_FUNCTION();
-// 	switch(type)
-// 	{
-// 		case ShaderDataType::Float1: return GL_FLOAT;
-// 		case ShaderDataType::Float2: return GL_FLOAT;
-// 		case ShaderDataType::Float3: return GL_FLOAT;
-// 		case ShaderDataType::Float4: return GL_FLOAT;
-// 		case ShaderDataType::Mat3:   return GL_FLOAT;
-// 		case ShaderDataType::Mat4:   return GL_FLOAT;
-// 		case ShaderDataType::Int1:   return GL_INT;
-// 		case ShaderDataType::Int2:   return GL_INT;
-// 		case ShaderDataType::Int3:   return GL_INT;
-// 		case ShaderDataType::Int4:   return GL_INT;
-// 		case ShaderDataType::Bool:   return GL_BOOL;
-// 	}
-// 	GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
-// 	return 0;
-// }
-
-// enum class ShaderDataType
-// {
-// 	None = 0,
-// 	Float1,
-// 	Float2,
-// 	Float3,
-// 	Float4,
-// 	Mat3,
-// 	Mat4,
-// 	Int1,
-// 	Int2,
-// 	Int3,
-// 	Int4,
-// 	Bool,
-// };
-
-// static u32 ShaderDataTypeComponentCount(ShaderDataType type)
-// {
-// 	switch(type)
-// 	{
-// 		case ShaderDataType::Float1: return 1;
-// 		case ShaderDataType::Float2: return 2;
-// 		case ShaderDataType::Float3: return 3;
-// 		case ShaderDataType::Float4: return 4;
-// 		case ShaderDataType::Mat3:   return 3 * 3;
-// 		case ShaderDataType::Mat4:   return 4 * 4;
-// 		case ShaderDataType::Int1:   return 1;
-// 		case ShaderDataType::Int2:   return 2;
-// 		case ShaderDataType::Int3:   return 3;
-// 		case ShaderDataType::Int4:   return 4;
-// 		case ShaderDataType::Bool:   return 1;
-// 	}
-// 	// GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
-// 	return 0;
-// }
-
-// static u32 ShaderDataTypeSingleSize(ShaderDataType type)
-// {
-// 	switch(type)
-// 	{
-// 		case ShaderDataType::Float1: return sizeof(r32);
-// 		case ShaderDataType::Float2: return sizeof(r32);
-// 		case ShaderDataType::Float3: return sizeof(r32);
-// 		case ShaderDataType::Float4: return sizeof(r32);
-// 		case ShaderDataType::Mat3:   return sizeof(r32);
-// 		case ShaderDataType::Mat4:   return sizeof(r32);
-// 		case ShaderDataType::Int1:   return sizeof(s32);
-// 		case ShaderDataType::Int2:   return sizeof(s32);
-// 		case ShaderDataType::Int3:   return sizeof(s32);
-// 		case ShaderDataType::Int4:   return sizeof(s32);
-// 		case ShaderDataType::Bool:   return sizeof(s8);
-// 	}
-// 	// GES_CORE_ASSERT(false, "unsupported ShaderDataType '{0}'", (s32)type);
-// 	return 0;
-// }

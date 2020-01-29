@@ -138,11 +138,15 @@ void load_shader(Bytecode & bc, u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
+	u8 meta_id = asset::shader::meta_ids[asset_id];
+	asset::shader::Meta meta = asset::shader::meta_presets[meta_id];
+
 	bc.write(graphics::Instruction::Allocate_Shader);
 	bc.write(asset_id);
 	bc.write(file.count + 1);
 	bc.write(file.data, file.count);
 	bc.write('\0');
+	bc.write(meta.parts);
 }
 
 void load_quad(Bytecode & bc, u32 asset_id) {

@@ -121,6 +121,18 @@ enum struct Wrap_Mode : u8
 UNDERLYING_TYPE_META(Wrap_Mode, u8)
 IS_ENUM_META(Wrap_Mode)
 
+enum struct Shader_Part : u8
+{
+	None     = 0,
+	Vertex   = BIT(u8, 0),
+	Pixel    = BIT(u8, 1),
+	Geometry = BIT(u8, 2),
+	Compute  = BIT(u8, 3),
+};
+UNDERLYING_TYPE_META(Shader_Part, u8)
+IS_ENUM_META(Shader_Part)
+ENUM_FLAG_OPERATORS_IMPL(Shader_Part)
+
 enum struct Instruction : u8
 {
 	None,
