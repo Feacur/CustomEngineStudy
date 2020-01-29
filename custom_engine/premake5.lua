@@ -30,6 +30,19 @@ project "custom_engine"
 		"%{engine_includes.stb}",
 	}
 
+	defines {
+		"STBI_NO_STDIO",
+		"STBI_NO_JPEG",
+		-- "STBI_NO_PNG",
+		"STBI_NO_BMP",
+		"STBI_NO_PSD",
+		"STBI_NO_TGA",
+		"STBI_NO_GIF",
+		"STBI_NO_HDR",
+		"STBI_NO_PIC",
+		"STBI_NO_PNM",
+	}
+
 	links {
 		-- "imgui",
 		-- "lua",

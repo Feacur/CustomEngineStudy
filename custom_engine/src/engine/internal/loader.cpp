@@ -9,6 +9,7 @@
 #include "engine/debug/log.h"
 
 #include <stdio.h>
+
 #include <stb_image.h>
 
 namespace custom {
@@ -51,12 +52,14 @@ void load_image(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
+	Array<u8> file; load_file(path, file);
+	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
-	stbi_uc * data = stbi_load(path, &size.x, &size.y, &channels, 0);
+	stbi_uc * data = stbi_load_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
@@ -81,12 +84,14 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
+	Array<u8> file; load_file(path, file);
+	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
-	float * data = stbi_loadf(path, &size.x, &size.y, &channels, 0);
+	float * data = stbi_loadf_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
@@ -111,12 +116,14 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
+	Array<u8> file; load_file(path, file);
+	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
-	stbi_us * data = stbi_load_16(path, &size.x, &size.y, &channels, 0);
+	stbi_us * data = stbi_load_16_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
@@ -138,7 +145,6 @@ void load_shader(Bytecode & bc, u32 asset_id) {
 	bc.write("load shader");
 
 	cstring path = asset::shader::paths[asset_id];
-
 	Array<u8> file; load_file(path, file);
 	if (file.count != file.capacity) { return; }
 
