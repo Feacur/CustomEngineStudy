@@ -9,8 +9,6 @@
 #include "engine/debug/log.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
-	// #define WIN32_LEAN_AND_MEAN
-	// #define NOMINMAX
 	#include <Windows.h>
 #endif
 

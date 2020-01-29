@@ -1,10 +1,6 @@
 #pragma once
-#include <float.h>  // floating point conveniences
-#include <stdio.h>  // file operations, printing functions
-#include <string.h> // raw memory operations
-#include <math.h>   // non-trivial math functions
+#include <string.h>
 
-// debug intrinsics, SIMD
 #if defined(_MSC_VER)
 	#include <intrin.h>
 #elif defined(__GNUC__) || defined(__clang__)
@@ -24,12 +20,6 @@
 
 #if !defined(__cplusplus)
 	#define constexpr
-#endif
-
-#if !defined(NOMINMAX)
-	// @Note: <Windows.h> leaks junk even with WIN32_LEAN_AND_MEAN
-	#undef min
-	#undef max
 #endif
 
 // OS detection

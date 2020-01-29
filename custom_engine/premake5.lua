@@ -54,7 +54,49 @@ project "custom_engine"
 	}
 
 	filter "system:windows"
-		defines "WIN32_LEAN_AND_MEAN"
+		defines {
+			"WIN32_LEAN_AND_MEAN",
+			"NOMINMAX",
+			-- "NOGDICAPMASKS",
+			-- "NOVIRTUALKEYCODES",
+			-- "NOWINMESSAGES",
+			-- "NOWINSTYLES",
+			-- "NOSYSMETRICS",
+			-- "NOMENUS",
+			-- "NOICONS",
+			-- "NOKEYSTATES",
+			-- "NOSYSCOMMANDS",
+			-- "NORASTEROPS",
+			-- "NOSHOWWINDOW",
+			-- "OEMRESOURCE",
+			-- "NOATOM",
+			-- "NOCLIPBOARD",
+			-- "NOCOLOR",
+			-- "NOCTLMGR",
+			-- "NODRAWTEXT",
+			-- "NOGDI",
+			-- "NOKERNEL",
+			-- "NOUSER",
+			-- "NONLS",
+			-- "NOMB",
+			-- "NOMEMMGR",
+			-- "NOMETAFILE",
+			-- "NOMINMAX",
+			-- "NOMSG",
+			"NOOPENFILE",
+			-- "NOSCROLL",
+			-- "NOSERVICE",
+			-- "NOSOUND",
+			-- "NOTEXTMETRIC",
+			-- "NOWH",
+			-- "NOWINOFFSETS",
+			-- "NOCOMM",
+			-- "NOKANJI",
+			-- "NOHELP",
+			-- "NOPROFILER",
+			-- "NODEFERWINDOWPOS",
+			-- "NOMCX",
+		}
 
 	filter "system:windows"
 		links {

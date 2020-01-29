@@ -20,17 +20,16 @@
 	#pragma message("no intrinsics header included")
 #endif
 
-// vendor
-#include <glad/glad.h>
-
 // platform
 #if defined(_WIN64) || defined(_WIN32)
-	// #define WIN32_LEAN_AND_MEAN
-	// #define NOMINMAX
 	#include <Windows.h>
 	#if WIN32_LEAN_AND_MEAN
-		#include <timeapi.h>
+		#include <timeapi.h> // winmm.lib
 	#endif
 #endif
+
+// vendor
+#include <glad/glad.h>
+#include <stb_image.h>
 
 #endif

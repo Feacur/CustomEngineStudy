@@ -1,6 +1,9 @@
 #pragma once
 #include "engine/core/types.h"
 
+#include <float.h>
+#include <math.h>
+
 static constexpr r32 const epsilon    = 0.00001f;
 static constexpr r32 const pi         = 3.14159265359f;
 static constexpr r32 const tau        = 6.28318530718f; // pi * 2
