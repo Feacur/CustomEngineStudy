@@ -15,7 +15,7 @@ bool Window::should_close = false;
 Context_Settings context_settings;
 Pixel_Format pixel_format_hint;
 
-void globals_init() {
+void globals_init(void) {
 	// context_settings
 	context_settings = {};
 	// context_settings.major_version = 4;

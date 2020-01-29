@@ -30,9 +30,8 @@ inline ivec2 get_window_size(HWND window) {
 // API implementation
 //
 
-static ATOM register_window_class(void);
-static HWND create_window(void);
-static HWND create_dummy_window(void);
+static ATOM platform_register_window_class(void);
+static HWND platform_create_window(void);
 
 namespace custom {
 
@@ -40,9 +39,9 @@ Window::Window()
 	: m_graphics_context(nullptr)
 {
 	// @Bug: is this error prone to register a window class like that?
-	static ATOM const window_atom = register_window_class();
+	static ATOM const window_atom = platform_register_window_class();
 
-	HWND hwnd = create_window();
+	HWND hwnd = platform_create_window();
 	m_handle = (uptr)hwnd;
 
 	#if defined(CUSTOM_FEATURE_RAW_INPUT)
@@ -100,7 +99,7 @@ ivec2 Window::get_size() const
 //
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-static ATOM register_window_class(void) {
+static ATOM platform_register_window_class(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa
 	WNDCLASSEX window_class = {};
 	window_class.cbSize        = sizeof(window_class);
@@ -115,7 +114,7 @@ static ATOM register_window_class(void) {
 	return window_class_atom;
 }
 
-static HWND create_window(void) {
+static HWND platform_create_window(void) {
 	DWORD     dwExStyle  = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR;
 	DWORD     dwStyle    = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 	HWND      hWndParent = HWND_DESKTOP;

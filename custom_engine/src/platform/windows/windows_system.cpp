@@ -42,7 +42,7 @@ static void signal_handler(int value);
 
 namespace custom {
 
-extern void globals_init();
+extern void globals_init(void);
 
 void system_init() {
 	globals_init();

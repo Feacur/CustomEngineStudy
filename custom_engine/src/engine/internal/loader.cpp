@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 #include "engine/api/loader.h"
+#include "engine/api/file.h"
 #include "engine/core/code.h"
 #include "engine/core/math_types.h"
 #include "engine/api/asset_lookup.h"
@@ -8,29 +9,9 @@
 #include "engine/impl/bytecode.h"
 #include "engine/debug/log.h"
 
-#include <stdio.h>
-
 #include <stb_image.h>
 
 namespace custom {
-
-void load_file(cstring path, Array<u8> & buffer) {
-	FILE * file = fopen(path, "rb");
-	CUSTOM_ASSERT(file, "failed to open file: %s", path);
-	if (!file) { return; }
-
-	fseek (file, 0, SEEK_END);
-	long file_size = ftell(file); // @Note: not a size_t here
-	rewind(file); // fseek (file, 0, SEEK_SET);
-
-	buffer.set_capacity((u32)file_size);
-	if (buffer.data) {
-		buffer.count = (u32)fread(buffer.data, sizeof(u8), file_size, file);
-		CUSTOM_ASSERT(buffer.count == buffer.capacity, "failed to read file %s;\n\tread %d out of %d bytes", path, buffer.count, buffer.capacity);
-	}
-
-	fclose(file);
-}
 
 static void describe_texture(
 	Bytecode & bc,
@@ -52,7 +33,7 @@ void load_image(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; load_file(path, file);
+	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
@@ -84,7 +65,7 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; load_file(path, file);
+	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
@@ -116,7 +97,7 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; load_file(path, file);
+	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	stbi_set_flip_vertically_on_load(1);
@@ -145,7 +126,7 @@ void load_shader(Bytecode & bc, u32 asset_id) {
 	bc.write("load shader");
 
 	cstring path = asset::shader::paths[asset_id];
-	Array<u8> file; load_file(path, file);
+	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	bc.write(graphics::Instruction::Allocate_Shader);
@@ -160,7 +141,8 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	bc.write("load quad");
 
 	// cstring path = asset::mesh::paths[asset_id];
-	// Loader_File file = load_file(path);
+	// Array<u8> file; file_read(path, file);
+	// if (file.count != file.capacity) { return; }
 
 	bc.write(graphics::Instruction::Allocate_Mesh);
 	bc.write(asset_id);

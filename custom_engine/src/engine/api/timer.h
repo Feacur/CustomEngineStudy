@@ -2,8 +2,6 @@
 #include "engine/core/types.h"
 
 namespace custom {
-namespace ntimer {
-}
 
 // @Note: [ ] a singleton?           - is error-prone due to copy-construction
 //        [ ] a static class/struct? - is merely a namespace in the end

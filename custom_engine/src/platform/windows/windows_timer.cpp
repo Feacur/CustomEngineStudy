@@ -40,9 +40,9 @@ static constexpr inline u64 mul_div(u64 value, u64 numerator, u64 denominator) {
 // API implementation
 //
 
-UINT     platform_get_resolution();
-LONGLONG platform_get_frequency();
-LONGLONG platform_get_counter();
+UINT     platform_get_resolution(void);
+LONGLONG platform_get_frequency(void);
+LONGLONG platform_get_counter(void);
 
 namespace custom {
 
@@ -84,7 +84,7 @@ u64 timer_wait_next_frame(u64 duration, u64 precision)
 // platform implementation
 //
 
-UINT platform_get_resolution() {
+UINT platform_get_resolution(void) {
 	TIMECAPS timecaps;
 	MMRESULT status = timeGetDevCaps(&timecaps, sizeof(timecaps));
 	if (status != MMSYSERR_NOERROR) {
@@ -95,7 +95,7 @@ UINT platform_get_resolution() {
 	return timecaps.wPeriodMin;
 }
 
-LONGLONG platform_get_frequency() {
+LONGLONG platform_get_frequency(void) {
 	LARGE_INTEGER value;
 	BOOL status = QueryPerformanceFrequency(&value);
 	if (!status) {
@@ -106,7 +106,7 @@ LONGLONG platform_get_frequency() {
 	return value.QuadPart;
 }
 
-LONGLONG platform_get_counter() {
+LONGLONG platform_get_counter(void) {
 	LARGE_INTEGER value;
 	QueryPerformanceCounter(&value);
 	return value.QuadPart;
