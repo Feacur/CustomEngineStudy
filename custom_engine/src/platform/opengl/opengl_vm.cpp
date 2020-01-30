@@ -557,8 +557,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			u8           channels     = *bc.read<u8>();
 			Data_Type    data_type    = *bc.read<Data_Type>();
 			Texture_Type texture_type = *bc.read<Texture_Type>();
-			Filter_Mode  texture_filter = *bc.read<Filter_Mode>();
-			Filter_Mode  mipmap_filter  = *bc.read<Filter_Mode>();
+			Filter_Mode  min_tex = *bc.read<Filter_Mode>();
+			Filter_Mode  min_mip = *bc.read<Filter_Mode>();
+			Filter_Mode  mag_tex = *bc.read<Filter_Mode>();
 			Wrap_Mode    wrap_mode_x = *bc.read<Wrap_Mode>();
 			Wrap_Mode    wrap_mode_y = *bc.read<Wrap_Mode>();
 
@@ -572,8 +573,8 @@ static void consume_single_instruction(Bytecode const & bc)
 				size.x, size.y
 			);
 
-			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(texture_filter, mipmap_filter));
-			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(texture_filter));
+			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
+			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
 			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
 			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
 		} return;

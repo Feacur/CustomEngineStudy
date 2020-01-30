@@ -19,7 +19,7 @@ namespace shader {
 namespace texture {
 	struct Meta
 	{
-		graphics::Filter_Mode texture_filter, mipmap_filter;
+		graphics::Filter_Mode min_tex, min_mip, mag_tex;
 		graphics::Wrap_Mode wrap_x, wrap_y;
 	};
 	extern Meta meta_presets[];

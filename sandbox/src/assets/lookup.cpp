@@ -28,7 +28,9 @@ namespace texture {
 	Meta meta_presets[] = {
 		{}, // NULL
 		{ // 1
-			graphics::Filter_Mode::None, graphics::Filter_Mode::None,
+			graphics::Filter_Mode::Linear,
+			graphics::Filter_Mode::None,
+			graphics::Filter_Mode::None,
 			graphics::Wrap_Mode::Repeat, graphics::Wrap_Mode::Repeat,
 		},
 	};

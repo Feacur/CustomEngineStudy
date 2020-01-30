@@ -48,6 +48,15 @@ static void describe_texture(
 	bc.write(texture_type);
 }
 
+static void meta_texture(Bytecode & bc, u32 asset_id) {
+	u8 meta_id = asset::texture::meta_ids[asset_id];
+	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
+	bc.write(meta.min_tex);
+	bc.write(meta.min_mip);
+	bc.write(meta.mag_tex);
+	bc.write(meta.wrap_x); bc.write(meta.wrap_y);
+}
+
 void load_image(Bytecode & bc, u32 asset_id) {
 	bc.write(graphics::Instruction::Message_Inline);
 	bc.write("load image u8");
@@ -59,9 +68,6 @@ void load_image(Bytecode & bc, u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	u8 meta_id = asset::texture::meta_ids[asset_id];
-	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
-
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
@@ -72,8 +78,7 @@ void load_image(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	bc.write(meta.texture_filter); bc.write(meta.mipmap_filter);
-	bc.write(meta.wrap_x); bc.write(meta.wrap_y);
+	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
@@ -94,9 +99,6 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	u8 meta_id = asset::texture::meta_ids[asset_id];
-	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
-
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
@@ -107,8 +109,7 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	bc.write(meta.texture_filter); bc.write(meta.mipmap_filter);
-	bc.write(meta.wrap_x); bc.write(meta.wrap_y);
+	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
@@ -129,9 +130,6 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	u8 meta_id = asset::texture::meta_ids[asset_id];
-	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
-
 	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
@@ -142,8 +140,7 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	bc.write(meta.texture_filter); bc.write(meta.mipmap_filter);
-	bc.write(meta.wrap_x); bc.write(meta.wrap_y);
+	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
