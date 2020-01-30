@@ -12,6 +12,29 @@
 #include <stb_image.h>
 
 namespace custom {
+namespace graphics {
+
+template<typename T> static constexpr inline Data_Type get_data_type() { return Data_Type::None; }
+#define GDT_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>() { return Data_Type::T; }
+	GDT_IMPL(tex);
+	GDT_IMPL(s8); GDT_IMPL(s16); GDT_IMPL(s32);
+	GDT_IMPL(u8); GDT_IMPL(u16); GDT_IMPL(u32);
+	GDT_IMPL(r32); GDT_IMPL(r64);
+	GDT_IMPL(vec2); GDT_IMPL(vec3); GDT_IMPL(vec4);
+	GDT_IMPL(ivec2); GDT_IMPL(ivec3); GDT_IMPL(ivec4);
+	GDT_IMPL(uvec2); GDT_IMPL(uvec3); GDT_IMPL(uvec4);
+	GDT_IMPL(mat2); GDT_IMPL(mat3); GDT_IMPL(mat4);
+#undef GDT_IMPL
+
+}}
+
+namespace custom {
+
+template<typename T, u32 count>
+static void write_data_array(Bytecode & bc, T const (& data)[count]) {
+	bc.write(graphics::get_data_type<T>());
+	bc.write(data);
+}
 
 static void describe_texture(
 	Bytecode & bc,
@@ -157,23 +180,25 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	// Array<u8> file; file_read(path, file);
 	// if (file.count != file.capacity) { return; }
 
-	bc.write(graphics::Instruction::Allocate_Mesh);
-	bc.write(asset_id);
-
 	r32 const vertices[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
 		/*position*/  0.5f, -0.5f, 0.0f, /*UV*/ 1.0f, 0.0f,
 		/*position*/  0.5f,  0.5f, 0.0f, /*UV*/ 1.0f, 1.0f,
 		/*position*/ -0.5f,  0.5f, 0.0f, /*UV*/ 0.0f, 1.0f,
 	};
+	u8 const attribs[] = { /*position*/ 3, /*UV*/ 2, };
 
 	u32 const indices[] = {
 		0, 1, 2,
 		2, 3, 0,
 	};
 
-	bc.write(vertices);
-	bc.write(indices);
+	bc.write(graphics::Instruction::Allocate_Mesh);
+	bc.write(asset_id);
+	bc.write((u32)1);
+	write_data_array(bc, vertices);
+	bc.write(attribs);
+	write_data_array(bc, indices);
 }
 
 }

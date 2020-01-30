@@ -18,6 +18,7 @@ typedef float  r32;
 typedef double r64;
 
 typedef char const * cstring;
+typedef void const * cmemory;
 
 typedef intptr_t  sptr;
 typedef uintptr_t uptr;

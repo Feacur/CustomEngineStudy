@@ -22,7 +22,7 @@ namespace opengl {
 struct Program
 {
 	GLuint id;
-	custom::Array<GLuint> uniforms; // @Todo: use fixed?
+	custom::Array<GLuint> uniforms;
 };
 template struct custom::Array<Program>;
 
@@ -34,17 +34,17 @@ template struct custom::Array<Texture>;
 
 struct Attribute
 {
-	GLenum type;
-	GLint  count;
+	u8 count;
 };
-template struct custom::Array<Attribute>; // @Todo: use fixed?
+template struct custom::Array<Attribute>;
 
 struct Buffer
 {
 	GLuint id;
-	custom::Array<Attribute> attributes; // @Todo: use fixed?
+	custom::graphics::Data_Type type;
+	custom::Array<Attribute> attributes;
 };
-template struct custom::Array<Buffer>; // @Todo: use fixed?
+template struct custom::Array<Buffer>;
 
 struct Indices
 {
@@ -55,7 +55,7 @@ struct Indices
 struct Mesh
 {
 	GLuint id;
-	custom::Array<Buffer> buffers; // @Todo: use fixed?
+	custom::Array<Buffer> buffers;
 	Indices indices;
 };
 template struct custom::Array<Mesh>;
@@ -77,7 +77,7 @@ static opengl::Data ogl;
 
 static void opengl_message_callback(
 	GLenum source, GLenum type, GLuint id, GLenum severity,
-	GLsizei length, glstring message, void const * userParam
+	GLsizei length, glstring message, cmemory userParam
 );
 static GLuint create_program(cstring source, custom::graphics::Shader_Part parts);
 
@@ -163,7 +163,7 @@ static GLenum get_operation(Operation value) {
 	return GL_NONE;
 }
 
-static GLenum get_internal_format(Texture_Type texture_type, Data_Type data_type, u8 channels) {
+static GLenum get_texture_internal_format(Texture_Type texture_type, Data_Type data_type, u8 channels) {
 	switch (texture_type) {
 		case Texture_Type::Color: switch (data_type) {
 			case Data_Type::u8: switch (channels) {
@@ -211,7 +211,7 @@ static GLenum get_internal_format(Texture_Type texture_type, Data_Type data_type
 	return GL_NONE;
 }
 
-static GLenum get_data_format(Texture_Type texture_type, u8 channels) {
+static GLenum get_texture_data_format(Texture_Type texture_type, u8 channels) {
 	switch (texture_type) {
 		case Texture_Type::Color: switch (channels) {
 			case 1: return GL_RED;
@@ -276,7 +276,7 @@ static GLenum get_wrap_mode(Wrap_Mode value) {
 	return GL_NONE;
 }
 
-static GLenum get_data_type(Texture_Type texture_type, Data_Type data_type) {
+static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_type) {
 	switch (texture_type) {
 		case Texture_Type::Color: switch (data_type) {
 			case Data_Type::u8:  return GL_UNSIGNED_BYTE;
@@ -304,27 +304,62 @@ static GLenum get_data_type(Texture_Type texture_type, Data_Type data_type) {
 	return GL_NONE;
 }
 
-// #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
-// static u8 get_data_type_size(Data_Type value) {
-// 	switch (value) {
-// 		case Data_Type::tex: return sizeof(s32);
-// 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
-// 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
-// 		CASE_IMPL(r32); CASE_IMPL(r64);
-// 		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
-// 		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
-// 		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
-// 		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
-// 	}
-// 	CUSTOM_ASSERT(false, "unknown data type %d", value);
-// 	return 0;
-// }
-// #undef CASE_IMPL
+static GLenum get_data_type(Data_Type value) {
+	switch (value) {
+		case Data_Type::tex: return GL_INT;
+		//
+		case Data_Type::s8:  return GL_BYTE;
+		case Data_Type::s16: return GL_SHORT;
+		case Data_Type::s32: return GL_INT;
+		//
+		case Data_Type::u8:  return GL_UNSIGNED_BYTE;
+		case Data_Type::u16: return GL_UNSIGNED_SHORT;
+		case Data_Type::u32: return GL_UNSIGNED_INT;
+		//
+		case Data_Type::r32: return GL_FLOAT;
+		case Data_Type::r64: return GL_DOUBLE;
+		//
+		case Data_Type::vec2: return GL_FLOAT;
+		case Data_Type::vec3: return GL_FLOAT;
+		case Data_Type::vec4: return GL_FLOAT;
+		//
+		case Data_Type::ivec2: return GL_INT;
+		case Data_Type::ivec3: return GL_INT;
+		case Data_Type::ivec4: return GL_INT;
+		//
+		case Data_Type::uvec2: return GL_UNSIGNED_INT;
+		case Data_Type::uvec3: return GL_UNSIGNED_INT;
+		case Data_Type::uvec4: return GL_UNSIGNED_INT;
+		//
+		case Data_Type::mat2: return GL_FLOAT;
+		case Data_Type::mat3: return GL_FLOAT;
+		case Data_Type::mat4: return GL_FLOAT;
+	};
+	CUSTOM_ASSERT(false, "unknown data type %d", value);
+	return GL_NONE;
+}
+
+#define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
+static u16 get_type_size(Data_Type value) {
+	switch (value) {
+		CASE_IMPL(tex);
+		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
+		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
+		CASE_IMPL(r32); CASE_IMPL(r64);
+		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
+		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
+		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
+		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
+	}
+	CUSTOM_ASSERT(false, "unknown data type %d", value);
+	return 0;
+}
+#undef CASE_IMPL
 
 #define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
-static void const * read_inline(Bytecode const & bc, Data_Type type, u32 count) {
+static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
-		case Data_Type::tex: return bc.read<s32>();
+		CASE_IMPL(tex);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -337,6 +372,14 @@ static void const * read_inline(Bytecode const & bc, Data_Type type, u32 count) 
 	return NULL;
 }
 #undef CASE_IMPL
+
+struct DT_Array { Data_Type type; u32 count; cmemory data; };
+static DT_Array read_data_array(Bytecode const & bc) {
+	Data_Type type  = *bc.read<Data_Type>();
+	u32       count = *bc.read<u32>();
+	cmemory   data  = read_data(bc, type, count);
+	return { type, count, data };
+}
 
 static void consume_single_instruction(Bytecode const & bc)
 {
@@ -525,7 +568,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
 			glTextureStorage2D(
 				resource->id, 1,
-				get_internal_format(texture_type, data_type, channels),
+				get_texture_internal_format(texture_type, data_type, channels),
 				size.x, size.y
 			);
 
@@ -537,57 +580,81 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Allocate_Mesh: {
 			u32 asset_id = *bc.read<u32>();
-			u32          vcount   = *bc.read<u32>();
-			void const * vertices = read_inline(bc, Data_Type::r32, vcount);
-			u32          icount  = *bc.read<u32>();
-			void const * indices = read_inline(bc, Data_Type::u32, icount);
-
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
 
-			resource->buffers.push();
-			glCreateBuffers(1, &resource->buffers[0].id);
-			glBindBuffer(GL_ARRAY_BUFFER, resource->buffers[0].id);
-			glBufferData(GL_ARRAY_BUFFER, vcount * sizeof(r32), vertices, GL_STATIC_DRAW);
+			// buffers
+			u32 buffers_count = *bc.read<u32>();
+			resource->buffers.set_capacity(buffers_count);
+			for (u32 i = 0; i < buffers_count; ++i) {
+				resource->buffers.push();
+				opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
-			resource->indices.count = icount;
-			glCreateBuffers(1, &resource->indices.id);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, icount * sizeof(u32), indices, GL_STATIC_DRAW);
+				DT_Array in_buffer = read_data_array(bc);
+				buffer->type = in_buffer.type;
 
-			// @Todo: correctly chart attributes
-			glGenVertexArrays(1, &resource->id);
-			glBindVertexArray(resource->id);
+				u32 attr_count = *bc.read<u32>();
+				buffer->attributes.set_capacity(attr_count);
+				for (u32 attr_i = 0; attr_i < attr_count; ++attr_i) {
+					buffer->attributes.push();
+					opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
+					attribute->count = *bc.read<u8>();
+				}
 
-			glBindBuffer(GL_ARRAY_BUFFER, resource->buffers[0].id);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+				glCreateBuffers(1, &buffer->id);
+				glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
+				glBufferData(
+					GL_ARRAY_BUFFER,
+					in_buffer.count * get_type_size(in_buffer.type),
+					in_buffer.data, GL_STATIC_DRAW
+				);
+			}
 
-			u32 cc1 = 3;
-			u32 cc2 = 2;
-			u32 stride = (cc1 + cc2) * sizeof(r32);
+			// indices
+			{
+				DT_Array indices = read_data_array(bc);
 
-			uintptr_t attrib_offset = 0;
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(
-				0,
-				cc1,
-				GL_FLOAT,
-				false,
-				stride,
-				(void const *)attrib_offset
-			);
+				resource->indices.count = indices.count;
+				glCreateBuffers(1, &resource->indices.id);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+				glBufferData(
+					GL_ELEMENT_ARRAY_BUFFER,
+					indices.count * get_type_size(indices.type),
+					indices.data, GL_STATIC_DRAW
+				);
+			}
 
-			attrib_offset += cc1 * sizeof(r32);
-			
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(
-				1,
-				cc2,
-				GL_FLOAT,
-				false,
-				stride,
-				(void const *)attrib_offset
-			);
+			// vertex array
+			{
+				glGenVertexArrays(1, &resource->id);
+				glBindVertexArray(resource->id);
+
+				for (u8 i = 0; i < resource->buffers.count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					u16 element_size = get_type_size(buffer.type);
+					GLenum element_type = get_data_type(buffer.type);
+
+					GLsizei stride = 0;
+					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+						opengl::Attribute & attr = buffer.attributes[attr_i];
+						stride += attr.count * element_size;
+					}
+
+					uintptr_t attrib_offset = 0;
+					glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+						opengl::Attribute & attr = buffer.attributes[attr_i];
+						glEnableVertexAttribArray(attr_i);
+						glVertexAttribPointer(
+							attr_i, attr.count, element_type, false,
+							stride, (cmemory)attrib_offset
+						);
+						attrib_offset += attr.count * element_size;
+					}
+				}
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+			}
 		} return;
 
 		//
@@ -647,31 +714,29 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Uniform: {
 			// @Todo: automize location with some asset_id
 			s32 location = *bc.read<s32>();
-			Data_Type type = *bc.read<Data_Type>();
-			u32 count = *bc.read<u32>();
-			void const * data = read_inline(bc, type, count);
+			DT_Array uniform = read_data_array(bc);
 
-			switch (type) {
-				case Data_Type::tex: glUniform1iv(location, count, (s32 *)data); break;
-
-				case Data_Type::r32:  glUniform1fv(location, count, (r32 *)data); break;
-				case Data_Type::vec2: glUniform2fv(location, count, (r32 *)data); break;
-				case Data_Type::vec3: glUniform3fv(location, count, (r32 *)data); break;
-				case Data_Type::vec4: glUniform4fv(location, count, (r32 *)data); break;
-
-				case Data_Type::s32:   glUniform1iv(location, count, (s32 *)data); break;
-				case Data_Type::ivec2: glUniform2iv(location, count, (s32 *)data); break;
-				case Data_Type::ivec3: glUniform3iv(location, count, (s32 *)data); break;
-				case Data_Type::ivec4: glUniform4iv(location, count, (s32 *)data); break;
-
-				case Data_Type::u32:   glUniform1uiv(location, count, (u32 *)data); break;
-				case Data_Type::uvec2: glUniform2uiv(location, count, (u32 *)data); break;
-				case Data_Type::uvec3: glUniform3uiv(location, count, (u32 *)data); break;
-				case Data_Type::uvec4: glUniform4uiv(location, count, (u32 *)data); break;
-
-				case Data_Type::mat2: glUniformMatrix2fv(location, count, false, (r32 *)data); break;
-				case Data_Type::mat3: glUniformMatrix3fv(location, count, false, (r32 *)data); break;
-				case Data_Type::mat4: glUniformMatrix4fv(location, count, false, (r32 *)data); break;
+			switch (uniform.type) {
+				case Data_Type::tex: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
+				//
+				case Data_Type::r32:  glUniform1fv(location, uniform.count, (r32 *)uniform.data); break;
+				case Data_Type::vec2: glUniform2fv(location, uniform.count, (r32 *)uniform.data); break;
+				case Data_Type::vec3: glUniform3fv(location, uniform.count, (r32 *)uniform.data); break;
+				case Data_Type::vec4: glUniform4fv(location, uniform.count, (r32 *)uniform.data); break;
+				//
+				case Data_Type::s32:   glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
+				case Data_Type::ivec2: glUniform2iv(location, uniform.count, (s32 *)uniform.data); break;
+				case Data_Type::ivec3: glUniform3iv(location, uniform.count, (s32 *)uniform.data); break;
+				case Data_Type::ivec4: glUniform4iv(location, uniform.count, (s32 *)uniform.data); break;
+				//
+				case Data_Type::u32:   glUniform1uiv(location, uniform.count, (u32 *)uniform.data); break;
+				case Data_Type::uvec2: glUniform2uiv(location, uniform.count, (u32 *)uniform.data); break;
+				case Data_Type::uvec3: glUniform3uiv(location, uniform.count, (u32 *)uniform.data); break;
+				case Data_Type::uvec4: glUniform4uiv(location, uniform.count, (u32 *)uniform.data); break;
+				//
+				case Data_Type::mat2: glUniformMatrix2fv(location, uniform.count, false, (r32 *)uniform.data); break;
+				case Data_Type::mat3: glUniformMatrix3fv(location, uniform.count, false, (r32 *)uniform.data); break;
+				case Data_Type::mat4: glUniformMatrix4fv(location, uniform.count, false, (r32 *)uniform.data); break;
 			}
 		} return;
 
@@ -682,15 +747,15 @@ static void consume_single_instruction(Bytecode const & bc)
 			Data_Type    data_type    = *bc.read<Data_Type>();
 			Texture_Type texture_type = *bc.read<Texture_Type>();
 			// @Change: receive a pointer instead, then free if needed?
-			void const * data = read_inline(bc, data_type, size.x * size.y * channels);
+			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
 
 			opengl::Texture * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
 				resource->id,
 				0,
 				0, 0, size.x, size.y,
-				get_data_format(texture_type, channels),
-				get_data_type(texture_type, data_type),
+				get_texture_data_format(texture_type, channels),
+				get_texture_data_type(texture_type, data_type),
 				data
 			);
 		} return;
@@ -759,7 +824,7 @@ static void opengl_message_callback(
 	GLenum severity,
 	GLsizei length,
 	glstring message,
-	void const * userParam)
+	cmemory userParam)
 {
 	// https://www.khronos.org/opengl/wiki/Debug_Output
 	// https://www.khronos.org/opengl/wiki/OpenGL_Error

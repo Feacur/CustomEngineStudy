@@ -88,8 +88,11 @@ enum struct Texture_Type : u8
 UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
+typedef struct { s32 value; } tex;
+
 enum struct Data_Type : u8
 {
+	None,
 	tex,
 	s8, s16, s32,
 	u8, u16, u32,
