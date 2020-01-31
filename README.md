@@ -59,25 +59,11 @@ Executable test project
 
 ### __Project setup and build__
 Initial  
-* Call git submodule update --init --recursive
-* Call git submodule update -f
-* See some notes below regarding SSH keys
+* git submodule update --init --recursive
+* git submodule update -f
 
 In case of using SSH key passphrases  
-```
-# on Windows you might want to modify your .gitconfig with
-# (at least during git submodules initialization)
-[credential]
-	helper = manager
-[url "https://github.com/"]
-	insteadOf = git@github.com:
-
-# also see
-# - https://help.github.com/en/github/authenticating-to-github/working-with-ssh-key-passphrases
-
-# hm, I didn't figure out how to use them with submodules differently
-# - https://support.microsoft.com/en-us/help/4026814/windows-accessing-credential-manager
-```
+* See "/__ external settings __/.gitconfig"
 
 VSCode  
 * See "**/.vscode/tasks.json" for build commands

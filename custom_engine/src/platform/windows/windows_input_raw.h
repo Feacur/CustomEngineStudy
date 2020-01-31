@@ -25,7 +25,7 @@ IS_ENUM_META(Raw_Input_Device_Usage)
 // RIDEV_CAPTUREMOUSE: the mouse button click does not activate the other window
 
 static constexpr inline RAWINPUTDEVICE raw_input_device(HWND window, USHORT usage, DWORD flags) {
-	RAWINPUTDEVICE device = {};
+	RAWINPUTDEVICE device = {}; // ZeroMemory(&device, sizeof(device));
 	device.usUsagePage = 0x01;
 	device.usUsage     = usage;
 	device.dwFlags     = flags;
@@ -46,7 +46,8 @@ static void raw_input_callback(HWND window, RAWMOUSE    const & data);
 static void raw_input_callback(HWND window, RAWKEYBOARD const & data);
 static void raw_input_callback(HWND window, RAWHID      const & data);
 static void process_message_raw(HWND window, WPARAM wParam, LPARAM lParam) {
-	char buffer[sizeof(RAWINPUT)] = {};
+	char buffer[sizeof(RAWINPUT)]; // = {};
+	ZeroMemory(buffer, sizeof(buffer));
 	UINT size = sizeof(RAWINPUT);
 	GetRawInputData(
 		reinterpret_cast<HRAWINPUT>(lParam),

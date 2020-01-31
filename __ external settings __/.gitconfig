@@ -1,6 +1,11 @@
 # proper file path and name: ~/.gitconfig
 # "~" is "%userprofile%"
 
+# https://help.github.com/en/github/authenticating-to-github/working-with-ssh-key-passphrases
+# https://support.microsoft.com/en-us/help/4026814/windows-accessing-credential-manager
+
+# on Windows [during git submodules initialization] you might want to force https over ssh
+
 [user]
 	name = name for commits
 	email = mail@for.commits
@@ -20,6 +25,6 @@
 # credential
 [credential]
 	helper = manager
-# [url "https://github.com/"] # might help in case of problems during git submodules initialization
+# [url "https://github.com/"] # force https over ssh
 # 	insteadOf = git@github.com:
 #

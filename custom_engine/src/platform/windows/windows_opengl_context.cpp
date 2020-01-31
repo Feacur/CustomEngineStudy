@@ -270,7 +270,8 @@ static void check_extension(HDC hdc) {
 #undef CHECK_EXTENSION
 
 static void load_extensions(HDC hdc) {
-	PIXELFORMATDESCRIPTOR pfd = {};
+	PIXELFORMATDESCRIPTOR pfd; // = {};
+	ZeroMemory(&pfd, sizeof(pfd));
 	pfd.nSize        = sizeof(pfd);
 	pfd.nVersion     = 1;
 	pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
@@ -315,6 +316,7 @@ static void load_extensions(HDC hdc) {
 	keys[count++] = key;\
 }
 static int add_atribute_keys(int * keys, int cap) {
+	ZeroMemory(keys, cap * sizeof(*keys));
 	int count = 0;
 	ADD_ATTRIBUTE_KEY(WGL_SUPPORT_OPENGL_ARB);
 	ADD_ATTRIBUTE_KEY(WGL_DRAW_TO_WINDOW_ARB);
@@ -383,8 +385,8 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 	if (!formats_count) { return NULL; }
 
 	int const attr_cap = 64;
-	int attr_keys[attr_cap] = {};
-	int attr_vals[attr_cap] = {};
+	int attr_keys[attr_cap]; // = {};
+	int attr_vals[attr_cap];
 	int attr_count = add_atribute_keys(attr_keys, attr_cap);
 
 	int pf_count = 0;
@@ -424,7 +426,8 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 			continue;
 		}
 
-		custom::Pixel_Format pf = {};
+		custom::Pixel_Format pf; // = {};
+		ZeroMemory(&pf, sizeof(pf));
 		pf.id = pf_id;
 		pf.red_bits     = GET_ATTRIBUTE_VALUE(WGL_RED_BITS_ARB);
 		pf.green_bits   = GET_ATTRIBUTE_VALUE(WGL_GREEN_BITS_ARB);
@@ -437,7 +440,8 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		pf_list[pf_count++] = pf;
 
 		/*
-		Pixel_Format_Aux pfa = {};
+		Pixel_Format_Aux pfa; // = {};
+		ZeroMemory(&pfa, sizeof(pfa));
 		pfa.red_shift   = GET_ATTRIBUTE_VALUE(WGL_RED_SHIFT_ARB);
 		pfa.green_shift = GET_ATTRIBUTE_VALUE(WGL_GREEN_SHIFT_ARB);
 		pfa.blue_shift  = GET_ATTRIBUTE_VALUE(WGL_BLUE_SHIFT_ARB);
@@ -489,7 +493,8 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		if (bits_are_set(pfd.dwFlags, PFD_SUPPORT_GDI)) { continue; }
 		if (bits_are_set(pfd.dwFlags, PFD_GENERIC_FORMAT)) { continue; }
 
-		custom::Pixel_Format pf = {};
+		custom::Pixel_Format pf; // = {};
+		ZeroMemory(&pf, sizeof(pf));
 		pf.id = pf_id;
 		pf.red_bits     = pfd.cRedBits;
 		pf.green_bits   = pfd.cGreenBits;
@@ -502,7 +507,8 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		pf_list[pf_count++] = pf;
 
 		/*
-		Pixel_Format_Aux pfa = {};
+		Pixel_Format_Aux pfa; // = {};
+		ZeroMemory(&pfa, sizeof(pfa));
 		pfa.red_shift   = pfd.cRedShift;
 		pfa.green_shift = pfd.cGreenShift;
 		pfa.blue_shift  = pfd.cBlueShift;
@@ -600,7 +606,7 @@ static custom::Pixel_Format choose_pixel_format(HDC hdc) {
 }
 static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	int const attr_cap = 64 * 2;
-	int attr_pair[attr_cap] = {};
+	int attr_pair[attr_cap];
 	int attr_count = 0;
 
 	int profile_mask = 0;

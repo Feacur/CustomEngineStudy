@@ -99,7 +99,8 @@ ivec2 Window::get_size() const
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static ATOM platform_register_window_class(void) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa
-	WNDCLASSEX window_class = {};
+	WNDCLASSEX window_class; // = {};
+	ZeroMemory(&window_class, sizeof(window_class));
 	window_class.cbSize        = sizeof(window_class);
 	window_class.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	window_class.lpfnWndProc   = window_procedure;

@@ -73,7 +73,8 @@ u64 system_get_time()
 
 static bool platform_poll_events(void) {
 	bool quit_request = false;
-	MSG message = {};
+	MSG message; // = {};
+	// ZeroMemory(&message, sizeof(message));
 	while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
 		if (message.message == WM_QUIT) {
 			// https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-quit
