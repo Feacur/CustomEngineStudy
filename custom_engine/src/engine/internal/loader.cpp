@@ -163,9 +163,11 @@ void load_shader(Bytecode & bc, u32 asset_id) {
 
 	bc.write(graphics::Instruction::Allocate_Shader);
 	bc.write(asset_id);
+	
+	bc.write(graphics::Instruction::Load_Shader);
+	bc.write(asset_id);
 	bc.write(file.count + 1);
-	bc.write(file.data, file.count);
-	bc.write('\0');
+	bc.write(file.data, file.count); bc.write('\0');
 	bc.write(meta.parts);
 }
 
@@ -177,31 +179,33 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	// Array<u8> file; file_read(path, file);
 	// if (file.count != file.capacity) { return; }
 
-	r32 const vertices[] = {
+	r32 const vertex_data[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
 		/*position*/  0.5f, -0.5f, 0.0f, /*UV*/ 1.0f, 0.0f,
 		/*position*/  0.5f,  0.5f, 0.0f, /*UV*/ 1.0f, 1.0f,
 		/*position*/ -0.5f,  0.5f, 0.0f, /*UV*/ 0.0f, 1.0f,
 	};
-	u8 const attribs[] = { /*position*/ 3, /*UV*/ 2, };
+	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
 
-	u32 const indices[] = {
+	u32 const index_data[] = {
 		0, 1, 2,
 		2, 3, 0,
 	};
 
+	// might use graphics::get_data_type<decltype(+value)>(), but it's cryptic
+
 	bc.write(graphics::Instruction::Allocate_Mesh);
 	bc.write(asset_id);
-	bc.write((u32)1); bc.write(graphics::Data_Type::r32);
-	bc.write(attribs);
-	// bc.write((u32)1);
-	
+	bc.write((u32)2);
+	bc.write(graphics::Data_Type::r32); bc.write((u32)C_ARRAY_LENGTH(vertex_data)); bc.write(vertex_attributes);
+	bc.write(graphics::Data_Type::u32); bc.write((u32)C_ARRAY_LENGTH(index_data)); bc.write((u32)0);
+	bc.write((u8)1);
+
 	bc.write(graphics::Instruction::Load_Mesh);
 	bc.write(asset_id);
-	bc.write((u32)1);
-	write_data_array(bc, vertices);
-	// bc.write((u32)1);
-	write_data_array(bc, indices);
+	bc.write((u32)2);
+	write_data_array(bc, vertex_data);
+	write_data_array(bc, index_data);
 }
 
 }
