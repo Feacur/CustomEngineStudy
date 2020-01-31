@@ -635,18 +635,18 @@ static void consume_single_instruction(Bytecode const & bc)
 			glGenVertexArrays(1, &resource->id);
 			glBindVertexArray(resource->id);
 
-			for (u8 i = 0; i < resource->buffers.count; ++i) {
-				opengl::Buffer & buffer = resource->buffers[i];
-				u16 element_size = get_type_size(buffer.type);
-				GLenum element_type = get_data_type(buffer.type);
+			// if (version_major == 4 && version_minor >= 3 || version_major > 4) {
+				for (u8 i = 0; i < resource->buffers.count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					u16 element_size = get_type_size(buffer.type);
+					GLenum element_type = get_data_type(buffer.type);
 
-				GLsizei stride = 0;
-				for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-					opengl::Attribute & attr = buffer.attributes[attr_i];
-					stride += attr.count * element_size;
-				}
+					GLsizei stride = 0;
+					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+						opengl::Attribute & attr = buffer.attributes[attr_i];
+						stride += attr.count * element_size;
+					}
 
-				// if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 					glBindVertexBuffer(i, buffer.id, 0, stride); // glVertexArrayVertexBuffer(resource->id, ...);
 					GLuint attrib_offset = 0;
 					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
@@ -658,22 +658,36 @@ static void consume_single_instruction(Bytecode const & bc)
 						glVertexAttribBinding(attr_i, i); // glVertexArrayAttribBinding(resource->id, ...);
 						attrib_offset += attr.count * element_size;
 					}
-				// }
-				// else {
-				// 	GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-				// 	glBindBuffer(target, buffer.id);
-				// 	uintptr_t attrib_offset = 0;
-				// 	for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-				// 		opengl::Attribute & attr = buffer.attributes[attr_i];
-				// 		glEnableVertexAttribArray(attr_i);
-				// 		glVertexAttribPointer(
-				// 			attr_i, attr.count, element_type, false,
-				// 			stride, (cmemory)attrib_offset
-				// 		);
-				// 		attrib_offset += attr.count * element_size;
-				// 	}
-				// }
-			}
+				}
+			// }
+			// else {
+			// 	for (u8 i = 0; i < resource->buffers.count; ++i) {
+			// 		opengl::Buffer & buffer = resource->buffers[i];
+			// 		u16 element_size = get_type_size(buffer.type);
+			// 		GLenum element_type = get_data_type(buffer.type);
+			// 
+			// 		GLsizei stride = 0;
+			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+			// 			opengl::Attribute & attr = buffer.attributes[attr_i];
+			// 			stride += attr.count * element_size;
+			// 		}
+			// 
+			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 		glBindBuffer(target, buffer.id);
+			// 		uintptr_t attrib_offset = 0;
+			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+			// 			opengl::Attribute & attr = buffer.attributes[attr_i];
+			// 			glEnableVertexAttribArray(attr_i);
+			// 			glVertexAttribPointer(
+			// 				attr_i, attr.count, element_type, false,
+			// 				stride, (cmemory)attrib_offset
+			// 			);
+			// 			attrib_offset += attr.count * element_size;
+			// 		}
+			// 	}
+			// }
+
+			
 		} return;
 
 		//
