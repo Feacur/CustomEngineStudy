@@ -537,6 +537,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		//
 		case Instruction::Allocate_Shader: {
+			// @Change: receive a pointer instead, then free if needed?
 			u32     asset_id = *bc.read<u32>();
 			u32     length   = *bc.read<u32>();
 			cstring source   =  bc.read<char>(length);
@@ -553,7 +554,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Allocate_Texture: {
 			u32   asset_id = *bc.read<u32>();
-			ivec2 size     = *bc.read<ivec2>();
+			ivec2 size = *bc.read<ivec2>();
 			u8           channels     = *bc.read<u8>();
 			Data_Type    data_type    = *bc.read<Data_Type>();
 			Texture_Type texture_type = *bc.read<Texture_Type>();
@@ -580,6 +581,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Allocate_Mesh: {
+			// @Change: receive a pointer instead, then free if needed?
 			u32 asset_id = *bc.read<u32>();
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
@@ -641,15 +643,21 @@ static void consume_single_instruction(Bytecode const & bc)
 						stride += attr.count * element_size;
 					}
 
-					uintptr_t attrib_offset = 0;
-					glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+					GLuint attrib_offset = 0;
+					// uintptr_t attrib_offset = 0;
+					// glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+					glBindVertexBuffer(i, buffer.id, 0, stride);
 					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
 						opengl::Attribute & attr = buffer.attributes[attr_i];
 						glEnableVertexAttribArray(attr_i);
-						glVertexAttribPointer(
-							attr_i, attr.count, element_type, false,
-							stride, (cmemory)attrib_offset
+						glVertexAttribFormat(
+							attr_i, attr.count, element_type, false, attrib_offset
 						);
+						glVertexAttribBinding(attr_i, i);
+						// glVertexAttribPointer(
+						// 	attr_i, attr.count, element_type, false,
+						// 	stride, (cmemory)attrib_offset
+						// );
 						attrib_offset += attr.count * element_size;
 					}
 				}
@@ -661,24 +669,21 @@ static void consume_single_instruction(Bytecode const & bc)
 		//
 		case Instruction::Free_Shader: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Program * resource = &ogl.programs[asset_id];
+			opengl::Program const * resource = &ogl.programs[asset_id];
 			glDeleteProgram(resource->id);
 			resource->opengl::Program::~Program();
 		} return;
 
 		case Instruction::Free_Texture: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture const * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
 			resource->opengl::Texture::~Texture();
 		} return;
 
 		case Instruction::Free_Mesh: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh const * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
 				glDeleteBuffers(GL_ARRAY_BUFFER, &resource->buffers[i].id);
 			}
@@ -690,23 +695,20 @@ static void consume_single_instruction(Bytecode const & bc)
 		//
 		case Instruction::Use_Shader: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Program * resource = &ogl.programs[asset_id];
+			opengl::Program const * resource = &ogl.programs[asset_id];
 			glUseProgram(resource->id);
 		} return;
 
 		case Instruction::Use_Texture: {
 			u32 asset_id = *bc.read<u32>();
-			s32 slot     = *bc.read<s32>();
-
-			opengl::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture const * resource = &ogl.textures[asset_id];
+			s32 slot = *bc.read<s32>();
 			glBindTextureUnit(slot, resource->id);
 		} return;
 
 		case Instruction::Use_Mesh: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh const * resource = &ogl.meshes[asset_id];
 			glBindVertexArray(resource->id);
 			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
 		} return;
@@ -742,15 +744,15 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Load_Texture: {
-			u32   asset_id = *bc.read<u32>();
-			ivec2 size     = *bc.read<ivec2>();
+			// @Change: receive a pointer instead, then free if needed?
+			u32 asset_id = *bc.read<u32>();
+			ivec2 size = *bc.read<ivec2>();
 			u8           channels     = *bc.read<u8>();
 			Data_Type    data_type    = *bc.read<Data_Type>();
 			Texture_Type texture_type = *bc.read<Texture_Type>();
-			// @Change: receive a pointer instead, then free if needed?
 			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
 
-			opengl::Texture * resource = &ogl.textures[asset_id];
+			opengl::Texture const * resource = &ogl.textures[asset_id];
 			glTextureSubImage2D(
 				resource->id,
 				0,
@@ -764,8 +766,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		//
 		case Instruction::Draw: {
 			u32 asset_id = *bc.read<u32>();
-
-			opengl::Mesh * resource = &ogl.meshes[asset_id];
+			opengl::Mesh const * resource = &ogl.meshes[asset_id];
 			glDrawElements(GL_TRIANGLES, resource->indices.count, GL_UNSIGNED_INT, nullptr);
 		} return;
 
