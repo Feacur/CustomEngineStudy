@@ -77,13 +77,18 @@ Premake
 > Target output into "/bin" folder  
 > Intermediate output into "/bin-int" folder  
 
-# Current state
+# Current state v1
 * app 1: ".exe" platform + hot reloadable ".dll" game module
 * app 2: ".exe" only console, written in C++
 * app 3: ".exe" only console, written in C
 * abstract data structures and algorithms
 
-# To do
+# Current state v2
+* abstract engine
+* platform layer (currently WinAPI, WGL, OpenGL)
+* a sandbox
+
+# To do v1
 * read the pathtracing book, implement
 * finish pacman
 * data with handles instead of pointers
@@ -91,3 +96,16 @@ Premake
 * assets management
 * "Entity Component System" framework
 * physics, 2d for starters
+
+# To do v2
+* finilize OpenGL VM
+* expose input
+* implement events (window, probably input)
+* add abstract renderer to hide calls to a graphics VM
+
+# References studied v1
+* https://github.com/HandmadeHero/cpp
+
+# References studied v2
+* https://github.com/etodd/lasercrabs
+* https://github.com/Marzac/le3d
