@@ -560,6 +560,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.textures.ensure_capacity(asset_id + 1);
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 
+			// -- allocate memory --
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
 			// }
@@ -573,6 +574,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				size.x, size.y
 			);
 
+			// -- chart memory --
 			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
 			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
 			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
@@ -603,6 +605,33 @@ static void consume_single_instruction(Bytecode const & bc)
 			}
 			resource->index_buffer = *bc.read<u8>();
 
+			// -- allocate memory --
+			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				for (u8 i = 0; i < resource->buffers.count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					glCreateBuffers(1, &buffer.id);
+					glNamedBufferData(
+						buffer.id,
+						buffer.capacity * get_type_size(buffer.type),
+						NULL, GL_STATIC_DRAW
+					);
+				}
+			// }
+			// else {
+			// 	for (u8 i = 0; i < resource->buffers.count; ++i) {
+			// 		opengl::Buffer & buffer = resource->buffers[i];
+			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 		glGenBuffers(1, &buffer.id);
+			// 		glBindBuffer(target, buffer.id);
+			// 		glBufferData(
+			// 			target,
+			// 			buffer.capacity * get_type_size(buffer.type),
+			// 			NULL, GL_STATIC_DRAW
+			// 		);
+			// 	}
+			// }
+
+			// -- chart memory --
 			glGenVertexArrays(1, &resource->id);
 			glBindVertexArray(resource->id);
 
@@ -616,13 +645,6 @@ static void consume_single_instruction(Bytecode const & bc)
 					opengl::Attribute & attr = buffer.attributes[attr_i];
 					stride += attr.count * element_size;
 				}
-
-				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
-					glCreateBuffers(1, &buffer.id);
-				// }
-				// else {
-				// 	glGenBuffers(1, &buffer.id);
-				// }
 
 				// if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 					glBindVertexBuffer(i, buffer.id, 0, stride); // glVertexArrayVertexBuffer(resource->id, ...);
@@ -652,29 +674,6 @@ static void consume_single_instruction(Bytecode const & bc)
 				// 	}
 				// }
 			}
-
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
-				for (u8 i = 0; i < resource->buffers.count; ++i) {
-					opengl::Buffer & buffer = resource->buffers[i];
-					glNamedBufferData(
-						buffer.id,
-						buffer.capacity * get_type_size(buffer.type),
-						NULL, GL_STATIC_DRAW
-					);
-				}
-			// }
-			// else {
-			// 	for (u8 i = 0; i < resource->buffers.count; ++i) {
-			// 		opengl::Buffer & buffer = resource->buffers[i];
-			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-			// 		glBindBuffer(target, buffer.id);
-			// 		glBufferData(
-			// 			target,
-			// 			buffer.capacity * get_type_size(buffer.type),
-			// 			NULL, GL_STATIC_DRAW
-			// 		);
-			// 	}
-			// }
 		} return;
 
 		//
