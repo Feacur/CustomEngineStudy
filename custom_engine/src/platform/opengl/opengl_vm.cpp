@@ -560,25 +560,53 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.textures.ensure_capacity(asset_id + 1);
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 
+			GLenum const target = GL_TEXTURE_2D;
+
 			// -- allocate memory --
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
-				glCreateTextures(GL_TEXTURE_2D, 1, &resource->id);
+				glCreateTextures(target, 1, &resource->id);
+				glTextureStorage2D(
+					resource->id, 1,
+					get_texture_internal_format(texture_type, data_type, channels),
+					size.x, size.y
+				);
 			// }
 			// else {
-			// 	glGenTextures(GL_TEXTURE_2D, 1, &resource->id);
+			// 	glGenTextures(target, 1, &resource->id);
+			// 	glBindTexture(target, resource->id);
+			// 	if (version_major == 4 && version_minor >= 2 || version_major > 4) {
+			// 		glTexStorage2D(
+			// 			target, 1,
+			// 			get_texture_internal_format(texture_type, data_type, channels),
+			// 			size.x, size.y
+			// 		);
+			// 	}
+			// 	else {
+			// 		glTexImage2D(
+			// 			target, 0,
+			// 			get_texture_internal_format(texture_type, data_type, channels),
+			// 			size.x, size.y, 0,
+			// 			get_texture_data_format(texture_type, channels),
+			// 			get_texture_data_type(texture_type, data_type),
+			// 			NULL
+			// 		);
+			// 	}
 			// }
 
-			glTextureStorage2D(
-				resource->id, 1,
-				get_texture_internal_format(texture_type, data_type, channels),
-				size.x, size.y
-			);
-
 			// -- chart memory --
-			glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
-			glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
-			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
-			glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
+			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
+				glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
+				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
+				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
+			// }
+			// else {
+			// 	// glBindTexture(target, resource->id);
+			// 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
+			// 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
+			// 	glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
+			// 	glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
+			// }
 		} return;
 
 		case Instruction::Allocate_Mesh: {
@@ -686,8 +714,6 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 		}
 			// 	}
 			// }
-
-			
 		} return;
 
 		//
