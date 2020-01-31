@@ -593,8 +593,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				resource->buffers.push();
 				opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
-				DT_Array in_buffer = read_data_array(bc);
-				buffer->type = in_buffer.type;
+				buffer->type = *bc.read<Data_Type>();
 
 				u32 attr_count = *bc.read<u32>();
 				buffer->attributes.set_capacity(attr_count);
@@ -605,26 +604,13 @@ static void consume_single_instruction(Bytecode const & bc)
 				}
 
 				glCreateBuffers(1, &buffer->id);
-				glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
-				glBufferData(
-					GL_ARRAY_BUFFER,
-					in_buffer.count * get_type_size(in_buffer.type),
-					in_buffer.data, GL_STATIC_DRAW
-				);
 			}
 
 			// indices
+			// u32 index_buffers_count = *bc.read<u32>();
+			// if (index_buffers_count > 0)
 			{
-				DT_Array indices = read_data_array(bc);
-
-				resource->indices.count = indices.count;
 				glCreateBuffers(1, &resource->indices.id);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
-				glBufferData(
-					GL_ELEMENT_ARRAY_BUFFER,
-					indices.count * get_type_size(indices.type),
-					indices.data, GL_STATIC_DRAW
-				);
 			}
 
 			// vertex array
@@ -643,9 +629,9 @@ static void consume_single_instruction(Bytecode const & bc)
 						stride += attr.count * element_size;
 					}
 
-					GLuint attrib_offset = 0;
 					// uintptr_t attrib_offset = 0;
 					// glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+					GLuint attrib_offset = 0;
 					glBindVertexBuffer(i, buffer.id, 0, stride);
 					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
 						opengl::Attribute & attr = buffer.attributes[attr_i];
@@ -714,6 +700,69 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		//
+		case Instruction::Load_Shader: {
+			// @Change: receive a pointer instead, then free if needed?
+			u32 asset_id = *bc.read<u32>();
+			opengl::Program const * resource = &ogl.programs[asset_id];
+		} return;
+
+		case Instruction::Load_Texture: {
+			// @Change: receive a pointer instead, then free if needed?
+			u32 asset_id = *bc.read<u32>();
+			ivec2 size = *bc.read<ivec2>();
+			u8           channels     = *bc.read<u8>();
+			Data_Type    data_type    = *bc.read<Data_Type>();
+			Texture_Type texture_type = *bc.read<Texture_Type>();
+			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
+
+			opengl::Texture const * resource = &ogl.textures[asset_id];
+			glTextureSubImage2D(
+				resource->id,
+				0,
+				0, 0, size.x, size.y,
+				get_texture_data_format(texture_type, channels),
+				get_texture_data_type(texture_type, data_type),
+				data
+			);
+		} return;
+		
+		case Instruction::Load_Mesh: {
+			// @Change: receive a pointer instead, then free if needed?
+			u32 asset_id = *bc.read<u32>();
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
+
+			// buffers
+			u32 buffers_count = *bc.read<u32>();
+			for (u32 i = 0; i < buffers_count; ++i) {
+				opengl::Buffer & buffer = resource->buffers[i];
+
+				DT_Array in_buffer = read_data_array(bc);
+				buffer.type = in_buffer.type;
+
+				glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+				glBufferData(
+					GL_ARRAY_BUFFER,
+					in_buffer.count * get_type_size(in_buffer.type),
+					in_buffer.data, GL_STATIC_DRAW
+				);
+			}
+
+			// indices
+			// u32 index_buffers_count = *bc.read<u32>();
+			// if (index_buffers_count > 0)
+			{
+				DT_Array indices = read_data_array(bc);
+
+				resource->indices.count = indices.count;
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+				glBufferData(
+					GL_ELEMENT_ARRAY_BUFFER,
+					indices.count * get_type_size(indices.type),
+					indices.data, GL_STATIC_DRAW
+				);
+			}
+		} return;
+
 		case Instruction::Load_Uniform: {
 			// @Todo: automize location with some asset_id
 			s32 location = *bc.read<s32>();
@@ -741,26 +790,6 @@ static void consume_single_instruction(Bytecode const & bc)
 				case Data_Type::mat3: glUniformMatrix3fv(location, uniform.count, false, (r32 *)uniform.data); break;
 				case Data_Type::mat4: glUniformMatrix4fv(location, uniform.count, false, (r32 *)uniform.data); break;
 			}
-		} return;
-
-		case Instruction::Load_Texture: {
-			// @Change: receive a pointer instead, then free if needed?
-			u32 asset_id = *bc.read<u32>();
-			ivec2 size = *bc.read<ivec2>();
-			u8           channels     = *bc.read<u8>();
-			Data_Type    data_type    = *bc.read<Data_Type>();
-			Texture_Type texture_type = *bc.read<Texture_Type>();
-			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
-
-			opengl::Texture const * resource = &ogl.textures[asset_id];
-			glTextureSubImage2D(
-				resource->id,
-				0,
-				0, 0, size.x, size.y,
-				get_texture_data_format(texture_type, channels),
-				get_texture_data_type(texture_type, data_type),
-				data
-			);
 		} return;
 
 		//
@@ -992,3 +1021,91 @@ static GLuint create_program(cstring source, custom::graphics::Shader_Part parts
 
 	return program_id;
 }
+
+/*
+case Instruction::Allocate_Mesh: {
+	// @Change: receive a pointer instead, then free if needed?
+	u32 asset_id = *bc.read<u32>();
+	ogl.meshes.ensure_capacity(asset_id + 1);
+	opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
+
+	// buffers
+	u32 buffers_count = *bc.read<u32>();
+	resource->buffers.set_capacity(buffers_count);
+	for (u32 i = 0; i < buffers_count; ++i) {
+		resource->buffers.push();
+		opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
+
+		DT_Array in_buffer = read_data_array(bc);
+		buffer->type = in_buffer.type;
+
+		u32 attr_count = *bc.read<u32>();
+		buffer->attributes.set_capacity(attr_count);
+		for (u32 attr_i = 0; attr_i < attr_count; ++attr_i) {
+			buffer->attributes.push();
+			opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
+			attribute->count = *bc.read<u8>();
+		}
+
+		glCreateBuffers(1, &buffer->id);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			in_buffer.count * get_type_size(in_buffer.type),
+			in_buffer.data, GL_STATIC_DRAW
+		);
+	}
+
+	// indices
+	{
+		DT_Array indices = read_data_array(bc);
+
+		resource->indices.count = indices.count;
+		glCreateBuffers(1, &resource->indices.id);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			indices.count * get_type_size(indices.type),
+			indices.data, GL_STATIC_DRAW
+		);
+	}
+
+	// vertex array
+	{
+		glGenVertexArrays(1, &resource->id);
+		glBindVertexArray(resource->id);
+
+		for (u8 i = 0; i < resource->buffers.count; ++i) {
+			opengl::Buffer & buffer = resource->buffers[i];
+			u16 element_size = get_type_size(buffer.type);
+			GLenum element_type = get_data_type(buffer.type);
+
+			GLsizei stride = 0;
+			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+				opengl::Attribute & attr = buffer.attributes[attr_i];
+				stride += attr.count * element_size;
+			}
+
+			GLuint attrib_offset = 0;
+			// uintptr_t attrib_offset = 0;
+			// glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+			glBindVertexBuffer(i, buffer.id, 0, stride);
+			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+				opengl::Attribute & attr = buffer.attributes[attr_i];
+				glEnableVertexAttribArray(attr_i);
+				glVertexAttribFormat(
+					attr_i, attr.count, element_type, false, attrib_offset
+				);
+				glVertexAttribBinding(attr_i, i);
+				// glVertexAttribPointer(
+				// 	attr_i, attr.count, element_type, false,
+				// 	stride, (cmemory)attrib_offset
+				// );
+				attrib_offset += attr.count * element_size;
+			}
+		}
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+	}
+} return;
+*/

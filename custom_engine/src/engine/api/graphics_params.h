@@ -168,8 +168,10 @@ enum struct Instruction : u8
 	Use_Texture,
 	Use_Mesh,
 	//
-	Load_Uniform,
+	Load_Shader,
 	Load_Texture,
+	Load_Mesh,
+	Load_Uniform,
 	//
 	Draw,
 	Overlay,

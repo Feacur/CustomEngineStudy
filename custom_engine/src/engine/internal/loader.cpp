@@ -192,9 +192,15 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 
 	bc.write(graphics::Instruction::Allocate_Mesh);
 	bc.write(asset_id);
+	bc.write((u32)1); bc.write(graphics::Data_Type::r32);
+	bc.write(attribs);
+	// bc.write((u32)1);
+	
+	bc.write(graphics::Instruction::Load_Mesh);
+	bc.write(asset_id);
 	bc.write((u32)1);
 	write_data_array(bc, vertices);
-	bc.write(attribs);
+	// bc.write((u32)1);
 	write_data_array(bc, indices);
 }
 
