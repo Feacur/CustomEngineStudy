@@ -136,6 +136,24 @@ UNDERLYING_TYPE_META(Shader_Part, u8)
 IS_ENUM_META(Shader_Part)
 ENUM_FLAG_OPERATORS_IMPL(Shader_Part)
 
+enum struct Mesh_Frequency : u8
+{
+	Static,
+	Dynamic,
+	Stream,
+};
+UNDERLYING_TYPE_META(Mesh_Frequency, u8)
+IS_ENUM_META(Mesh_Frequency)
+
+enum struct Mesh_Access : u8
+{
+	Draw,
+	Read,
+	Copy,
+};
+UNDERLYING_TYPE_META(Mesh_Access, u8)
+IS_ENUM_META(Mesh_Access)
+
 enum struct Instruction : u8
 {
 	None,

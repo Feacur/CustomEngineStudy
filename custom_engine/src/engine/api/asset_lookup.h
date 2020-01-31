@@ -29,7 +29,15 @@ namespace texture {
 };
 
 namespace mesh {
+	struct Meta
+	{
+		graphics::Mesh_Frequency vfrequency; graphics::Mesh_Access vaccess;
+		graphics::Mesh_Frequency ifrequency; graphics::Mesh_Access iaccess;
+	};
+	extern Meta meta_presets[];
+
 	extern cstring paths[];
+	extern u8 meta_ids[];
 };
 
 }}

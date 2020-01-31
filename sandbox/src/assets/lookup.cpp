@@ -47,8 +47,21 @@ namespace texture {
 };
 
 namespace mesh {
+	Meta meta_presets[] = {
+		{}, // NULL
+		{ // 1
+			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
+			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
+		},
+	};
+
 	cstring paths[] = {
 		"",
+		NULL
+	};
+	
+	u8 meta_ids[] = {
+		1,
 		NULL
 	};
 };

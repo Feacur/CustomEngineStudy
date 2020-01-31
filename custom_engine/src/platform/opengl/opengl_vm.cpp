@@ -44,6 +44,8 @@ template struct custom::Array<Attribute>;
 struct Buffer
 {
 	GLuint id;
+	custom::graphics::Mesh_Frequency frequency;
+	custom::graphics::Mesh_Access access;
 	custom::graphics::Data_Type type;
 	u32 capacity, count;
 	custom::Array<Attribute> attributes;
@@ -383,6 +385,28 @@ static cstring read_cstring(Bytecode const & bc) {
 	return bc.read<char>(count);
 }
 
+static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
+	switch (frequency) {
+		case Mesh_Frequency::Static: switch (access) {
+			case Mesh_Access::Draw: return GL_STATIC_DRAW;
+			case Mesh_Access::Read: return GL_STATIC_READ;
+			case Mesh_Access::Copy: return GL_STATIC_COPY;
+		}
+		case Mesh_Frequency::Dynamic: switch (access) {
+			case Mesh_Access::Draw: return GL_DYNAMIC_DRAW;
+			case Mesh_Access::Read: return GL_DYNAMIC_READ;
+			case Mesh_Access::Copy: return GL_DYNAMIC_COPY;
+		}
+		case Mesh_Frequency::Stream: switch (access) {
+			case Mesh_Access::Draw: return GL_STREAM_DRAW;
+			case Mesh_Access::Read: return GL_STREAM_READ;
+			case Mesh_Access::Copy: return GL_STREAM_COPY;
+		}
+	}
+	CUSTOM_ASSERT(false, "unknown frequency %d and access %d", frequency, access);
+	return GL_NONE;
+}
+
 static void consume_single_instruction(Bytecode const & bc)
 {
 	Instruction instruction = *bc.read<Instruction>();
@@ -620,6 +644,8 @@ static void consume_single_instruction(Bytecode const & bc)
 				resource->buffers.push();
 				opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
+				buffer->frequency = *bc.read<Mesh_Frequency>();
+				buffer->access = *bc.read<Mesh_Access>();
 				buffer->type = *bc.read<Data_Type>();
 				buffer->capacity = *bc.read<u32>();
 
@@ -637,24 +663,26 @@ static void consume_single_instruction(Bytecode const & bc)
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				for (u8 i = 0; i < resource->buffers.count; ++i) {
 					opengl::Buffer & buffer = resource->buffers[i];
+					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 					glCreateBuffers(1, &buffer.id);
 					glNamedBufferData(
 						buffer.id,
 						buffer.capacity * get_type_size(buffer.type),
-						NULL, GL_STATIC_DRAW
+						NULL, usage
 					);
 				}
 			// }
 			// else {
 			// 	for (u8 i = 0; i < resource->buffers.count; ++i) {
 			// 		opengl::Buffer & buffer = resource->buffers[i];
+			// 		GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			// 		glGenBuffers(1, &buffer.id);
 			// 		glBindBuffer(target, buffer.id);
 			// 		glBufferData(
 			// 			target,
 			// 			buffer.capacity * get_type_size(buffer.type),
-			// 			NULL, GL_STATIC_DRAW
+			// 			NULL, usage
 			// 		);
 			// 	}
 			// }
@@ -805,6 +833,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 buffers_count = *bc.read<u32>();
 			for (u32 i = 0; i < buffers_count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
+				GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
 				DT_Array in_buffer = read_data_array(bc);
@@ -815,7 +844,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				glBufferData(
 					target,
 					in_buffer.count * get_type_size(in_buffer.type),
-					in_buffer.data, GL_STATIC_DRAW
+					in_buffer.data, usage
 				);
 			}
 		} return;

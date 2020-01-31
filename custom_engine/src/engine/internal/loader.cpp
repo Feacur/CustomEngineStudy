@@ -179,6 +179,9 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	// Array<u8> file; file_read(path, file);
 	// if (file.count != file.capacity) { return; }
 
+	u8 meta_id = asset::mesh::meta_ids[asset_id];
+	asset::mesh::Meta meta = asset::mesh::meta_presets[meta_id];
+
 	r32 const vertex_data[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
 		/*position*/  0.5f, -0.5f, 0.0f, /*UV*/ 1.0f, 0.0f,
@@ -197,8 +200,10 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	bc.write(graphics::Instruction::Allocate_Mesh);
 	bc.write(asset_id);
 	bc.write((u32)2);
-	bc.write(graphics::Data_Type::r32); bc.write((u32)C_ARRAY_LENGTH(vertex_data)); bc.write(vertex_attributes);
-	bc.write(graphics::Data_Type::u32); bc.write((u32)C_ARRAY_LENGTH(index_data)); bc.write((u32)0);
+	bc.write(meta.vfrequency); bc.write(meta.vaccess); bc.write(graphics::Data_Type::r32);
+	bc.write((u32)C_ARRAY_LENGTH(vertex_data)); bc.write(vertex_attributes);
+	bc.write(meta.ifrequency); bc.write(meta.iaccess); bc.write(graphics::Data_Type::u32);
+	bc.write((u32)C_ARRAY_LENGTH(index_data)); bc.write((u32)0);
 	bc.write((u8)1);
 
 	bc.write(graphics::Instruction::Load_Mesh);
