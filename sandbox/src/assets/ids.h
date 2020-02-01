@@ -7,6 +7,7 @@ enum struct Shader : u32
 {
 	renderer2d,
 	device,
+	particle_device,
 	count,
 };
 UNDERLYING_TYPE_META(Shader, u32)
@@ -23,6 +24,7 @@ IS_ENUM_META(Texture)
 enum struct Mesh : u32
 {
 	quad,
+	particle_test,
 	count,
 };
 UNDERLYING_TYPE_META(Mesh, u32)

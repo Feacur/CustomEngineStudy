@@ -209,8 +209,31 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	bc.write(graphics::Instruction::Load_Mesh);
 	bc.write(asset_id);
 	bc.write((u32)2);
-	write_data_array(bc, vertex_data);
-	write_data_array(bc, index_data);
+	bc.write((u32)0); write_data_array(bc, vertex_data);
+	bc.write((u32)0); write_data_array(bc, index_data);
+}
+
+void load_particle_test(Bytecode & bc, u32 asset_id) {
+	bc.write(graphics::Instruction::Message_Inline);
+	bc.write("load particle_test");
+
+	// cstring path = asset::mesh::paths[asset_id];
+	// Array<u8> file; file_read(path, file);
+	// if (file.count != file.capacity) { return; }
+
+	u8 meta_id = asset::mesh::meta_ids[asset_id];
+	asset::mesh::Meta meta = asset::mesh::meta_presets[meta_id];
+
+	u8 const vertex_attributes[] = { /*position*/ 3, /*color*/ 4, };
+
+	bc.write(graphics::Instruction::Allocate_Mesh);
+	bc.write(asset_id);
+	bc.write((u32)2);
+	bc.write(meta.vfrequency); bc.write(meta.vaccess); bc.write(graphics::Data_Type::r32);
+	bc.write((u32)((3 + 4) * 4 * 128)); bc.write(vertex_attributes);
+	bc.write(meta.ifrequency); bc.write(meta.iaccess); bc.write(graphics::Data_Type::u32);
+	bc.write((u32)((3) * 2 * 128)); bc.write((u32)0);
+	bc.write((u8)1);
 }
 
 }

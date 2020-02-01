@@ -62,9 +62,9 @@ template struct custom::Array<Mesh>;
 
 struct Data
 {
-	custom::Array<Program> programs;
-	custom::Array<Texture> textures;
-	custom::Array<Mesh>    meshes;
+	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
+	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
+	custom::Array<Mesh>    meshes;   // count indicates amount of GPU allocated objects
 };
 
 }
@@ -79,7 +79,9 @@ static void opengl_message_callback(
 	GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, glstring message, cmemory userParam
 );
-static bool link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
+static void platform_consume_errors();
+static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
+static bool platform_verify_program(GLuint id, GLenum parameter);
 
 namespace custom {
 namespace graphics {
@@ -115,10 +117,7 @@ void VM::update(Bytecode const & bc)
 	while (bc.offset < bc.buffer.count) {
 		consume_single_instruction(bc);
 		#if !defined(CUSTOM_SHIPPING)
-			static GLenum error = 0;
-			while ((error = glGetError()) != GL_NO_ERROR) {
-				CUSTOM_ASSERT(false, "OpenGL error 0x%x", error);
-			}
+		platform_consume_errors();
 		#endif
 	}
 }
@@ -409,6 +408,9 @@ static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
 
 static void consume_single_instruction(Bytecode const & bc)
 {
+	static u32 active_mesh = UINT32_MAX;
+	static u32 active_program = UINT32_MAX;
+
 	Instruction instruction = *bc.read<Instruction>();
 	switch (instruction)
 	{
@@ -566,6 +568,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32     asset_id = *bc.read<u32>();
 			ogl.programs.ensure_capacity(asset_id + 1);
 			opengl::Program * resource = new (&ogl.programs[asset_id]) opengl::Program;
+			++ogl.programs.count;
 			resource->id = glCreateProgram();
 		} return;
 
@@ -583,6 +586,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			ogl.textures.ensure_capacity(asset_id + 1);
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
+			++ogl.textures.count;
 
 			GLenum const target = GL_TEXTURE_2D;
 
@@ -637,6 +641,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
+			++ogl.meshes.count;
 
 			u32 buffers_count = *bc.read<u32>();
 			resource->buffers.set_capacity(buffers_count);
@@ -648,6 +653,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				buffer->access = *bc.read<Mesh_Access>();
 				buffer->type = *bc.read<Data_Type>();
 				buffer->capacity = *bc.read<u32>();
+				buffer->count = 0;
 
 				u32 attr_count = *bc.read<u32>();
 				buffer->attributes.set_capacity(attr_count);
@@ -690,6 +696,11 @@ static void consume_single_instruction(Bytecode const & bc)
 			// -- chart memory --
 			glGenVertexArrays(1, &resource->id);
 			glBindVertexArray(resource->id);
+			for (u8 i = 0; i < resource->buffers.count; ++i) {
+				opengl::Buffer & buffer = resource->buffers[i];
+				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				glBindBuffer(target, buffer.id);
+			}
 
 			// if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 				for (u8 i = 0; i < resource->buffers.count; ++i) {
@@ -750,6 +761,10 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Program const * resource = &ogl.programs[asset_id];
 			glDeleteProgram(resource->id);
 			resource->opengl::Program::~Program();
+			--ogl.programs.count;
+			if (active_program == asset_id) {
+				active_program = UINT32_MAX;
+			}
 		} return;
 
 		case Instruction::Free_Texture: {
@@ -757,6 +772,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Texture const * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
 			resource->opengl::Texture::~Texture();
+			--ogl.textures.count;
 		} return;
 
 		case Instruction::Free_Mesh: {
@@ -768,6 +784,10 @@ static void consume_single_instruction(Bytecode const & bc)
 			}
 			glDeleteVertexArrays(1, &resource->id);
 			resource->opengl::Mesh::~Mesh();
+			--ogl.meshes.count;
+			if (active_mesh == asset_id) {
+				active_mesh = UINT32_MAX;
+			}
 		} return;
 
 		//
@@ -775,6 +795,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Program const * resource = &ogl.programs[asset_id];
 			glUseProgram(resource->id);
+			active_program = asset_id;
 		} return;
 
 		case Instruction::Use_Texture: {
@@ -787,8 +808,10 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
+			// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
 			glBindVertexArray(resource->id);
-			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indices.id);
+			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
+			active_mesh = asset_id;
 		} return;
 
 		//
@@ -799,7 +822,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			Shader_Part parts = *bc.read<Shader_Part>();
 
 			opengl::Program * resource = &ogl.programs[asset_id];
-			link_program(resource->id, source, parts);
+			platform_link_program(resource->id, source, parts);
 
 			// @Todo: process uniforms
 			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
@@ -836,16 +859,32 @@ static void consume_single_instruction(Bytecode const & bc)
 				GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
+				u32 offset = *bc.read<u32>();
 				DT_Array in_buffer = read_data_array(bc);
-				// buffer.type  = in_buffer.type; // @Todo: should we check?
+				CUSTOM_ASSERT(buffer.type == in_buffer.type, "loading different data type");
+				if (in_buffer.count > buffer.capacity - offset) {
+					in_buffer.count = buffer.capacity - offset;
+				}
+
 				buffer.count = in_buffer.count;
 
-				glBindBuffer(target, buffer.id);
-				glBufferData(
-					target,
-					in_buffer.count * get_type_size(in_buffer.type),
-					in_buffer.data, usage
-				);
+				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+					glNamedBufferSubData(
+						buffer.id,
+						offset,
+						in_buffer.count * get_type_size(in_buffer.type),
+						in_buffer.data
+					);
+				// }
+				// else {
+				// glBindBuffer(target, buffer.id);
+				// glBufferSubData(
+				// 	target,
+				// 	offset,
+				// 	in_buffer.count * get_type_size(in_buffer.type),
+				// 	in_buffer.data
+				// );
+				// }
 			}
 		} return;
 
@@ -880,14 +919,18 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		//
 		case Instruction::Draw: {
-			u32 asset_id = *bc.read<u32>();
-			opengl::Mesh const * resource = &ogl.meshes[asset_id];
-			opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
-			GLenum data_type = get_data_type(indices.type);
-			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
 			// // GLint program_id;
 			// // glGetIntegerv(GL_CURRENT_PROGRAM, &program_id);
-			// // glValidateProgram(program_id);
+			CUSTOM_ASSERT(active_program < ogl.programs.capacity, "no active program");
+			opengl::Program const * program = &ogl.programs[active_program];
+			// glValidateProgram(program->id);
+			// platform_verify_program(program->id, GL_VALIDATE_STATUS);
+
+			CUSTOM_ASSERT(active_mesh < ogl.meshes.capacity, "no active mesh");
+			opengl::Mesh const * mesh = &ogl.meshes[active_mesh];
+
+			opengl::Buffer const & indices = mesh->buffers[mesh->index_buffer];
+			GLenum data_type = get_data_type(indices.type);
 			glDrawElements(GL_TRIANGLES, indices.count, data_type, nullptr);
 		} return;
 
@@ -990,7 +1033,7 @@ static void opengl_message_callback(
 
 	CUSTOM_MESSAGE(
 		"OpenGL message:"
-		"\n  %d"
+		"\n  0x%x"
 		"\n  %s"
 		"\n  - type:     %s"
 		"\n  - severity: %s"
@@ -1002,37 +1045,98 @@ static void opengl_message_callback(
 		source_string
 	);
 }
+
+#define CASE_IMPL(T) case T: CUSTOM_ASSERT(false, "'0x%x' OpenGL error: " #T, error); break
+static void platform_consume_errors()
+{
+	GLenum error;
+	while ((error = glGetError()) != GL_NO_ERROR) {
+		switch (error) {
+			CASE_IMPL(GL_INVALID_ENUM);
+			CASE_IMPL(GL_INVALID_VALUE);
+			CASE_IMPL(GL_INVALID_OPERATION);
+			CASE_IMPL(GL_INVALID_FRAMEBUFFER_OPERATION);
+			CASE_IMPL(GL_OUT_OF_MEMORY);
+			CASE_IMPL(GL_STACK_UNDERFLOW);
+			CASE_IMPL(GL_STACK_OVERFLOW);
+			default: CUSTOM_ASSERT(false, "'0x%x' OpenGL error: unknown", error);
+		}
+	}
+}
+#undef CASE_IMPL
+
 #endif
 
-static bool verify_compilation(GLuint id)
+// static void platform_get_shader_source(GLuint id, custom::Array<GLchar> & buffer)
+// {
+// 	GLint max_length;
+// 	glGetShaderiv(id, GL_SHADER_SOURCE_LENGTH, &max_length);
+// 	if (max_length) {
+// 		buffer.set_capacity(max_length);
+// 		glGetShaderSource(id, max_length, &max_length, buffer.data);
+// 		buffer.count = max_length;
+// 	}
+// }
+
+// static void print_shader_source(GLuint id)
+// {
+// 	custom::Array<GLchar> text;
+// 	get_shader_source(id, text);
+// 	if (text.count) { CUSTOM_MESSAGE("shader source:\n%s", text.data); }
+// 	else { CUSTOM_MESSAGE("no shader source"); }
+// }
+
+// static void platform_get_program_binary(GLuint id, GLenum & format, custom::Array<u8> & buffer)
+// {
+// 	GLint max_length;
+// 	glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &max_length);
+// 	if (max_length) {
+// 		buffer.set_capacity(max_length);
+// 		glGetProgramBinary(id, max_length, &max_length, &format, buffer.data);
+// 		buffer.count = max_length;
+// 	}
+// }
+
+static bool verify_shader(GLuint id, GLenum parameter)
 {
-	GLint status = 0;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+	// GL_DELETE_STATUS
+	// GL_COMPILE_STATUS
+
+	GLint status;
+	glGetShaderiv(id, parameter, &status);
 	if (status) { return true; }
 
 	// @Note: linker will inform of the errors anyway
-	GLint max_length = 0;
+	GLint max_length;
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &max_length);
 
-	custom::Array<GLchar> info_log(max_length);
-	glGetShaderInfoLog(id, max_length, &max_length, info_log.data);
-	CUSTOM_MESSAGE("failed to compile shader:\n%s", info_log.data);
+	if (max_length) {
+		custom::Array<GLchar> text(max_length);
+		glGetShaderInfoLog(id, max_length, &max_length, text.data);
+		CUSTOM_MESSAGE("shader status:\n%s", text.data);
+	}
 
 	return false;
 }
 
-static bool verify_linking(GLuint id)
+static bool platform_verify_program(GLuint id, GLenum parameter)
 {
-	GLint status = 0;
-	glGetProgramiv(id, GL_LINK_STATUS, &status);
+	// GL_DELETE_STATUS
+	// GL_LINK_STATUS
+	// GL_VALIDATE_STATUS
+
+	GLint status;
+	glGetProgramiv(id, parameter, &status);
 	if (status) { return true; }
 
-	GLint max_length = 0;
+	GLint max_length;
 	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &max_length);
 
-	custom::Array<GLchar> info_log(max_length);
-	glGetProgramInfoLog(id, max_length, &max_length, info_log.data);
-	CUSTOM_MESSAGE("failed to link program:\n%s", info_log.data);
+	if (max_length) {
+		custom::Array<GLchar> text(max_length);
+		glGetProgramInfoLog(id, max_length, &max_length, text.data);
+		CUSTOM_MESSAGE("program status:\n%s", text.data);
+	}
 
 	return false;
 }
@@ -1067,7 +1171,7 @@ static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, 
 	return count;
 }
 
-static bool link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts)
+static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts)
 {
 	u8 const props_cap = 4;
 	static Shader_Props props[props_cap];
@@ -1085,7 +1189,8 @@ static bool link_program(GLuint program_id, cstring source, custom::graphics::Sh
 
 	bool is_compiled = true;
 	for (u8 i = 0; i < props_count; ++i) {
-		bool isOk = verify_compilation(shaders[i]);
+		bool isOk = verify_shader(shaders[i], GL_COMPILE_STATUS);
+		// if (!isOk) { print_shader_source(shaders[i]); }
 		is_compiled = is_compiled && isOk;
 	}
 
@@ -1094,7 +1199,7 @@ static bool link_program(GLuint program_id, cstring source, custom::graphics::Sh
 		glAttachShader(program_id, shaders[i]);
 	}
 	glLinkProgram(program_id);
-	bool is_linked = verify_linking(program_id);
+	bool is_linked = platform_verify_program(program_id, GL_LINK_STATUS);
 
 	// Free shader resources
 	for (u8 i = 0; i < props_count; ++i) {

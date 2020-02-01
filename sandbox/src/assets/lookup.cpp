@@ -14,10 +14,12 @@ namespace shader {
 	cstring paths[] = {
 		"assets/shaders/renderer2d.glsl",
 		"assets/shaders/device.glsl",
+		"assets/shaders/particle_device.glsl",
 		NULL
 	};
 	
 	u8 meta_ids[] = {
+		1,
 		1,
 		1,
 		NULL
@@ -53,15 +55,21 @@ namespace mesh {
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 		},
+		{ // 2
+			graphics::Mesh_Frequency::Dynamic, graphics::Mesh_Access::Draw,
+			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
+		},
 	};
 
 	cstring paths[] = {
+		"",
 		"",
 		NULL
 	};
 	
 	u8 meta_ids[] = {
 		1,
+		2,
 		NULL
 	};
 };

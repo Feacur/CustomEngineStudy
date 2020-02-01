@@ -80,30 +80,16 @@ int main(int argc, char * argv[]) {
 	custom::graphics::reset_settings(gbc);
 
 	custom::load_shader(gbc, (u32)sandbox::Shader::device);
+	custom::load_shader(gbc, (u32)sandbox::Shader::particle_device);
 	custom::load_image(gbc, (u32)sandbox::Texture::checkerboard);
 	custom::load_quad(gbc, (u32)sandbox::Mesh::quad);
+	custom::load_particle_test(gbc, (u32)sandbox::Mesh::particle_test);
 
 	ivec2 viewport_position = {};
 	ivec2 viewport_size = window->get_size();
 	gbc.write(custom::graphics::Instruction::Viewport);
 	gbc.write(viewport_position);
 	gbc.write(viewport_size);
-
-	gbc.write(custom::graphics::Instruction::Use_Shader);
-	gbc.write(sandbox::Shader::device);
-
-	gbc.write(custom::graphics::Instruction::Load_Uniform);
-	gbc.write((s32)0);
-	gbc.write(custom::graphics::Data_Type::tex);
-	gbc.write((u32)1);
-	gbc.write((s32)0);
-
-	gbc.write(custom::graphics::Instruction::Use_Texture);
-	gbc.write(sandbox::Texture::checkerboard);
-	gbc.write((s32)0);
-
-	gbc.write(custom::graphics::Instruction::Use_Mesh);
-	gbc.write(sandbox::Mesh::quad);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -118,8 +104,34 @@ int main(int argc, char * argv[]) {
 		// @Todo: input, logic
 
 		custom::graphics::clear(gbc);
-		gbc.write(custom::graphics::Instruction::Draw);
+
+		// quad
+		gbc.write(custom::graphics::Instruction::Use_Shader);
+		gbc.write(sandbox::Shader::device);
+
+		gbc.write(custom::graphics::Instruction::Load_Uniform);
+		gbc.write((s32)0);
+		gbc.write(custom::graphics::Data_Type::tex);
+		gbc.write((u32)1);
+		gbc.write((s32)0);
+
+		gbc.write(custom::graphics::Instruction::Use_Texture);
+		gbc.write(sandbox::Texture::checkerboard);
+		gbc.write((s32)0);
+
+		gbc.write(custom::graphics::Instruction::Use_Mesh);
 		gbc.write(sandbox::Mesh::quad);
+
+		gbc.write(custom::graphics::Instruction::Draw);
+
+		// particle_test
+		gbc.write(custom::graphics::Instruction::Use_Shader);
+		gbc.write(sandbox::Shader::particle_device);
+
+		gbc.write(custom::graphics::Instruction::Use_Mesh);
+		gbc.write(sandbox::Mesh::particle_test);
+
+		gbc.write(custom::graphics::Instruction::Draw);
 
 		gvm.update(gbc);
 		window->update();
