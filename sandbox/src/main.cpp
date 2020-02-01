@@ -79,6 +79,7 @@ int main(int argc, char * argv[]) {
 	custom::Bytecode gbc;
 	custom::graphics::reset_settings(gbc);
 
+	custom::init_uniforms(gbc);
 	custom::load_shader(gbc, (u32)sandbox::Shader::device);
 	custom::load_shader(gbc, (u32)sandbox::Shader::particle_device);
 	custom::load_image(gbc, (u32)sandbox::Texture::checkerboard);
@@ -106,32 +107,37 @@ int main(int argc, char * argv[]) {
 		custom::graphics::clear(gbc);
 
 		// quad
-		gbc.write(custom::graphics::Instruction::Use_Shader);
-		gbc.write(sandbox::Shader::device);
+		{
+			s32 texture_slot = 0;
 
-		gbc.write(custom::graphics::Instruction::Load_Uniform);
-		gbc.write((s32)0);
-		gbc.write(custom::graphics::Data_Type::tex);
-		gbc.write((u32)1);
-		gbc.write((s32)0);
+			gbc.write(custom::graphics::Instruction::Use_Shader);
+			gbc.write(sandbox::Shader::device);
 
-		gbc.write(custom::graphics::Instruction::Use_Texture);
-		gbc.write(sandbox::Texture::checkerboard);
-		gbc.write((s32)0);
+			gbc.write(custom::graphics::Instruction::Use_Texture);
+			gbc.write(sandbox::Texture::checkerboard);
+			gbc.write(texture_slot);
 
-		gbc.write(custom::graphics::Instruction::Use_Mesh);
-		gbc.write(sandbox::Mesh::quad);
+			gbc.write(custom::graphics::Instruction::Load_Uniform);
+			gbc.write(sandbox::Uniform::texture);
+			gbc.write(custom::graphics::Data_Type::s32);
+			gbc.write((u32)1); gbc.write(texture_slot);
 
-		gbc.write(custom::graphics::Instruction::Draw);
+			gbc.write(custom::graphics::Instruction::Use_Mesh);
+			gbc.write(sandbox::Mesh::quad);
+
+			gbc.write(custom::graphics::Instruction::Draw);
+		}
 
 		// particle_test
-		gbc.write(custom::graphics::Instruction::Use_Shader);
-		gbc.write(sandbox::Shader::particle_device);
+		{
+			gbc.write(custom::graphics::Instruction::Use_Shader);
+			gbc.write(sandbox::Shader::particle_device);
 
-		gbc.write(custom::graphics::Instruction::Use_Mesh);
-		gbc.write(sandbox::Mesh::particle_test);
+			gbc.write(custom::graphics::Instruction::Use_Mesh);
+			gbc.write(sandbox::Mesh::particle_test);
 
-		gbc.write(custom::graphics::Instruction::Draw);
+			gbc.write(custom::graphics::Instruction::Draw);
+		}
 
 		gvm.update(gbc);
 		window->update();

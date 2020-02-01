@@ -88,12 +88,9 @@ enum struct Texture_Type : u8
 UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
-typedef struct { s32 value; } tex;
-
 enum struct Data_Type : u8
 {
 	None,
-	tex,
 	s8, s16, s32,
 	u8, u16, u32,
 	r32, r64,
@@ -158,6 +155,8 @@ enum struct Instruction : u8
 {
 	None,
 	//
+	Init_Uniforms,
+	//
 	Viewport,
 	Clear,
 	Depth_Read,
@@ -171,8 +170,6 @@ enum struct Instruction : u8
 	Stencil_Mask,
 	Blend_Mode,
 	Cull_Mode,
-	//
-	Prepare_Uniform,
 	//
 	Allocate_Shader,
 	Allocate_Texture,

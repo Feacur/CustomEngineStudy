@@ -13,6 +13,15 @@ enum struct Shader : u32
 UNDERLYING_TYPE_META(Shader, u32)
 IS_ENUM_META(Shader)
 
+enum struct Uniform : u32
+{
+	texture,
+	color,
+	count,
+};
+UNDERLYING_TYPE_META(Uniform, u32)
+IS_ENUM_META(Uniform)
+
 enum struct Texture : u32
 {
 	checkerboard,

@@ -26,6 +26,14 @@ namespace shader {
 	};
 };
 
+namespace uniform {
+	cstring names[] = {
+		"u_Texture",
+		"u_Color",
+		NULL
+	};
+};
+
 namespace texture {
 	Meta meta_presets[] = {
 		{}, // NULL

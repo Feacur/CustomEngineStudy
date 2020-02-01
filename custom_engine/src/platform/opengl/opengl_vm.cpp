@@ -22,10 +22,18 @@ static GLint version_minor;
 
 namespace opengl {
 
+struct Field
+{
+	u32 id;
+	GLint location;
+};
+template struct custom::Array<Field>;
+
 struct Program
 {
 	GLuint id;
-	custom::Array<GLuint> uniforms;
+	// custom::Array<Field> attributes;
+	custom::Array<Field> uniforms;
 };
 template struct custom::Array<Program>;
 
@@ -66,6 +74,9 @@ template struct custom::Array<Mesh>;
 
 struct Data
 {
+	custom::Array<u32>  uniform_names_offsets;
+	custom::Array<char> uniform_names;
+
 	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // count indicates amount of GPU allocated objects
@@ -75,17 +86,37 @@ struct Data
 
 static opengl::Data ogl;
 
+static u32 find_uniform_id(cstring value) {
+	for (u32 i = 0; i < ogl.uniform_names_offsets.count; ++i) {
+		u32 name_offset = ogl.uniform_names_offsets[i];
+		cstring name = &ogl.uniform_names[name_offset];
+		if (strcmp(value, name) == 0) { return i; }
+	}
+	return UINT32_MAX;
+}
+
 //
 // API implementation
 //
+
+struct Shader_Field
+{
+	GLchar name[32];
+	GLsizei name_count;
+	GLint size;
+	GLenum type;
+	GLint location;
+};
 
 static void opengl_message_callback(
 	GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, glstring message, cmemory userParam
 );
 static void platform_consume_errors();
-static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
 static bool platform_verify_program(GLuint id, GLenum parameter);
+static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
+static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer);
+static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer);
 
 namespace custom {
 namespace graphics {
@@ -308,8 +339,6 @@ static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_ty
 
 static GLenum get_data_type(Data_Type value) {
 	switch (value) {
-		case Data_Type::tex: return GL_INT;
-		//
 		case Data_Type::s8:  return GL_BYTE;
 		case Data_Type::s16: return GL_SHORT;
 		case Data_Type::s32: return GL_INT;
@@ -344,7 +373,6 @@ static GLenum get_data_type(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
-		CASE_IMPL(tex);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -361,7 +389,6 @@ static u16 get_type_size(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
-		CASE_IMPL(tex);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -383,9 +410,11 @@ static DT_Array read_data_array(Bytecode const & bc) {
 	return { type, count, data };
 }
 
-static cstring read_cstring(Bytecode const & bc) {
+struct C_String { u32 count; cstring data; };
+static C_String read_cstring(Bytecode const & bc) {
 	u32 count = *bc.read<u32>();
-	return bc.read<char>(count);
+	cstring data = bc.read<char>(count);
+	return { count, data };
 }
 
 static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
@@ -563,8 +592,19 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		//
-		case Instruction::Prepare_Uniform: {
-			CUSTOM_MESSAGE("// @Todo: Prepare_Uniform");
+		case Instruction::Init_Uniforms: {
+			// @Note: not an OpenGL instruction per se
+			//        
+			u32 const name_capacity = C_ARRAY_LENGTH(Shader_Field::name);
+			u32 count = *bc.read<u32>();
+			ogl.uniform_names_offsets.set_capacity(count);
+			ogl.uniform_names.ensure_capacity(count * name_capacity);
+			for (u32 i = 0; i < count; ++i) {
+				C_String name = read_cstring(bc);
+				ogl.uniform_names_offsets[i] = ogl.uniform_names.count;
+				ogl.uniform_names.push_range(name.data, name.count);
+			}
+			ogl.uniform_names_offsets.count = count;
 		} return;
 
 		//
@@ -806,7 +846,15 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Texture const * resource = &ogl.textures[asset_id];
 			s32 slot = *bc.read<s32>();
-			glBindTextureUnit(slot, resource->id);
+
+			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				glBindTextureUnit(slot, resource->id);
+			// }
+			// else {
+			// 	GLenum const target = GL_TEXTURE_2D;
+			// 	glActiveTexture(GL_TEXTURE0 + slot);
+			// 	glBindTexture(target, resource->id);
+			// }
 		} return;
 
 		case Instruction::Use_Mesh: {
@@ -822,14 +870,46 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Shader: {
 			// @Change: receive a pointer instead, then free if needed?
 			u32 asset_id = *bc.read<u32>();
-			cstring source = read_cstring(bc);
+			C_String source = read_cstring(bc);
 			Shader_Part parts = *bc.read<Shader_Part>();
 
 			opengl::Program * resource = &ogl.programs[asset_id];
-			platform_link_program(resource->id, source, parts);
+			platform_link_program(resource->id, source.data, parts);
 
-			// @Todo: process uniforms
-			// GLint uniform_location = glGetUniformLocation(id, uniform_name);
+			CUSTOM_MESSAGE("program %d info:", asset_id);
+			Shader_Field field_buffer;
+
+			GLint attributes_capacity;
+			glGetProgramiv(resource->id, GL_ACTIVE_ATTRIBUTES, &attributes_capacity);
+			// resource->attributes.set_capacity(attributes_capacity);
+			for (GLint i = 0; i < attributes_capacity; ++i) {
+				// resource->attributes.push();
+				// opengl::Field * field = new (&resource->attributes[i]) opengl::Field;
+				platform_get_active_attribute(resource->id, i, field_buffer);
+				CUSTOM_MESSAGE(
+					"  - attribute 0x%x '%s' [%d]; // ind %d, loc %d",
+					field_buffer.type, field_buffer.name, field_buffer.size,
+					i, field_buffer.location
+				);
+				// field->id = find_attribute_id(field_buffer.name);
+				// field->location = field_buffer.location;
+			}
+
+			GLint uniforms_capacity;
+			glGetProgramiv(resource->id, GL_ACTIVE_UNIFORMS, &uniforms_capacity);
+			resource->uniforms.set_capacity(uniforms_capacity);
+			for (GLint i = 0; i < uniforms_capacity; ++i) {
+				resource->uniforms.push();
+				opengl::Field * field = new (&resource->uniforms[i]) opengl::Field;
+				platform_get_active_uniform(resource->id, i, field_buffer);
+				CUSTOM_MESSAGE(
+					"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",
+					field_buffer.type, field_buffer.name, field_buffer.size,
+					i, field_buffer.location
+				);
+				field->id = find_uniform_id(field_buffer.name);
+				field->location = field_buffer.location;
+			}
 		} return;
 
 		case Instruction::Load_Texture: {
@@ -907,13 +987,23 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Load_Uniform: {
-			// @Todo: automize location with some asset_id
-			s32 location = *bc.read<s32>();
+			u32 asset_id = *bc.read<u32>();
+
+			CUSTOM_ASSERT(active_program < ogl.programs.capacity, "no active program");
+			opengl::Program const * program = &ogl.programs[active_program];
+
+			GLint location = -1;
+			for (u32 i = 0; i < program->uniforms.count; ++i) {
+				if (program->uniforms[i].id == asset_id) {
+					location = program->uniforms[i].location;
+					break;
+				}
+			}
+			CUSTOM_ASSERT(location >= 0, "failed to retrieve uniform location");
+
 			DT_Array uniform = read_data_array(bc);
 
 			switch (uniform.type) {
-				case Data_Type::tex: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
-				//
 				case Data_Type::r32:  glUniform1fv(location, uniform.count, (r32 *)uniform.data); break;
 				case Data_Type::vec2: glUniform2fv(location, uniform.count, (r32 *)uniform.data); break;
 				case Data_Type::vec3: glUniform3fv(location, uniform.count, (r32 *)uniform.data); break;
@@ -969,8 +1059,8 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Message_Inline: {
-			cstring message = read_cstring(bc);
-			CUSTOM_MESSAGE("OpenGL VM: %s", message);
+			C_String message = read_cstring(bc);
+			CUSTOM_MESSAGE("OpenGL VM: %s", message.data);
 		} return;
 	}
 
@@ -1050,8 +1140,7 @@ static void opengl_message_callback(
 	}
 
 	CUSTOM_MESSAGE(
-		"OpenGL message:"
-		"\n  0x%x"
+		"OpenGL message '0x%x'"
 		"\n  %s"
 		"\n  - type:     %s"
 		"\n  - severity: %s"
@@ -1228,4 +1317,24 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 	}
 
 	return is_compiled && is_linked;
+}
+
+static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer)
+{
+	glGetActiveAttrib(
+		id, index,
+		sizeof(buffer.name), &buffer.name_count,
+		&buffer.size, &buffer.type, buffer.name
+	);
+	buffer.location = glGetAttribLocation(id, buffer.name);
+}
+
+static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer)
+{
+	glGetActiveUniform(
+		id, index,
+		sizeof(buffer.name), &buffer.name_count,
+		&buffer.size, &buffer.type, buffer.name
+	);
+	buffer.location = glGetUniformLocation(id, buffer.name);
 }

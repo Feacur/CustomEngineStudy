@@ -5,6 +5,8 @@ namespace custom {
 
 struct Bytecode;
 
+void init_uniforms(Bytecode & bc);
+
 void load_image(Bytecode & bc, u32 asset_id);
 void load_imagef(Bytecode & bc, u32 asset_id);
 void load_image16(Bytecode & bc, u32 asset_id);

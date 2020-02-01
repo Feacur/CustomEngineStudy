@@ -16,6 +16,10 @@ namespace shader {
 	extern u8 meta_ids[];
 };
 
+namespace uniform {
+	extern cstring names[];
+};
+
 namespace texture {
 	struct Meta
 	{

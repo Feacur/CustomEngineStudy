@@ -16,7 +16,6 @@ namespace graphics {
 
 template<typename T> static constexpr inline Data_Type get_data_type() { return Data_Type::None; }
 #define GDT_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>() { return Data_Type::T; }
-	GDT_IMPL(tex);
 	GDT_IMPL(s8); GDT_IMPL(s16); GDT_IMPL(s32);
 	GDT_IMPL(u8); GDT_IMPL(u16); GDT_IMPL(u32);
 	GDT_IMPL(r32); GDT_IMPL(r64);
@@ -65,6 +64,26 @@ static void describe_texture_load(
 	bc.write(channels);
 	bc.write(data_type);
 	bc.write(texture_type);
+}
+
+void init_uniforms(Bytecode & bc) {
+	cstring name;
+
+	u32 count = 0;
+	while ((name = asset::uniform::names[count]) != NULL) {
+		++count;
+	}
+
+	bc.write(graphics::Instruction::Init_Uniforms);
+	bc.write(count);
+
+	u32 asset_id = 0;
+	while ((name = asset::uniform::names[asset_id]) != NULL) {
+		u32 length = (u32)strlen(name);
+		bc.write(length + 1);
+		bc.write(name, length); bc.write('\0');
+		++asset_id;
+	}
 }
 
 void load_image(Bytecode & bc, u32 asset_id) {
