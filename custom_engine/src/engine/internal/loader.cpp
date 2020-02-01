@@ -41,20 +41,30 @@ static void describe_texture(
 	u32 asset_id, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 ) {
+	u8 meta_id = asset::texture::meta_ids[asset_id];
+	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
 	bc.write(asset_id);
 	bc.write(size);
 	bc.write(channels);
 	bc.write(data_type);
 	bc.write(texture_type);
-}
-
-static void meta_texture(Bytecode & bc, u32 asset_id) {
-	u8 meta_id = asset::texture::meta_ids[asset_id];
-	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
 	bc.write(meta.min_tex);
 	bc.write(meta.min_mip);
 	bc.write(meta.mag_tex);
 	bc.write(meta.wrap_x); bc.write(meta.wrap_y);
+}
+
+static void describe_texture_load(
+	Bytecode & bc,
+	u32 asset_id, ivec2 offset, ivec2 size, u8 channels,
+	graphics::Data_Type data_type, graphics::Texture_Type texture_type
+) {
+	bc.write(asset_id);
+	bc.write(offset);
+	bc.write(size);
+	bc.write(channels);
+	bc.write(data_type);
+	bc.write(texture_type);
 }
 
 void load_image(Bytecode & bc, u32 asset_id) {
@@ -78,11 +88,10 @@ void load_image(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc.write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);
@@ -109,11 +118,10 @@ void load_imagef(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc.write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);
@@ -140,11 +148,10 @@ void load_image16(Bytecode & bc, u32 asset_id) {
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	bc.write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
-	meta_texture(bc, asset_id);
 
 	// @Note: upload actual texture data; might stream it later
 	bc.write(graphics::Instruction::Load_Texture);
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc.write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);

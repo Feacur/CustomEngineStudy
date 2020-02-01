@@ -32,6 +32,10 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id;
+	ivec2 size;
+	u8 channels;
+	custom::graphics::Data_Type data_type;
+	custom::graphics::Texture_Type texture_type;
 };
 template struct custom::Array<Texture>;
 
@@ -574,19 +578,19 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Allocate_Texture: {
 			u32   asset_id = *bc.read<u32>();
-			ivec2 size = *bc.read<ivec2>();
-			u8           channels     = *bc.read<u8>();
-			Data_Type    data_type    = *bc.read<Data_Type>();
-			Texture_Type texture_type = *bc.read<Texture_Type>();
+			ogl.textures.ensure_capacity(asset_id + 1);
+			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
+			++ogl.textures.count;
+
+			resource->size         = *bc.read<ivec2>();
+			resource->channels     = *bc.read<u8>();
+			resource->data_type    = *bc.read<Data_Type>();
+			resource->texture_type = *bc.read<Texture_Type>();
 			Filter_Mode  min_tex = *bc.read<Filter_Mode>();
 			Filter_Mode  min_mip = *bc.read<Filter_Mode>();
 			Filter_Mode  mag_tex = *bc.read<Filter_Mode>();
 			Wrap_Mode    wrap_mode_x = *bc.read<Wrap_Mode>();
 			Wrap_Mode    wrap_mode_y = *bc.read<Wrap_Mode>();
-
-			ogl.textures.ensure_capacity(asset_id + 1);
-			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
-			++ogl.textures.count;
 
 			GLenum const target = GL_TEXTURE_2D;
 
@@ -595,27 +599,27 @@ static void consume_single_instruction(Bytecode const & bc)
 				glCreateTextures(target, 1, &resource->id);
 				glTextureStorage2D(
 					resource->id, 1,
-					get_texture_internal_format(texture_type, data_type, channels),
-					size.x, size.y
+					get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
+					resource->size.x, resource->size.y
 				);
 			// }
 			// else {
-			// 	glGenTextures(target, 1, &resource->id);
+			// 	glGenTextures(1, &resource->id);
 			// 	glBindTexture(target, resource->id);
 			// 	if (version_major == 4 && version_minor >= 2 || version_major > 4) {
 			// 		glTexStorage2D(
 			// 			target, 1,
-			// 			get_texture_internal_format(texture_type, data_type, channels),
-			// 			size.x, size.y
+			// 			get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
+			// 			resource->size.x, resource->size.y
 			// 		);
 			// 	}
 			// 	else {
 			// 		glTexImage2D(
 			// 			target, 0,
-			// 			get_texture_internal_format(texture_type, data_type, channels),
-			// 			size.x, size.y, 0,
-			// 			get_texture_data_format(texture_type, channels),
-			// 			get_texture_data_type(texture_type, data_type),
+			// 			get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
+			// 			resource->size.x, resource->size.y, 0,
+			// 			get_texture_data_format(resource->texture_type, resource->channels),
+			// 			get_texture_data_type(resource->texture_type, resource->data_type),
 			// 			NULL
 			// 		);
 			// 	}
@@ -650,10 +654,10 @@ static void consume_single_instruction(Bytecode const & bc)
 				opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
 				buffer->frequency = *bc.read<Mesh_Frequency>();
-				buffer->access = *bc.read<Mesh_Access>();
-				buffer->type = *bc.read<Data_Type>();
-				buffer->capacity = *bc.read<u32>();
-				buffer->count = 0;
+				buffer->access    = *bc.read<Mesh_Access>();
+				buffer->type      = *bc.read<Data_Type>();
+				buffer->capacity  = *bc.read<u32>();
+				buffer->count     = 0;
 
 				u32 attr_count = *bc.read<u32>();
 				buffer->attributes.set_capacity(attr_count);
@@ -698,7 +702,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			glBindVertexArray(resource->id);
 			for (u8 i = 0; i < resource->buffers.count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
-				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 				glBindBuffer(target, buffer.id);
 			}
 
@@ -739,7 +743,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 			stride += attr.count * element_size;
 			// 		}
 			// 
-			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 		GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			// 		glBindBuffer(target, buffer.id);
 			// 		uintptr_t attrib_offset = 0;
 			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
@@ -779,7 +783,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
-				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 				glDeleteBuffers(target, &resource->buffers[i].id);
 			}
 			glDeleteVertexArrays(1, &resource->id);
@@ -831,6 +835,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Texture: {
 			// @Change: receive a pointer instead, then free if needed?
 			u32 asset_id = *bc.read<u32>();
+			ivec2 offset = *bc.read<ivec2>();
 			ivec2 size = *bc.read<ivec2>();
 			u8           channels     = *bc.read<u8>();
 			Data_Type    data_type    = *bc.read<Data_Type>();
@@ -838,10 +843,22 @@ static void consume_single_instruction(Bytecode const & bc)
 			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
 
 			opengl::Texture const * resource = &ogl.textures[asset_id];
+			CUSTOM_ASSERT(channels == resource->channels, "texture %d warning: different channels count", asset_id)
+			CUSTOM_ASSERT(data_type == resource->data_type, "texture %d warning: different data types", asset_id)
+			CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d warning: different texture types", asset_id)
+			if (size.x > resource->size.x - offset.x) {
+				size.x = resource->size.x - offset.x;
+				CUSTOM_MESSAGE("texture %d warning: trimming x data", asset_id);
+			}
+			if (size.y > resource->size.y - offset.y) {
+				size.y = resource->size.y - offset.y;
+				CUSTOM_MESSAGE("texture %d warning: trimming y data", asset_id);
+			}
+
 			glTextureSubImage2D(
 				resource->id,
 				0,
-				0, 0, size.x, size.y,
+				offset.x, offset.y, size.x, size.y,
 				get_texture_data_format(texture_type, channels),
 				get_texture_data_type(texture_type, data_type),
 				data
@@ -857,13 +874,14 @@ static void consume_single_instruction(Bytecode const & bc)
 			for (u32 i = 0; i < buffers_count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
 				GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-				GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
 				u32 offset = *bc.read<u32>();
 				DT_Array in_buffer = read_data_array(bc);
-				CUSTOM_ASSERT(buffer.type == in_buffer.type, "loading different data type");
+				CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d warning: different data types", asset_id);
 				if (in_buffer.count > buffer.capacity - offset) {
 					in_buffer.count = buffer.capacity - offset;
+					CUSTOM_MESSAGE("mesh %d warning: trimming buffer %d data", asset_id, i);
 				}
 
 				buffer.count = in_buffer.count;
