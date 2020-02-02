@@ -104,7 +104,19 @@ static u32 find_uniform_id(cstring value) {
 		cstring name = &ogl.uniform_names[name_offset];
 		if (strcmp(value, name) == 0) { return i; }
 	}
+	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
 	return UINT32_MAX;
+}
+
+static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
+	opengl::Program const * program = &ogl.programs[program_id];
+	for (u32 i = 0; i < program->uniforms.count; ++i) {
+		if (program->uniforms[i].id == uniform_id) {
+			return &program->uniforms[i];
+		}
+	}
+	CUSTOM_ASSERT(false, "program %d doesn't have uniform %d", program_id, uniform_id);
+	return NULL;
 }
 
 //
@@ -1047,48 +1059,74 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Load_Uniform: {
 			u32 asset_id = *bc.read<u32>();
-
-			CUSTOM_ASSERT(active_program < ogl.programs.capacity, "no active program");
-			opengl::Program const * program = &ogl.programs[active_program];
-
-			GLint location = -1;
-			for (u32 i = 0; i < program->uniforms.count; ++i) {
-				if (program->uniforms[i].id == asset_id) {
-					location = program->uniforms[i].location;
-					break;
-				}
-			}
-			CUSTOM_ASSERT(location >= 0, "failed to retrieve uniform location");
-
+			opengl::Program const * resource = &ogl.programs[asset_id];
+			u32 uniform_id = *bc.read<u32>();
 			DT_Array uniform = read_data_array(bc);
+
+			opengl::Field const * field = find_uniform_field(resource->id, uniform_id);
 
 			// @Todo: compare types and size?
 
 			// @Note: even though glBindTextureUnit(...) and glBindSampler(...) takes GLuint as a unit,
 			//        glUniform1i and glUniform1iv are the only two functions that may be used to load uniform variables defined as sampler types. Loading samplers with any other function will result in a GL_INVALID_OPERATION error.
 			//        https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
-			switch (uniform.type) {
-				case Data_Type::sampler_unit: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
-				//
-				case Data_Type::r32:  glUniform1fv(location, uniform.count, (r32 *)uniform.data); break;
-				case Data_Type::vec2: glUniform2fv(location, uniform.count, (r32 *)uniform.data); break;
-				case Data_Type::vec3: glUniform3fv(location, uniform.count, (r32 *)uniform.data); break;
-				case Data_Type::vec4: glUniform4fv(location, uniform.count, (r32 *)uniform.data); break;
-				//
-				case Data_Type::s32:   glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
-				case Data_Type::ivec2: glUniform2iv(location, uniform.count, (s32 *)uniform.data); break;
-				case Data_Type::ivec3: glUniform3iv(location, uniform.count, (s32 *)uniform.data); break;
-				case Data_Type::ivec4: glUniform4iv(location, uniform.count, (s32 *)uniform.data); break;
-				//
-				case Data_Type::u32:   glUniform1uiv(location, uniform.count, (u32 *)uniform.data); break;
-				case Data_Type::uvec2: glUniform2uiv(location, uniform.count, (u32 *)uniform.data); break;
-				case Data_Type::uvec3: glUniform3uiv(location, uniform.count, (u32 *)uniform.data); break;
-				case Data_Type::uvec4: glUniform4uiv(location, uniform.count, (u32 *)uniform.data); break;
-				//
-				case Data_Type::mat2: glUniformMatrix2fv(location, uniform.count, false, (r32 *)uniform.data); break;
-				case Data_Type::mat3: glUniformMatrix3fv(location, uniform.count, false, (r32 *)uniform.data); break;
-				case Data_Type::mat4: glUniformMatrix4fv(location, uniform.count, false, (r32 *)uniform.data); break;
-			}
+
+			// if (version_major == 4 && version_minor >= 1 || version_major > 4) {
+				switch (uniform.type) {
+					case Data_Type::sampler_unit: glProgramUniform1iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					//
+					case Data_Type::r32:  glProgramUniform1fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec2: glProgramUniform2fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec3: glProgramUniform3fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec4: glProgramUniform4fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
+					//
+					case Data_Type::s32:   glProgramUniform1iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec2: glProgramUniform2iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec3: glProgramUniform3iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec4: glProgramUniform4iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					//
+					case Data_Type::u32:   glProgramUniform1uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec2: glProgramUniform2uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec3: glProgramUniform3uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec4: glProgramUniform4uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
+					//
+					case Data_Type::mat2: glProgramUniformMatrix2fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
+					case Data_Type::mat3: glProgramUniformMatrix3fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
+					case Data_Type::mat4: glProgramUniformMatrix4fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
+				}
+			// }
+			// else {
+			// 	if (active_program != resource->id) {
+			// 		glUseProgram(resource->id);
+			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for uniform %d", resource->id, uniform_id);
+			// 	}
+			// 	switch (uniform.type) {
+			// 		case Data_Type::sampler_unit: glUniform1iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		//
+			// 		case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;
+			// 		case Data_Type::vec2: glUniform2fv(field->location, uniform.count, (r32 *)uniform.data); break;
+			// 		case Data_Type::vec3: glUniform3fv(field->location, uniform.count, (r32 *)uniform.data); break;
+			// 		case Data_Type::vec4: glUniform4fv(field->location, uniform.count, (r32 *)uniform.data); break;
+			// 		//
+			// 		case Data_Type::s32:   glUniform1iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		case Data_Type::ivec2: glUniform2iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		case Data_Type::ivec3: glUniform3iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		case Data_Type::ivec4: glUniform4iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		//
+			// 		case Data_Type::u32:   glUniform1uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+			// 		case Data_Type::uvec2: glUniform2uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+			// 		case Data_Type::uvec3: glUniform3uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+			// 		case Data_Type::uvec4: glUniform4uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+			// 		//
+			// 		case Data_Type::mat2: glUniformMatrix2fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
+			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
+			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
+			// 	}
+			// 	if (active_program != resource->id) {
+			// 		glUseProgram(active_program);
+			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d after loading uniform %d", active_program, uniform_id);
+			// 	}
+			// }
 		} return;
 
 		//
@@ -1384,6 +1422,33 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 
 	return is_compiled && is_linked;
 }
+
+// static GLenum get_basic_type(GLenum value) {
+// 	switch (value) {
+// 		case GL_SAMPLER_2D: return GL_INT;
+// 		//
+// 		case GL_FLOAT:      return GL_FLOAT;
+// 		case GL_FLOAT_VEC2: return GL_FLOAT;
+// 		case GL_FLOAT_VEC3: return GL_FLOAT;
+// 		case GL_FLOAT_VEC4: return GL_FLOAT;
+// 		//
+// 		case GL_INT:      return GL_INT;
+// 		case GL_INT_VEC2: return GL_INT;
+// 		case GL_INT_VEC3: return GL_INT;
+// 		case GL_INT_VEC4: return GL_INT;
+// 		//
+// 		case GL_UNSIGNED_INT:      return GL_UNSIGNED_INT;
+// 		case GL_UNSIGNED_INT_VEC2: return GL_UNSIGNED_INT;
+// 		case GL_UNSIGNED_INT_VEC3: return GL_UNSIGNED_INT;
+// 		case GL_UNSIGNED_INT_VEC4: return GL_UNSIGNED_INT;
+// 		//
+// 		case GL_FLOAT_MAT2: return GL_FLOAT;
+// 		case GL_FLOAT_MAT3: return GL_FLOAT;
+// 		case GL_FLOAT_MAT4: return GL_FLOAT;
+// 	}
+// 	CUSTOM_MESSAGE("unknown OGL type 0x%x", value);
+// 	return GL_NONE;
+// }
 
 static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer)
 {

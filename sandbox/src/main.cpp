@@ -123,6 +123,7 @@ int main(int argc, char * argv[]) {
 
 			for (u32 i = 0; i < slots_count; ++i) {
 				gbc.write(custom::graphics::Instruction::Load_Uniform);
+				gbc.write(sandbox::Shader::device);
 				gbc.write(texture_uniforms[i]);
 				gbc.write(custom::graphics::Data_Type::sampler_unit);
 				gbc.write((u32)1); gbc.write(custom::graphics::sampler_unit { i });
