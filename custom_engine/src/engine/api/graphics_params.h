@@ -88,11 +88,12 @@ enum struct Texture_Type : u8
 UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
-typedef struct { s32 value; } tex; // @Note: pass actual type choice to a backend VM... somewhat?
+// @Note: final sampler type is implementation defined; OpenGL takes s32
+typedef struct { u32 data; } sampler_unit;
 enum struct Data_Type : u8
 {
 	None,
-	tex,
+	sampler_unit,
 	s8, s16, s32,
 	u8, u16, u32,
 	r32, r64,

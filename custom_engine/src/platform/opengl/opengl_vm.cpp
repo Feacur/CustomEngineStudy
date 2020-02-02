@@ -44,6 +44,17 @@ struct Texture
 	u8 channels;
 	custom::graphics::Data_Type data_type;
 	custom::graphics::Texture_Type texture_type;
+	// custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
+	// custom::graphics::Wrap_Mode wrap_x, wrap_y;
+};
+template struct custom::Array<Texture>;
+
+struct Sampler
+{
+	GLuint id;
+	u8 channels;
+	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
+	custom::graphics::Wrap_Mode wrap_x, wrap_y;
 };
 template struct custom::Array<Texture>;
 
@@ -79,6 +90,7 @@ struct Data
 
 	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
+	custom::Array<Sampler> samplers; // count indicates amount of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // count indicates amount of GPU allocated objects
 };
 
@@ -339,7 +351,7 @@ static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_ty
 
 static GLenum get_data_type(Data_Type value) {
 	switch (value) {
-		case Data_Type::tex: return GL_INT;
+		case Data_Type::sampler_unit: return GL_INT;
 		//
 		case Data_Type::s8:  return GL_BYTE;
 		case Data_Type::s16: return GL_SHORT;
@@ -375,7 +387,7 @@ static GLenum get_data_type(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
-		CASE_IMPL(tex);
+		CASE_IMPL(sampler_unit);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -392,7 +404,7 @@ static u16 get_type_size(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
-		CASE_IMPL(tex);
+		CASE_IMPL(sampler_unit);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -633,8 +645,8 @@ static void consume_single_instruction(Bytecode const & bc)
 			Filter_Mode  min_tex = *bc.read<Filter_Mode>();
 			Filter_Mode  min_mip = *bc.read<Filter_Mode>();
 			Filter_Mode  mag_tex = *bc.read<Filter_Mode>();
-			Wrap_Mode    wrap_mode_x = *bc.read<Wrap_Mode>();
-			Wrap_Mode    wrap_mode_y = *bc.read<Wrap_Mode>();
+			Wrap_Mode    wrap_x = *bc.read<Wrap_Mode>();
+			Wrap_Mode    wrap_y = *bc.read<Wrap_Mode>();
 
 			GLenum const target = GL_TEXTURE_2D;
 
@@ -673,20 +685,30 @@ static void consume_single_instruction(Bytecode const & bc)
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
 				glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
-				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
-				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
+				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
+				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
 			// }
 			// else {
 			// 	// glBindTexture(target, resource->id);
 			// 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
 			// 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
-			// 	glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_mode_x));
-			// 	glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_mode_y));
+			// 	glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
+			// 	glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
 			// }
 		} return;
 
 		case Instruction::Allocate_Sampler: {
-			CUSTOM_ASSERT(false, "// @Todo: Allocate_Sampler");
+			u32   asset_id = *bc.read<u32>();
+			ogl.samplers.ensure_capacity(asset_id + 1);
+			opengl::Sampler * resource = new (&ogl.samplers[asset_id]) opengl::Sampler;
+			++ogl.samplers.count;
+
+			resource->min_tex = *bc.read<Filter_Mode>();
+			resource->min_mip = *bc.read<Filter_Mode>();
+			resource->mag_tex = *bc.read<Filter_Mode>();
+			resource->wrap_x = *bc.read<Wrap_Mode>();
+			resource->wrap_y = *bc.read<Wrap_Mode>();
+
 			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				GLuint id;
 				glCreateSamplers(1, &id);
@@ -695,6 +717,11 @@ static void consume_single_instruction(Bytecode const & bc)
 				GLuint id;
 				glGenSamplers(1, &id);
 			}
+
+			glSamplerParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(resource->min_tex, resource->min_mip));
+			glSamplerParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(resource->mag_tex));
+			glSamplerParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(resource->wrap_x));
+			glSamplerParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(resource->wrap_y));
 		} return;
 
 		case Instruction::Allocate_Mesh: {
@@ -836,9 +863,11 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Free_Sampler: {
-			CUSTOM_ASSERT(false, "// @Todo: Free_Sampler");
-			GLuint id;
-			glDeleteSamplers(1, &id);
+			u32 asset_id = *bc.read<u32>();
+			opengl::Sampler const * resource = &ogl.samplers[asset_id];
+			glDeleteSamplers(1, &resource->id);
+			resource->opengl::Sampler::~Sampler();
+			--ogl.samplers.count;
 		} return;
 
 		case Instruction::Free_Mesh: {
@@ -880,10 +909,11 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Use_Sampler: {
-			CUSTOM_ASSERT(false, "// @Todo: Use_Sampler");
-			GLuint slot = 0;
-			GLuint id = 0;
-			glBindSampler(slot, id);
+			u32 asset_id = *bc.read<u32>();
+			opengl::Sampler const * resource = &ogl.samplers[asset_id];
+			u32 slot = *bc.read<u32>();
+
+			glBindSampler(slot, resource->id);
 		} return;
 
 		case Instruction::Use_Mesh: {
@@ -1032,8 +1062,13 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			DT_Array uniform = read_data_array(bc);
 
+			// @Todo: compare types and size?
+
+			// @Note: even though glBindTextureUnit(...) and glBindSampler(...) takes GLuint as a unit,
+			//        glUniform1i and glUniform1iv are the only two functions that may be used to load uniform variables defined as sampler types. Loading samplers with any other function will result in a GL_INVALID_OPERATION error.
+			//        https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
 			switch (uniform.type) {
-				case Data_Type::tex: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
+				case Data_Type::sampler_unit: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
 				//
 				case Data_Type::r32:  glUniform1fv(location, uniform.count, (r32 *)uniform.data); break;
 				case Data_Type::vec2: glUniform2fv(location, uniform.count, (r32 *)uniform.data); break;
