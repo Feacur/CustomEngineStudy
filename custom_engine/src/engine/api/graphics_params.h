@@ -88,9 +88,11 @@ enum struct Texture_Type : u8
 UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
+typedef struct { s32 value; } tex; // @Note: pass actual type choice to a backend VM... somewhat?
 enum struct Data_Type : u8
 {
 	None,
+	tex,
 	s8, s16, s32,
 	u8, u16, u32,
 	r32, r64,
@@ -173,14 +175,17 @@ enum struct Instruction : u8
 	//
 	Allocate_Shader,
 	Allocate_Texture,
+	Allocate_Sampler,
 	Allocate_Mesh,
 	//
 	Free_Shader,
 	Free_Texture,
+	Free_Sampler,
 	Free_Mesh,
 	//
 	Use_Shader,
 	Use_Texture,
+	Use_Sampler,
 	Use_Mesh,
 	//
 	Load_Shader,

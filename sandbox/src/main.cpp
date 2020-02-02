@@ -108,19 +108,25 @@ int main(int argc, char * argv[]) {
 
 		// quad
 		{
-			s32 texture_slot = 0;
+			u32 const slots_count = 1;
+			sandbox::Uniform texture_uniforms[slots_count] = { sandbox::Uniform::texture };
+			sandbox::Texture texture_assets[slots_count] = { sandbox::Texture::checkerboard };
 
 			gbc.write(custom::graphics::Instruction::Use_Shader);
 			gbc.write(sandbox::Shader::device);
 
-			gbc.write(custom::graphics::Instruction::Use_Texture);
-			gbc.write(sandbox::Texture::checkerboard);
-			gbc.write(texture_slot);
+			for (u32 i = 0; i < slots_count; ++i) {
+				gbc.write(custom::graphics::Instruction::Use_Texture);
+				gbc.write(texture_assets[i]);
+				gbc.write(i);
+			}
 
-			gbc.write(custom::graphics::Instruction::Load_Uniform);
-			gbc.write(sandbox::Uniform::texture);
-			gbc.write(custom::graphics::Data_Type::s32);
-			gbc.write((u32)1); gbc.write(texture_slot);
+			for (u32 i = 0; i < slots_count; ++i) {
+				gbc.write(custom::graphics::Instruction::Load_Uniform);
+				gbc.write(texture_uniforms[i]);
+				gbc.write(custom::graphics::Data_Type::tex);
+				gbc.write((u32)1); gbc.write(i);
+			}
 
 			gbc.write(custom::graphics::Instruction::Use_Mesh);
 			gbc.write(sandbox::Mesh::quad);

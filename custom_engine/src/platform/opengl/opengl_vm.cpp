@@ -339,6 +339,8 @@ static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_ty
 
 static GLenum get_data_type(Data_Type value) {
 	switch (value) {
+		case Data_Type::tex: return GL_INT;
+		//
 		case Data_Type::s8:  return GL_BYTE;
 		case Data_Type::s16: return GL_SHORT;
 		case Data_Type::s32: return GL_INT;
@@ -373,6 +375,7 @@ static GLenum get_data_type(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
+		CASE_IMPL(tex);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -389,6 +392,7 @@ static u16 get_type_size(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
+		CASE_IMPL(tex);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -681,6 +685,18 @@ static void consume_single_instruction(Bytecode const & bc)
 			// }
 		} return;
 
+		case Instruction::Allocate_Sampler: {
+			CUSTOM_ASSERT(false, "// @Todo: Allocate_Sampler");
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				GLuint id;
+				glCreateSamplers(1, &id);
+			}
+			else {
+				GLuint id;
+				glGenSamplers(1, &id);
+			}
+		} return;
+
 		case Instruction::Allocate_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 			ogl.meshes.ensure_capacity(asset_id + 1);
@@ -819,6 +835,12 @@ static void consume_single_instruction(Bytecode const & bc)
 			--ogl.textures.count;
 		} return;
 
+		case Instruction::Free_Sampler: {
+			CUSTOM_ASSERT(false, "// @Todo: Free_Sampler");
+			GLuint id;
+			glDeleteSamplers(1, &id);
+		} return;
+
 		case Instruction::Free_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
@@ -845,7 +867,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Texture: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Texture const * resource = &ogl.textures[asset_id];
-			s32 slot = *bc.read<s32>();
+			u32 slot = *bc.read<u32>();
 
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glBindTextureUnit(slot, resource->id);
@@ -855,6 +877,13 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	glActiveTexture(GL_TEXTURE0 + slot);
 			// 	glBindTexture(target, resource->id);
 			// }
+		} return;
+
+		case Instruction::Use_Sampler: {
+			CUSTOM_ASSERT(false, "// @Todo: Use_Sampler");
+			GLuint slot = 0;
+			GLuint id = 0;
+			glBindSampler(slot, id);
 		} return;
 
 		case Instruction::Use_Mesh: {
@@ -1004,6 +1033,8 @@ static void consume_single_instruction(Bytecode const & bc)
 			DT_Array uniform = read_data_array(bc);
 
 			switch (uniform.type) {
+				case Data_Type::tex: glUniform1iv(location, uniform.count, (s32 *)uniform.data); break;
+				//
 				case Data_Type::r32:  glUniform1fv(location, uniform.count, (r32 *)uniform.data); break;
 				case Data_Type::vec2: glUniform2fv(location, uniform.count, (r32 *)uniform.data); break;
 				case Data_Type::vec3: glUniform3fv(location, uniform.count, (r32 *)uniform.data); break;
