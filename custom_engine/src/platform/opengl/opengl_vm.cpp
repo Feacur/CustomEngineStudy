@@ -40,6 +40,7 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id;
+	u32 unit;
 	ivec2 size;
 	u8 channels;
 	custom::graphics::Data_Type data_type;
@@ -52,7 +53,7 @@ template struct custom::Array<Texture>;
 struct Sampler
 {
 	GLuint id;
-	u8 channels;
+	u32 unit;
 	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	custom::graphics::Wrap_Mode wrap_x, wrap_y;
 };
@@ -87,6 +88,9 @@ struct Data
 {
 	custom::Array<u32>  uniform_names_offsets;
 	custom::Array<char> uniform_names;
+
+	custom::Array<u32> texture_slots; // count indicates amount of GPU bound objects
+	custom::Array<u32> sampler_slots; // count indicates amount of GPU bound objects
 
 	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
@@ -167,9 +171,21 @@ VM::VM()
 	// glDepthRangef(0.0f, 1.0f);
 	// glClearDepth(1.0f);
 	// glFrontFace(GL_CCW);
+
+	GLint max_combined_texture_image_units;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+	CUSTOM_MESSAGE("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS is %d", max_combined_texture_image_units);
+	ogl.texture_slots.set_capacity(max_combined_texture_image_units);
+	ogl.sampler_slots.set_capacity(max_combined_texture_image_units);
+	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
+		ogl.texture_slots[i] = UINT32_MAX;
+		ogl.sampler_slots[i] = UINT32_MAX;
+	}
 }
 
-VM::~VM() = default;
+VM::~VM() {
+	ogl.opengl::Data::~Data();
+}
 
 void VM::update(Bytecode const & bc)
 {
@@ -649,6 +665,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 			++ogl.textures.count;
 
+			resource->unit         = UINT32_MAX;
 			resource->size         = *bc.read<ivec2>();
 			resource->channels     = *bc.read<u8>();
 			resource->data_type    = *bc.read<Data_Type>();
@@ -714,6 +731,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Sampler * resource = new (&ogl.samplers[asset_id]) opengl::Sampler;
 			++ogl.samplers.count;
 
+			resource->unit    = UINT32_MAX;
 			resource->min_tex = *bc.read<Filter_Mode>();
 			resource->min_mip = *bc.read<Filter_Mode>();
 			resource->mag_tex = *bc.read<Filter_Mode>();
@@ -869,6 +887,12 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Texture const * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
+
+			if (resource->unit < ogl.texture_slots.capacity) {
+				ogl.texture_slots[resource->unit] = UINT32_MAX;
+				--ogl.texture_slots.count;
+			}
+
 			resource->opengl::Texture::~Texture();
 			--ogl.textures.count;
 		} return;
@@ -877,6 +901,12 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Sampler const * resource = &ogl.samplers[asset_id];
 			glDeleteSamplers(1, &resource->id);
+
+			if (resource->unit < ogl.sampler_slots.capacity) {
+				ogl.sampler_slots[resource->unit] = UINT32_MAX;
+				--ogl.sampler_slots.count;
+			}
+
 			resource->opengl::Sampler::~Sampler();
 			--ogl.samplers.count;
 		} return;
@@ -900,40 +930,66 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Shader: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Program const * resource = &ogl.programs[asset_id];
-			glUseProgram(resource->id);
-			active_program = asset_id;
+			if (active_program != asset_id) {
+				active_program = asset_id;
+				glUseProgram(resource->id);
+			}
 		} return;
 
 		case Instruction::Use_Texture: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Texture const * resource = &ogl.textures[asset_id];
+			opengl::Texture * resource = &ogl.textures[asset_id];
 			u32 slot = *bc.read<u32>();
-
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
-				glBindTextureUnit(slot, resource->id);
-			// }
-			// else {
-			// 	GLenum const target = GL_TEXTURE_2D;
-			// 	glActiveTexture(GL_TEXTURE0 + slot);
-			// 	glBindTexture(target, resource->id);
-			// }
+			if (ogl.texture_slots[slot] != asset_id) {
+				if (ogl.texture_slots[slot] == UINT32_MAX) {
+					++ogl.texture_slots.count;
+				}
+				else {
+					u32 previous_asset_id = ogl.texture_slots[slot];
+					opengl::Texture * previous_resource = &ogl.textures[previous_asset_id];
+					previous_resource->unit = UINT32_MAX;
+				}
+				ogl.texture_slots[slot] = asset_id;
+				resource->unit = slot;
+				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+					glBindTextureUnit(slot, resource->id);
+				// }
+				// else {
+				// 	GLenum const target = GL_TEXTURE_2D;
+				// 	glActiveTexture(GL_TEXTURE0 + slot);
+				// 	glBindTexture(target, resource->id);
+				// }
+			}
 		} return;
 
 		case Instruction::Use_Sampler: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Sampler const * resource = &ogl.samplers[asset_id];
+			opengl::Sampler * resource = &ogl.samplers[asset_id];
 			u32 slot = *bc.read<u32>();
-
-			glBindSampler(slot, resource->id);
+			if (ogl.sampler_slots[slot] != asset_id) {
+				if (ogl.sampler_slots[slot] == UINT32_MAX) {
+					++ogl.sampler_slots.count;
+				}
+				else {
+					u32 previous_asset_id = ogl.sampler_slots[slot];
+					opengl::Sampler * previous_resource = &ogl.samplers[previous_asset_id];
+					previous_resource->unit = UINT32_MAX;
+				}
+				ogl.sampler_slots[slot] = asset_id;
+				resource->unit = slot;
+				glBindSampler(slot, resource->id);
+			}
 		} return;
 
 		case Instruction::Use_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
+			if (active_mesh != asset_id) {
+				active_mesh = asset_id;
+				glBindVertexArray(resource->id);
+			}
 			// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
-			glBindVertexArray(resource->id);
 			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
-			active_mesh = asset_id;
 		} return;
 
 		//
