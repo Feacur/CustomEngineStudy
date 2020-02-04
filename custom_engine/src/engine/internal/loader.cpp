@@ -238,6 +238,12 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	bc.write((u32)2);
 	bc.write((u32)0); write_data_array(bc, vertex_data);
 	bc.write((u32)0); write_data_array(bc, index_data);
+
+	bc.write(graphics::Instruction::Set_Mesh_Buffer_Count);
+	bc.write(asset_id);
+	bc.write((u32)2);
+	bc.write((u32)C_ARRAY_LENGTH(vertex_data));
+	bc.write((u32)C_ARRAY_LENGTH(index_data));
 }
 
 void load_particle_test(Bytecode & bc, u32 asset_id) {

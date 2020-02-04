@@ -622,7 +622,6 @@ static void consume_single_instruction(Bytecode const & bc)
 		//
 		case Instruction::Init_Uniforms: {
 			// @Note: not an OpenGL instruction per se
-			//        
 			u32 const name_capacity = C_ARRAY_LENGTH(Shader_Field::name);
 			u32 count = *bc.read<u32>();
 			ogl.uniform_names_offsets.set_capacity(count);
@@ -941,10 +940,10 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Shader: {
 			// @Change: receive a pointer instead, then free if needed?
 			u32 asset_id = *bc.read<u32>();
+			opengl::Program * resource = &ogl.programs[asset_id];
+
 			C_String source = read_cstring(bc);
 			Shader_Part parts = *bc.read<Shader_Part>();
-
-			opengl::Program * resource = &ogl.programs[asset_id];
 			platform_link_program(resource->id, source.data, parts);
 
 			CUSTOM_MESSAGE("program %d info:", asset_id);
@@ -986,6 +985,8 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Texture: {
 			// @Change: receive a pointer instead, then free if needed?
 			u32 asset_id = *bc.read<u32>();
+			opengl::Texture const * resource = &ogl.textures[asset_id];
+
 			ivec2 offset = *bc.read<ivec2>();
 			ivec2 size = *bc.read<ivec2>();
 			u8           channels     = *bc.read<u8>();
@@ -993,10 +994,11 @@ static void consume_single_instruction(Bytecode const & bc)
 			Texture_Type texture_type = *bc.read<Texture_Type>();
 			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
 
-			opengl::Texture const * resource = &ogl.textures[asset_id];
-			CUSTOM_ASSERT(channels == resource->channels, "texture %d warning: different channels count", asset_id)
-			CUSTOM_ASSERT(data_type == resource->data_type, "texture %d warning: different data types", asset_id)
-			CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d warning: different texture types", asset_id)
+			CUSTOM_ASSERT(offset.x < resource->size.x, "texture %d error: offset x is out of bounds", asset_id);
+			CUSTOM_ASSERT(offset.y < resource->size.y, "texture %d error: offset y is out of bounds", asset_id);
+			CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id)
+			CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id)
+			CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id)
 			if (size.x > resource->size.x - offset.x) {
 				size.x = resource->size.x - offset.x;
 				CUSTOM_MESSAGE("texture %d warning: trimming x data", asset_id);
@@ -1029,13 +1031,13 @@ static void consume_single_instruction(Bytecode const & bc)
 
 				u32 offset = *bc.read<u32>();
 				DT_Array in_buffer = read_data_array(bc);
-				CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d warning: different data types", asset_id);
+
+				CUSTOM_ASSERT(offset < buffer.capacity, "mesh %d buffer %d error: offset is out of bounds", asset_id, i);
+				CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
 				if (in_buffer.count > buffer.capacity - offset) {
 					in_buffer.count = buffer.capacity - offset;
-					CUSTOM_MESSAGE("mesh %d warning: trimming buffer %d data", asset_id, i);
+					CUSTOM_MESSAGE("mesh %d buffer %d warning: trimming data", asset_id, i);
 				}
-
-				buffer.count = in_buffer.count;
 
 				GLsizeiptr type_size = get_type_size(in_buffer.type);
 
@@ -1062,6 +1064,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Load_Uniform: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Program const * resource = &ogl.programs[asset_id];
+
 			u32 uniform_id = *bc.read<u32>();
 			DT_Array uniform = read_data_array(bc);
 
@@ -1132,6 +1135,22 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		//
+		case Instruction::Set_Mesh_Buffer_Count: {
+			// @Note: not an OpenGL instruction per se
+			u32 asset_id = *bc.read<u32>();
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
+
+			u32 buffers_count = *bc.read<u32>();
+			for (u32 i = 0; i < buffers_count; ++i) {
+				opengl::Buffer & buffer = resource->buffers[i];
+				buffer.count = *bc.read<u32>();
+				if (buffer.count > buffer.capacity) {
+					CUSTOM_MESSAGE("mesh %d buffer %d warning: trimming count", asset_id, i);
+					buffer.count = buffer.capacity;
+				}
+			}
+		} return;
+
 		case Instruction::Draw: {
 			// // GLint program_id;
 			// // glGetIntegerv(GL_CURRENT_PROGRAM, &program_id);
