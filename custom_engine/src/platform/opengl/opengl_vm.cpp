@@ -994,19 +994,11 @@ static void consume_single_instruction(Bytecode const & bc)
 			Texture_Type texture_type = *bc.read<Texture_Type>();
 			cmemory data = read_data(bc, data_type, size.x * size.y * channels);
 
-			CUSTOM_ASSERT(offset.x < resource->size.x, "texture %d error: offset x is out of bounds", asset_id);
-			CUSTOM_ASSERT(offset.y < resource->size.y, "texture %d error: offset y is out of bounds", asset_id);
+			CUSTOM_ASSERT(offset.x + size.x <= resource->size.x, "texture %d error: writing past data x bounds", asset_id);
+			CUSTOM_ASSERT(offset.y + size.y <= resource->size.y, "texture %d error: writing past data y bounds", asset_id);
 			CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id)
 			CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id)
 			CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id)
-			if (size.x > resource->size.x - offset.x) {
-				size.x = resource->size.x - offset.x;
-				CUSTOM_MESSAGE("texture %d warning: trimming x data", asset_id);
-			}
-			if (size.y > resource->size.y - offset.y) {
-				size.y = resource->size.y - offset.y;
-				CUSTOM_MESSAGE("texture %d warning: trimming y data", asset_id);
-			}
 
 			glTextureSubImage2D(
 				resource->id,
@@ -1032,12 +1024,8 @@ static void consume_single_instruction(Bytecode const & bc)
 				u32 offset = *bc.read<u32>();
 				DT_Array in_buffer = read_data_array(bc);
 
-				CUSTOM_ASSERT(offset < buffer.capacity, "mesh %d buffer %d error: offset is out of bounds", asset_id, i);
+				CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
 				CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
-				if (in_buffer.count > buffer.capacity - offset) {
-					in_buffer.count = buffer.capacity - offset;
-					CUSTOM_MESSAGE("mesh %d buffer %d warning: trimming data", asset_id, i);
-				}
 
 				GLsizeiptr type_size = get_type_size(in_buffer.type);
 
@@ -1144,10 +1132,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			for (u32 i = 0; i < buffers_count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
 				buffer.count = *bc.read<u32>();
-				if (buffer.count > buffer.capacity) {
-					CUSTOM_MESSAGE("mesh %d buffer %d warning: trimming count", asset_id, i);
-					buffer.count = buffer.capacity;
-				}
+				CUSTOM_ASSERT(buffer.count <= buffer.capacity, "mesh %d buffer %d error: count is out of bounds", asset_id, i);
 			}
 		} return;
 
