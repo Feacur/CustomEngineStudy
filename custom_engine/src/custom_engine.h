@@ -18,6 +18,7 @@
 #include "engine/api/graphics_vm.h"
 #include "engine/api/graphics_params.h"
 #include "engine/api/loader.h"
+#include "engine/api/renderer.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"

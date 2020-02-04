@@ -28,36 +28,6 @@ static u64 get_last_frame_ticks(bool is_vsync) {
 	return custom::timer_wait_next_frame(duration, precision);
 }
 
-namespace custom {
-namespace graphics {
-
-static void reset_settings(Bytecode & bc) {
-	bc.write(Instruction::Message_Inline);
-	bc.write("reset settings");
-
-	bc.write(Instruction::Depth_Read);
-	bc.write((b8)1);
-
-	bc.write(Instruction::Depth_Write);
-	bc.write((b8)1);
-
-	bc.write(Instruction::Depth_Comparison);
-	bc.write(Comparison::Less);
-
-	bc.write(Instruction::Blend_Mode);
-	bc.write(Blend_Mode::Alpha);
-
-	bc.write(Instruction::Cull_Mode);
-	bc.write(Cull_Mode::Back);
-}
-
-static void clear(Bytecode & bc) {
-	bc.write(Instruction::Clear);
-	bc.write(Clear_Flags::Color | Clear_Flags::Depth);
-}
-
-}}
-
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -77,20 +47,16 @@ int main(int argc, char * argv[]) {
 	custom::graphics::VM gvm;
 
 	custom::Bytecode gbc;
-	custom::graphics::reset_settings(gbc);
+	custom::loader::init(&gbc);
+	custom::renderer::init(&gbc);
 
-	custom::init_uniforms(gbc);
-	custom::load_shader(gbc, (u32)sandbox::Shader::device);
-	custom::load_shader(gbc, (u32)sandbox::Shader::particle_device);
-	custom::load_image(gbc, (u32)sandbox::Texture::checkerboard);
-	custom::load_quad(gbc, (u32)sandbox::Mesh::quad);
-	custom::load_particle_test(gbc, (u32)sandbox::Mesh::particle_test);
+	custom::loader::shader((u32)sandbox::Shader::device);
+	custom::loader::shader((u32)sandbox::Shader::particle_device);
+	custom::loader::image((u32)sandbox::Texture::checkerboard);
+	custom::loader::quad((u32)sandbox::Mesh::quad);
+	custom::loader::particle_test((u32)sandbox::Mesh::particle_test);
 
-	ivec2 viewport_position = {};
-	ivec2 viewport_size = window->get_size();
-	gbc.write(custom::graphics::Instruction::Viewport);
-	gbc.write(viewport_position);
-	gbc.write(viewport_size);
+	custom::renderer::viewport({0, 0}, window->get_size());
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -104,7 +70,7 @@ int main(int argc, char * argv[]) {
 		custom::system_update();
 		// @Todo: input, logic
 
-		custom::graphics::clear(gbc);
+		custom::renderer::clear();
 
 		// quad
 		{
