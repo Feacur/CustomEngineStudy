@@ -36,10 +36,10 @@ static void reset_settings(Bytecode & bc) {
 	bc.write("reset settings");
 
 	bc.write(Instruction::Depth_Read);
-	bc.write((u8)1);
+	bc.write((b8)1);
 
 	bc.write(Instruction::Depth_Write);
-	bc.write((u8)1);
+	bc.write((b8)1);
 
 	bc.write(Instruction::Depth_Comparison);
 	bc.write(Comparison::Less);

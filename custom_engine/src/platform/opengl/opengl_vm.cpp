@@ -514,7 +514,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Depth_Read: {
-			u8 value = *bc.read<u8>();
+			b8 value = *bc.read<b8>();
 			if (value) {
 				glEnable(GL_DEPTH_TEST);
 			}
@@ -524,7 +524,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Depth_Write: {
-			u8 value = *bc.read<u8>();
+			b8 value = *bc.read<b8>();
 			glDepthMask(value);
 		} return;
 
@@ -544,7 +544,7 @@ static void consume_single_instruction(Bytecode const & bc)
 		} return;
 
 		case Instruction::Stencil_Read: {
-			u8 value = *bc.read<u8>();
+			b8 value = *bc.read<b8>();
 			if (value) {
 				glEnable(GL_STENCIL_TEST);
 			}

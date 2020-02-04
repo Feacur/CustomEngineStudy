@@ -217,7 +217,7 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	};
 	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
 
-	u32 const index_data[] = {
+	u8 const index_data[] = {
 		0, 1, 2,
 		2, 3, 0,
 	};
@@ -229,7 +229,7 @@ void load_quad(Bytecode & bc, u32 asset_id) {
 	bc.write((u32)2);
 	bc.write(meta.vfrequency); bc.write(meta.vaccess); bc.write(graphics::Data_Type::r32);
 	bc.write((u32)C_ARRAY_LENGTH(vertex_data)); bc.write(vertex_attributes);
-	bc.write(meta.ifrequency); bc.write(meta.iaccess); bc.write(graphics::Data_Type::u32);
+	bc.write(meta.ifrequency); bc.write(meta.iaccess); bc.write(graphics::Data_Type::u8);
 	bc.write((u32)C_ARRAY_LENGTH(index_data)); bc.write((u32)0);
 	bc.write((u8)1);
 
