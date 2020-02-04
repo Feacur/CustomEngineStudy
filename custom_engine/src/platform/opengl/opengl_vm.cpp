@@ -1037,11 +1037,13 @@ static void consume_single_instruction(Bytecode const & bc)
 
 				buffer.count = in_buffer.count;
 
+				GLsizeiptr type_size = get_type_size(in_buffer.type);
+
 				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 					glNamedBufferSubData(
 						buffer.id,
-						offset,
-						in_buffer.count * get_type_size(in_buffer.type),
+						offset * type_size,
+						in_buffer.count * type_size,
 						in_buffer.data
 					);
 				// }
@@ -1049,8 +1051,8 @@ static void consume_single_instruction(Bytecode const & bc)
 				// glBindBuffer(target, buffer.id);
 				// glBufferSubData(
 				// 	target,
-				// 	offset,
-				// 	in_buffer.count * get_type_size(in_buffer.type),
+				// 	offset * type_size,
+				// 	in_buffer.count * type_size,
 				// 	in_buffer.data
 				// );
 				// }

@@ -259,7 +259,7 @@ void load_particle_test(Bytecode & bc, u32 asset_id) {
 	bc.write(meta.vfrequency); bc.write(meta.vaccess); bc.write(graphics::Data_Type::r32);
 	bc.write((u32)((3 + 4) * 4 * 128)); bc.write(vertex_attributes);
 	bc.write(meta.ifrequency); bc.write(meta.iaccess); bc.write(graphics::Data_Type::u32);
-	bc.write((u32)((3) * 2 * 128)); bc.write((u32)0);
+	bc.write((u32)(3 * 2 * 128)); bc.write((u32)0);
 	bc.write((u8)1);
 }
 
