@@ -72,6 +72,11 @@ int main(int argc, char * argv[]) {
 
 		custom::renderer::clear();
 
+		// @Note: thoughts on factoring code for a renderer
+		//        - batch together materials/objects with the same shaders
+		//        - proactively bind textures pending to rendering
+		//        - batch and rebind if running out of slots/units
+
 		// quad
 		{
 			u32 const slots_count = 1;
@@ -84,15 +89,14 @@ int main(int argc, char * argv[]) {
 			for (u32 i = 0; i < slots_count; ++i) {
 				gbc.write(custom::graphics::Instruction::Use_Texture);
 				gbc.write(texture_assets[i]);
-				gbc.write(i);
 			}
 
 			for (u32 i = 0; i < slots_count; ++i) {
 				gbc.write(custom::graphics::Instruction::Load_Uniform);
 				gbc.write(sandbox::Shader::device);
 				gbc.write(texture_uniforms[i]);
-				gbc.write(custom::graphics::Data_Type::sampler_unit);
-				gbc.write((u32)1); gbc.write(custom::graphics::sampler_unit { i });
+				gbc.write(custom::graphics::Data_Type::texture_unit);
+				gbc.write((u32)1); gbc.write(texture_assets[i]);
 			}
 
 			gbc.write(custom::graphics::Instruction::Use_Mesh);

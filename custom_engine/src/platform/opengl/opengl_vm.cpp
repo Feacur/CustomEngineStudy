@@ -15,6 +15,9 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
+constexpr u32 const empty_id   = UINT32_MAX;
+constexpr u32 const empty_unit = UINT32_MAX;
+
 typedef GLchar const * glstring;
 
 static GLint version_major;
@@ -89,8 +92,8 @@ struct Data
 	custom::Array<u32>  uniform_names_offsets;
 	custom::Array<char> uniform_names;
 
-	custom::Array<u32> texture_slots; // count indicates amount of GPU bound objects
-	custom::Array<u32> sampler_slots; // count indicates amount of GPU bound objects
+	custom::Array<u32> texture_units; // count indicates amount of GPU bound objects
+	custom::Array<u32> sampler_units; // count indicates amount of GPU bound objects
 
 	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
@@ -109,7 +112,7 @@ static u32 find_uniform_id(cstring value) {
 		if (strcmp(value, name) == 0) { return i; }
 	}
 	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
-	return UINT32_MAX;
+	return empty_id;
 }
 
 static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
@@ -175,11 +178,11 @@ VM::VM()
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
 	CUSTOM_MESSAGE("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS is %d", max_combined_texture_image_units);
-	ogl.texture_slots.set_capacity(max_combined_texture_image_units);
-	ogl.sampler_slots.set_capacity(max_combined_texture_image_units);
+	ogl.texture_units.set_capacity(max_combined_texture_image_units);
+	ogl.sampler_units.set_capacity(max_combined_texture_image_units);
 	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
-		ogl.texture_slots[i] = UINT32_MAX;
-		ogl.sampler_slots[i] = UINT32_MAX;
+		ogl.texture_units[i] = empty_id;
+		ogl.sampler_units[i] = empty_id;
 	}
 }
 
@@ -379,6 +382,7 @@ static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_ty
 
 static GLenum get_data_type(Data_Type value) {
 	switch (value) {
+		case Data_Type::texture_unit: return GL_INT;
 		case Data_Type::sampler_unit: return GL_INT;
 		//
 		case Data_Type::s8:  return GL_BYTE;
@@ -415,7 +419,7 @@ static GLenum get_data_type(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
-		CASE_IMPL(sampler_unit);
+		CASE_IMPL(texture_unit); CASE_IMPL(sampler_unit);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -432,7 +436,7 @@ static u16 get_type_size(Data_Type value) {
 #define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
-		CASE_IMPL(sampler_unit);
+		CASE_IMPL(texture_unit); CASE_IMPL(sampler_unit);
 		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
 		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
 		CASE_IMPL(r32); CASE_IMPL(r64);
@@ -485,8 +489,8 @@ static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
 
 static void consume_single_instruction(Bytecode const & bc)
 {
-	static u32 active_mesh = UINT32_MAX;
-	static u32 active_program = UINT32_MAX;
+	static u32 active_mesh = empty_id;
+	static u32 active_program = empty_id;
 
 	Instruction instruction = *bc.read<Instruction>();
 	switch (instruction)
@@ -665,7 +669,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 			++ogl.textures.count;
 
-			resource->unit         = UINT32_MAX;
+			resource->unit         = empty_unit;
 			resource->size         = *bc.read<ivec2>();
 			resource->channels     = *bc.read<u8>();
 			resource->data_type    = *bc.read<Data_Type>();
@@ -731,7 +735,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Sampler * resource = new (&ogl.samplers[asset_id]) opengl::Sampler;
 			++ogl.samplers.count;
 
-			resource->unit    = UINT32_MAX;
+			resource->unit    = empty_unit;
 			resource->min_tex = *bc.read<Filter_Mode>();
 			resource->min_mip = *bc.read<Filter_Mode>();
 			resource->mag_tex = *bc.read<Filter_Mode>();
@@ -879,7 +883,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			resource->opengl::Program::~Program();
 			--ogl.programs.count;
 			if (active_program == asset_id) {
-				active_program = UINT32_MAX;
+				active_program = empty_id;
 			}
 		} return;
 
@@ -888,9 +892,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Texture const * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
 
-			if (resource->unit < ogl.texture_slots.capacity) {
-				ogl.texture_slots[resource->unit] = UINT32_MAX;
-				--ogl.texture_slots.count;
+			if (resource->unit != empty_unit) {
+				ogl.texture_units[resource->unit] = empty_id;
+				--ogl.texture_units.count;
 			}
 
 			resource->opengl::Texture::~Texture();
@@ -902,9 +906,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Sampler const * resource = &ogl.samplers[asset_id];
 			glDeleteSamplers(1, &resource->id);
 
-			if (resource->unit < ogl.sampler_slots.capacity) {
-				ogl.sampler_slots[resource->unit] = UINT32_MAX;
-				--ogl.sampler_slots.count;
+			if (resource->unit != empty_unit) {
+				ogl.sampler_units[resource->unit] = empty_id;
+				--ogl.sampler_units.count;
 			}
 
 			resource->opengl::Sampler::~Sampler();
@@ -922,7 +926,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			resource->opengl::Mesh::~Mesh();
 			--ogl.meshes.count;
 			if (active_mesh == asset_id) {
-				active_mesh = UINT32_MAX;
+				active_mesh = empty_id;
 			}
 		} return;
 
@@ -939,46 +943,50 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Texture: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Texture * resource = &ogl.textures[asset_id];
-			u32 slot = *bc.read<u32>();
-			if (ogl.texture_slots[slot] != asset_id) {
-				if (ogl.texture_slots[slot] == UINT32_MAX) {
-					++ogl.texture_slots.count;
+
+			if (resource->unit != empty_unit) { return; }
+
+			u32 unit = empty_unit;
+			for (u32 i = 0; i < ogl.texture_units.capacity; ++i) {
+				if (ogl.texture_units[i] == empty_id) {
+					unit = i; break;
 				}
-				else {
-					u32 previous_asset_id = ogl.texture_slots[slot];
-					opengl::Texture * previous_resource = &ogl.textures[previous_asset_id];
-					previous_resource->unit = UINT32_MAX;
-				}
-				ogl.texture_slots[slot] = asset_id;
-				resource->unit = slot;
-				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
-					glBindTextureUnit(slot, resource->id);
-				// }
-				// else {
-				// 	GLenum const target = GL_TEXTURE_2D;
-				// 	glActiveTexture(GL_TEXTURE0 + slot);
-				// 	glBindTexture(target, resource->id);
-				// }
 			}
+			// @Todo: rebind to an occupied one?
+			CUSTOM_ASSERT(unit != empty_unit, "no available texture units");
+
+			resource->unit = unit;
+			ogl.texture_units[unit] = asset_id;
+			++ogl.texture_units.count;
+			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				glBindTextureUnit(unit, resource->id);
+			// }
+			// else {
+			// 	GLenum const target = GL_TEXTURE_2D;
+			// 	glActiveTexture(GL_TEXTURE0 + unit);
+			// 	glBindTexture(target, resource->id);
+			// }
 		} return;
 
 		case Instruction::Use_Sampler: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Sampler * resource = &ogl.samplers[asset_id];
-			u32 slot = *bc.read<u32>();
-			if (ogl.sampler_slots[slot] != asset_id) {
-				if (ogl.sampler_slots[slot] == UINT32_MAX) {
-					++ogl.sampler_slots.count;
+
+			if (resource->unit != empty_unit) { return; }
+
+			u32 unit = empty_unit;
+			for (u32 i = 0; i < ogl.sampler_units.capacity; ++i) {
+				if (ogl.sampler_units[i] == empty_id) {
+					unit = i; break;
 				}
-				else {
-					u32 previous_asset_id = ogl.sampler_slots[slot];
-					opengl::Sampler * previous_resource = &ogl.samplers[previous_asset_id];
-					previous_resource->unit = UINT32_MAX;
-				}
-				ogl.sampler_slots[slot] = asset_id;
-				resource->unit = slot;
-				glBindSampler(slot, resource->id);
 			}
+			// @Todo: rebind to an occupied one?
+			CUSTOM_ASSERT(unit != empty_unit, "no available sampler units");
+
+			resource->unit = unit;
+			ogl.sampler_units[unit] = asset_id;
+			++ogl.sampler_units.count;
+			glBindSampler(unit, resource->id);
 		} return;
 
 		case Instruction::Use_Mesh: {
@@ -990,6 +998,25 @@ static void consume_single_instruction(Bytecode const & bc)
 			}
 			// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
 			// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
+		} return;
+
+		//
+		case Instruction::Suspend_Texture: {
+			u32 asset_id = *bc.read<u32>();
+			opengl::Texture * resource = &ogl.textures[asset_id];
+			if (resource->unit != empty_unit) {
+				ogl.texture_units[resource->unit] = empty_id;
+				--ogl.texture_units.count;
+			}
+		} return;
+
+		case Instruction::Suspend_Sampler: {
+			u32 asset_id = *bc.read<u32>();
+			opengl::Sampler * resource = &ogl.samplers[asset_id];
+			if (resource->unit != empty_unit) {
+				ogl.sampler_units[resource->unit] = empty_id;
+				--ogl.sampler_units.count;
+			}
 		} return;
 
 		//
@@ -1120,9 +1147,28 @@ static void consume_single_instruction(Bytecode const & bc)
 			//        glUniform1i and glUniform1iv are the only two functions that may be used to load uniform variables defined as sampler types. Loading samplers with any other function will result in a GL_INVALID_OPERATION error.
 			//        https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
 
+			// @Todo: cache units, then assign uniforms at once?
+
 			// if (version_major == 4 && version_minor >= 1 || version_major > 4) {
 				switch (uniform.type) {
-					case Data_Type::sampler_unit: glProgramUniform1iv(resource->id, field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::texture_unit: {
+						u32 * texture_ids = (u32 *)uniform.data;
+						for (u32 i = 0; i < uniform.count; ++i) {
+							u32 texture_id = texture_ids[i];
+							opengl::Texture const * texture = &ogl.textures[texture_id];
+							CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
+							glProgramUniform1i(resource->id, field->location, texture->unit);
+						}
+					} break;
+					case Data_Type::sampler_unit: {
+						u32 * sampler_ids = (u32 *)uniform.data;
+						for (u32 i = 0; i < uniform.count; ++i) {
+							u32 sampler_id = sampler_ids[i];
+							opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
+							CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
+							glProgramUniform1i(resource->id, field->location, sampler->unit);
+						}
+					} break;
 					//
 					case Data_Type::r32:  glProgramUniform1fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
 					case Data_Type::vec2: glProgramUniform2fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
@@ -1150,7 +1196,24 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for uniform %d", resource->id, uniform_id);
 			// 	}
 			// 	switch (uniform.type) {
-			// 		case Data_Type::sampler_unit: glUniform1iv(field->location, uniform.count, (s32 *)uniform.data); break;
+			// 		case Data_Type::texture_unit: {
+			// 			u32 * texture_ids = (u32 *)uniform.data;
+			// 			for (u32 i = 0; i < uniform.count; ++i) {
+			// 				u32 texture_id = texture_ids[i];
+			// 				opengl::Texture const * texture = &ogl.textures[texture_id];
+			// 				CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
+			// 				glUniform1i(field->location, texture->unit);
+			// 			}
+			// 		} break;
+			// 		case Data_Type::sampler_unit: {
+			// 			u32 * sampler_ids = (u32 *)uniform.data;
+			// 			for (u32 i = 0; i < uniform.count; ++i) {
+			// 				u32 sampler_id = sampler_ids[i];
+			// 				opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
+			// 				CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
+			// 				glUniform1i(field->location, sampler->unit);
+			// 			}
+			// 		} break;
 			// 		//
 			// 		case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;
 			// 		case Data_Type::vec2: glUniform2fv(field->location, uniform.count, (r32 *)uniform.data); break;
