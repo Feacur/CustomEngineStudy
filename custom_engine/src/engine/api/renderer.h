@@ -1,5 +1,4 @@
 #pragma once
-#include "engine/core/types.h"
 #include "engine/core/math_types.h"
 
 namespace custom {

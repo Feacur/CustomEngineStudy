@@ -1,5 +1,4 @@
 #pragma once
-#include "engine/core/types.h"
 #include "engine/api/graphics_params.h"
 
 namespace custom {

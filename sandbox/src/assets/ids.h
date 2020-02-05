@@ -38,13 +38,13 @@ enum struct Mesh : u32
 UNDERLYING_TYPE_META(Mesh, u32)
 IS_ENUM_META(Mesh)
 
-enum struct Procedural_Mesh : u32
+enum struct Runtime_Mesh : u32
 {
 	quad,
 	particle_test,
 	count,
 };
-UNDERLYING_TYPE_META(Procedural_Mesh, u32)
-IS_ENUM_META(Procedural_Mesh)
+UNDERLYING_TYPE_META(Runtime_Mesh, u32)
+IS_ENUM_META(Runtime_Mesh)
 
 }

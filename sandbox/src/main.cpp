@@ -28,6 +28,21 @@ static u64 get_last_frame_ticks(bool is_vsync) {
 	return custom::timer_wait_next_frame(duration, precision);
 }
 
+static u32 create_quads_3_4(u32 local_id, u32 capacity) {
+	using namespace custom::graphics;
+	custom::Array_Fixed<custom::runtime::Buffer, 2> buffers;
+	buffers.push({
+		false, Mesh_Frequency::Dynamic, Mesh_Access::Draw,
+		Data_Type::r32, (3 + 4) * 4 * capacity, 0, {}
+	});
+	buffers[0].attributes.push(3); buffers[0].attributes.push(4);
+	buffers.push({
+		true, Mesh_Frequency::Static, Mesh_Access::Draw,
+		Data_Type::u16, 3 * 2 * capacity, 0, {}
+	});
+	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
+}
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -54,8 +69,10 @@ int main(int argc, char * argv[]) {
 	custom::loader::shader((u32)sandbox::Shader::particle_device);
 	custom::loader::image((u32)sandbox::Texture::checkerboard);
 
-	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Procedural_Mesh::quad, 1);
-	u32 particle_test_asset_id = custom::loader::create_particle_test((u32)sandbox::Procedural_Mesh::particle_test, 2);
+	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
+	u32 particle_test_asset_id = create_quads_3_4(
+		(u32)sandbox::Runtime_Mesh::particle_test, 128
+	);
 
 	custom::renderer::viewport({0, 0}, window->get_size());
 

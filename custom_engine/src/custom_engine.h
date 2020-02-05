@@ -17,6 +17,7 @@
 #include "engine/api/bytecode.h"
 #include "engine/api/graphics_vm.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/runtime_data.h"
 #include "engine/api/loader.h"
 #include "engine/api/renderer.h"
 

@@ -5,6 +5,7 @@
 #include "engine/core/math_types.h"
 #include "engine/api/asset_lookup.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/runtime_data.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
 #include "engine/debug/log.h"
@@ -147,9 +148,29 @@ void shader(u32 asset_id) {
 	bc->write(meta.parts);
 }
 
-u32 create_quad(u32 local_id, u32 meta_id) {
+void mesh(u32 asset_id) {
+	cstring path = asset::shader::paths[asset_id];
+	CUSTOM_ASSERT(false, "// @Todo");
+}
+
+u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 	u32 asset_id = asset::mesh::count + local_id;
-	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
+	bc->write(graphics::Instruction::Allocate_Mesh);
+	bc->write(asset_id);
+	bc->write(count);
+	for (u8 i = 0; i < count; ++i) {
+		runtime::Buffer const * buffer = buffers + i;
+		bc->write(buffer->is_index);
+		bc->write(buffer->frequency); bc->write(buffer->access);
+		bc->write(buffer->data_type); bc->write(buffer->capacity); bc->write(buffer->count);
+		bc->write((u32)buffer->attributes.count);
+		bc->write(buffer->attributes.data, buffer->attributes.count);
+	}
+	return asset_id;
+}
+
+u32 create_quad(u32 local_id) {
+	u32 asset_id = asset::mesh::count + local_id;
 
 	r32 const vertex_data[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
@@ -157,53 +178,32 @@ u32 create_quad(u32 local_id, u32 meta_id) {
 		/*position*/  0.5f,  0.5f, 0.0f, /*UV*/ 1.0f, 1.0f,
 		/*position*/ -0.5f,  0.5f, 0.0f, /*UV*/ 0.0f, 1.0f,
 	};
+	u32 vertex_data_count = (u32)C_ARRAY_LENGTH(vertex_data);
 	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
 
 	u8 const index_data[] = {
 		0, 1, 2,
 		2, 3, 0,
 	};
+	u32 index_data_count = (u32)C_ARRAY_LENGTH(index_data);
 
 	// might use graphics::get_data_type<decltype(+value)>(), but it's cryptic
 
 	bc->write(graphics::Instruction::Allocate_Mesh);
 	bc->write(asset_id);
-	bc->write((u32)2);
-	bc->write(meta.vfrequency); bc->write(meta.vaccess); bc->write(graphics::Data_Type::r32);
-	bc->write((u32)C_ARRAY_LENGTH(vertex_data)); bc->write(vertex_attributes);
-	bc->write(meta.ifrequency); bc->write(meta.iaccess); bc->write(graphics::Data_Type::u8);
-	bc->write((u32)C_ARRAY_LENGTH(index_data)); bc->write((u32)0);
-	bc->write((u8)1);
+	bc->write((u8)2);
+	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::r32); bc->write(vertex_data_count); bc->write(vertex_data_count);
+	bc->write(vertex_attributes);
+	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::u8); bc->write(index_data_count); bc->write(index_data_count);
+	bc->write((u32)0);
 
 	bc->write(graphics::Instruction::Load_Mesh);
 	bc->write(asset_id);
-	bc->write((u32)2);
+	bc->write((u8)2);
 	bc->write((u32)0); write_data_array(vertex_data);
 	bc->write((u32)0); write_data_array(index_data);
-
-	bc->write(graphics::Instruction::Set_Mesh_Buffer_Count);
-	bc->write(asset_id);
-	bc->write((u32)2);
-	bc->write((u32)C_ARRAY_LENGTH(vertex_data));
-	bc->write((u32)C_ARRAY_LENGTH(index_data));
-
-	return asset_id;
-}
-
-u32 create_particle_test(u32 local_id, u32 meta_id) {
-	u32 asset_id = asset::mesh::count + local_id;
-	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
-
-	u8 const vertex_attributes[] = { /*position*/ 3, /*color*/ 4, };
-
-	bc->write(graphics::Instruction::Allocate_Mesh);
-	bc->write(asset_id);
-	bc->write((u32)2);
-	bc->write(meta.vfrequency); bc->write(meta.vaccess); bc->write(graphics::Data_Type::r32);
-	bc->write((u32)((3 + 4) * 4 * 128)); bc->write(vertex_attributes);
-	bc->write(meta.ifrequency); bc->write(meta.iaccess); bc->write(graphics::Data_Type::u32);
-	bc->write((u32)(3 * 2 * 128)); bc->write((u32)0);
-	bc->write((u8)1);
 
 	return asset_id;
 }

@@ -71,6 +71,7 @@ template struct custom::Array<Attribute>;
 struct Buffer
 {
 	GLuint id;
+	b8 is_index;
 	custom::graphics::Mesh_Frequency frequency;
 	custom::graphics::Mesh_Access access;
 	custom::graphics::Data_Type type;
@@ -763,17 +764,18 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
 			++ogl.meshes.count;
 
-			u32 buffers_count = *bc.read<u32>();
+			u8 buffers_count = *bc.read<u8>();
 			resource->buffers.set_capacity(buffers_count);
-			for (u32 i = 0; i < buffers_count; ++i) {
+			for (u8 i = 0; i < buffers_count; ++i) {
 				resource->buffers.push();
 				opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
+				buffer->is_index  = *bc.read<b8>();
 				buffer->frequency = *bc.read<Mesh_Frequency>();
 				buffer->access    = *bc.read<Mesh_Access>();
 				buffer->type      = *bc.read<Data_Type>();
 				buffer->capacity  = *bc.read<u32>();
-				buffer->count     = 0;
+				buffer->count     = *bc.read<u32>();
 
 				u32 attr_count = *bc.read<u32>();
 				buffer->attributes.set_capacity(attr_count);
@@ -782,8 +784,8 @@ static void consume_single_instruction(Bytecode const & bc)
 					opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
 					attribute->count = *bc.read<u8>();
 				}
+				if (buffer->is_index) { resource->index_buffer = i; }
 			}
-			resource->index_buffer = *bc.read<u8>();
 
 			// -- allocate memory --
 			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
@@ -802,7 +804,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	for (u8 i = 0; i < resource->buffers.count; ++i) {
 			// 		opengl::Buffer & buffer = resource->buffers[i];
 			// 		GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-			// 		GLenum target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 		GLenum target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			// 		glGenBuffers(1, &buffer.id);
 			// 		glBindBuffer(target, buffer.id);
 			// 		glBufferData(
@@ -818,7 +820,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			glBindVertexArray(resource->id);
 			for (u8 i = 0; i < resource->buffers.count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
-				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 				glBindBuffer(target, buffer.id);
 			}
 
@@ -859,7 +861,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 			stride += attr.count * element_size;
 			// 		}
 			// 
-			// 		GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			// 		glBindBuffer(target, buffer.id);
 			// 		uintptr_t attrib_offset = 0;
 			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
@@ -919,8 +921,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
-				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-				glDeleteBuffers(target, &resource->buffers[i].id);
+				glDeleteBuffers(1, &resource->buffers[i].id);
 			}
 			glDeleteVertexArrays(1, &resource->id);
 			resource->opengl::Mesh::~Mesh();
@@ -1098,11 +1099,11 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh * resource = &ogl.meshes[asset_id];
 
-			u32 buffers_count = *bc.read<u32>();
+			u8 buffers_count = *bc.read<u8>();
 			for (u32 i = 0; i < buffers_count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
 				GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-				GLenum const target = (i == resource->index_buffer) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+				GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
 				u32 offset = *bc.read<u32>();
 				DT_Array in_buffer = read_data_array(bc);
@@ -1247,7 +1248,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh * resource = &ogl.meshes[asset_id];
 
-			u32 buffers_count = *bc.read<u32>();
+			u8 buffers_count = *bc.read<u8>();
 			for (u32 i = 0; i < buffers_count; ++i) {
 				opengl::Buffer & buffer = resource->buffers[i];
 				buffer.count = *bc.read<u32>();
