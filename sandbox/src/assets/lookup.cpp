@@ -1,4 +1,6 @@
+#include "ids.h"
 #include "engine/api/asset_lookup.h"
+#include "engine/core/code.h"
 
 namespace custom {
 namespace asset {
@@ -10,15 +12,18 @@ namespace shader {
 			graphics::Shader_Part::Vertex | graphics::Shader_Part::Pixel,
 		},
 	};
+	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	cstring paths[] = {
+	constexpr u32 const ids_count = (u32)sandbox::Shader::count + 1;
+	u32 count = ids_count;
+	cstring paths[ids_count] = {
 		"assets/shaders/renderer2d.glsl",
 		"assets/shaders/device.glsl",
 		"assets/shaders/particle_device.glsl",
 		NULL
 	};
 	
-	u8 meta_ids[] = {
+	u8 meta_ids[ids_count] = {
 		1,
 		1,
 		1,
@@ -27,7 +32,9 @@ namespace shader {
 };
 
 namespace uniform {
-	cstring names[] = {
+	constexpr u32 const ids_count = (u32)sandbox::Uniform::count + 1;
+	u32 count = ids_count;
+	cstring names[ids_count] = {
 		"u_Texture",
 		"u_Color",
 		NULL
@@ -44,13 +51,16 @@ namespace texture {
 			graphics::Wrap_Mode::Repeat, graphics::Wrap_Mode::Repeat,
 		},
 	};
+	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	cstring paths[] = {
+	constexpr u32 const ids_count = (u32)sandbox::Texture::count + 1;
+	u32 count = ids_count;
+	cstring paths[ids_count] = {
 		"assets/textures/checkerboard.png",
 		NULL
 	};
 	
-	u8 meta_ids[] = {
+	u8 meta_ids[ids_count] = {
 		1,
 		NULL
 	};
@@ -68,16 +78,17 @@ namespace mesh {
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 		},
 	};
+	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	cstring paths[] = {
-		"",
-		"",
+	constexpr u32 const ids_count = (u32)sandbox::Mesh::count + 1;
+	u32 count = ids_count;
+	cstring paths[ids_count] = {
+		"assets/meshes/teapot.obj",
 		NULL
 	};
 	
-	u8 meta_ids[] = {
+	u8 meta_ids[ids_count] = {
 		1,
-		2,
 		NULL
 	};
 };

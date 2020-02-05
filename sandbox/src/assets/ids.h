@@ -32,11 +32,19 @@ IS_ENUM_META(Texture)
 
 enum struct Mesh : u32
 {
-	quad,
-	particle_test,
+	teapot,
 	count,
 };
 UNDERLYING_TYPE_META(Mesh, u32)
 IS_ENUM_META(Mesh)
+
+enum struct Procedural_Mesh : u32
+{
+	quad,
+	particle_test,
+	count,
+};
+UNDERLYING_TYPE_META(Procedural_Mesh, u32)
+IS_ENUM_META(Procedural_Mesh)
 
 }

@@ -50,6 +50,7 @@ static void describe_texture_load(
 
 void init(Bytecode * bytecode) {
 	bc = bytecode;
+	stbi_set_flip_vertically_on_load(1);
 	init_uniforms();
 }
 
@@ -60,8 +61,6 @@ void image(u32 asset_id) {
 	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
-
-	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
@@ -88,8 +87,6 @@ void imagef(u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	stbi_set_flip_vertically_on_load(1);
-
 	ivec2 size;
 	s32 channels;
 	float * data = stbi_loadf_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
@@ -115,8 +112,6 @@ void image16(u32 asset_id) {
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	stbi_set_flip_vertically_on_load(1);
-
 	ivec2 size;
 	s32 channels;
 	stbi_us * data = stbi_load_16_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
@@ -140,7 +135,7 @@ void shader(u32 asset_id) {
 	if (file.count != file.capacity) { return; }
 
 	u8 meta_id = asset::shader::meta_ids[asset_id];
-	asset::shader::Meta meta = asset::shader::meta_presets[meta_id];
+	asset::shader::Meta const & meta = asset::shader::meta_presets[meta_id];
 
 	bc->write(graphics::Instruction::Allocate_Shader);
 	bc->write(asset_id);
@@ -152,13 +147,9 @@ void shader(u32 asset_id) {
 	bc->write(meta.parts);
 }
 
-void quad(u32 asset_id) {
-	// cstring path = asset::mesh::paths[asset_id];
-	// Array<u8> file; file_read(path, file);
-	// if (file.count != file.capacity) { return; }
-
-	u8 meta_id = asset::mesh::meta_ids[asset_id];
-	asset::mesh::Meta meta = asset::mesh::meta_presets[meta_id];
+u32 create_quad(u32 local_id, u32 meta_id) {
+	u32 asset_id = asset::mesh::count + local_id;
+	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
 
 	r32 const vertex_data[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
@@ -195,15 +186,13 @@ void quad(u32 asset_id) {
 	bc->write((u32)2);
 	bc->write((u32)C_ARRAY_LENGTH(vertex_data));
 	bc->write((u32)C_ARRAY_LENGTH(index_data));
+
+	return asset_id;
 }
 
-void particle_test(u32 asset_id) {
-	// cstring path = asset::mesh::paths[asset_id];
-	// Array<u8> file; file_read(path, file);
-	// if (file.count != file.capacity) { return; }
-
-	u8 meta_id = asset::mesh::meta_ids[asset_id];
-	asset::mesh::Meta meta = asset::mesh::meta_presets[meta_id];
+u32 create_particle_test(u32 local_id, u32 meta_id) {
+	u32 asset_id = asset::mesh::count + local_id;
+	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
 
 	u8 const vertex_attributes[] = { /*position*/ 3, /*color*/ 4, };
 
@@ -215,6 +204,8 @@ void particle_test(u32 asset_id) {
 	bc->write(meta.ifrequency); bc->write(meta.iaccess); bc->write(graphics::Data_Type::u32);
 	bc->write((u32)(3 * 2 * 128)); bc->write((u32)0);
 	bc->write((u8)1);
+
+	return asset_id;
 }
 
 }}
@@ -257,7 +248,7 @@ static void describe_texture(
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 ) {
 	u8 meta_id = asset::texture::meta_ids[asset_id];
-	asset::texture::Meta meta = asset::texture::meta_presets[meta_id];
+	asset::texture::Meta const & meta = asset::texture::meta_presets[meta_id];
 	bc->write(asset_id);
 	bc->write(size);
 	bc->write(channels);

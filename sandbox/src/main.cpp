@@ -53,8 +53,9 @@ int main(int argc, char * argv[]) {
 	custom::loader::shader((u32)sandbox::Shader::device);
 	custom::loader::shader((u32)sandbox::Shader::particle_device);
 	custom::loader::image((u32)sandbox::Texture::checkerboard);
-	custom::loader::quad((u32)sandbox::Mesh::quad);
-	custom::loader::particle_test((u32)sandbox::Mesh::particle_test);
+
+	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Procedural_Mesh::quad, 1);
+	u32 particle_test_asset_id = custom::loader::create_particle_test((u32)sandbox::Procedural_Mesh::particle_test, 2);
 
 	custom::renderer::viewport({0, 0}, window->get_size());
 
@@ -100,7 +101,7 @@ int main(int argc, char * argv[]) {
 			}
 
 			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(sandbox::Mesh::quad);
+			gbc.write(quad_asset_id);
 
 			gbc.write(custom::graphics::Instruction::Draw);
 		}
@@ -111,7 +112,7 @@ int main(int argc, char * argv[]) {
 			gbc.write(sandbox::Shader::particle_device);
 
 			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(sandbox::Mesh::particle_test);
+			gbc.write(particle_test_asset_id);
 
 			gbc.write(custom::graphics::Instruction::Draw);
 		}
