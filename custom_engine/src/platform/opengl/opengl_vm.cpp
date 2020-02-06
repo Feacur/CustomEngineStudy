@@ -95,6 +95,8 @@ struct Data
 
 	custom::Array<u32> texture_units; // count indicates amount of GPU bound objects
 	custom::Array<u32> sampler_units; // count indicates amount of GPU bound objects
+	u32 active_mesh = empty_id;
+	u32 active_program = empty_id;
 
 	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
@@ -505,9 +507,6 @@ static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
 
 static void consume_single_instruction(Bytecode const & bc)
 {
-	static u32 active_mesh = empty_id;
-	static u32 active_program = empty_id;
-
 	Instruction instruction = *bc.read<Instruction>();
 	switch (instruction)
 	{
@@ -899,8 +898,8 @@ static void consume_single_instruction(Bytecode const & bc)
 			glDeleteProgram(resource->id);
 			resource->opengl::Program::~Program();
 			--ogl.programs.count;
-			if (active_program == asset_id) {
-				active_program = empty_id;
+			if (ogl.active_program == asset_id) {
+				ogl.active_program = empty_id;
 			}
 		} return;
 
@@ -941,8 +940,8 @@ static void consume_single_instruction(Bytecode const & bc)
 			glDeleteVertexArrays(1, &resource->id);
 			resource->opengl::Mesh::~Mesh();
 			--ogl.meshes.count;
-			if (active_mesh == asset_id) {
-				active_mesh = empty_id;
+			if (ogl.active_mesh == asset_id) {
+				ogl.active_mesh = empty_id;
 			}
 		} return;
 
@@ -950,8 +949,8 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Shader: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Program const * resource = &ogl.programs[asset_id];
-			if (active_program != asset_id) {
-				active_program = asset_id;
+			if (ogl.active_program != asset_id) {
+				ogl.active_program = asset_id;
 				glUseProgram(resource->id);
 			}
 		} return;
@@ -1008,8 +1007,8 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Use_Mesh: {
 			u32 asset_id = *bc.read<u32>();
 			opengl::Mesh const * resource = &ogl.meshes[asset_id];
-			if (active_mesh != asset_id) {
-				active_mesh = asset_id;
+			if (ogl.active_mesh != asset_id) {
+				ogl.active_mesh = asset_id;
 				glBindVertexArray(resource->id);
 			}
 			// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
@@ -1207,7 +1206,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				}
 			// }
 			// else {
-			// 	if (active_program != resource->id) {
+			// 	if (ogl.active_program != resource->id) {
 			// 		glUseProgram(resource->id);
 			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for uniform %d", resource->id, uniform_id);
 			// 	}
@@ -1250,9 +1249,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
 			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
 			// 	}
-			// 	if (active_program != resource->id) {
-			// 		glUseProgram(active_program);
-			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d after loading uniform %d", active_program, uniform_id);
+			// 	if (ogl.active_program != resource->id) {
+			// 		glUseProgram(ogl.active_program);
+			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
 			// 	}
 			// }
 		} return;
@@ -1274,13 +1273,13 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Draw: {
 			// // GLint program_id;
 			// // glGetIntegerv(GL_CURRENT_PROGRAM, &program_id);
-			CUSTOM_ASSERT(active_program < ogl.programs.capacity, "no active program");
-			opengl::Program const * program = &ogl.programs[active_program];
+			CUSTOM_ASSERT(ogl.active_program != empty_id, "no active program");
+			opengl::Program const * program = &ogl.programs[ogl.active_program];
 			// glValidateProgram(program->id);
 			// platform_verify_program(program->id, GL_VALIDATE_STATUS);
 
-			CUSTOM_ASSERT(active_mesh < ogl.meshes.capacity, "no active mesh");
-			opengl::Mesh const * mesh = &ogl.meshes[active_mesh];
+			CUSTOM_ASSERT(ogl.active_mesh != empty_id, "no active mesh");
+			opengl::Mesh const * mesh = &ogl.meshes[ogl.active_mesh];
 
 			opengl::Buffer const & indices = mesh->buffers[mesh->index_buffer];
 			GLenum data_type = get_data_type(indices.type);
