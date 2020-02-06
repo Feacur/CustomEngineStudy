@@ -178,12 +178,27 @@ VM::VM()
 
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-	CUSTOM_MESSAGE("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS is %d", max_combined_texture_image_units);
+	CUSTOM_MESSAGE("texture/sampler units available: %d", max_combined_texture_image_units);
 	ogl.texture_units.set_capacity(max_combined_texture_image_units);
 	ogl.sampler_units.set_capacity(max_combined_texture_image_units);
 	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
 		ogl.texture_units[i] = empty_id;
 		ogl.sampler_units[i] = empty_id;
+	}
+	{
+		GLint value;
+		glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - vertex ....... %d", value);
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - fragment ..... %d", value);
+		glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - geometry ..... %d", value);
+		glGetIntegerv(GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - compute ...... %d", value);
+		glGetIntegerv(GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - tess control . %d", value);
+		glGetIntegerv(GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS, &value);
+		CUSTOM_MESSAGE("  - tess eval .... %d", value);
 	}
 }
 
