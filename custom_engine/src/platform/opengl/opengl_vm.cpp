@@ -1114,37 +1114,61 @@ static void consume_single_instruction(Bytecode const & bc)
 			opengl::Mesh * resource = &ogl.meshes[asset_id];
 
 			u8 buffers_count = *bc.read<u8>();
-			for (u32 i = 0; i < buffers_count; ++i) {
-				opengl::Buffer & buffer = resource->buffers[i];
-				GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-				GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
-				u32 offset = *bc.read<u32>();
-				DT_Array in_buffer = read_data_array(bc);
+			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				for (u32 i = 0; i < buffers_count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+					GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
-				CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
-				CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
+					u32 offset = *bc.read<u32>();
+					DT_Array in_buffer = read_data_array(bc);
 
-				GLsizeiptr type_size = get_type_size(in_buffer.type);
+					CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
+					CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
 
-				// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+					GLsizeiptr type_size = get_type_size(in_buffer.type);
+
 					glNamedBufferSubData(
 						buffer.id,
 						offset * type_size,
 						in_buffer.count * type_size,
 						in_buffer.data
 					);
-				// }
-				// else {
-				// glBindBuffer(target, buffer.id);
-				// glBufferSubData(
-				// 	target,
-				// 	offset * type_size,
-				// 	in_buffer.count * type_size,
-				// 	in_buffer.data
-				// );
-				// }
-			}
+				}
+			// }
+			// else {
+			// 	if (ogl.active_mesh != asset_id) {
+			// 		glBindVertexArray(0);
+			// 		CUSTOM_MESSAGE("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
+			// 	}
+			// 	for (u32 i = 0; i < buffers_count; ++i) {
+			// 		opengl::Buffer & buffer = resource->buffers[i];
+			// 		GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+			// 		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// 
+			// 		u32 offset = *bc.read<u32>();
+			// 		DT_Array in_buffer = read_data_array(bc);
+			// 
+			// 		CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
+			// 		CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
+			// 
+			// 		GLsizeiptr type_size = get_type_size(in_buffer.type);
+			// 
+			// 		glBindBuffer(target, buffer.id);
+			// 		glBufferSubData(
+			// 			target,
+			// 			offset * type_size,
+			// 			in_buffer.count * type_size,
+			// 			in_buffer.data
+			// 		);
+			// 	}
+			// 	if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_id) {
+			// 		opengl::Mesh * active_mesh = &ogl.meshes[asset_id];
+			// 		glBindVertexArray(active_mesh->id);
+			// 		CUSTOM_MESSAGE("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
+			// 	}
+			// }
 		} return;
 
 		case Instruction::Load_Uniform: {
@@ -1206,9 +1230,9 @@ static void consume_single_instruction(Bytecode const & bc)
 				}
 			// }
 			// else {
-			// 	if (ogl.active_program != resource->id) {
+			// 	if (ogl.active_program != asset_id) {
 			// 		glUseProgram(resource->id);
-			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for uniform %d", resource->id, uniform_id);
+			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
 			// 	}
 			// 	switch (uniform.type) {
 			// 		case Data_Type::texture_unit: {
@@ -1249,8 +1273,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
 			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
 			// 	}
-			// 	if (ogl.active_program != resource->id) {
-			// 		glUseProgram(ogl.active_program);
+			// 	if (ogl.active_program != asset_id && ogl.active_program != empty_id) {
+			// 		opengl::Program const * active_program = &ogl.programs[ogl.active_program];
+			// 		glUseProgram(active_program->id);
 			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
 			// 	}
 			// }
