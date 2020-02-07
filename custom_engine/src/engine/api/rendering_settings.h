@@ -19,11 +19,11 @@ struct Context_Settings
 	int  major_version;
 	int  minor_version;
 	//
-	int  forward;
-	int  profile_bit; // WGL_CONTEXT_CORE_PROFILE_BIT_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
 	int  robustness; // WGL_NO_RESET_NOTIFICATION_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB
 	int  release_behaviour; // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB
 	//
+	bool legacy_context;
+	bool legacy_profile;
 	bool debug;
 	bool opengl_no_error;
 };

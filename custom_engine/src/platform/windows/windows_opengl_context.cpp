@@ -21,6 +21,7 @@
 // https://github.com/glfw/glfw/blob/master/src/wgl_context.c
 // https://github.com/spurious/SDL-mirror/blob/master/src/video/windows/SDL_windowsopengl.c
 // https://github.com/SFML/SFML/blob/master/src/SFML/Window/Win32/WglContext.cpp
+// https://github.com/HandmadeHero/cpp/blob/master/code/win32_handmade_opengl.cpp
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Context
 // A context stores all of the state associated with this instance of OpenGL.
@@ -118,6 +119,22 @@ Opengl_Context::Opengl_Context(uptr hdc)
 	, m_hrc(NULL)
 	, m_is_vsync(false)
 {
+	switch (custom::context_settings.major_version)
+	{
+		case 0:
+			CUSTOM_ASSERT(custom::context_settings.minor_version == 0, "wrong default version"); break;
+		case 1:
+			CUSTOM_ASSERT(custom::context_settings.minor_version <= 5, "wrong 1.x version"); break;
+		case 2:
+			CUSTOM_ASSERT(custom::context_settings.minor_version <= 1, "wrong 2.x version"); break;
+		case 3:
+			CUSTOM_ASSERT(custom::context_settings.minor_version <= 3, "wrong 3.x version"); break;
+		case 4:
+			CUSTOM_ASSERT(custom::context_settings.minor_version <= 6, "wrong 4.x version (?)"); break;
+		default:
+			CUSTOM_ASSERT(false, "unhandled version"); break;
+	}
+
 	platform_init_wgl();
 
 	m_hrc = (uptr)platform_create_context((HDC)hdc, NULL);
@@ -613,11 +630,24 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	int context_flags = 0;
 
 	if (custom::context_settings.api == custom::Context_Api::OpenGL) {
-		if (custom::context_settings.forward) {
-			context_flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+		// Forward-compatible contexts are defined only for OpenGL versions 3.0 and later. They must not support functionality marked as <deprecated> by that version of the API
+		// Feature deprecation was introduced with OpenGL 3.0, so forward-compatible contexts may only be requested for OpenGL 3.0 and above.
+		// If attributes WGL_CONTEXT_MAJOR_VERSION_ARB and WGL_CONTEXT_MINOR_VERSION_ARB, when considered together with WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, specify an OpenGL version and feature set that are not defined, then ERROR_INVALID_VERSION_ARB is generated.
+		// Because the purpose of forward-compatible contexts is to allow application development on a specific OpenGL version with the knowledge that the app will run on a future version, context creation will fail if WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB is set and the context version returned cannot implement exactly the requested version.
+		if (custom::context_settings.major_version >= 3) {
+			if (custom::context_settings.legacy_context) {
+				profile_mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+			}
+			else {
+				context_flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+			}
 		}
-		if (custom::context_settings.profile_bit) {
-			profile_mask |= custom::context_settings.profile_bit;
+		//  If the requested OpenGL version is less than 3.2, WGL_CONTEXT_PROFILE_MASK_ARB is ignored and the functionality of the context is determined solely by the requested version.
+		if (custom::context_settings.legacy_profile) {
+			profile_mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+		}
+		else {
+			profile_mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
 		}
 	}
 	else if (custom::context_settings.api == custom::Context_Api::OpenGL_ES) {
@@ -752,13 +782,13 @@ static void platform_init_wgl(void) {
 
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc) {
 	if (custom::context_settings.api == custom::Context_Api::OpenGL) {
-		if (custom::context_settings.forward && !wgl.ARB_create_context) {
-			CUSTOM_ASSERT(false, "forward compatible OpenGL context requires 'ARB_create_context'");
+		if (!custom::context_settings.legacy_context && !wgl.ARB_create_context) {
+			CUSTOM_ASSERT(false, "modern OpenGL context requires 'ARB_create_context'");
 			return NULL;
 		}
 
-		if (custom::context_settings.profile_bit && !wgl.ARB_create_context_profile) {
-			CUSTOM_ASSERT(false, "OpenGL profile requires 'ARB_create_context_profile'");
+		if (!custom::context_settings.legacy_profile && !wgl.ARB_create_context_profile) {
+			CUSTOM_ASSERT(false, "modern OpenGL profile requires 'ARB_create_context_profile'");
 			return NULL;
 		}
 	}

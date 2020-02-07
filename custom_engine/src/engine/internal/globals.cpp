@@ -18,8 +18,8 @@ Pixel_Format pixel_format_hint;
 void globals_init(void) {
 	// context_settings
 	context_settings = {};
-	// context_settings.major_version = 4;
-	// context_settings.minor_version = 6;
+	context_settings.major_version = 4;
+	context_settings.minor_version = 6;
 
 	// pixel_format_hint
 	pixel_format_hint = {};
