@@ -660,17 +660,20 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	}
 
 	if (custom::context_settings.robustness && wgl.ARB_create_context_robustness) {
+		// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_robustness.txt
+		// - If the reset notification behavior is NO_RESET_NOTIFICATION_ARB, then the implementation will never deliver notification of reset events, and GetGraphicsResetStatusARB will always return
+		// - If the behavior is LOSE_CONTEXT_ON_RESET_ARB, a graphics reset will result in the loss of all context state, requiring the recreation of all associated objects. In this case GetGraphicsResetStatusARB. may return any of the values described above.
 		SET_ATTRIBUTE(
 			WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
-			custom::context_settings.robustness
+			custom::context_settings.robustness == 1 ? WGL_NO_RESET_NOTIFICATION_ARB : WGL_LOSE_CONTEXT_ON_RESET_ARB
 		);
 		context_flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
 	}
 
-	if (custom::context_settings.release_behaviour && wgl.ARB_context_flush_control) {
+	if (wgl.ARB_context_flush_control) {
 		SET_ATTRIBUTE(
 			WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
-			custom::context_settings.release_behaviour
+			custom::context_settings.flush_on_release ? WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB : WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB
 		);
 	}
 

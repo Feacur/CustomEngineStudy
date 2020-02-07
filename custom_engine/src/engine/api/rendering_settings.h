@@ -18,10 +18,9 @@ struct Context_Settings
 	Context_Api api;
 	int  major_version;
 	int  minor_version;
+	int  robustness; // 0 disabled, 1 enabled (no errors), 2 enabled (with errors)
 	//
-	int  robustness; // WGL_NO_RESET_NOTIFICATION_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB
-	int  release_behaviour; // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB
-	//
+	bool flush_on_release;
 	bool legacy_context;
 	bool legacy_profile;
 	bool debug;
