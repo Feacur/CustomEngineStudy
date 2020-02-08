@@ -7,8 +7,7 @@ namespace asset {
 
 namespace shader {
 	Meta meta_presets[] = {
-		{}, // NULL
-		{ // 1
+		{
 			graphics::Shader_Part::Vertex | graphics::Shader_Part::Pixel,
 		},
 	};
@@ -23,11 +22,10 @@ namespace shader {
 		NULL
 	};
 	
-	u8 meta_ids[ids_count + 1] = {
-		1,
-		1,
-		1,
-		NULL
+	u8 meta_ids[ids_count] = {
+		0,
+		0,
+		0,
 	};
 };
 
@@ -43,8 +41,7 @@ namespace uniform {
 
 namespace texture {
 	Meta meta_presets[] = {
-		{}, // NULL
-		{ // 1
+		{
 			graphics::Filter_Mode::Linear,
 			graphics::Filter_Mode::None,
 			graphics::Filter_Mode::None,
@@ -60,20 +57,18 @@ namespace texture {
 		NULL
 	};
 	
-	u8 meta_ids[ids_count + 1] = {
-		1,
-		NULL
+	u8 meta_ids[ids_count] = {
+		0,
 	};
 };
 
 namespace mesh {
 	Meta meta_presets[] = {
-		{}, // NULL
-		{ // 1
+		{
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 		},
-		{ // 2
+		{
 			graphics::Mesh_Frequency::Dynamic, graphics::Mesh_Access::Draw,
 			graphics::Mesh_Frequency::Static, graphics::Mesh_Access::Draw,
 		},
@@ -87,9 +82,8 @@ namespace mesh {
 		NULL
 	};
 	
-	u8 meta_ids[ids_count + 1] = {
-		1,
-		NULL
+	u8 meta_ids[ids_count] = {
+		0,
 	};
 };
 
