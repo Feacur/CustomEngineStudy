@@ -1,4 +1,4 @@
-#include "engine/entity_system/reference.h"
+#include "engine/api/entity_system.h"
 
 struct Visual
 {
