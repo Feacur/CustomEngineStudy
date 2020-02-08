@@ -20,7 +20,6 @@
 #include "engine/api/runtime_data.h"
 #include "engine/api/loader.h"
 #include "engine/api/renderer.h"
-#include "engine/api/entity_system.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
@@ -31,3 +30,5 @@
 #include "engine/impl/math_random.h"
 #include "engine/impl/math_linear.h"
 #include "engine/impl/math_linear_random.h"
+
+#include "engine/entity_system/world.h"
