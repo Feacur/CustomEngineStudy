@@ -91,6 +91,7 @@ struct Ref_Pool : public Ref_Pool_Base
 	// API
 	Ref<T> create();
 	void destroy(Ref<T> ref);
+	bool check_active(u32 id) { return id && active[id]; };
 	bool contains(u32 id, u32 gen) { return id && active[id] && (gens[id] == gen); };
 
 	// World API

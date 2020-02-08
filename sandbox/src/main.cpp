@@ -44,6 +44,31 @@ static u32 create_quads_3_4(u32 local_id, u32 capacity) {
 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 }
 
+custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh) {
+	custom::Ref<custom::Entity> entity = custom::World::create();
+	entity->add_component<Visual>();
+	custom::Ref<Visual> visual = entity->get_component<Visual>();
+
+	Visual * visual_ptr = visual.operator->();
+	visual_ptr->shader  = shader;
+	visual_ptr->texture = texture;
+	visual_ptr->mesh    = mesh;
+
+	if (shader < (u32)sandbox::Shader::count) {
+		custom::loader::shader(shader);
+	}
+
+	if (texture < (u32)sandbox::Texture::count) {
+		custom::loader::image(texture);
+	}
+
+	if (mesh < (u32)sandbox::Mesh::count) {
+		custom::loader::mesh(mesh);
+	}
+
+	return entity;
+}
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -72,37 +97,24 @@ int main(int argc, char * argv[]) {
 	Visual::offset = 0;
 	custom::World::component_pools.push(&Visual::pool);
 
-	custom::Ref<custom::Entity> entity1 = custom::World::create();
-	custom::Ref<custom::Entity> entity2 = custom::World::create();
-	custom::Ref<custom::Entity> entity3 = custom::World::create();
-
-	custom::loader::shader((u32)sandbox::Shader::device);
-	custom::loader::shader((u32)sandbox::Shader::particle_device);
-	custom::loader::image((u32)sandbox::Texture::checkerboard);
-
 	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
 	u32 particle_test_asset_id = create_quads_3_4(
 		(u32)sandbox::Runtime_Mesh::particle_test, 128
 	);
 
-	entity1->add_component<Visual>();
-	entity2->add_component<Visual>();
-	entity3->add_component<Visual>();
-
-	custom::Array<custom::Ref<Visual>> visuals;
-	visuals.push(entity1->get_component<Visual>());
-	visuals.push(entity2->get_component<Visual>());
-	visuals.push(entity3->get_component<Visual>());
+	custom::Ref<custom::Entity> entity1 = create_visual(
+		(u32)sandbox::Shader::device,
+		(u32)sandbox::Texture::checkerboard,
+		quad_asset_id
+	);
+	custom::Ref<custom::Entity> entity2 = create_visual(empty_id, empty_id, empty_id);
+	custom::Ref<custom::Entity> entity3 = create_visual(
+		(u32)sandbox::Shader::device,
+		empty_id,
+		particle_test_asset_id
+	);
 
 	custom::World::destroy(entity2);
-
-	visuals[0]->shader = (u32)sandbox::Shader::device;
-	visuals[0]->texture = (u32)sandbox::Texture::checkerboard;
-	visuals[0]->mesh = quad_asset_id;
-
-	visuals[2]->shader = (u32)sandbox::Shader::particle_device;
-	visuals[2]->texture = empty_id;
-	visuals[2]->mesh = particle_test_asset_id;
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -123,9 +135,9 @@ int main(int argc, char * argv[]) {
 		//        - proactively bind textures pending to rendering
 		//        - batch and rebind if running out of slots/units
 
-		for (u32 i = 0; i < visuals.count; ++i) {
-			Visual * visual = visuals[i].operator->();
-			if (!visual) { continue; }
+		for (u32 i = 0; i < Visual::pool.instances.count; ++i) {
+			if (!Visual::pool.check_active(i)) { continue; }
+			Visual * visual = &Visual::pool.instances[i];
 
 			if (visual->shader != empty_id) {
 				gbc.write(custom::graphics::Instruction::Use_Shader);
