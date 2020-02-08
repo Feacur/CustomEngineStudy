@@ -30,12 +30,14 @@ Array_Fixed<T, capacity>::~Array_Fixed() = default;
 
 template<typename T, u16 capacity>
 inline T const & Array_Fixed<T, capacity>::operator[](u16 i) const {
+	// @Todo: warn of reading beyond count?
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
 
 template<typename T, u16 capacity>
 inline T & Array_Fixed<T, capacity>::operator[](u16 i) {
+	// @Todo: warn of reading beyond count?
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
@@ -85,7 +87,7 @@ void Array_Fixed<T, capacity>::pop() {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::remove(u16 i) {
+void Array_Fixed<T, capacity>::remove_at(u16 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
 	--count;
@@ -95,7 +97,7 @@ void Array_Fixed<T, capacity>::remove(u16 i) {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::remove_ordered(u16 i) {
+void Array_Fixed<T, capacity>::remove_at_ordered(u16 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
 	--count;

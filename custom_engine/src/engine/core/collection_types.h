@@ -36,8 +36,8 @@ struct Array
 	void insert(u32 i, T const & value);
 
 	void pop();
-	void remove(u32 i);
-	void remove_ordered(u32 i);
+	void remove_at(u32 i);
+	void remove_at_ordered(u32 i);
 };
 
 template<typename T, u16 capacity>
@@ -67,8 +67,8 @@ struct Array_Fixed
 	void insert(u16 i, T const & value);
 
 	void pop();
-	void remove(u16 i);
-	void remove_ordered(u16 i);
+	void remove_at(u16 i);
+	void remove_at_ordered(u16 i);
 };
 
 }

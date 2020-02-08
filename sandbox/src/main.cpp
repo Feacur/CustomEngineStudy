@@ -1,5 +1,6 @@
 #include "custom_engine.h"
 #include "assets/ids.h"
+#include "entity_system.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -75,6 +76,19 @@ int main(int argc, char * argv[]) {
 	);
 
 	custom::renderer::viewport({0, 0}, window->get_size());
+
+	custom::Entity::component_types_count = 1;
+	custom::World::component_pools.push(&Visual::pool);
+
+	custom::Ref<custom::Entity> entity1 = custom::World::create();
+	custom::Ref<custom::Entity> entity2 = custom::World::create();
+	custom::Ref<custom::Entity> entity3 = custom::World::create();
+
+	entity1->add_component<Visual>();
+	entity2->add_component<Visual>();
+	entity3->add_component<Visual>();
+
+	custom::Entity::pool.destroy(entity2);
 
 	while (true) {
 		if (custom::system.should_close) { break; }

@@ -20,6 +20,7 @@
 #include "engine/api/runtime_data.h"
 #include "engine/api/loader.h"
 #include "engine/api/renderer.h"
+#include "engine/api/entity_system.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
