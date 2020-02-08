@@ -35,11 +35,9 @@ void Entity::add_component() {
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	Entity::components.ensure_capacity((id + 1) * Entity::component_types_count);
 	Plain_Ref & c_ref = Entity::components[id_offset];
-	CUSTOM_ASSERT(!c_ref.id, "component already exist");
-	if (!c_ref.id) {
-		Ref<T> ref = T::pool.create();
-		c_ref = { ref.id, ref.gen };
-	}
+	CUSTOM_ASSERT(!T::pool.contains(c_ref.id, c_ref.gen), "component already exist");
+	Ref<T> ref = T::pool.create();
+	c_ref = { ref.id, ref.gen };
 }
 
 template<typename T>
@@ -48,28 +46,26 @@ void Entity::remove_component() {
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	if (Entity::components.capacity <= id_offset) { return; }
 	Plain_Ref & c_ref = Entity::components[id_offset];
-	CUSTOM_ASSERT(c_ref.id, "component doesn't exist");
-	if (c_ref.id) {
-		T::pool.destroy({ c_ref.id, c_ref.gen });
-		c_ref.id = 0;
-	}
+	CUSTOM_ASSERT(T::pool.contains(c_ref.id, c_ref.gen), "component doesn't exist");
+	T::pool.destroy({ c_ref.id, c_ref.gen });
+	// c_ref = {}; // @Note: relevant if [gen] value is not stored
 }
 
 template<typename T>
 bool Entity::has_component() const {
 	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
-	if (Entity::component_ids.capacity <= id_offset) { return false; }
-	Plain_Ref & c_ref = Entity::component_ids[id_offset];
+	if (Entity::components.capacity <= id_offset) { return false; }
+	Plain_Ref & c_ref = Entity::components[id_offset];
 	return T::pool.contains(c_ref.id, c_ref.gen);
 }
 
 template<typename T>
 Ref<T> Entity::get_component() {
-	u32 id = Entity::get_id(this);
+	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
-	if (Entity::component_ids.capacity <= id_offset) { return NULL; }
-	Plain_Ref & c_ref = Entity::component_ids[id_offset];
+	if (Entity::components.capacity <= id_offset) { return {}; }
+	Plain_Ref & c_ref = Entity::components[id_offset];
 	return { c_ref.id, c_ref.gen };
 }
 

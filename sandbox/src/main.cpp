@@ -66,6 +66,16 @@ int main(int argc, char * argv[]) {
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 
+	custom::renderer::viewport({0, 0}, window->get_size());
+
+	custom::Entity::component_types_count = 1;
+	Visual::offset = 0;
+	custom::World::component_pools.push(&Visual::pool);
+
+	custom::Ref<custom::Entity> entity1 = custom::World::create();
+	custom::Ref<custom::Entity> entity2 = custom::World::create();
+	custom::Ref<custom::Entity> entity3 = custom::World::create();
+
 	custom::loader::shader((u32)sandbox::Shader::device);
 	custom::loader::shader((u32)sandbox::Shader::particle_device);
 	custom::loader::image((u32)sandbox::Texture::checkerboard);
@@ -75,20 +85,24 @@ int main(int argc, char * argv[]) {
 		(u32)sandbox::Runtime_Mesh::particle_test, 128
 	);
 
-	custom::renderer::viewport({0, 0}, window->get_size());
-
-	custom::Entity::component_types_count = 1;
-	custom::World::component_pools.push(&Visual::pool);
-
-	custom::Ref<custom::Entity> entity1 = custom::World::create();
-	custom::Ref<custom::Entity> entity2 = custom::World::create();
-	custom::Ref<custom::Entity> entity3 = custom::World::create();
-
 	entity1->add_component<Visual>();
 	entity2->add_component<Visual>();
 	entity3->add_component<Visual>();
 
-	custom::Entity::pool.destroy(entity2);
+	custom::Array<custom::Ref<Visual>> visuals;
+	visuals.push(entity1->get_component<Visual>());
+	visuals.push(entity2->get_component<Visual>());
+	visuals.push(entity3->get_component<Visual>());
+
+	custom::World::destroy(entity2);
+
+	visuals[0]->shader = (u32)sandbox::Shader::device;
+	visuals[0]->texture = (u32)sandbox::Texture::checkerboard;
+	visuals[0]->mesh = quad_asset_id;
+
+	visuals[2]->shader = (u32)sandbox::Shader::particle_device;
+	visuals[2]->texture = empty_id;
+	visuals[2]->mesh = particle_test_asset_id;
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -109,41 +123,30 @@ int main(int argc, char * argv[]) {
 		//        - proactively bind textures pending to rendering
 		//        - batch and rebind if running out of slots/units
 
-		// quad
-		{
-			u32 const slots_count = 1;
-			sandbox::Uniform texture_uniforms[slots_count] = { sandbox::Uniform::texture };
-			sandbox::Texture texture_assets[slots_count] = { sandbox::Texture::checkerboard };
+		for (u32 i = 0; i < visuals.count; ++i) {
+			Visual * visual = visuals[i].operator->();
+			if (!visual) { continue; }
 
-			gbc.write(custom::graphics::Instruction::Use_Shader);
-			gbc.write(sandbox::Shader::device);
+			if (visual->shader != empty_id) {
+				gbc.write(custom::graphics::Instruction::Use_Shader);
+				gbc.write(visual->shader);
 
-			for (u32 i = 0; i < slots_count; ++i) {
-				gbc.write(custom::graphics::Instruction::Use_Texture);
-				gbc.write(texture_assets[i]);
+				if (visual->texture != empty_id) {
+					gbc.write(custom::graphics::Instruction::Use_Texture);
+					gbc.write(visual->texture);
+
+					gbc.write(custom::graphics::Instruction::Load_Uniform);
+					gbc.write(visual->shader);
+					gbc.write((u32)sandbox::Uniform::texture);
+					gbc.write(custom::graphics::Data_Type::texture_unit);
+					gbc.write((u32)1); gbc.write(visual->texture);
+				}
 			}
 
-			for (u32 i = 0; i < slots_count; ++i) {
-				gbc.write(custom::graphics::Instruction::Load_Uniform);
-				gbc.write(sandbox::Shader::device);
-				gbc.write(texture_uniforms[i]);
-				gbc.write(custom::graphics::Data_Type::texture_unit);
-				gbc.write((u32)1); gbc.write(texture_assets[i]);
+			if (visual->mesh != empty_id) {
+				gbc.write(custom::graphics::Instruction::Use_Mesh);
+				gbc.write(visual->mesh);
 			}
-
-			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(quad_asset_id);
-
-			gbc.write(custom::graphics::Instruction::Draw);
-		}
-
-		// particle_test
-		{
-			gbc.write(custom::graphics::Instruction::Use_Shader);
-			gbc.write(sandbox::Shader::particle_device);
-
-			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(particle_test_asset_id);
 
 			gbc.write(custom::graphics::Instruction::Draw);
 		}

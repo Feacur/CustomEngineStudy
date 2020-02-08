@@ -15,7 +15,6 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
-constexpr u32 const empty_id   = UINT32_MAX;
 constexpr u32 const empty_unit = UINT32_MAX;
 
 typedef GLchar const * glstring;
@@ -1178,7 +1177,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 uniform_id = *bc.read<u32>();
 			DT_Array uniform = read_data_array(bc);
 
-			opengl::Field const * field = find_uniform_field(resource->id, uniform_id);
+			opengl::Field const * field = find_uniform_field(asset_id, uniform_id);
 
 			// @Todo: compare types and size?
 
@@ -1191,22 +1190,26 @@ static void consume_single_instruction(Bytecode const & bc)
 			// if (version_major == 4 && version_minor >= 1 || version_major > 4) {
 				switch (uniform.type) {
 					case Data_Type::texture_unit: {
-						u32 * texture_ids = (u32 *)uniform.data;
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * texture_ids = (u32 *)uniform.data;
 						for (u32 i = 0; i < uniform.count; ++i) {
 							u32 texture_id = texture_ids[i];
 							opengl::Texture const * texture = &ogl.textures[texture_id];
 							CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
-							glProgramUniform1i(resource->id, field->location, texture->unit);
+							units.push((s32)texture->unit);
 						}
+						glProgramUniform1iv(resource->id, field->location, units.count, units.data);
 					} break;
 					case Data_Type::sampler_unit: {
-						u32 * sampler_ids = (u32 *)uniform.data;
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * sampler_ids = (u32 *)uniform.data;
 						for (u32 i = 0; i < uniform.count; ++i) {
 							u32 sampler_id = sampler_ids[i];
 							opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
 							CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
-							glProgramUniform1i(resource->id, field->location, sampler->unit);
+							units.push((s32)sampler->unit);
 						}
+						glProgramUniform1iv(resource->id, field->location, units.count, units.data);
 					} break;
 					//
 					case Data_Type::r32:  glProgramUniform1fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
@@ -1236,22 +1239,26 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	}
 			// 	switch (uniform.type) {
 			// 		case Data_Type::texture_unit: {
-			// 			u32 * texture_ids = (u32 *)uniform.data;
+			// 			static custom::Array<s32> units; units.count = 0;
+			// 			u32 const * texture_ids = (u32 *)uniform.data;
 			// 			for (u32 i = 0; i < uniform.count; ++i) {
 			// 				u32 texture_id = texture_ids[i];
 			// 				opengl::Texture const * texture = &ogl.textures[texture_id];
 			// 				CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
-			// 				glUniform1i(field->location, texture->unit);
+			// 				units.push((s32)texture->unit);
 			// 			}
+			// 			glUniform1iv(field->location, units.count, units.data);
 			// 		} break;
 			// 		case Data_Type::sampler_unit: {
-			// 			u32 * sampler_ids = (u32 *)uniform.data;
+			// 			static custom::Array<s32> units; units.count = 0;
+			// 			u32 const * sampler_ids = (u32 *)uniform.data;
 			// 			for (u32 i = 0; i < uniform.count; ++i) {
 			// 				u32 sampler_id = sampler_ids[i];
 			// 				opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
 			// 				CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
-			// 				glUniform1i(field->location, sampler->unit);
+			// 				units.push((s32)sampler->unit);
 			// 			}
+			// 			glUniform1iv(field->location, units.count, units.data);
 			// 		} break;
 			// 		//
 			// 		case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;
