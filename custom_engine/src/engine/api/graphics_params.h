@@ -3,6 +3,8 @@
 #include "engine/core/meta.h"
 #include "engine/impl/math_bitwise.h"
 
+constexpr u32 const empty_id = UINT32_MAX;
+
 namespace custom {
 namespace graphics {
 

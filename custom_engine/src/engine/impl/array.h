@@ -40,12 +40,14 @@ Array<T>::~Array() {
 
 template<typename T>
 inline T const & Array<T>::operator[](u32 i) const {
+	// @Todo: warn of reading beyond count?
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
 
 template<typename T>
 inline T & Array<T>::operator[](u32 i) {
+	// @Todo: warn of reading beyond count?
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
@@ -58,10 +60,19 @@ void Array<T>::set_capacity(u32 amount) {
 		return;
 	}
 
+	if (!data) {
+		data = (T *)calloc(amount, sizeof(T));
+		capacity = amount;
+		return;
+	}
+
 	void * new_buffer = realloc(data, amount * sizeof(T));
 	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", amount * sizeof(T));
 
 	if (new_buffer) {
+		if (amount > capacity) {
+			memset((T *)new_buffer + capacity, 0, (amount - capacity) * sizeof(T));
+		}
 		data = (T *)new_buffer;
 		capacity = amount;
 		if (count > capacity) {
@@ -121,7 +132,7 @@ void Array<T>::pop() {
 }
 
 template<typename T>
-void Array<T>::remove(u32 i) {
+void Array<T>::remove_at(u32 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
 	--count;
@@ -131,7 +142,7 @@ void Array<T>::remove(u32 i) {
 }
 
 template<typename T>
-void Array<T>::remove_ordered(u32 i) {
+void Array<T>::remove_at_ordered(u32 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
 	--count;

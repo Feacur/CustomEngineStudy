@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 #include "engine/api/loader.h"
+#include "engine/api/resource.h"
 #include "engine/api/file.h"
 #include "engine/core/code.h"
 #include "engine/core/math_types.h"
@@ -56,6 +57,8 @@ void init(Bytecode * bytecode) {
 }
 
 void image(u32 asset_id) {
+	if (has_texture(asset_id)) { return; }
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -81,6 +84,8 @@ void image(u32 asset_id) {
 }
 
 void imagef(u32 asset_id) {
+	if (has_texture(asset_id)) { return; }
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::r32;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -106,6 +111,8 @@ void imagef(u32 asset_id) {
 }
 
 void image16(u32 asset_id) {
+	if (has_texture(asset_id)) { return; }
+
 	static graphics::Data_Type const data_type = graphics::Data_Type::u16;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
@@ -131,6 +138,8 @@ void image16(u32 asset_id) {
 }
 
 void shader(u32 asset_id) {
+	if (has_shader(asset_id)) { return; }
+
 	cstring path = asset::shader::paths[asset_id];
 	Array<u8> file; file_read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -149,12 +158,16 @@ void shader(u32 asset_id) {
 }
 
 void mesh(u32 asset_id) {
+	if (has_mesh(asset_id)) { return; }
+
 	cstring path = asset::shader::paths[asset_id];
 	CUSTOM_ASSERT(false, "// @Todo");
 }
 
 u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 	u32 asset_id = asset::mesh::count + local_id;
+	if (has_mesh(asset_id)) { return asset_id; }
+
 	bc->write(graphics::Instruction::Allocate_Mesh);
 	bc->write(asset_id);
 	bc->write(count);
@@ -171,6 +184,7 @@ u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 
 u32 create_quad(u32 local_id) {
 	u32 asset_id = asset::mesh::count + local_id;
+	if (has_mesh(asset_id)) { return asset_id; }
 
 	r32 const vertex_data[] = {
 		/*position*/ -0.5f, -0.5f, 0.0f, /*UV*/ 0.0f, 0.0f,
@@ -218,22 +232,16 @@ namespace custom {
 namespace loader {
 
 static void init_uniforms() {
-	cstring name;
-
-	u32 count = 0;
-	while ((name = asset::uniform::names[count]) != NULL) {
-		++count;
-	}
+	u32 const count = asset::uniform::count;
 
 	bc->write(graphics::Instruction::Init_Uniforms);
 	bc->write(count);
 
-	u32 asset_id = 0;
-	while ((name = asset::uniform::names[asset_id]) != NULL) {
+	for (u32 i = 0; i < count; ++i) {
+		cstring name = asset::uniform::names[i];
 		u32 length = (u32)strlen(name);
 		bc->write(length + 1);
 		bc->write(name, length); bc->write('\0');
-		++asset_id;
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 #include "engine/core/math_types.h"
+#include "engine/api/resource.h"
 #include "engine/api/graphics_vm.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
@@ -15,7 +16,6 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
-constexpr u32 const empty_id   = UINT32_MAX;
 constexpr u32 const empty_unit = UINT32_MAX;
 
 typedef GLchar const * glstring;
@@ -35,6 +35,7 @@ template struct custom::Array<Field>;
 struct Program
 {
 	GLuint id;
+	bool allocated;
 	// custom::Array<Field> attributes;
 	custom::Array<Field> uniforms;
 };
@@ -43,6 +44,7 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id;
+	bool allocated;
 	u32 unit;
 	ivec2 size;
 	u8 channels;
@@ -56,6 +58,7 @@ template struct custom::Array<Texture>;
 struct Sampler
 {
 	GLuint id;
+	bool allocated;
 	u32 unit;
 	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	custom::graphics::Wrap_Mode wrap_x, wrap_y;
@@ -83,6 +86,7 @@ template struct custom::Array<Buffer>;
 struct Mesh
 {
 	GLuint id;
+	bool allocated;
 	custom::Array<Buffer> buffers;
 	u8 index_buffer;
 };
@@ -127,6 +131,30 @@ static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) 
 	}
 	CUSTOM_ASSERT(false, "program %d doesn't have uniform %d", program_id, uniform_id);
 	return NULL;
+}
+
+namespace custom {
+
+bool has_shader(u32 id) {
+	if (id >= ogl.programs.capacity) { return false; }
+	return ogl.programs[id].allocated;
+}
+
+bool has_texture(u32 id) {
+	if (id >= ogl.textures.capacity) { return false; }
+	return ogl.textures[id].allocated;
+}
+
+bool has_sampler(u32 id) {
+	if (id >= ogl.samplers.capacity) { return false; }
+	return ogl.samplers[id].allocated;
+}
+
+bool has_mesh(u32 id) {
+	if (id >= ogl.meshes.capacity) { return false; }
+	return ogl.meshes[id].allocated;
+}
+
 }
 
 //
@@ -675,6 +703,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.programs.ensure_capacity(asset_id + 1);
 			opengl::Program * resource = new (&ogl.programs[asset_id]) opengl::Program;
 			++ogl.programs.count;
+			resource->allocated = true;
 			resource->id = glCreateProgram();
 		} return;
 
@@ -683,6 +712,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.textures.ensure_capacity(asset_id + 1);
 			opengl::Texture * resource = new (&ogl.textures[asset_id]) opengl::Texture;
 			++ogl.textures.count;
+			resource->allocated = true;
 
 			resource->unit         = empty_unit;
 			resource->size         = *bc.read<ivec2>();
@@ -749,6 +779,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.samplers.ensure_capacity(asset_id + 1);
 			opengl::Sampler * resource = new (&ogl.samplers[asset_id]) opengl::Sampler;
 			++ogl.samplers.count;
+			resource->allocated = true;
 
 			resource->unit    = empty_unit;
 			resource->min_tex = *bc.read<Filter_Mode>();
@@ -777,6 +808,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			ogl.meshes.ensure_capacity(asset_id + 1);
 			opengl::Mesh * resource = new (&ogl.meshes[asset_id]) opengl::Mesh;
 			++ogl.meshes.count;
+			resource->allocated = true;
 
 			u8 buffers_count = *bc.read<u8>();
 			resource->buffers.set_capacity(buffers_count);
@@ -894,10 +926,11 @@ static void consume_single_instruction(Bytecode const & bc)
 		//
 		case Instruction::Free_Shader: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Program const * resource = &ogl.programs[asset_id];
+			opengl::Program * resource = &ogl.programs[asset_id];
 			glDeleteProgram(resource->id);
 			resource->opengl::Program::~Program();
 			--ogl.programs.count;
+			resource->allocated = false;
 			if (ogl.active_program == asset_id) {
 				ogl.active_program = empty_id;
 			}
@@ -905,7 +938,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 		case Instruction::Free_Texture: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Texture const * resource = &ogl.textures[asset_id];
+			opengl::Texture * resource = &ogl.textures[asset_id];
 			glDeleteTextures(1, &resource->id);
 
 			if (resource->unit != empty_unit) {
@@ -915,11 +948,12 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			resource->opengl::Texture::~Texture();
 			--ogl.textures.count;
+			resource->allocated = false;
 		} return;
 
 		case Instruction::Free_Sampler: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Sampler const * resource = &ogl.samplers[asset_id];
+			opengl::Sampler * resource = &ogl.samplers[asset_id];
 			glDeleteSamplers(1, &resource->id);
 
 			if (resource->unit != empty_unit) {
@@ -929,17 +963,19 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			resource->opengl::Sampler::~Sampler();
 			--ogl.samplers.count;
+			resource->allocated = false;
 		} return;
 
 		case Instruction::Free_Mesh: {
 			u32 asset_id = *bc.read<u32>();
-			opengl::Mesh const * resource = &ogl.meshes[asset_id];
+			opengl::Mesh * resource = &ogl.meshes[asset_id];
 			for (u32 i = 0; i < resource->buffers.count; ++i) {
 				glDeleteBuffers(1, &resource->buffers[i].id);
 			}
 			glDeleteVertexArrays(1, &resource->id);
 			resource->opengl::Mesh::~Mesh();
 			--ogl.meshes.count;
+			resource->allocated = false;
 			if (ogl.active_mesh == asset_id) {
 				ogl.active_mesh = empty_id;
 			}
@@ -1178,7 +1214,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 uniform_id = *bc.read<u32>();
 			DT_Array uniform = read_data_array(bc);
 
-			opengl::Field const * field = find_uniform_field(resource->id, uniform_id);
+			opengl::Field const * field = find_uniform_field(asset_id, uniform_id);
 
 			// @Todo: compare types and size?
 
@@ -1191,22 +1227,26 @@ static void consume_single_instruction(Bytecode const & bc)
 			// if (version_major == 4 && version_minor >= 1 || version_major > 4) {
 				switch (uniform.type) {
 					case Data_Type::texture_unit: {
-						u32 * texture_ids = (u32 *)uniform.data;
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * texture_ids = (u32 *)uniform.data;
 						for (u32 i = 0; i < uniform.count; ++i) {
 							u32 texture_id = texture_ids[i];
 							opengl::Texture const * texture = &ogl.textures[texture_id];
 							CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
-							glProgramUniform1i(resource->id, field->location, texture->unit);
+							units.push((s32)texture->unit);
 						}
+						glProgramUniform1iv(resource->id, field->location, units.count, units.data);
 					} break;
 					case Data_Type::sampler_unit: {
-						u32 * sampler_ids = (u32 *)uniform.data;
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * sampler_ids = (u32 *)uniform.data;
 						for (u32 i = 0; i < uniform.count; ++i) {
 							u32 sampler_id = sampler_ids[i];
 							opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
 							CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
-							glProgramUniform1i(resource->id, field->location, sampler->unit);
+							units.push((s32)sampler->unit);
 						}
+						glProgramUniform1iv(resource->id, field->location, units.count, units.data);
 					} break;
 					//
 					case Data_Type::r32:  glProgramUniform1fv(resource->id, field->location, uniform.count, (r32 *)uniform.data); break;
@@ -1236,22 +1276,26 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	}
 			// 	switch (uniform.type) {
 			// 		case Data_Type::texture_unit: {
-			// 			u32 * texture_ids = (u32 *)uniform.data;
+			// 			static custom::Array<s32> units; units.count = 0;
+			// 			u32 const * texture_ids = (u32 *)uniform.data;
 			// 			for (u32 i = 0; i < uniform.count; ++i) {
 			// 				u32 texture_id = texture_ids[i];
 			// 				opengl::Texture const * texture = &ogl.textures[texture_id];
 			// 				CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
-			// 				glUniform1i(field->location, texture->unit);
+			// 				units.push((s32)texture->unit);
 			// 			}
+			// 			glUniform1iv(field->location, units.count, units.data);
 			// 		} break;
 			// 		case Data_Type::sampler_unit: {
-			// 			u32 * sampler_ids = (u32 *)uniform.data;
+			// 			static custom::Array<s32> units; units.count = 0;
+			// 			u32 const * sampler_ids = (u32 *)uniform.data;
 			// 			for (u32 i = 0; i < uniform.count; ++i) {
 			// 				u32 sampler_id = sampler_ids[i];
 			// 				opengl::Sampler const * sampler = &ogl.samplers[sampler_id];
 			// 				CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
-			// 				glUniform1i(field->location, sampler->unit);
+			// 				units.push((s32)sampler->unit);
 			// 			}
+			// 			glUniform1iv(field->location, units.count, units.data);
 			// 		} break;
 			// 		//
 			// 		case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;

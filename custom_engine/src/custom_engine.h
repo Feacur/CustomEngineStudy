@@ -30,3 +30,5 @@
 #include "engine/impl/math_random.h"
 #include "engine/impl/math_linear.h"
 #include "engine/impl/math_linear_random.h"
+
+#include "engine/entity_system/world.h"

@@ -1,5 +1,6 @@
 #include "custom_engine.h"
 #include "assets/ids.h"
+#include "components.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -43,6 +44,31 @@ static u32 create_quads_3_4(u32 local_id, u32 capacity) {
 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 }
 
+custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh) {
+	custom::Ref<custom::Entity> entity = custom::World::create();
+	entity->add_component<Visual>();
+	custom::Ref<Visual> visual = entity->get_component<Visual>();
+
+	Visual * visual_ptr = visual.operator->();
+	visual_ptr->shader  = shader;
+	visual_ptr->texture = texture;
+	visual_ptr->mesh    = mesh;
+
+	if (shader < (u32)sandbox::Shader::count) {
+		custom::loader::shader(shader);
+	}
+
+	if (texture < (u32)sandbox::Texture::count) {
+		custom::loader::image(texture);
+	}
+
+	if (mesh < (u32)sandbox::Mesh::count) {
+		custom::loader::mesh(mesh);
+	}
+
+	return entity;
+}
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -65,16 +91,30 @@ int main(int argc, char * argv[]) {
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 
-	custom::loader::shader((u32)sandbox::Shader::device);
-	custom::loader::shader((u32)sandbox::Shader::particle_device);
-	custom::loader::image((u32)sandbox::Texture::checkerboard);
+	custom::renderer::viewport({0, 0}, window->get_size());
+
+	custom::Entity::component_types_count = 1;
+	Visual::offset = 0;
+	custom::World::component_pools.push(&Visual::pool);
 
 	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
 	u32 particle_test_asset_id = create_quads_3_4(
 		(u32)sandbox::Runtime_Mesh::particle_test, 128
 	);
 
-	custom::renderer::viewport({0, 0}, window->get_size());
+	custom::Ref<custom::Entity> entity1 = create_visual(
+		(u32)sandbox::Shader::device,
+		(u32)sandbox::Texture::checkerboard,
+		quad_asset_id
+	);
+	custom::Ref<custom::Entity> entity2 = create_visual(empty_id, empty_id, empty_id);
+	custom::Ref<custom::Entity> entity3 = create_visual(
+		(u32)sandbox::Shader::device,
+		empty_id,
+		particle_test_asset_id
+	);
+
+	custom::World::destroy(entity2);
 
 	while (true) {
 		if (custom::system.should_close) { break; }
@@ -95,41 +135,30 @@ int main(int argc, char * argv[]) {
 		//        - proactively bind textures pending to rendering
 		//        - batch and rebind if running out of slots/units
 
-		// quad
-		{
-			u32 const slots_count = 1;
-			sandbox::Uniform texture_uniforms[slots_count] = { sandbox::Uniform::texture };
-			sandbox::Texture texture_assets[slots_count] = { sandbox::Texture::checkerboard };
+		for (u32 i = 0; i < Visual::pool.instances.count; ++i) {
+			if (!Visual::pool.check_active(i)) { continue; }
+			Visual * visual = &Visual::pool.instances[i];
 
-			gbc.write(custom::graphics::Instruction::Use_Shader);
-			gbc.write(sandbox::Shader::device);
+			if (visual->shader != empty_id) {
+				gbc.write(custom::graphics::Instruction::Use_Shader);
+				gbc.write(visual->shader);
 
-			for (u32 i = 0; i < slots_count; ++i) {
-				gbc.write(custom::graphics::Instruction::Use_Texture);
-				gbc.write(texture_assets[i]);
+				if (visual->texture != empty_id) {
+					gbc.write(custom::graphics::Instruction::Use_Texture);
+					gbc.write(visual->texture);
+
+					gbc.write(custom::graphics::Instruction::Load_Uniform);
+					gbc.write(visual->shader);
+					gbc.write((u32)sandbox::Uniform::texture);
+					gbc.write(custom::graphics::Data_Type::texture_unit);
+					gbc.write((u32)1); gbc.write(visual->texture);
+				}
 			}
 
-			for (u32 i = 0; i < slots_count; ++i) {
-				gbc.write(custom::graphics::Instruction::Load_Uniform);
-				gbc.write(sandbox::Shader::device);
-				gbc.write(texture_uniforms[i]);
-				gbc.write(custom::graphics::Data_Type::texture_unit);
-				gbc.write((u32)1); gbc.write(texture_assets[i]);
+			if (visual->mesh != empty_id) {
+				gbc.write(custom::graphics::Instruction::Use_Mesh);
+				gbc.write(visual->mesh);
 			}
-
-			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(quad_asset_id);
-
-			gbc.write(custom::graphics::Instruction::Draw);
-		}
-
-		// particle_test
-		{
-			gbc.write(custom::graphics::Instruction::Use_Shader);
-			gbc.write(sandbox::Shader::particle_device);
-
-			gbc.write(custom::graphics::Instruction::Use_Mesh);
-			gbc.write(particle_test_asset_id);
 
 			gbc.write(custom::graphics::Instruction::Draw);
 		}
