@@ -218,22 +218,16 @@ namespace custom {
 namespace loader {
 
 static void init_uniforms() {
-	cstring name;
-
-	u32 count = 0;
-	while ((name = asset::uniform::names[count]) != NULL) {
-		++count;
-	}
+	u32 const count = asset::uniform::count;
 
 	bc->write(graphics::Instruction::Init_Uniforms);
 	bc->write(count);
 
-	u32 asset_id = 0;
-	while ((name = asset::uniform::names[asset_id]) != NULL) {
+	for (u32 i = 0; i < count; ++i) {
+		cstring name = asset::uniform::names[i];
 		u32 length = (u32)strlen(name);
 		bc->write(length + 1);
 		bc->write(name, length); bc->write('\0');
-		++asset_id;
 	}
 }
 

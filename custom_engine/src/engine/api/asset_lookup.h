@@ -18,6 +18,7 @@ namespace shader {
 };
 
 namespace uniform {
+	extern u32 count;
 	extern cstring names[];
 };
 

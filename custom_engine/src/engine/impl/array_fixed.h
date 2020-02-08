@@ -8,6 +8,7 @@ namespace custom {
 template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 	: count(count)
+	, data()
 { }
 
 #if !defined(CUSTOM_SHIPPING)

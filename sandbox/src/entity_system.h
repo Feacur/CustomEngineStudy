@@ -6,9 +6,6 @@ struct Visual
 	u32 shader;
 	u32 texture;
 
-	// Entity API
-	static u32 offset;
-
-	// Ref<T> API, creation
-	static custom::RefPool<Visual> pool;
+	static u32 offset; // Entity API
+	static custom::Ref_Pool<Visual> pool; // Ref<T> API, creation
 };

@@ -14,11 +14,11 @@ System system = {};
 Timer timer = {};
 bool Window::should_close = false;
 
-RefPool<Entity> Entity::pool;
+Ref_Pool<Entity> Entity::pool;
 u32 Entity::component_types_count;
-Array<Ref_Raw> Entity::components;
+Array<Plain_Ref> Entity::components;
 
-Array<RefPoolBase *> World::component_pools;
+Array<Ref_Pool_Base *> World::component_pools;
 
 Context_Settings context_settings;
 Pixel_Format pixel_format_hint;
@@ -30,9 +30,9 @@ Ref<Entity> World::create() {
 void World::destroy(Ref<Entity> ref) {
 	u32 entity_offset = ref.id * Entity::component_types_count;
 	for (u32 i = 0; i < component_pools.count; ++i) {
-		Ref_Raw & ref_raw = Entity::components[entity_offset + i];
-		if (ref_raw.id != empty_id) {
-			component_pools[i]->destroy(ref_raw.id, ref_raw.gen);
+		Plain_Ref & c_ref = Entity::components[entity_offset + i];
+		if (c_ref.id) {
+			component_pools[i]->destroy(c_ref.id, c_ref.gen);
 		}
 	}
 	Entity::pool.destroy(ref);

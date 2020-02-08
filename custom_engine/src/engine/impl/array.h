@@ -60,10 +60,19 @@ void Array<T>::set_capacity(u32 amount) {
 		return;
 	}
 
+	if (!data) {
+		data = (T *)calloc(amount, sizeof(T));
+		capacity = amount;
+		return;
+	}
+
 	void * new_buffer = realloc(data, amount * sizeof(T));
 	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", amount * sizeof(T));
 
 	if (new_buffer) {
+		if (amount > capacity) {
+			memset((T *)new_buffer + capacity, 0, (amount - capacity) * sizeof(T));
+		}
 		data = (T *)new_buffer;
 		capacity = amount;
 		if (count > capacity) {

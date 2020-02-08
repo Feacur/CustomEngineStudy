@@ -14,16 +14,16 @@ namespace shader {
 	};
 	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	constexpr u32 const ids_count = (u32)sandbox::Shader::count + 1;
+	constexpr u32 const ids_count = (u32)sandbox::Shader::count;
 	u32 count = ids_count;
-	cstring paths[ids_count] = {
+	cstring paths[ids_count + 1] = {
 		"assets/shaders/renderer2d.glsl",
 		"assets/shaders/device.glsl",
 		"assets/shaders/particle_device.glsl",
 		NULL
 	};
 	
-	u8 meta_ids[ids_count] = {
+	u8 meta_ids[ids_count + 1] = {
 		1,
 		1,
 		1,
@@ -32,9 +32,9 @@ namespace shader {
 };
 
 namespace uniform {
-	constexpr u32 const ids_count = (u32)sandbox::Uniform::count + 1;
+	constexpr u32 const ids_count = (u32)sandbox::Uniform::count;
 	u32 count = ids_count;
-	cstring names[ids_count] = {
+	cstring names[ids_count + 1] = {
 		"u_Texture",
 		"u_Color",
 		NULL
@@ -53,14 +53,14 @@ namespace texture {
 	};
 	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	constexpr u32 const ids_count = (u32)sandbox::Texture::count + 1;
+	constexpr u32 const ids_count = (u32)sandbox::Texture::count;
 	u32 count = ids_count;
-	cstring paths[ids_count] = {
+	cstring paths[ids_count + 1] = {
 		"assets/textures/checkerboard.png",
 		NULL
 	};
 	
-	u8 meta_ids[ids_count] = {
+	u8 meta_ids[ids_count + 1] = {
 		1,
 		NULL
 	};
@@ -80,14 +80,14 @@ namespace mesh {
 	};
 	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
-	constexpr u32 const ids_count = (u32)sandbox::Mesh::count + 1;
+	constexpr u32 const ids_count = (u32)sandbox::Mesh::count;
 	u32 count = ids_count;
-	cstring paths[ids_count] = {
+	cstring paths[ids_count + 1] = {
 		"assets/meshes/teapot.obj",
 		NULL
 	};
 	
-	u8 meta_ids[ids_count] = {
+	u8 meta_ids[ids_count + 1] = {
 		1,
 		NULL
 	};
