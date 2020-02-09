@@ -12,8 +12,7 @@ struct Ref
 {
 	u32 id, gen;
 
-	Ref();
-	Ref(u32 id, u32 gen);
+	Ref(u32 id = 0, u32 gen = 0);
 	Ref(T const * instance);
 	~Ref() = default;
 

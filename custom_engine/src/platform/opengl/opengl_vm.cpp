@@ -178,7 +178,7 @@ static void platform_consume_errors();
 static bool platform_verify_program(GLuint id, GLenum parameter);
 static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
 static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer);
-static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer);
+// static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer);
 
 namespace custom {
 namespace graphics {
@@ -1080,24 +1080,24 @@ static void consume_single_instruction(Bytecode const & bc)
 			Shader_Part parts = *bc.read<Shader_Part>();
 			platform_link_program(resource->id, source.data, parts);
 
-			CUSTOM_MESSAGE("program %d info:", asset_id);
+			// CUSTOM_MESSAGE("program %d info:", asset_id);
 			Shader_Field field_buffer;
 
-			GLint attributes_capacity;
-			glGetProgramiv(resource->id, GL_ACTIVE_ATTRIBUTES, &attributes_capacity);
-			// resource->attributes.set_capacity(attributes_capacity);
-			for (GLint i = 0; i < attributes_capacity; ++i) {
-				// resource->attributes.push();
-				// opengl::Field * field = new (&resource->attributes[i]) opengl::Field;
-				platform_get_active_attribute(resource->id, i, field_buffer);
-				CUSTOM_MESSAGE(
-					"  - attribute 0x%x '%s' [%d]; // ind %d, loc %d",
-					field_buffer.type, field_buffer.name, field_buffer.size,
-					i, field_buffer.location
-				);
-				// field->id = find_attribute_id(field_buffer.name);
-				// field->location = field_buffer.location;
-			}
+			// GLint attributes_capacity;
+			// glGetProgramiv(resource->id, GL_ACTIVE_ATTRIBUTES, &attributes_capacity);
+			// // resource->attributes.set_capacity(attributes_capacity);
+			// for (GLint i = 0; i < attributes_capacity; ++i) {
+			// 	// resource->attributes.push();
+			// 	// opengl::Field * field = new (&resource->attributes[i]) opengl::Field;
+			// 	platform_get_active_attribute(resource->id, i, field_buffer);
+			// 	// CUSTOM_MESSAGE(
+			// 	// 	"  - attribute 0x%x '%s' [%d]; // ind %d, loc %d",
+			// 	// 	field_buffer.type, field_buffer.name, field_buffer.size,
+			// 	// 	i, field_buffer.location
+			// 	// );
+			// 	// field->id = find_attribute_id(field_buffer.name);
+			// 	// field->location = field_buffer.location;
+			// }
 
 			GLint uniforms_capacity;
 			glGetProgramiv(resource->id, GL_ACTIVE_UNIFORMS, &uniforms_capacity);
@@ -1106,11 +1106,11 @@ static void consume_single_instruction(Bytecode const & bc)
 				resource->uniforms.push();
 				opengl::Field * field = new (&resource->uniforms[i]) opengl::Field;
 				platform_get_active_uniform(resource->id, i, field_buffer);
-				CUSTOM_MESSAGE(
-					"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",
-					field_buffer.type, field_buffer.name, field_buffer.size,
-					i, field_buffer.location
-				);
+				// CUSTOM_MESSAGE(
+				// 	"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",
+				// 	field_buffer.type, field_buffer.name, field_buffer.size,
+				// 	i, field_buffer.location
+				// );
 				field->id = find_uniform_id(field_buffer.name);
 				field->location = field_buffer.location;
 			}
@@ -1659,15 +1659,15 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 // 	return GL_NONE;
 // }
 
-static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer)
-{
-	glGetActiveAttrib(
-		id, index,
-		sizeof(buffer.name), &buffer.name_count,
-		&buffer.size, &buffer.type, buffer.name
-	);
-	buffer.location = glGetAttribLocation(id, buffer.name);
-}
+// static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer)
+// {
+// 	glGetActiveAttrib(
+// 		id, index,
+// 		sizeof(buffer.name), &buffer.name_count,
+// 		&buffer.size, &buffer.type, buffer.name
+// 	);
+// 	buffer.location = glGetAttribLocation(id, buffer.name);
+// }
 
 static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer)
 {

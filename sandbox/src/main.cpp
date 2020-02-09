@@ -34,12 +34,13 @@ static u32 create_quads_3_4(u32 local_id, u32 capacity) {
 	custom::Array_Fixed<custom::runtime::Buffer, 2> buffers;
 	buffers.push({
 		false, Mesh_Frequency::Dynamic, Mesh_Access::Draw,
-		Data_Type::r32, (3 + 4) * 4 * capacity, 0, {}
+		Data_Type::r32, (3 + 4) * 4 * capacity, 0,
+		2, {3, 4}
 	});
-	buffers[0].attributes.push(3); buffers[0].attributes.push(4);
 	buffers.push({
 		true, Mesh_Frequency::Static, Mesh_Access::Draw,
-		Data_Type::u16, 3 * 2 * capacity, 0, {}
+		Data_Type::u16, 3 * 2 * capacity, 0,
+		0, {}
 	});
 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 }

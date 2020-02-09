@@ -20,7 +20,7 @@ Array<T>::Array(u32 capacity, u32 count)
 #if !defined(CUSTOM_SHIPPING)
 	template<typename T>
 	Array<T>::Array(Array<T> const & source) {
-		CUSTOM_ASSERT(false, "ERROR! copying an array");
+		CUSTOM_ASSERT(false, "ERROR! trying to copy an array");
 	}
 #endif
 
@@ -33,7 +33,7 @@ Array<T>::~Array() {
 #if !defined(CUSTOM_SHIPPING)
 	template<typename T>
 	Array<T> & Array<T>::operator=(Array<T> const & source) {
-		CUSTOM_ASSERT(false, "ERROR! copying an array");
+		CUSTOM_ASSERT(false, "ERROR! trying to copy an array");
 		return *this;
 	}
 #endif

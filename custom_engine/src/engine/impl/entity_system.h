@@ -11,12 +11,6 @@ namespace custom {
 //
 
 template<typename T>
-Ref<T>::Ref()
-	: id(0)
-	, gen(0)
-{ }
-
-template<typename T>
 Ref<T>::Ref(u32 id, u32 gen)
 	: id(id)
 	, gen(gen)
@@ -24,13 +18,7 @@ Ref<T>::Ref(u32 id, u32 gen)
 
 template<typename T>
 Ref<T>::Ref(T const * instance) {
-	if (instance) {
-		id = T::pool.get_id(instance);
-		gen = T::pool.get_gen(id);
-	}
-	else {
-		id = 0;
-	}
+	operator=(instance);
 }
 
 template<typename T>

@@ -176,8 +176,8 @@ u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 		bc->write(buffer->is_index);
 		bc->write(buffer->frequency); bc->write(buffer->access);
 		bc->write(buffer->data_type); bc->write(buffer->capacity); bc->write(buffer->count);
-		bc->write((u32)buffer->attributes.count);
-		bc->write(buffer->attributes.data, buffer->attributes.count);
+		bc->write((u32)buffer->attributes_count);
+		bc->write(buffer->attributes, buffer->attributes_count);
 	}
 	return asset_id;
 }
