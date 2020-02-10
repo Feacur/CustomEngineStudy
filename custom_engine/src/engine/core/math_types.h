@@ -9,7 +9,7 @@ struct xvec2 {
 	};
 
 #if defined(__cplusplus) // xvec2
-	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T & operator[](size_t i) { return data[i]; }
 	constexpr inline T const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // xvec2
 };
@@ -24,7 +24,7 @@ struct xvec3 {
 	};
 
 #if defined(__cplusplus) // xvec3
-	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T & operator[](size_t i) { return data[i]; }
 	constexpr inline T const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // xvec3
 };
@@ -41,7 +41,7 @@ struct xvec4 {
 	};
 
 #if defined(__cplusplus) // xvec4
-	constexpr inline T operator[](size_t i) { return data[i]; }
+	constexpr inline T & operator[](size_t i) { return data[i]; }
 	constexpr inline T const & operator[](size_t i) const { return data[i]; }
 #endif // defined(__cplusplus) // xvec4
 };
@@ -65,37 +65,40 @@ typedef xvec4<u32> uvec4;
 
 struct mat2 {
 	union {
+		struct { vec2 x, y; };
 		vec2 axes[2];
 		r32 data[2 * 2];
 	};
 
 #if defined(__cplusplus) // mat2
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+	constexpr inline vec2 & operator[](size_t i) { return axes[i]; }
+	constexpr inline vec2 const & operator[](size_t i) const { return axes[i]; }
 #endif // defined(__cplusplus) // mat2
 };
 
 struct mat3 {
 	union {
+		struct { vec3 x, y, z; };
 		vec3 axes[3];
 		r32 data[3 * 3];
 	};
 
 #if defined(__cplusplus) // mat3
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+	constexpr inline vec3 & operator[](size_t i) { return axes[i]; }
+	constexpr inline vec3 const & operator[](size_t i) const { return axes[i]; }
 #endif // defined(__cplusplus) // mat3
 };
 
 struct mat4 {
 	union {
+		struct { vec4 x, y, z, w; };
 		vec4 axes[4];
 		r32 data[4 * 4];
 	};
 
 #if defined(__cplusplus) // mat4
-	constexpr inline r32 operator[](size_t i) { return data[i]; }
-	constexpr inline r32 const & operator[](size_t i) const { return data[i]; }
+	constexpr inline vec4 & operator[](size_t i) { return axes[i]; }
+	constexpr inline vec4 const & operator[](size_t i) const { return axes[i]; }
 #endif // defined(__cplusplus) // mat4
 };
 

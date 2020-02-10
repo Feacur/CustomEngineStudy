@@ -206,6 +206,10 @@ VM::VM()
 	// glClearDepth(1.0f);
 	// glFrontFace(GL_CCW);
 
+	if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+	}
+
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
 	CUSTOM_MESSAGE("texture/sampler units available: %d", max_combined_texture_image_units);
@@ -1264,9 +1268,9 @@ static void consume_single_instruction(Bytecode const & bc)
 					case Data_Type::uvec3: glProgramUniform3uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
 					case Data_Type::uvec4: glProgramUniform4uiv(resource->id, field->location, uniform.count, (u32 *)uniform.data); break;
 					//
-					case Data_Type::mat2: glProgramUniformMatrix2fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
-					case Data_Type::mat3: glProgramUniformMatrix3fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
-					case Data_Type::mat4: glProgramUniformMatrix4fv(resource->id, field->location, uniform.count, false, (r32 *)uniform.data); break;
+					case Data_Type::mat2: glProgramUniformMatrix2fv(resource->id, field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+					case Data_Type::mat3: glProgramUniformMatrix3fv(resource->id, field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+					case Data_Type::mat4: glProgramUniformMatrix4fv(resource->id, field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 				}
 			// }
 			// else {
@@ -1313,9 +1317,9 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 		case Data_Type::uvec3: glUniform3uiv(field->location, uniform.count, (u32 *)uniform.data); break;
 			// 		case Data_Type::uvec4: glUniform4uiv(field->location, uniform.count, (u32 *)uniform.data); break;
 			// 		//
-			// 		case Data_Type::mat2: glUniformMatrix2fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
-			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
-			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, false, (r32 *)uniform.data); break;
+			// 		case Data_Type::mat2: glUniformMatrix2fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 			// 	}
 			// 	if (ogl.active_program != asset_id && ogl.active_program != empty_id) {
 			// 		opengl::Program const * active_program = &ogl.programs[ogl.active_program];

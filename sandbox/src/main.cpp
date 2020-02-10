@@ -45,7 +45,7 @@ static u32 create_quads_3_4(u32 local_id, u32 capacity) {
 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 }
 
-custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh) {
+custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position) {
 	custom::Ref<custom::Entity> entity = custom::World::create();
 	entity->add_component<Visual>();
 	custom::Ref<Visual> visual = entity->get_component<Visual>();
@@ -54,6 +54,9 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh) {
 	visual_ptr->shader  = shader;
 	visual_ptr->texture = texture;
 	visual_ptr->mesh    = mesh;
+	visual_ptr->camera_space = true;
+	visual_ptr->has_transform = true;
+	visual_ptr->transform = mat_position_scale(position, {1, 1, 1});
 
 	if (shader < (u32)sandbox::Shader::count) {
 		custom::loader::shader(shader);
@@ -92,7 +95,15 @@ int main(int argc, char * argv[]) {
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 
-	custom::renderer::viewport({0, 0}, window->get_size());
+	ivec2 size = window->get_size();
+	r32 const scale = 1 / tangent((pi / 2) / 2);
+	r32 const aspect = (r32)size.y / (r32)size.x;
+	custom::renderer::viewport({0, 0}, size);
+	mat4 cam = mat_product(
+		mat_persp({scale * aspect, scale}, 0.1f, 10.0f),
+		// mat_ortho({scale * aspect, scale}, 0, 10),
+		mat_position_scale({0, 0, 0}, {1, 1, 1})
+	);
 
 	custom::Entity::component_types_count = 1;
 	Visual::offset = 0;
@@ -104,15 +115,26 @@ int main(int argc, char * argv[]) {
 	);
 
 	custom::Ref<custom::Entity> entity1 = create_visual(
-		(u32)sandbox::Shader::device,
+		(u32)sandbox::Shader::renderer2d,
 		(u32)sandbox::Texture::checkerboard,
-		quad_asset_id
+		quad_asset_id,
+		{0.3f, 0.3f, 1.2f}
 	);
-	custom::Ref<custom::Entity> entity2 = create_visual(empty_id, empty_id, empty_id);
+	custom::Ref<custom::Entity> entity2 = create_visual(
+		empty_id, empty_id, empty_id,
+		{0, 0, 0}
+	);
 	custom::Ref<custom::Entity> entity3 = create_visual(
-		(u32)sandbox::Shader::device,
+		(u32)sandbox::Shader::renderer2d,
 		empty_id,
-		particle_test_asset_id
+		particle_test_asset_id,
+		{0, 0, 0}
+	);
+	custom::Ref<custom::Entity> entity4 = create_visual(
+		(u32)sandbox::Shader::renderer2d,
+		(u32)sandbox::Texture::checkerboard,
+		quad_asset_id,
+		{0, 0, 1.0f}
 	);
 
 	custom::World::destroy(entity2);
@@ -153,6 +175,22 @@ int main(int argc, char * argv[]) {
 					gbc.write((u32)sandbox::Uniform::texture);
 					gbc.write(custom::graphics::Data_Type::texture_unit);
 					gbc.write((u32)1); gbc.write(visual->texture);
+				}
+
+				if (visual->camera_space) {
+					gbc.write(custom::graphics::Instruction::Load_Uniform);
+					gbc.write(visual->shader);
+					gbc.write((u32)sandbox::Uniform::view_proj);
+					gbc.write(custom::graphics::Data_Type::mat4);
+					gbc.write((u32)1); gbc.write(cam);
+				}
+
+				if (visual->has_transform) {
+					gbc.write(custom::graphics::Instruction::Load_Uniform);
+					gbc.write(visual->shader);
+					gbc.write((u32)sandbox::Uniform::transform);
+					gbc.write(custom::graphics::Data_Type::mat4);
+					gbc.write((u32)1); gbc.write(visual->transform);
 				}
 			}
 

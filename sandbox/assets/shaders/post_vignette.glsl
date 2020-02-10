@@ -14,8 +14,8 @@
 
 #define VERTEX_MODE 1
 
-const float NearClipValue = -1;
-const float FarClipValue  =  1;
+const float NearClipValue = 0;
+const float FarClipValue  = 1;
 
 #if VERTEX_MODE == 1
 // no input

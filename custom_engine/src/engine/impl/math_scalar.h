@@ -40,7 +40,6 @@ MUL_DIV_IMPL(u48)
 //
 //
 
-
 #define SIGN_NON_ZERO_IMPL(T)\
 constexpr inline T sign_non_zero(T value) {\
 	return (value < 0) ? -1 : 1;\

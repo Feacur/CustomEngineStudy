@@ -6,6 +6,7 @@ namespace sandbox {
 enum struct Shader : u32
 {
 	renderer2d,
+	renderer3d,
 	device,
 	particle_device,
 	count,
@@ -15,6 +16,8 @@ IS_ENUM_META(Shader)
 
 enum struct Uniform : u32
 {
+	view_proj,
+	transform,
 	texture,
 	color,
 	count,

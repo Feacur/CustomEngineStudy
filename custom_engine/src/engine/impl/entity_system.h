@@ -4,6 +4,12 @@
 
 // #include <new>
 
+// @Note: I'm yet to provide possibility of components construction
+//        with parameters, if needed; until then there is no need
+//        to include <new>, as it's required for the placement new operator
+
+// https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
+
 namespace custom {
 
 //

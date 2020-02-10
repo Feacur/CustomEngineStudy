@@ -786,7 +786,7 @@ inline xvec4<T> cosine(xvec4<T> value) {
 }
 
 //
-// icomplex
+// icomplex routines
 //
 
 constexpr inline icomplex complex_reciprocal(icomplex value) {
@@ -800,12 +800,12 @@ constexpr inline icomplex complex_multiply(icomplex first, icomplex second) {
 	};
 }
 
-constexpr inline icomplex complex_rotate_vector(icomplex complex, ivec2 vector) {
-	return complex_multiply(complex, vector);
+constexpr inline icomplex complex_rotate_vector(icomplex c, ivec2 vector) {
+	return complex_multiply(c, vector);
 }
 
 //
-// complex
+// complex routines
 // code assumes normalized values
 //
 
@@ -838,17 +838,17 @@ constexpr inline complex complex_multiply(complex first, complex second) {
 	};
 }
 
-constexpr inline complex complex_rotate_vector(complex complex, vec2 vector) {
-	return complex_multiply(complex, vector);
+constexpr inline complex complex_rotate_vector(complex c, vec2 vector) {
+	return complex_multiply(c, vector);
 }
 
 //
-// quat
+// quaternion routines
 // code assumes normalized values
 //
 
 /*
-quat math representation:
+quaternion math representation:
 quat = (w + x * i) + (y + z * i) * j
 quat = w + (x * i) + (y * j) + (z * k)
 quat = e ^ (angle * axis)
@@ -919,7 +919,7 @@ inline quat quat_from_axis(vec3 axis, r32 radians) {
 	return {axis.x * s, axis.y * s, axis.z * s, c};
 }
 
-constexpr inline quat quat_multiply(quat first, quat second) {
+constexpr inline quat quat_product(quat first, quat second) {
 	return {
 		cross_product(first.xyz, second.xyz) + first.xyz * second.w + second.xyz * first.w,
 		first.w * second.w - dot_product(first.xyz, second.xyz)
@@ -930,8 +930,8 @@ constexpr inline quat quat_multiply(quat first, quat second) {
 This code is a result of expanding following expression,
 excluding stuff negated by multiplication with zero
 
-return quat_multiply(
-	quat_multiply(
+return quat_product(
+	quat_product(
 		quat_from_axis({0, 1, 0}, euler_radians.y)
 		quat_from_axis({1, 0, 0}, euler_radians.x)
 	),
@@ -939,7 +939,7 @@ return quat_multiply(
 );
 */
 inline quat quat_from_radians(vec3 euler_radians) {
-	auto half_radians = euler_radians / 2.0f;
+	auto half_radians = euler_radians / (r32)2;
 	auto s = sine(half_radians);
 	auto c = cosine(half_radians);
 	return {
@@ -954,14 +954,13 @@ inline quat quat_from_radians(vec3 euler_radians) {
 This code is a result of expanding following expression,
 excluding stuff negated by multiplication with zero
 
-return quat_multiply(
-	quat_multiply(quat, {vector, 0}),
+return quat_product(
+	quat_product(quat, {vector, 0}),
 	quat_reciprocal(quat)
 );
 */
 constexpr inline vec3 quat_rotate_vector(quat q, vec3 vector) {
 	quat reciprocal = quat_reciprocal(q);
-	
 	vec3 product_axis = cross_product(q.xyz, vector) + vector * q.w;
 	return cross_product(product_axis, reciprocal.xyz)
 	     + product_axis * reciprocal.w
@@ -997,7 +996,6 @@ inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
 
 constexpr inline vec3 quat_get_right(quat q) {
 	quat reciprocal = quat_reciprocal(q);
-
 	vec3 product_axis_a = {q.w, q.z, -q.y};
 	return cross_product(product_axis_a, reciprocal.xyz)
 	     + product_axis_a * reciprocal.w
@@ -1006,7 +1004,6 @@ constexpr inline vec3 quat_get_right(quat q) {
 
 constexpr inline vec3 quat_get_up(quat q) {
 	quat reciprocal = quat_reciprocal(q);
-
 	vec3 product_axis_b = {-q.z, q.w, q.x};
 	return cross_product(product_axis_b, reciprocal.xyz)
 	     + product_axis_b * reciprocal.w
@@ -1015,7 +1012,6 @@ constexpr inline vec3 quat_get_up(quat q) {
 
 constexpr inline vec3 quat_get_forward(quat q) {
 	quat reciprocal = quat_reciprocal(q);
-
 	vec3 product_axis_c = {q.y, -q.x, q.w};
 	return cross_product(product_axis_c, reciprocal.xyz)
 	     + product_axis_c * reciprocal.w
@@ -1023,8 +1019,120 @@ constexpr inline vec3 quat_get_forward(quat q) {
 };
 
 //
-// Macro implementations
+// mat2 routines
 //
+
+mat2 mat_transpose(mat2 m) {
+	return {
+		vec2{m.x.x, m.y.x},
+		vec2{m.x.y, m.y.y}
+	};
+}
+
+mat2 mat_product(mat2 m1, mat2 m2) {
+	return {
+		m1.x * m2.x.x + m1.y * m2.x.y,
+		m1.x * m2.y.x + m1.y * m2.y.y,
+	};
+}
+
+//
+// mat3 routines
+//
+
+mat3 mat_transpose(mat3 m) {
+	return {
+		vec3{m.x.x, m.y.x, m.z.x},
+		vec3{m.x.y, m.y.y, m.z.y},
+		vec3{m.x.z, m.y.z, m.z.z}
+	};
+}
+
+mat3 mat_product(mat3 m1, mat3 m2) {
+	return {
+		m1.x * m2.x.x + m1.y * m2.x.y + m1.z * m2.x.z,
+		m1.x * m2.y.x + m1.y * m2.y.y + m1.z * m2.y.z,
+		m1.x * m2.z.x + m1.y * m2.z.y + m1.z * m2.z.z,
+	};
+}
+
+mat3 mat_position_scale(vec2 p, vec2 s) {
+	return {
+		vec3{s.x, 0,   0},
+		vec3{0,   s.y, 0},
+		vec3{p.x, p.y, 1}
+	};
+}
+
+//
+// mat4 routines
+//
+
+mat4 mat_transpose(mat4 m) {
+	return {
+		vec4{m.x.x, m.y.x, m.z.x, m.w.x},
+		vec4{m.x.y, m.y.y, m.z.y, m.w.y},
+		vec4{m.x.z, m.y.z, m.z.z, m.w.z},
+		vec4{m.x.w, m.y.w, m.z.w, m.w.w},
+	};
+}
+
+mat4 mat_product(mat4 m1, mat4 m2) {
+	return {
+		m1.x * m2.x.x + m1.y * m2.x.y + m1.z * m2.x.z + m1.w * m2.x.w,
+		m1.x * m2.y.x + m1.y * m2.y.y + m1.z * m2.y.z + m1.w * m2.y.w,
+		m1.x * m2.z.x + m1.y * m2.z.y + m1.z * m2.z.z + m1.w * m2.z.w,
+		m1.x * m2.w.x + m1.y * m2.w.y + m1.z * m2.w.z + m1.w * m2.w.w
+	};
+}
+
+mat4 mat_position_scale(vec3 p, vec3 s) {
+	return {
+		vec4{s.x, 0,   0,   0},
+		vec4{0,   s.y, 0,   0},
+		vec4{0,   0,   s.z, 0},
+		vec4{p.x, p.y, p.z, 1}
+	};
+}
+
+// https://github.com/g-truc/glm/blob/master/glm/ext/matrix_clip_space.inl
+// https://github.com/OneLoneCoder/olcPixelGameEngine/blob/master/Extensions/olcPGEX_Graphics3D.h
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix
+// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixortholh
+// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivelh
+// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+
+mat4 mat_persp(vec2 scale, r32 near, r32 far) {
+	// @Note: left-handed, symmetric, zero to one
+	r32 const z_scale = far / (far - near); // -- diff
+	mat4 result = {};
+	result[0][0] = scale.x;
+	result[1][1] = scale.y;
+	result[2][2] = z_scale; // scale to (N + [0..1])
+	result[2][3] = 1; // -- diff: normalize XY by Z
+	result[3][2] = -near * z_scale; // offset by N to [0..1]
+	result[3][3] = 0; // -- diff
+	return result;
+}
+
+mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
+	// @Note: left-handed, symmetric, zero to one
+	r32 const z_scale = 1 / (far - near); // -- diff
+	mat4 result = {};
+	result[0][0] = scale.x;
+	result[1][1] = scale.y;
+	result[2][2] = z_scale; // scale to (N + [0..1])
+	result[2][3] = 0; // -- diff: do not normalize XY by Z
+	result[3][2] = -near * z_scale; // offset by N to [0..1]
+	result[3][3] = 1; // -- diff
+	return result;
+}
+
+//
+// macro implementations
+//
+
+// @Todo: redefine them with templates?
 
 #define CLAMP_IMPL(T)\
 constexpr inline T clamp(T value, T low, T high) {\

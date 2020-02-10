@@ -17,12 +17,14 @@ namespace shader {
 	u32 count = ids_count;
 	cstring paths[ids_count + 1] = {
 		"assets/shaders/renderer2d.glsl",
+		"assets/shaders/renderer3d.glsl",
 		"assets/shaders/device.glsl",
 		"assets/shaders/particle_device.glsl",
 		NULL
 	};
 	
 	u8 meta_ids[ids_count] = {
+		0,
 		0,
 		0,
 		0,
@@ -33,6 +35,8 @@ namespace uniform {
 	constexpr u32 const ids_count = (u32)sandbox::Uniform::count;
 	u32 count = ids_count;
 	cstring names[ids_count + 1] = {
+		"u_ViewProjection",
+		"u_Transform",
 		"u_Texture",
 		"u_Color",
 		NULL

@@ -1,4 +1,4 @@
-// name: renderer2d
+// name: renderer3d
 // version: 330 core
 
 // section: VERTEX_SECTION
