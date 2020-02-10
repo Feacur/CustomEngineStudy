@@ -1030,14 +1030,17 @@ constexpr inline mat2 mat_transpose(mat2 value) {
 }
 
 constexpr inline vec2 mat_product(mat2 mat, vec2 v) {
-	return mat.x * v.x
-	     + mat.y * v.y;
+	return {
+		dot_product(mat.x, v),
+		dot_product(mat.y, v)
+	};
 }
 
 constexpr inline mat2 mat_product(mat2 first, mat2 second) {
+	mat2 t = mat_transpose(second);
 	return {
-		mat_product(first, second.x),
-		mat_product(first, second.y)
+		mat_product(t, first.x),
+		mat_product(t, first.y)
 	};
 }
 
@@ -1054,16 +1057,32 @@ constexpr inline mat3 mat_transpose(mat3 value) {
 }
 
 constexpr inline vec3 mat_product(mat3 mat, vec3 v) {
-	return mat.x * v.x
-	     + mat.y * v.y
-	     + mat.z * v.z;
+	return {
+		dot_product(mat.x, v),
+		dot_product(mat.y, v),
+		dot_product(mat.z, v)
+	};
 }
 
 constexpr inline mat3 mat_product(mat3 first, mat3 second) {
+	mat3 t = mat_transpose(second);
 	return {
-		mat_product(first, second.x),
-		mat_product(first, second.y),
-		mat_product(first, second.z)
+		mat_product(t, first.x),
+		mat_product(t, first.y),
+		mat_product(t, first.z)
+	};
+}
+
+constexpr inline mat3 mat_inverse_transform(mat3 value) {
+	mat3 t = mat_transpose(value);
+	return {
+		vec3{t.x.xy, 0},
+		vec3{t.y.xy, 0},
+		vec3{
+			-dot_product(value.z.xy, value.x.xy),
+			-dot_product(value.z.xy, value.y.xy),
+			1
+		}
 	};
 }
 
@@ -1089,18 +1108,36 @@ constexpr inline mat4 mat_transpose(mat4 value) {
 }
 
 constexpr inline vec4 mat_product(mat4 mat, vec4 v) {
-	return mat.x * v.x
-	     + mat.y * v.y
-	     + mat.z * v.z
-	     + mat.w * v.w;
+	return {
+		dot_product(mat.x, v),
+		dot_product(mat.y, v),
+		dot_product(mat.z, v),
+		dot_product(mat.w, v)
+	};
 }
 
 constexpr inline mat4 mat_product(mat4 first, mat4 second) {
+	mat4 t = mat_transpose(second);
 	return {
-		mat_product(first, second.x),
-		mat_product(first, second.y),
-		mat_product(first, second.z),
-		mat_product(first, second.w)
+		mat_product(t, first.x),
+		mat_product(t, first.y),
+		mat_product(t, first.z),
+		mat_product(t, first.w)
+	};
+}
+
+constexpr inline mat4 mat_inverse_transform(mat4 value) {
+	mat4 t = mat_transpose(value);
+	return {
+		vec4{t.x.xyz, 0},
+		vec4{t.y.xyz, 0},
+		vec4{t.z.xyz, 0},
+		vec4{
+			-dot_product(value.w.xyz, value.x.xyz),
+			-dot_product(value.w.xyz, value.y.xyz),
+			-dot_product(value.w.xyz, value.z.xyz),
+			1
+		}
 	};
 }
 

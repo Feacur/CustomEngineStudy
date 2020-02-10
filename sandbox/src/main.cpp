@@ -100,9 +100,9 @@ int main(int argc, char * argv[]) {
 	r32 const aspect = (r32)size.y / (r32)size.x;
 	custom::renderer::viewport({0, 0}, size);
 	mat4 cam = mat_product(
-		mat_persp({scale * aspect, scale}, 0.1f, 10.0f),
-		// mat_ortho({scale * aspect, scale}, 0, 10),
-		mat_position_scale({0, 0, 0}, {1, 1, 1})
+		mat_inverse_transform(mat_position_scale({0, 0, 0}, {1, 1, 1})),
+		// mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
+		mat_ortho({scale * aspect, scale}, 0, 10)
 	);
 
 	custom::Entity::component_types_count = 1;
@@ -118,7 +118,7 @@ int main(int argc, char * argv[]) {
 		(u32)sandbox::Shader::renderer2d,
 		(u32)sandbox::Texture::checkerboard,
 		quad_asset_id,
-		{0.3f, 0.3f, 1.2f}
+		{0.3f, 0.3f, 1.2f - 0.9f}
 	);
 	custom::Ref<custom::Entity> entity2 = create_visual(
 		empty_id, empty_id, empty_id,
@@ -134,7 +134,7 @@ int main(int argc, char * argv[]) {
 		(u32)sandbox::Shader::renderer2d,
 		(u32)sandbox::Texture::checkerboard,
 		quad_asset_id,
-		{0, 0, 1.0f}
+		{0, 0, 1.0f - 0.9f}
 	);
 
 	custom::World::destroy(entity2);
