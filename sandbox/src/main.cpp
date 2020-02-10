@@ -183,6 +183,14 @@ int main(int argc, char * argv[]) {
 			if (!visual) { continue; }
 			if (visual->shader == empty_id) { continue; }
 
+			Transform * transform = e->get_component<Transform>().operator->();
+
+			// @Todo: dynamically swap shader if transform is removed from an entity?
+			if (!transform) {
+				custom::loader::shader((u32)sandbox::Shader::device);
+				visual->shader = (u32)sandbox::Shader::device;
+			}
+
 			gbc.write(custom::graphics::Instruction::Use_Shader);
 			gbc.write(visual->shader);
 
@@ -197,7 +205,6 @@ int main(int argc, char * argv[]) {
 				gbc.write((u32)1); gbc.write(visual->texture);
 			}
 
-			Transform * transform = e->get_component<Transform>().operator->();
 			if (transform) {
 				mat4 rot = mat_position_scale({0, 0, 0}, {1, 1, 1});
 				quat_get_axes(transform->rotation, rot.x.xyz, rot.y.xyz, rot.z.xyz);

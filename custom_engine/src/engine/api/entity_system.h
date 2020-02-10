@@ -30,6 +30,9 @@ struct Ref_Pool_Base
 	virtual void destroy_safe(u32 id, u32 gen) = 0;
 };
 
+// @Todo: might want to dynamically init pools should the code be used from a DLL?
+//        not quite relates to the pool itself, but definitely to Ref<T> and
+//        types/places that make use of it
 template<typename T>
 struct Ref_Pool : public Ref_Pool_Base
 {
