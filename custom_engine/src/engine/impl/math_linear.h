@@ -889,7 +889,7 @@ Rodrigues' rotation formula (by angle A around axis N)
 
 > As you see, it's a bit cumbersome and requires trigonometric operations
 
-quat rotation formula (by angle A around axis N)
+quaternion rotation formula (by angle A around axis N)
 > V is parallel to axis N
 > > V_par' = V_par
 > > e^(A*N) * V_par == V_par * e^(A*N)
@@ -1022,17 +1022,22 @@ constexpr inline vec3 quat_get_forward(quat q) {
 // mat2 routines
 //
 
-mat2 mat_transpose(mat2 m) {
+constexpr inline mat2 mat_transpose(mat2 value) {
 	return {
-		vec2{m.x.x, m.y.x},
-		vec2{m.x.y, m.y.y}
+		vec2{value.x.x, value.y.x},
+		vec2{value.x.y, value.y.y}
 	};
 }
 
-mat2 mat_product(mat2 m1, mat2 m2) {
+constexpr inline vec2 mat_product(mat2 mat, vec2 v) {
+	return mat.x * v.x
+	     + mat.y * v.y;
+}
+
+constexpr inline mat2 mat_product(mat2 first, mat2 second) {
 	return {
-		m1.x * m2.x.x + m1.y * m2.x.y,
-		m1.x * m2.y.x + m1.y * m2.y.y,
+		mat_product(first, second.x),
+		mat_product(first, second.y)
 	};
 }
 
@@ -1040,23 +1045,29 @@ mat2 mat_product(mat2 m1, mat2 m2) {
 // mat3 routines
 //
 
-mat3 mat_transpose(mat3 m) {
+constexpr inline mat3 mat_transpose(mat3 value) {
 	return {
-		vec3{m.x.x, m.y.x, m.z.x},
-		vec3{m.x.y, m.y.y, m.z.y},
-		vec3{m.x.z, m.y.z, m.z.z}
+		vec3{value.x.x, value.y.x, value.z.x},
+		vec3{value.x.y, value.y.y, value.z.y},
+		vec3{value.x.z, value.y.z, value.z.z}
 	};
 }
 
-mat3 mat_product(mat3 m1, mat3 m2) {
+constexpr inline vec3 mat_product(mat3 mat, vec3 v) {
+	return mat.x * v.x
+	     + mat.y * v.y
+	     + mat.z * v.z;
+}
+
+constexpr inline mat3 mat_product(mat3 first, mat3 second) {
 	return {
-		m1.x * m2.x.x + m1.y * m2.x.y + m1.z * m2.x.z,
-		m1.x * m2.y.x + m1.y * m2.y.y + m1.z * m2.y.z,
-		m1.x * m2.z.x + m1.y * m2.z.y + m1.z * m2.z.z,
+		mat_product(first, second.x),
+		mat_product(first, second.y),
+		mat_product(first, second.z)
 	};
 }
 
-mat3 mat_position_scale(vec2 p, vec2 s) {
+constexpr inline mat3 mat_position_scale(vec2 p, vec2 s) {
 	return {
 		vec3{s.x, 0,   0},
 		vec3{0,   s.y, 0},
@@ -1068,25 +1079,32 @@ mat3 mat_position_scale(vec2 p, vec2 s) {
 // mat4 routines
 //
 
-mat4 mat_transpose(mat4 m) {
+constexpr inline mat4 mat_transpose(mat4 value) {
 	return {
-		vec4{m.x.x, m.y.x, m.z.x, m.w.x},
-		vec4{m.x.y, m.y.y, m.z.y, m.w.y},
-		vec4{m.x.z, m.y.z, m.z.z, m.w.z},
-		vec4{m.x.w, m.y.w, m.z.w, m.w.w},
+		vec4{value.x.x, value.y.x, value.z.x, value.w.x},
+		vec4{value.x.y, value.y.y, value.z.y, value.w.y},
+		vec4{value.x.z, value.y.z, value.z.z, value.w.z},
+		vec4{value.x.w, value.y.w, value.z.w, value.w.w},
 	};
 }
 
-mat4 mat_product(mat4 m1, mat4 m2) {
+constexpr inline vec4 mat_product(mat4 mat, vec4 v) {
+	return mat.x * v.x
+	     + mat.y * v.y
+	     + mat.z * v.z
+	     + mat.w * v.w;
+}
+
+constexpr inline mat4 mat_product(mat4 first, mat4 second) {
 	return {
-		m1.x * m2.x.x + m1.y * m2.x.y + m1.z * m2.x.z + m1.w * m2.x.w,
-		m1.x * m2.y.x + m1.y * m2.y.y + m1.z * m2.y.z + m1.w * m2.y.w,
-		m1.x * m2.z.x + m1.y * m2.z.y + m1.z * m2.z.z + m1.w * m2.z.w,
-		m1.x * m2.w.x + m1.y * m2.w.y + m1.z * m2.w.z + m1.w * m2.w.w
+		mat_product(first, second.x),
+		mat_product(first, second.y),
+		mat_product(first, second.z),
+		mat_product(first, second.w)
 	};
 }
 
-mat4 mat_position_scale(vec3 p, vec3 s) {
+constexpr inline mat4 mat_position_scale(vec3 p, vec3 s) {
 	return {
 		vec4{s.x, 0,   0,   0},
 		vec4{0,   s.y, 0,   0},
@@ -1095,36 +1113,121 @@ mat4 mat_position_scale(vec3 p, vec3 s) {
 	};
 }
 
-// https://github.com/g-truc/glm/blob/master/glm/ext/matrix_clip_space.inl
-// https://github.com/OneLoneCoder/olcPixelGameEngine/blob/master/Extensions/olcPGEX_Graphics3D.h
-// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix
-// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixortholh
-// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivelh
-// https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+/*
+projection matrices
 
-mat4 mat_persp(vec2 scale, r32 near, r32 far) {
-	// @Note: left-handed, symmetric, zero to one
-	r32 const z_scale = far / (far - near); // -- diff
+* https://github.com/g-truc/glm/blob/master/glm/ext/matrix_clip_space.inl
+* https://github.com/OneLoneCoder/olcPixelGameEngine/blob/master/Extensions/olcPGEX_Graphics3D.h
+* https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix
+* https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixortholh
+* https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivelh
+* https://docs.microsoft.com/ru-ru/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+* http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
+* http://learnwebgl.brown37.net/08_projections/projections_ortho.html
+* http://learnwebgl.brown37.net/08_projections/projections_perspective.html
+* https://developer.nvidia.com/content/depth-precision-visualized
+
+Aim is to scale some world-space coordinates into a box of:
+- ([-1..1], [-1..1], -[near clipping plane, 1]) - as a general case;
+- ([-1..1], [-1..1], -[ 0, 1]) - DirectX, OpenGL _with clip control_ (>= 4.5)
+- ([-1..1], [-1..1], -[-1, 1]) - OpenGL _without clip control_ (< 4.5); *technically*
+
+^^^^ actually coordinates could be scaled whatever way required; it's just the fact
+     that everything ouside this clipping box will be discarded, at least only this volume
+     will be projected onto the screen inside its bounds
+
+XY scale is usually represented by:
+- 1 / tangent(vield of view radians / 2): a bisected angle scales each of the halves of X and Y planes respectively
+- near / (XY half size): [in case of a perspective projection] keeps area of the near clipping plane intact, but affects field of view
+- any value of choice
+
+Orthograhic projection:
+- XYZ' = (a + b * XYZ) / 1
+- XY scale; a constant scale from [-bounds .. bounds] to [-1 .. 1]
+- Z  scale; a constant scale from [Znear .. Zfar] to [near clipping plane .. 1]
+- offset in case of assymetry
+- any other optional distortion
+> Z
+  near clipping plane = a + b * Znear = 0
+  far  clipping place = a + b * Zfar  = 1
+  ---> b = 1 / (Zfar - Znear)      ---> scale
+  ---> a = -Znear / (Zfar - Znear) ---> offset
+> XY
+  s1 + s2 * left = -1
+  s1 + s2  * right = 1
+  ---> s2 = 2 / (right - left)               ---> scale
+  ---> s1 = -(left + right) / (right - left) ---> offset
+
+Perspective projection:
+- XYZ' = (a + b * XYZ) / Z
+- XY scale; a linear scale from [-bounds .. bounds] to [-1 .. 1]
+- Z  scale; an exponential scale from [Znear .. Zfar] to [near clipping plane .. 1]
+- offset in case of assymetry
+- any other optional distortion
+> Z
+  near clipping plane = a / Znear + b = 0
+  far  clipping place = a / Zfar  + b = 1
+  ---> b = Zfar / (Zfar - Znear)          ---> scale
+  ---> a = -Znear * Zfar / (Zfar - Znear) ---> offset
+> XY
+  s1 + s2 * left = -Z
+  s1 + s2 * right = Z
+  ---> s2 = 2 * Z / (right - left)               ---> scale
+  ---> s1 = -(left + right) * Z / (right - left) ---> offset
+
+*/
+
+constexpr inline mat4 mat_persp(vec2 scale, r32 near, r32 far) {
+	// @Note: left-handed, XY symmetric, zero to one
+	r32 const z_scale = far / (far - near); // -- diff, b value
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = z_scale; // scale to (N + [0..1])
-	result[2][3] = 1; // -- diff: normalize XY by Z
-	result[3][2] = -near * z_scale; // offset by N to [0..1]
-	result[3][3] = 0; // -- diff
+	result[2][2] = z_scale;
+	result[2][3] = 1; // -- diff: normalize XY by Z value; W += 1 * vec4.z
+	result[3][2] = -z_scale * near; // offset by N to [0..1]
+	result[3][3] = 0; // -- diff: W += 0 * vec4.w
 	return result;
 }
 
-mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
-	// @Note: left-handed, symmetric, zero to one
-	r32 const z_scale = 1 / (far - near); // -- diff
+constexpr inline mat4 mat_persp(vec3 min, vec3 max) {
+	// @Note: left-handed, zero to one
+	vec3 const scale = vec3{min.xy * (min.z * 2), max.z} / (max - min);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = z_scale; // scale to (N + [0..1])
-	result[2][3] = 0; // -- diff: do not normalize XY by Z
-	result[3][2] = -near * z_scale; // offset by N to [0..1]
-	result[3][3] = 1; // -- diff
+	result[2][2] = scale.z;
+	result[2][3] = 0; // -- diff: normalize XY by Z value; W += 1 * vec4.z
+	result[3].xy = -scale.xy * (min.xy + max.xy) / (r32)2;
+	result[3].z  = -scale.z * min.z;
+	result[3][3] = 1; // -- diff: W += 0 * vec4.w
+	return result;
+}
+
+constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
+	// @Note: left-handed, XY symmetric, zero to one
+	r32 const z_scale = 1 / (far - near); // -- diff, b value
+	mat4 result = {};
+	result[0][0] = scale.x;
+	result[1][1] = scale.y;
+	result[2][2] = z_scale;
+	result[2][3] = 0; // -- diff: do not normalize XY by Z; W += 0 * vec4.z
+	result[3][2] = -z_scale * near;
+	result[3][3] = 1; // -- diff: W += 1 * vec4.w
+	return result;
+}
+
+constexpr inline mat4 mat_ortho(vec3 min, vec3 max) {
+	// @Note: left-handed, zero to one
+	vec3 const scale = vec3{2, 2, 1} / (max - min);
+	mat4 result = {};
+	result[0][0] = scale.x;
+	result[1][1] = scale.y;
+	result[2][2] = scale.z;
+	result[2][3] = 0; // -- diff: do not normalize XY by Z; W += 0 * vec4.z
+	result[3].xy = -scale.xy * (min.xy + max.xy) / (r32)2;
+	result[3].z  = -scale.z * min.z;
+	result[3][3] = 1; // -- diff: W += 1 * vec4.w
 	return result;
 }
 
