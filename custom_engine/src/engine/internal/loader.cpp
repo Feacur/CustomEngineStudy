@@ -40,6 +40,9 @@ static void init_uniforms();
 template<typename T, u32 count>
 static void write_data_array(T const (& data)[count]);
 
+template<typename T>
+static void write_data_array_custom(custom::Array<T> const & data);
+
 static void describe_texture(
 	u32 asset_id, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
@@ -222,6 +225,91 @@ u32 create_quad(u32 local_id) {
 	return asset_id;
 }
 
+u32 create_cube(u32 local_id) {
+	u32 asset_id = asset::mesh::count + local_id;
+	if (has_mesh(asset_id)) { return asset_id; }
+
+	u8 positions_source[3 * 8] = {
+		0, 0, 0,
+		1, 0, 0,
+		1, 1, 0,
+		0, 1, 0,
+		1, 0, 1,
+		0, 0, 1,
+		0, 1, 1,
+		1, 1, 1,
+	};
+	u8 uvs_source[2 * 4] = {
+		0, 0,
+		1, 0,
+		1, 1,
+		0, 1,
+	};
+	u8 quads_source[4 * 6] = {
+		0, 1, 2, 3,
+		4, 5, 6, 7,
+		3, 2, 7, 6,
+		5, 4, 1, 0,
+		1, 4, 7, 2,
+		5, 0, 3, 6,
+	};
+
+	Array<r32> vertices; vertices.set_capacity((3 + 2) * 4 * 6);
+	Array<u8> indices; indices.set_capacity(3 * 2 * 6);
+
+	u8 gi = 0;
+	for (u8 fi = 0; fi < 6; ++fi) {
+		u8 const * quad = quads_source + fi * 4;
+		for (u8 qi = 0; qi < 4; ++qi) {
+			u8 const * pos = positions_source + quad[qi] * 3;
+			for (u8 vi = 0; vi < 3; ++vi) {
+				vertices.push(pos[vi] - 0.5f);
+			}
+			u8 const * uv = uvs_source + qi * 2;
+			for (u8 vi = 0; vi < 2; ++vi) {
+				vertices.push(uv[vi]);
+			}
+		}
+		indices.push(gi + 0); indices.push(gi + 1); indices.push(gi + 2);
+		indices.push(gi + 2); indices.push(gi + 3); indices.push(gi + 0);
+		gi += 4;
+	}
+
+/*
+	vertices.push(-0.5f); vertices.push(-0.5f); vertices.push(-0.5f);
+	vertices.push(0.0f); vertices.push(0.0f);
+	vertices.push(0.5f); vertices.push(-0.5f); vertices.push(-0.5f);
+	vertices.push(1.0f); vertices.push(0.0f);
+	vertices.push(0.5f); vertices.push(0.5f); vertices.push(-0.5f);
+	vertices.push(1.0f); vertices.push(1.0f);
+	vertices.push(-0.5f); vertices.push(0.5f); vertices.push(-0.5f);
+	vertices.push(0.0f); vertices.push(1.0f);
+
+	indices.push(0); indices.push(1); indices.push(2);
+	indices.push(2); indices.push(3); indices.push(0);
+*/
+
+	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
+
+	bc->write(graphics::Instruction::Allocate_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::r32); bc->write(vertices.count); bc->write(vertices.count);
+	bc->write(vertex_attributes);
+	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::u8); bc->write(indices.count); bc->write(indices.count);
+	bc->write((u32)0);
+
+	bc->write(graphics::Instruction::Load_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((u32)0); write_data_array_custom(vertices);
+	bc->write((u32)0); write_data_array_custom(indices);
+
+	return asset_id;
+}
+
 }}
 
 //
@@ -249,6 +337,13 @@ template<typename T, u32 count>
 static void write_data_array(T const (& data)[count]) {
 	bc->write(graphics::get_data_type<T>());
 	bc->write(data);
+}
+
+template<typename T>
+static void write_data_array_custom(custom::Array<T> const & data) {
+	bc->write(graphics::get_data_type<T>());
+	bc->write(data.count);
+	bc->write(data.data, data.count);
 }
 
 static void describe_texture(

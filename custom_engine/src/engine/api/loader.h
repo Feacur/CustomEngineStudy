@@ -25,5 +25,6 @@ void mesh(u32 asset_id);
 
 u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count);
 u32 create_quad(u32 local_id);
+u32 create_cube(u32 local_id);
 
 }}

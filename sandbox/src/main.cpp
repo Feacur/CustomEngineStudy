@@ -47,16 +47,20 @@ static u32 create_quads_3_4(u32 local_id, u32 capacity) {
 
 custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position) {
 	custom::Ref<custom::Entity> entity = custom::World::create();
+
 	entity->add_component<Visual>();
 	custom::Ref<Visual> visual = entity->get_component<Visual>();
-
 	Visual * visual_ptr = visual.operator->();
 	visual_ptr->shader  = shader;
 	visual_ptr->texture = texture;
 	visual_ptr->mesh    = mesh;
-	visual_ptr->camera_space = true;
-	visual_ptr->has_transform = true;
-	visual_ptr->transform = mat_position_scale(position, {1, 1, 1});
+
+	entity->add_component<Transform>();
+	custom::Ref<Transform> transform = entity->get_component<Transform>();
+	Transform * transform_ptr = transform.operator->();
+	transform_ptr->position = position;
+	transform_ptr->rotation = quat_from_radians({0, 0, 0});
+	transform_ptr->scale = {1, 1, 1};
 
 	if (shader < (u32)sandbox::Shader::count) {
 		custom::loader::shader(shader);
@@ -101,15 +105,18 @@ int main(int argc, char * argv[]) {
 	custom::renderer::viewport({0, 0}, size);
 	mat4 cam = mat_product(
 		mat_inverse_transform(mat_position_scale({0, 0, 0}, {1, 1, 1})),
-		// mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
-		mat_ortho({scale * aspect, scale}, 0, 10)
+		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
+		// mat_ortho({scale * aspect, scale}, 0, 10)
 	);
 
-	custom::Entity::component_types_count = 1;
+	custom::Entity::component_types_count = 2;
 	Visual::offset = 0;
+	Transform::offset = 1;
 	custom::World::component_pools.push(&Visual::pool);
+	custom::World::component_pools.push(&Transform::pool);
 
 	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
+	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
 	u32 particle_test_asset_id = create_quads_3_4(
 		(u32)sandbox::Runtime_Mesh::particle_test, 128
 	);
@@ -118,7 +125,7 @@ int main(int argc, char * argv[]) {
 		(u32)sandbox::Shader::renderer2d,
 		(u32)sandbox::Texture::checkerboard,
 		quad_asset_id,
-		{0.3f, 0.3f, 1.2f - 0.9f}
+		{1.0f, 0.5f, 1.2f}
 	);
 	custom::Ref<custom::Entity> entity2 = create_visual(
 		empty_id, empty_id, empty_id,
@@ -131,10 +138,10 @@ int main(int argc, char * argv[]) {
 		{0, 0, 0}
 	);
 	custom::Ref<custom::Entity> entity4 = create_visual(
-		(u32)sandbox::Shader::renderer2d,
+		(u32)sandbox::Shader::renderer3d,
 		(u32)sandbox::Texture::checkerboard,
-		quad_asset_id,
-		{0, 0, 1.0f - 0.9f}
+		cube_asset_id,
+		{-0.5f, 0, 1.5f}
 	);
 
 	custom::World::destroy(entity2);
@@ -147,6 +154,8 @@ int main(int argc, char * argv[]) {
 		u64 last_frame_ticks = get_last_frame_ticks(window->is_vsync());
 		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
 
+		r32 dt = (r32)last_frame_ticks / custom::timer.ticks_per_second;
+
 		// process the frame
 		custom::system_update();
 		// @Todo: input, logic
@@ -158,40 +167,57 @@ int main(int argc, char * argv[]) {
 		//        - proactively bind textures pending to rendering
 		//        - batch and rebind if running out of slots/units
 
-		for (u32 i = 0; i < Visual::pool.instances.count; ++i) {
-			if (!Visual::pool.check_active(i)) { continue; }
-			Visual * visual = &Visual::pool.instances[i];
+		Transform * transform4 = entity4->get_component<Transform>().operator->();
+		if (transform4) {
+			transform4->rotation = normalize(quat_product(
+				transform4->rotation,
+				quat_from_radians({pi * 0.05f * dt, pi * 0.2f * dt, pi * 0.1f * dt})
+			));
+		}
 
-			if (visual->shader != empty_id) {
-				gbc.write(custom::graphics::Instruction::Use_Shader);
+		for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
+			if (!custom::Entity::pool.check_active(i)) { continue; }
+			custom::Entity * e = &custom::Entity::pool.instances[i];
+
+			Visual * visual = e->get_component<Visual>().operator->();
+			if (!visual) { continue; }
+			if (visual->shader == empty_id) { continue; }
+
+			gbc.write(custom::graphics::Instruction::Use_Shader);
+			gbc.write(visual->shader);
+
+			if (visual->texture != empty_id) {
+				gbc.write(custom::graphics::Instruction::Use_Texture);
+				gbc.write(visual->texture);
+
+				gbc.write(custom::graphics::Instruction::Load_Uniform);
 				gbc.write(visual->shader);
+				gbc.write((u32)sandbox::Uniform::texture);
+				gbc.write(custom::graphics::Data_Type::texture_unit);
+				gbc.write((u32)1); gbc.write(visual->texture);
+			}
 
-				if (visual->texture != empty_id) {
-					gbc.write(custom::graphics::Instruction::Use_Texture);
-					gbc.write(visual->texture);
+			Transform * transform = e->get_component<Transform>().operator->();
+			if (transform) {
+				mat4 rot = mat_position_scale({0, 0, 0}, {1, 1, 1});
+				quat_get_axes(transform->rotation, rot.x.xyz, rot.y.xyz, rot.z.xyz);
 
-					gbc.write(custom::graphics::Instruction::Load_Uniform);
-					gbc.write(visual->shader);
-					gbc.write((u32)sandbox::Uniform::texture);
-					gbc.write(custom::graphics::Data_Type::texture_unit);
-					gbc.write((u32)1); gbc.write(visual->texture);
-				}
+				mat4 mat = mat_product(
+					rot,
+					mat_position_scale(transform->position, transform->scale)
+				);
 
-				if (visual->camera_space) {
-					gbc.write(custom::graphics::Instruction::Load_Uniform);
-					gbc.write(visual->shader);
-					gbc.write((u32)sandbox::Uniform::view_proj);
-					gbc.write(custom::graphics::Data_Type::mat4);
-					gbc.write((u32)1); gbc.write(cam);
-				}
+				gbc.write(custom::graphics::Instruction::Load_Uniform);
+				gbc.write(visual->shader);
+				gbc.write((u32)sandbox::Uniform::view_proj);
+				gbc.write(custom::graphics::Data_Type::mat4);
+				gbc.write((u32)1); gbc.write(cam);
 
-				if (visual->has_transform) {
-					gbc.write(custom::graphics::Instruction::Load_Uniform);
-					gbc.write(visual->shader);
-					gbc.write((u32)sandbox::Uniform::transform);
-					gbc.write(custom::graphics::Data_Type::mat4);
-					gbc.write((u32)1); gbc.write(visual->transform);
-				}
+				gbc.write(custom::graphics::Instruction::Load_Uniform);
+				gbc.write(visual->shader);
+				gbc.write((u32)sandbox::Uniform::transform);
+				gbc.write(custom::graphics::Data_Type::mat4);
+				gbc.write((u32)1); gbc.write(mat);
 			}
 
 			if (visual->mesh != empty_id) {

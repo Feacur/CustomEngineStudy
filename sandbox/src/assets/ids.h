@@ -44,6 +44,7 @@ IS_ENUM_META(Mesh)
 enum struct Runtime_Mesh : u32
 {
 	quad,
+	cube,
 	particle_test,
 	count,
 };
