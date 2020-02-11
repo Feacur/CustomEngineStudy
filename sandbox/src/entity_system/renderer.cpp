@@ -53,13 +53,12 @@ void update(mat4 const & cam) {
 		}
 
 		if (transform) {
-			mat4 rot = mat_position_scale({0, 0, 0}, {1, 1, 1});
-			quat_get_axes(transform->rotation, rot.x.xyz, rot.y.xyz, rot.z.xyz);
-
-			mat4 mat = mat_product(
-				rot,
-				mat_position_scale(transform->position, transform->scale)
-			);
+			mat4 mat; // = {};
+			quat_get_axes(transform->rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
+			mat.x.xyz *= transform->scale.x; mat.x.w = 0;
+			mat.y.xyz *= transform->scale.y; mat.y.w = 0;
+			mat.z.xyz *= transform->scale.z; mat.z.w = 0;
+			mat.w = {transform->position, 1};
 
 			bc->write(custom::graphics::Instruction::Load_Uniform);
 			bc->write(visual->shader);
