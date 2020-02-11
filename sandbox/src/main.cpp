@@ -1,6 +1,7 @@
 #include "custom_engine.h"
 #include "assets/ids.h"
-#include "components.h"
+#include "entity_system/components.h"
+#include "entity_system/renderer.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -98,6 +99,7 @@ int main(int argc, char * argv[]) {
 	custom::Bytecode gbc;
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
+	sandbox::renderer::init(&gbc);
 
 	ivec2 size = window->get_size();
 	r32 const scale = 1 / tangent((pi / 2) / 2);
@@ -158,15 +160,8 @@ int main(int argc, char * argv[]) {
 
 		// process the frame
 		custom::system_update();
+
 		// @Todo: input, logic
-
-		custom::renderer::clear();
-
-		// @Note: thoughts on factoring code for a renderer
-		//        - batch together materials/objects with the same shaders
-		//        - proactively bind textures pending to rendering
-		//        - batch and rebind if running out of slots/units
-
 		Transform * transform4 = entity4->get_component<Transform>().operator->();
 		if (transform4) {
 			transform4->rotation = normalize(quat_product(
@@ -175,65 +170,9 @@ int main(int argc, char * argv[]) {
 			));
 		}
 
-		for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
-			if (!custom::Entity::pool.check_active(i)) { continue; }
-			custom::Entity * e = &custom::Entity::pool.instances[i];
-
-			Visual * visual = e->get_component<Visual>().operator->();
-			if (!visual) { continue; }
-			if (visual->shader == empty_id) { continue; }
-
-			Transform * transform = e->get_component<Transform>().operator->();
-
-			// @Todo: dynamically swap shader if transform is removed from an entity?
-			if (!transform) {
-				custom::loader::shader((u32)sandbox::Shader::device);
-				visual->shader = (u32)sandbox::Shader::device;
-			}
-
-			gbc.write(custom::graphics::Instruction::Use_Shader);
-			gbc.write(visual->shader);
-
-			if (visual->texture != empty_id) {
-				gbc.write(custom::graphics::Instruction::Use_Texture);
-				gbc.write(visual->texture);
-
-				gbc.write(custom::graphics::Instruction::Load_Uniform);
-				gbc.write(visual->shader);
-				gbc.write((u32)sandbox::Uniform::texture);
-				gbc.write(custom::graphics::Data_Type::texture_unit);
-				gbc.write((u32)1); gbc.write(visual->texture);
-			}
-
-			if (transform) {
-				mat4 rot = mat_position_scale({0, 0, 0}, {1, 1, 1});
-				quat_get_axes(transform->rotation, rot.x.xyz, rot.y.xyz, rot.z.xyz);
-
-				mat4 mat = mat_product(
-					rot,
-					mat_position_scale(transform->position, transform->scale)
-				);
-
-				gbc.write(custom::graphics::Instruction::Load_Uniform);
-				gbc.write(visual->shader);
-				gbc.write((u32)sandbox::Uniform::view_proj);
-				gbc.write(custom::graphics::Data_Type::mat4);
-				gbc.write((u32)1); gbc.write(cam);
-
-				gbc.write(custom::graphics::Instruction::Load_Uniform);
-				gbc.write(visual->shader);
-				gbc.write((u32)sandbox::Uniform::transform);
-				gbc.write(custom::graphics::Data_Type::mat4);
-				gbc.write((u32)1); gbc.write(mat);
-			}
-
-			if (visual->mesh != empty_id) {
-				gbc.write(custom::graphics::Instruction::Use_Mesh);
-				gbc.write(visual->mesh);
-			}
-
-			gbc.write(custom::graphics::Instruction::Draw);
-		}
+		// render entities
+		custom::renderer::clear();
+		sandbox::renderer::update(cam);
 
 		gvm.update(gbc);
 		window->update();
