@@ -9,14 +9,20 @@
 
 namespace custom {
 
-System system = {};
-Timer timer = {};
+namespace system {
+	bool should_close;
+}
+namespace timer {
+	u64 ticks_per_second;
+	u64 frame_start_ticks;
+}
 bool Window::should_close = false;
 
 Context_Settings context_settings;
 Pixel_Format pixel_format_hint;
 
-void globals_init(void) {
+namespace globals {
+void init(void) {
 	// context_settings
 	context_settings = {};
 	context_settings.major_version = 4;
@@ -31,6 +37,7 @@ void globals_init(void) {
 	pixel_format_hint.depth_bits   = 24;
 	pixel_format_hint.stencil_bits = 8;
 	pixel_format_hint.doublebuffer = true;
+}
 }
 
 }

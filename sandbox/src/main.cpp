@@ -23,11 +23,11 @@ static void display_performace(custom::Window & window, u64 duration, u64 precis
 
 static u64 get_last_frame_ticks(bool is_vsync) {
 	static u64 const duration  = 16666;
-	static u64 const precision = custom::microsecond;
+	static u64 const precision = custom::timer::microsecond;
 	if (is_vsync) {
-		return custom::timer_snapshot();
+		return custom::timer::snapshot();
 	}
-	return custom::timer_wait_next_frame(duration, precision);
+	return custom::timer::wait_next_frame(duration, precision);
 }
 
 static u32 create_quads_3_4(u32 local_id, u32 capacity) {
@@ -83,8 +83,8 @@ int main(int argc, char * argv[]) {
 	//        or resources management in the first place whatsoever.
 	//        System and Timer are global anyway; why pretending otherwise?
 	//        Window doesn't manage its resources and can get a "destroy" message!
-	custom::system_init();
-	custom::timer_init();
+	custom::system::init();
+	custom::timer::init();
 	// @Note: on the other hand, automatic call of a constructor for a global instance
 	//        is cool, right? not much beneficial, and potentially malicious, though.
 
@@ -149,17 +149,17 @@ int main(int argc, char * argv[]) {
 	custom::World::destroy(entity2);
 
 	while (true) {
-		if (custom::system.should_close) { break; }
+		if (custom::system::should_close) { break; }
 		if (custom::Window::should_close) { break; }
 
 		// prepare for a frame
 		u64 last_frame_ticks = get_last_frame_ticks(window->is_vsync());
-		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer.ticks_per_second);
+		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer::ticks_per_second);
 
-		r32 dt = (r32)last_frame_ticks / custom::timer.ticks_per_second;
+		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 
 		// process the frame
-		custom::system_update();
+		custom::system::update();
 
 		// @Todo: input, logic
 		Transform * transform4 = entity4->get_component<Transform>().operator->();

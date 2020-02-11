@@ -39,11 +39,15 @@ static ULONGLONG platform_get_system_time(void);
 static void signal_handler(int value);
 
 namespace custom {
+namespace globals {
+extern void init(void);
+}}
 
-extern void globals_init(void);
+namespace custom {
+namespace system {
 
-void system_init() {
-	globals_init();
+void init(void) {
+	globals::init();
 
 	signal(SIGABRT, signal_handler);
 	// signal(SIGFPE, SIG_DFL);
@@ -53,19 +57,19 @@ void system_init() {
 	signal(SIGTERM, signal_handler);
 }
 
-void system_update()
+void update(void)
 {
 	bool quit_request = platform_poll_events();
-	if (quit_request) { system.should_close = true; }
+	if (quit_request) { should_close = true; }
 }
 
-u64 system_get_time()
+u64 get_time(void)
 {
 	ULONGLONG system_time = platform_get_system_time();
 	return (u64)system_time;
 }
 
-}
+}}
 
 //
 // platform implementation
@@ -114,7 +118,7 @@ static void signal_handler(int value) {
 		case SIGTERM: CUSTOM_MESSAGE("Terminate signal");         break; // Termination request sent to program.
 		default:      CUSTOM_MESSAGE("Unknown signal");           break; // ?
 	}
-	custom::system.should_close = true;
+	custom::system::should_close = true;
 }
 
 // GetSystemMetrics with SM_CXSCREEN and SM_CYSCREEN
