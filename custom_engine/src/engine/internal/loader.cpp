@@ -225,6 +225,46 @@ u32 create_quad(u32 local_id) {
 	return asset_id;
 }
 
+u32 create_quad2d(u32 local_id) {
+	u32 asset_id = asset::mesh::count + local_id;
+	if (has_mesh(asset_id)) { return asset_id; }
+
+	r32 const vertex_data[] = {
+		/*position*/ -0.5f, -0.5f, /*UV*/ 0.0f, 0.0f,
+		/*position*/  0.5f, -0.5f, /*UV*/ 1.0f, 0.0f,
+		/*position*/  0.5f,  0.5f, /*UV*/ 1.0f, 1.0f,
+		/*position*/ -0.5f,  0.5f, /*UV*/ 0.0f, 1.0f,
+	};
+	u32 vertex_data_count = (u32)C_ARRAY_LENGTH(vertex_data);
+	u8 const vertex_attributes[] = { /*position*/ 2, /*UV*/ 2, };
+
+	u8 const index_data[] = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+	u32 index_data_count = (u32)C_ARRAY_LENGTH(index_data);
+
+	// might use graphics::get_data_type<decltype(+value)>(), but it's cryptic
+
+	bc->write(graphics::Instruction::Allocate_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::r32); bc->write(vertex_data_count); bc->write(vertex_data_count);
+	bc->write(vertex_attributes);
+	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::u8); bc->write(index_data_count); bc->write(index_data_count);
+	bc->write((u32)0);
+
+	bc->write(graphics::Instruction::Load_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((u32)0); write_data_array(vertex_data);
+	bc->write((u32)0); write_data_array(index_data);
+
+	return asset_id;
+}
+
 u32 create_cube(u32 local_id) {
 	u32 asset_id = asset::mesh::count + local_id;
 	if (has_mesh(asset_id)) { return asset_id; }
@@ -274,20 +314,6 @@ u32 create_cube(u32 local_id) {
 		indices.push(gi + 2); indices.push(gi + 3); indices.push(gi + 0);
 		gi += 4;
 	}
-
-/*
-	vertices.push(-0.5f); vertices.push(-0.5f); vertices.push(-0.5f);
-	vertices.push(0.0f); vertices.push(0.0f);
-	vertices.push(0.5f); vertices.push(-0.5f); vertices.push(-0.5f);
-	vertices.push(1.0f); vertices.push(0.0f);
-	vertices.push(0.5f); vertices.push(0.5f); vertices.push(-0.5f);
-	vertices.push(1.0f); vertices.push(1.0f);
-	vertices.push(-0.5f); vertices.push(0.5f); vertices.push(-0.5f);
-	vertices.push(0.0f); vertices.push(1.0f);
-
-	indices.push(0); indices.push(1); indices.push(2);
-	indices.push(2); indices.push(3); indices.push(0);
-*/
 
 	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
 

@@ -41,7 +41,7 @@ Ref<T> & Ref<T>::operator=(T const * instance) {
 
 template<typename T>
 bool Ref<T>::operator==(Ref<T> const & other) {
-	return id == other.id && gen = other.gen;
+	return id == other.id && gen == other.gen;
 }
 
 template<typename T>

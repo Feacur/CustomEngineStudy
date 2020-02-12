@@ -20,3 +20,13 @@ struct Transform
 	static u32 offset; // Entity API
 	static custom::Ref_Pool<Transform> pool; // Ref<T> API, creation
 };
+
+struct Transform2d
+{
+	vec2 position;
+	complex rotation;
+	vec2 scale;
+
+	static u32 offset; // Entity API
+	static custom::Ref_Pool<Transform2d> pool; // Ref<T> API, creation
+};

@@ -30,21 +30,21 @@ static u64 get_last_frame_ticks(bool vsync) {
 	return custom::timer::wait_next_frame(duration, precision);
 }
 
-static u32 create_quads_3_4(u32 local_id, u32 capacity) {
-	using namespace custom::graphics;
-	custom::Array_Fixed<custom::runtime::Buffer, 2> buffers;
-	buffers.push({
-		false, Mesh_Frequency::Dynamic, Mesh_Access::Draw,
-		Data_Type::r32, (3 + 4) * 4 * capacity, 0,
-		2, {3, 4}
-	});
-	buffers.push({
-		true, Mesh_Frequency::Static, Mesh_Access::Draw,
-		Data_Type::u16, 3 * 2 * capacity, 0,
-		0, {}
-	});
-	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
-}
+// static u32 create_quads_3_4(u32 local_id, u32 capacity) {
+// 	using namespace custom::graphics;
+// 	custom::Array_Fixed<custom::runtime::Buffer, 2> buffers;
+// 	buffers.push({
+// 		false, Mesh_Frequency::Dynamic, Mesh_Access::Draw,
+// 		Data_Type::r32, (3 + 4) * 4 * capacity, 0,
+// 		2, {3, 4}
+// 	});
+// 	buffers.push({
+// 		true, Mesh_Frequency::Static, Mesh_Access::Draw,
+// 		Data_Type::u16, 3 * 2 * capacity, 0,
+// 		0, {}
+// 	});
+// 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
+// }
 
 custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position) {
 	custom::Ref<custom::Entity> entity = custom::World::create();
@@ -109,41 +109,22 @@ int main(int argc, char * argv[]) {
 	r32 const aspect = (r32)size.y / (r32)size.x;
 	custom::renderer::viewport({0, 0}, size);
 	mat4 cam = mat_product(
-		mat_inverse_transform(mat_position_scale({0, 0, 0}, {1, 1, 1})),
+		mat_inverse_transform(mat_position_scale(vec3{0, 0, 0}, vec3{1, 1, 1})),
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
 		// mat_ortho({scale * aspect, scale}, 0, 10)
 	);
+	mat3 cam2d = mat_product(
+		mat_inverse_transform(mat_position_scale(vec2{0, 0}, vec2{1, 1})),
+		mat_position_scale(vec2{0, 0}, vec2{scale * aspect, scale})
+	);
 
-	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
 	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
-	u32 particle_test_asset_id = create_quads_3_4(
-		(u32)sandbox::Runtime_Mesh::particle_test, 128
-	);
-
-	custom::Ref<custom::Entity> entity1 = create_visual(
-		(u32)sandbox::Shader::v3_texture_tint,
-		(u32)sandbox::Texture::checkerboard,
-		quad_asset_id,
-		{1.0f, 0.5f, 1.2f}
-	);
-	custom::Ref<custom::Entity> entity2 = create_visual(
-		empty_id, empty_id, empty_id,
-		{0, 0, 0}
-	);
-	custom::Ref<custom::Entity> entity3 = create_visual(
-		(u32)sandbox::Shader::v3_texture_tint,
-		empty_id,
-		particle_test_asset_id,
-		{0, 0, 0}
-	);
 	custom::Ref<custom::Entity> entity4 = create_visual(
 		(u32)sandbox::Shader::v3_texture_tint,
 		(u32)sandbox::Texture::checkerboard,
 		cube_asset_id,
-		{-0.5f, 0, 1.5f}
+		{0.0f, 0.0f, 1.5f}
 	);
-
-	custom::World::destroy(entity2);
 
 	while (true) {
 		if (custom::system::should_close) { break; }

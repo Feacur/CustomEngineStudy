@@ -39,6 +39,7 @@ namespace uniform {
 		"u_Transform",
 		"u_Texture",
 		"u_Color",
+		"u_Depth",
 		NULL
 	};
 };

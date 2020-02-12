@@ -20,6 +20,7 @@ enum struct Uniform : u32
 	transform,
 	texture,
 	color,
+	depth,
 	count,
 };
 UNDERLYING_TYPE_META(Uniform, u32)
@@ -44,6 +45,7 @@ IS_ENUM_META(Mesh)
 enum struct Runtime_Mesh : u32
 {
 	quad,
+	quad2d,
 	cube,
 	particle_test,
 	count,
