@@ -80,6 +80,18 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 
 void init_entity_components(void);
 
+struct Camera
+{
+	Transform transform;
+	mat4 projection;
+};
+
+struct Camera2d
+{
+	Transform2d transform;
+	mat3 projection;
+};
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -108,15 +120,19 @@ int main(int argc, char * argv[]) {
 	r32 const scale = 1 / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)size.y / (r32)size.x;
 	custom::renderer::viewport({0, 0}, size);
-	mat4 cam = mat_product(
-		mat_inverse_transform(mat_position_scale(vec3{0, 0, 0}, vec3{1, 1, 1})),
+
+	// @Todo: make an entity? no? just make some objects with components?
+	//        actually that will suffice. no need to clutter entities space
+	Camera camera = {
+		{{0, 0, 0}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
 		// mat_ortho({scale * aspect, scale}, 0, 10)
-	);
-	mat3 cam2d = mat_product(
-		mat_inverse_transform(mat_position_scale(vec2{0, 0}, vec2{1, 1})),
-		mat_position_scale(vec2{0, 0}, vec2{scale * aspect, scale})
-	);
+	};
+
+	// Camera2d camera2d = {
+	// 	{{0, 0}, complex_from_radians(0), {1, 1}},
+	// 	mat_position_scale(vec2{0, 0}, vec2{scale * aspect, scale})
+	// };
 
 	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
 	custom::Ref<custom::Entity> entity4 = create_visual(
@@ -150,7 +166,7 @@ int main(int argc, char * argv[]) {
 
 		// render entities
 		custom::renderer::clear();
-		sandbox::renderer::update(cam);
+		sandbox::renderer::update(camera.transform, camera.projection);
 
 		gvm.update(gbc);
 		custom::window::update(window);

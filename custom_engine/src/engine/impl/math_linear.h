@@ -1269,6 +1269,28 @@ constexpr inline mat4 mat_ortho(vec3 min, vec3 max) {
 }
 
 //
+// conversions
+//
+
+inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 const & scale) {
+	return mat3{
+		vec3{rotation * scale.x, 0},
+		vec3{vec2{-rotation.y, rotation.x} * scale.y, 0},
+		vec3{position, 1}
+	};
+}
+
+inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const & scale) {
+	mat4 mat; // = {};
+	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
+	mat.x.xyz *= scale.x; mat.x.w = 0;
+	mat.y.xyz *= scale.y; mat.y.w = 0;
+	mat.z.xyz *= scale.z; mat.z.w = 0;
+	mat.w = {position, 1};
+	return mat;
+}
+
+//
 // macro implementations
 //
 

@@ -20,7 +20,10 @@ void init(custom::Bytecode * bytecode) {
 	bc = bytecode;
 }
 
-void update(mat4 const & cam) {
+void update(Transform const & camera, mat4 const & projection) {
+	mat4 cam = to_matrix(camera.position, camera.rotation, camera.scale);
+	cam = mat_product(mat_inverse_transform(cam), projection);
+
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
 		if (!custom::Entity::pool.check_active(i)) { continue; }
@@ -47,12 +50,9 @@ void update(mat4 const & cam) {
 			bc->write((u32)1); bc->write(visual->texture);
 		}
 
-		mat4 mat; // = {};
-		quat_get_axes(transform->rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
-		mat.x.xyz *= transform->scale.x; mat.x.w = 0;
-		mat.y.xyz *= transform->scale.y; mat.y.w = 0;
-		mat.z.xyz *= transform->scale.z; mat.z.w = 0;
-		mat.w = {transform->position, 1};
+		mat4 mat = to_matrix(
+			transform->position, transform->rotation, transform->scale
+		);
 
 		bc->write(custom::graphics::Instruction::Load_Uniform);
 		bc->write(visual->shader);
@@ -75,7 +75,10 @@ void update(mat4 const & cam) {
 	}
 }
 
-void update2d(mat3 const & cam) {
+void update2d(Transform2d const & camera, mat3 const & projection) {
+	mat3 cam = to_matrix(camera.position, camera.rotation, camera.scale);
+	cam = mat_product(mat_inverse_transform(cam), projection);
+
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
 		if (!custom::Entity::pool.check_active(i)) { continue; }
@@ -102,12 +105,9 @@ void update2d(mat3 const & cam) {
 			bc->write((u32)1); bc->write(visual->texture);
 		}
 
-		mat3 mat; // = {};
-		mat.x.xy = transform->rotation;
-		mat.y.xy = {-transform->rotation.y, transform->rotation.x};
-		mat.x.xy *= transform->scale.x; mat.x.z = 0;
-		mat.y.xy *= transform->scale.y; mat.y.z = 0;
-		mat.z = {transform->position, 1};
+		mat3 mat = to_matrix(
+			transform->position, transform->rotation, transform->scale
+		);
 
 		bc->write(custom::graphics::Instruction::Load_Uniform);
 		bc->write(visual->shader);
