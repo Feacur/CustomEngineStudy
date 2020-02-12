@@ -8,12 +8,12 @@
 // https://github.com/Marzac/le3d
 
 #if !defined(CUSTOM_SHIPPING)
-static void display_performace(custom::Window & window, u64 duration, u64 precision) {
+static void display_performace(custom::window::Data * window, u64 duration, u64 precision) {
 	float debug_ms = duration * 1000 / (float)precision;
 	float debug_fps = precision / (float)duration;
 	static char header_text[64];
 	sprintf(header_text, "custom engine - %.1f ms (%.1f FPS)", debug_ms, debug_fps);
-	window.set_header(header_text);
+	custom::window::set_header(window, header_text);
 }
 	#define DISPLAY_PERFORMANCE(window, duration, precision)\
 		display_performace(window, duration, precision)
@@ -90,9 +90,9 @@ int main(int argc, char * argv[]) {
 
 	// @Note: it's silly to init a context and then manually create a renderer.
 	//        probably it's better to construct a renderer with
-	custom::Window * window = new custom::Window;
-	window->init_context();
-	window->set_vsync(1);
+	custom::window::Data * window = custom::window::create();
+	custom::window::init_context(window);
+	custom::window::set_vsync(window, 1);
 
 	custom::graphics::VM gvm;
 
@@ -101,7 +101,7 @@ int main(int argc, char * argv[]) {
 	custom::renderer::init(&gbc);
 	sandbox::renderer::init(&gbc);
 
-	ivec2 size = window->get_size();
+	ivec2 size = custom::window::get_size(window);
 	r32 const scale = 1 / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)size.y / (r32)size.x;
 	custom::renderer::viewport({0, 0}, size);
@@ -150,11 +150,11 @@ int main(int argc, char * argv[]) {
 
 	while (true) {
 		if (custom::system::should_close) { break; }
-		if (custom::Window::should_close) { break; }
+		if (custom::window::get_should_close(window)) { break; }
 
 		// prepare for a frame
-		u64 last_frame_ticks = get_last_frame_ticks(window->is_vsync());
-		DISPLAY_PERFORMANCE(*window, last_frame_ticks, custom::timer::ticks_per_second);
+		u64 last_frame_ticks = get_last_frame_ticks(custom::window::is_vsync(window));
+		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer::ticks_per_second);
 
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 
@@ -175,14 +175,14 @@ int main(int argc, char * argv[]) {
 		sandbox::renderer::update(cam);
 
 		gvm.update(gbc);
-		window->update();
+		custom::window::update(window);
 
 		// clean up after the frame
 		gbc.offset = 0;
 		gbc.buffer.count = 0;
 	}
 
-	delete window;
+	custom::window::destroy(window);
 
 	// getchar();
 	return 0;

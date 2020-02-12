@@ -2,32 +2,23 @@
 #include "engine/core/math_types.h"
 
 namespace custom {
+namespace window {
 
-struct Graphics_Context;
+// @Note: an opaque data to be used as a pointer
+typedef struct Internal_Data Data;
 
-// @Note: a C++ class - probably better using std::shared_ptr<T>
-//        otherwise it's just "risky" to give out an instance
-//        and then have it copy-destructed or something
-struct Window
-{
-	static bool should_close;
+Data * create(void);
+void destroy(Data * data);
 
-	Window();
-	~Window();
+void init_context(Data * data);
 
-	void init_context();
+void update(Data * data);
 
-	void update();
+void set_vsync(Data * data, s32 value);
+bool is_vsync(Data * data);
 
-	void set_vsync(s32 value);
-	bool is_vsync() const;
+void set_header(Data * data, cstring value);
+ivec2 get_size(Data * data);
+bool get_should_close(Data * data);
 
-	void set_header(cstring value) const;
-	ivec2 get_size() const;
-
-private:
-	uptr m_handle;
-	Graphics_Context * m_graphics_context;
-};
-
-}
+}}

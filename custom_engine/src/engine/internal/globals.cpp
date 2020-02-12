@@ -3,7 +3,6 @@
 #include "engine/core/types.h"
 #include "engine/api/system.h"
 #include "engine/api/timer.h"
-#include "engine/api/window.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/impl/array.h"
 
@@ -16,7 +15,6 @@ namespace timer {
 	u64 ticks_per_second;
 	u64 frame_start_ticks;
 }
-bool Window::should_close = false;
 
 Context_Settings context_settings;
 Pixel_Format pixel_format_hint;
