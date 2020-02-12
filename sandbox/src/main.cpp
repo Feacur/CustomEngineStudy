@@ -21,10 +21,10 @@ static void display_performace(custom::window::Data * window, u64 duration, u64 
 	#define DISPLAY_PERFORMANCE(window, duration, precision)
 #endif
 
-static u64 get_last_frame_ticks(bool is_vsync) {
+static u64 get_last_frame_ticks(bool vsync) {
 	static u64 const duration  = 16666;
 	static u64 const precision = custom::timer::microsecond;
-	if (is_vsync) {
+	if (vsync) {
 		return custom::timer::snapshot();
 	}
 	return custom::timer::wait_next_frame(duration, precision);
@@ -153,7 +153,7 @@ int main(int argc, char * argv[]) {
 		if (custom::window::get_should_close(window)) { break; }
 
 		// prepare for a frame
-		u64 last_frame_ticks = get_last_frame_ticks(custom::window::is_vsync(window));
+		u64 last_frame_ticks = get_last_frame_ticks(custom::window::check_vsync(window));
 		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer::ticks_per_second);
 
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;

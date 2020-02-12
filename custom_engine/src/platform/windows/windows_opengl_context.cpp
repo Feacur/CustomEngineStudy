@@ -1,5 +1,5 @@
 #include "custom_pch.h"
-#include "platform/opengl_context.h"
+#include "platform/graphics_context.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
@@ -113,12 +113,21 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc);
 static bool platform_swap_interval(HDC hdc, s32);
 
 namespace custom {
+namespace window {
+HDC get_hdc(Internal_Data * window);
+}}
 
-Opengl_Context::Opengl_Context(uptr hdc)
-	: m_hdc(hdc)
-	, m_hrc(NULL)
-	, m_is_vsync(false)
+namespace custom {
+namespace context {
+
+struct Internal_Data
 {
+	HDC hdc;
+	HGLRC hrc;
+	bool is_vsync;
+};
+
+Data * create(window::Internal_Data * window) {
 	switch (custom::context_settings.major_version)
 	{
 		case 0:
@@ -137,7 +146,9 @@ Opengl_Context::Opengl_Context(uptr hdc)
 
 	platform_init_wgl();
 
-	m_hrc = (uptr)platform_create_context((HDC)hdc, NULL);
+	Internal_Data * data = (Internal_Data *)calloc(1, sizeof(Internal_Data));
+	data->hdc = window::get_hdc(window);
+	data->hrc = platform_create_context(data->hdc, NULL);
 
 	// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-wglgetprocaddress
 	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
@@ -157,33 +168,42 @@ Opengl_Context::Opengl_Context(uptr hdc)
 		glGetString(GL_VERSION),
 		glGetString(GL_SHADING_LANGUAGE_VERSION)
 	);
+
+	return data;
 }
 
-Opengl_Context::~Opengl_Context()
-{
-	wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
-	wgl.DeleteContext((HGLRC)m_hrc); LOG_LAST_ERROR();
+void destroy(Internal_Data * data) {
+	if (data->hrc) {
+		wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
+		wgl.DeleteContext(data->hrc); LOG_LAST_ERROR();
+		data->hrc = NULL;
+	}
+	data->hdc = NULL;
 	FreeLibrary(wgl.instance); LOG_LAST_ERROR();
 }
 
-void Opengl_Context::set_vsync(s32 value)
+void set_vsync(Internal_Data * data, s32 value)
 {
 	if (wgl.pixel_format.doublebuffer) {
-		m_is_vsync = platform_swap_interval((HDC)m_hdc, value);
+		data->is_vsync = platform_swap_interval(data->hdc, value);
 	}
 }
 
-void Opengl_Context::swap_buffers()
+bool check_vsync(Internal_Data * data) {
+	return data->is_vsync;
+}
+
+void swap_buffers(Internal_Data * data)
 {
 	if (wgl.pixel_format.doublebuffer) {
-		SwapBuffers((HDC)m_hdc);
+		SwapBuffers(data->hdc);
 	}
 	else {
 		glFlush();
 	}
 }
 
-}
+}}
 
 //
 // platform implementation

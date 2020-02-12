@@ -913,7 +913,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 
 			// 		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			// 		glBindBuffer(target, buffer.id);
-			// 		uintptr_t attrib_offset = 0;
+			// 		uptr attrib_offset = 0;
 			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
 			// 			opengl::Attribute & attr = buffer.attributes[attr_i];
 			// 			glEnableVertexAttribArray(attr_i);

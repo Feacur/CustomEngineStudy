@@ -4,8 +4,7 @@
 namespace custom {
 namespace window {
 
-// @Note: an opaque data to be used as a pointer
-typedef struct Internal_Data Data;
+typedef struct Internal_Data Data; // @Note: an opaque pointer
 
 Data * create(void);
 void destroy(Data * data);
@@ -15,7 +14,7 @@ void init_context(Data * data);
 void update(Data * data);
 
 void set_vsync(Data * data, s32 value);
-bool is_vsync(Data * data);
+bool check_vsync(Data * data);
 
 void set_header(Data * data, cstring value);
 ivec2 get_size(Data * data);

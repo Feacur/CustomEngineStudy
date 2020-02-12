@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 #include "engine/api/window.h"
-#include "platform/opengl_context.h"
+#include "platform/graphics_context.h"
 #include "engine/core/code.h"
 #include "engine/core/meta.h"
 #include "engine/core/key_codes.h"
@@ -40,7 +40,7 @@ struct Internal_Data
 {
 	HWND hwnd;
 	bool should_close;
-	Graphics_Context * graphics_context;
+	context::Data * graphics_context;
 };
 
 Internal_Data * create(void) {
@@ -61,7 +61,7 @@ Internal_Data * create(void) {
 
 void destroy(Internal_Data * data) {
 	if (data->graphics_context) {
-		delete data->graphics_context;
+		context::destroy(data->graphics_context);
 		data->graphics_context = nullptr;
 	}
 	if (data->hwnd) {
@@ -72,6 +72,10 @@ void destroy(Internal_Data * data) {
 	free(data);
 }
 
+HDC get_hdc(Internal_Data * window) {
+	return GetDC(window->hwnd);
+}
+
 void init_context(Internal_Data * data)
 {
 	if (data->graphics_context) {
@@ -79,19 +83,19 @@ void init_context(Internal_Data * data)
 		return;
 	}
 	HDC hdc = GetDC(data->hwnd);
-	data->graphics_context = new Opengl_Context((uptr)hdc);
+	data->graphics_context = context::create(data);
 }
 
 void update(Internal_Data * data) {
-	data->graphics_context->swap_buffers();
+	context::swap_buffers(data->graphics_context);
 }
 
 void set_vsync(Internal_Data * data, s32 value) {
-	data->graphics_context->set_vsync(1);
+	context::set_vsync(data->graphics_context, 1);
 }
 
-bool is_vsync(Internal_Data * data) {
-	return data->graphics_context->is_vsync();
+bool check_vsync(Internal_Data * data) {
+	return context::check_vsync(data->graphics_context);
 }
 
 void set_header(Internal_Data * data, cstring value) {
