@@ -12,24 +12,14 @@
 	#include <Windows.h>
 #endif
 
-// @Todo: put all relevant data into the Window object and give out to a user a pointer only
-static ivec2 root_window_size;
-inline ivec2 get_window_size(HWND window) {
-	RECT client_rect;
-	GetClientRect(window, &client_rect);
-	return {client_rect.right, client_rect.bottom};
-}
-
-#include "windows_input_raw.h"
-#include "windows_input_keyboard.h"
-#include "windows_input_mouse.h"
-
 #define CUSTOM_WINDOW_PTR "cwptr"
 
 //
 // API implementation
 //
 
+static void platform_raw_input_init(HWND hwnd);
+static ivec2 platform_get_window_size(HWND hwnd);
 static ATOM platform_register_window_class(void);
 static HWND platform_create_window(void);
 
@@ -41,6 +31,7 @@ struct Internal_Data
 	HWND hwnd;
 	bool should_close;
 	context::Data * graphics_context;
+	ivec2 size;
 };
 
 Internal_Data * create(void) {
@@ -50,11 +41,10 @@ Internal_Data * create(void) {
 	Internal_Data * data = (Internal_Data *)calloc(1, sizeof(Internal_Data));
 
 	data->hwnd = platform_create_window();
+	data->size = platform_get_window_size(data->hwnd);
 	SetProp(data->hwnd, TEXT(CUSTOM_WINDOW_PTR), data);
 
-	#if defined(CUSTOM_FEATURE_RAW_INPUT)
-	raw_input_init(data->hwnd);
-	#endif
+	platform_raw_input_init(data->hwnd);
 
 	return data;
 }
@@ -62,7 +52,7 @@ Internal_Data * create(void) {
 void destroy(Internal_Data * data) {
 	if (data->graphics_context) {
 		context::destroy(data->graphics_context);
-		data->graphics_context = nullptr;
+		data->graphics_context = NULL;
 	}
 	if (data->hwnd) {
 		RemoveProp(data->hwnd, TEXT(CUSTOM_WINDOW_PTR));
@@ -72,17 +62,9 @@ void destroy(Internal_Data * data) {
 	free(data);
 }
 
-HDC get_hdc(Internal_Data * window) {
-	return GetDC(window->hwnd);
-}
-
 void init_context(Internal_Data * data)
 {
-	if (data->graphics_context) {
-		CUSTOM_ASSERT(false, "trying to create a second rendering context");
-		return;
-	}
-	HDC hdc = GetDC(data->hwnd);
+	CUSTOM_ASSERT(!data->graphics_context, "trying to create a second rendering context");
 	data->graphics_context = context::create(data);
 }
 
@@ -91,7 +73,7 @@ void update(Internal_Data * data) {
 }
 
 void set_vsync(Internal_Data * data, s32 value) {
-	context::set_vsync(data->graphics_context, 1);
+	context::set_vsync(data->graphics_context, value);
 }
 
 bool check_vsync(Internal_Data * data) {
@@ -103,11 +85,15 @@ void set_header(Internal_Data * data, cstring value) {
 }
 
 ivec2 get_size(Internal_Data * data) {
-	return get_window_size(data->hwnd);
+	return data->size;
 }
 
 bool get_should_close(Internal_Data * data) {
 	return data->should_close;
+}
+
+HDC get_hdc(Internal_Data * window) {
+	return GetDC(window->hwnd);
 }
 
 }}
@@ -158,10 +144,24 @@ static HWND platform_create_window(void) {
 // input
 //
 
+static ivec2 platform_get_window_size(HWND hwnd) {
+	RECT client_rect;
+	GetClientRect(hwnd, &client_rect);
+	return {client_rect.right, client_rect.bottom};
+}
+
+#include "windows_input_raw.h"
+#include "windows_input_keyboard.h"
+#include "windows_input_mouse.h"
+
 #if !defined(CUSTOM_FEATURE_RAW_INPUT)
+	static void platform_raw_input_init(HWND hwnd) {
+		mouse_position_mode = Mouse_Mode::Message;
+		mouse_keys_mode     = Mouse_Mode::Message;
+	}
 	static void process_message_raw(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
 #else
-	static void raw_input_callback(HWND window, RAWHID const & data) { /*not implemented*/ }
+	static void raw_input_callback(HWND hwnd, RAWHID const & data) { /*not implemented*/ }
 #endif
 
 //
@@ -170,9 +170,8 @@ static HWND platform_create_window(void) {
 //
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	custom::window::Internal_Data * prop = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+	custom::window::Internal_Data * window = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
 
-	static HWND root_hwnd = NULL;
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
 		case WM_INPUT: {
@@ -251,14 +250,13 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		// https://docs.microsoft.com/en-us/windows/win32/winmsg/window-notifications
 		case WM_CREATE: {
-			if (!root_hwnd) { root_hwnd = hwnd; }
 			return 0; // If an application processes this message, it should return zero to continue creation of the window.
 		} break;
 
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
-			if (root_hwnd == hwnd) {
-				root_window_size = get_window_size(hwnd);
+			if (window) {
+				window->size = platform_get_window_size(hwnd);
 			}
 			if (wParam == SIZE_MINIMIZED) {
 			}
@@ -271,16 +269,16 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_SIZING: {
 			// Sent to a window that the user is resizing.
-			if (root_hwnd == hwnd) {
-				root_window_size = get_window_size(hwnd);
+			if (window) {
+				window->size = platform_get_window_size(hwnd);
 			}
 			return TRUE; // An application should return TRUE if it processes this message.
 		}
 
 		case WM_EXITSIZEMOVE: {
 			// Sent one time to a window, after it has exited the moving or sizing modal loop.
-			if (root_hwnd == hwnd) {
-				root_window_size = get_window_size(hwnd);
+			if (window) {
+				window->size = platform_get_window_size(hwnd);
 			}
 			return 0; // An application should return zero if it processes this message.
 		} break;
@@ -288,8 +286,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// @Note: forgo the normal pipeline and just prompt the window to close
 		case WM_CLOSE: {
 			// Sent as a signal that a window or an application should terminate.
-			if (prop) { prop->should_close = true; }
-			if (root_hwnd == hwnd) { root_hwnd = NULL; }
+			if (window) { window->should_close = true; }
 			// DestroyWindow(hwnd); // Go to WM_DESTROY
 			return 0; // If an application processes this message, it should return zero.
 		} break;
@@ -297,12 +294,8 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// @Note: forgo the normal pipeline and just prompt the window to close
 		case WM_DESTROY: {
 			// Sent when a window is being destroyed. It is sent to the window procedure of the window being destroyed after the window is removed from the screen.
-			if (prop) { prop->should_close = true; }
-			if (root_hwnd == hwnd) { root_hwnd = NULL; }
-			// if (root_hwnd == hwnd) {
-			// 	root_hwnd = NULL;
+			if (window) { window->should_close = true; }
 			// 	PostQuitMessage(0); // Go to WM_QUIT
-			// }
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 	}

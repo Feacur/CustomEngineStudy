@@ -3,15 +3,8 @@
 static POINT os_input_mouse_screen;
 static POINT os_input_mouse_client;
 
-static ivec2 get_mouse_window(POINT point) {
-	return {point.x, root_window_size.y - (point.y + 1)};
-}
-
-static bool mouse_is_inside() {
-	return os_input_mouse_client.x >= 0
-		&& os_input_mouse_client.y >= 0
-		&& os_input_mouse_client.x <  root_window_size.x
-		&& os_input_mouse_client.y <  root_window_size.y;
+static ivec2 get_mouse_window(POINT point, ivec2 const & window_size) {
+	return {point.x, window_size.y - (point.y + 1)};
 }
 
 // namespace custom {
@@ -60,11 +53,11 @@ static inline void mouse_set_key(custom::Mouse_Code key, bool is_pressed) {
 	input_mouse.is_pressed[(s32)key] = is_pressed;
 }
 
-static void update_current_mouse(POINT const & screen_position, POINT const & client_position) {
+static void update_current_mouse(POINT const & screen_position, POINT const & client_position, ivec2 const & window_size) {
 	os_input_mouse_screen = screen_position;
 	os_input_mouse_client = client_position;
 	input_mouse.pixel_position = // transform_window_to_render(
-		get_mouse_window(os_input_mouse_client)
+		get_mouse_window(os_input_mouse_client, window_size)
 	;//);
 }
 
@@ -79,7 +72,7 @@ static constexpr inline ivec2 mouse_input_get_delta(LONG x, LONG y) {
 // processing
 //
 #define MOUSE_SET_MESSAGE_VALUE(VALUE, EXPECTED) mouse_set_key(custom::Mouse_Code::VALUE, BITS_ARE_SET(virtual_key_code, EXPECTED))
-static void process_message_mouse(HWND window, WPARAM wParam, LPARAM lParam) {
+static void process_message_mouse(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 	static Mouse_Mode const mode = Mouse_Mode::Message;
 	
 	if (mouse_position_mode == mode) {
@@ -89,10 +82,11 @@ static void process_message_mouse(HWND window, WPARAM wParam, LPARAM lParam) {
 		client_position.y = points.y;
 		
 		POINT screen_position = client_position;
-		ClientToScreen(window, &screen_position);
+		ClientToScreen(hwnd, &screen_position);
 
 		input_mouse.raw_delta = mouse_input_get_delta(screen_position.x, screen_position.y);
-		update_current_mouse(screen_position, client_position);
+		custom::window::Internal_Data * window = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+		update_current_mouse(screen_position, client_position, window->size);
 	}
 
 	if (mouse_keys_mode == mode) {
@@ -108,12 +102,19 @@ static void process_message_mouse(HWND window, WPARAM wParam, LPARAM lParam) {
 #undef MOUSE_SET_MESSAGE_VALUE
 
 #if defined(CUSTOM_FEATURE_RAW_INPUT)
+static bool mouse_is_inside(ivec2 const & window_size) {
+	return os_input_mouse_client.x >= 0
+		&& os_input_mouse_client.y >= 0
+		&& os_input_mouse_client.x <  window_size.x
+		&& os_input_mouse_client.y <  window_size.y;
+}
+
 #define MOUSE_TEST_RAW_VALUE(VALUE, EXPECTED, is_pressed)\
 if (BITS_ARE_SET(flags, EXPECTED)) {\
 	mouse_set_key(custom::Mouse_Code::VALUE, is_pressed);\
 }
 
-static void raw_input_callback(HWND window, RAWMOUSE const & data) {
+static void raw_input_callback(HWND hwnd, RAWMOUSE const & data) {
 	static Mouse_Mode const mode = Mouse_Mode::Raw;
 	
 	if (mouse_position_mode == mode) {
@@ -121,7 +122,7 @@ static void raw_input_callback(HWND window, RAWMOUSE const & data) {
 		GetCursorPos(&screen_position);
 
 		POINT client_position = screen_position;
-		ScreenToClient(window, &client_position);
+		ScreenToClient(hwnd, &client_position);
 		
 		if (BITS_ARE_SET(data.usFlags, MOUSE_MOVE_ABSOLUTE)) {
 			// @Bug: probably better using screen coords
@@ -132,12 +133,14 @@ static void raw_input_callback(HWND window, RAWMOUSE const & data) {
 			input_mouse.raw_delta = {data.lLastX, -data.lLastY};
 		}
 
-		update_current_mouse(screen_position, client_position);
+		custom::window::Internal_Data * window = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+		update_current_mouse(screen_position, client_position, window->size);
 	}
 
 	if (mouse_keys_mode == mode) {
 		USHORT flags = data.usButtonFlags;
-		if (mouse_is_inside()) {
+		custom::window::Internal_Data * window = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+		if (mouse_is_inside(window->size)) {
 			MOUSE_TEST_RAW_VALUE(Key1, RI_MOUSE_BUTTON_1_DOWN, true);
 			MOUSE_TEST_RAW_VALUE(Key2, RI_MOUSE_BUTTON_2_DOWN, true);
 			MOUSE_TEST_RAW_VALUE(Key3, RI_MOUSE_BUTTON_3_DOWN, true);
