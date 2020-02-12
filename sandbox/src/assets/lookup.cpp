@@ -16,10 +16,10 @@ namespace shader {
 	constexpr u32 const ids_count = (u32)sandbox::Shader::count;
 	u32 count = ids_count;
 	cstring paths[ids_count + 1] = {
-		"assets/shaders/renderer2d.glsl",
-		"assets/shaders/renderer3d.glsl",
-		"assets/shaders/device.glsl",
-		"assets/shaders/particle_device.glsl",
+		"assets/shaders/v2_texture_tint.glsl",
+		"assets/shaders/v3_texture_tint.glsl",
+		"assets/shaders/v0_texture.glsl",
+		"assets/shaders/v0_particle_color.glsl",
 		NULL
 	};
 	

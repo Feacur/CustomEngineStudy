@@ -34,8 +34,8 @@ void update(mat4 const & cam) {
 
 		// @Todo: dynamically swap shader if transform is removed from an entity?
 		if (!transform) {
-			custom::loader::shader((u32)sandbox::Shader::device);
-			visual->shader = (u32)sandbox::Shader::device;
+			custom::loader::shader((u32)sandbox::Shader::v0_texture);
+			visual->shader = (u32)sandbox::Shader::v0_texture;
 		}
 
 		bc->write(custom::graphics::Instruction::Use_Shader);

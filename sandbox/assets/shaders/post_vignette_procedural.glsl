@@ -1,4 +1,4 @@
-// name: post_vignette
+// name: post_vignette_procedural
 // version: 330 core
 
 // section: VERTEX_SECTION

@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
 	);
 
 	custom::Ref<custom::Entity> entity1 = create_visual(
-		(u32)sandbox::Shader::renderer2d,
+		(u32)sandbox::Shader::v3_texture_tint,
 		(u32)sandbox::Texture::checkerboard,
 		quad_asset_id,
 		{1.0f, 0.5f, 1.2f}
@@ -131,13 +131,13 @@ int main(int argc, char * argv[]) {
 		{0, 0, 0}
 	);
 	custom::Ref<custom::Entity> entity3 = create_visual(
-		(u32)sandbox::Shader::renderer2d,
+		(u32)sandbox::Shader::v3_texture_tint,
 		empty_id,
 		particle_test_asset_id,
 		{0, 0, 0}
 	);
 	custom::Ref<custom::Entity> entity4 = create_visual(
-		(u32)sandbox::Shader::renderer3d,
+		(u32)sandbox::Shader::v3_texture_tint,
 		(u32)sandbox::Texture::checkerboard,
 		cube_asset_id,
 		{-0.5f, 0, 1.5f}

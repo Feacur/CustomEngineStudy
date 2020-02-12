@@ -5,10 +5,10 @@ namespace sandbox {
 
 enum struct Shader : u32
 {
-	renderer2d,
-	renderer3d,
-	device,
-	particle_device,
+	v2_texture_tint,
+	v3_texture_tint,
+	v0_texture,
+	v0_particle_color,
 	count,
 };
 UNDERLYING_TYPE_META(Shader, u32)
