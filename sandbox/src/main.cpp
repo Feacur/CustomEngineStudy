@@ -78,6 +78,8 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 	return entity;
 }
 
+void init_entity_components(void);
+
 int main(int argc, char * argv[]) {
 	// @Note: use structs and global functions; there is no need in RAII here
 	//        or resources management in the first place whatsoever.
@@ -100,6 +102,7 @@ int main(int argc, char * argv[]) {
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 	sandbox::renderer::init(&gbc);
+	init_entity_components();
 
 	ivec2 size = custom::window::get_size(window);
 	r32 const scale = 1 / tangent((pi / 2) / 2);
@@ -110,12 +113,6 @@ int main(int argc, char * argv[]) {
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
 		// mat_ortho({scale * aspect, scale}, 0, 10)
 	);
-
-	custom::Entity::component_types_count = 2;
-	Visual::offset = 0;
-	Transform::offset = 1;
-	custom::World::component_pools.push(&Visual::pool);
-	custom::World::component_pools.push(&Transform::pool);
 
 	u32 quad_asset_id = custom::loader::create_quad((u32)sandbox::Runtime_Mesh::quad);
 	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
