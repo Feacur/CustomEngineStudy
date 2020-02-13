@@ -86,7 +86,6 @@ Camera camera;
 static void impl_viewport(ivec2 size) {
 	r32 const scale = 1 / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)size.y / (r32)size.x;
-	custom::renderer::viewport({0, 0}, size);
 	camera = {
 		{{0, 0, 0}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
@@ -115,9 +114,9 @@ static void impl_update(r32 dt) {
 
 
 int main(int argc, char * argv[]) {
-	sandbox::application::set_init_callback(impl_init);
-	sandbox::application::set_viewport_callback(impl_viewport);
-	sandbox::application::set_update_callback(impl_update);
+	sandbox::application::set_init_callback(&impl_init);
+	sandbox::application::set_viewport_callback(&impl_viewport);
+	sandbox::application::set_update_callback(&impl_update);
 	sandbox::application::run();
 	// getchar();
 	return 0;

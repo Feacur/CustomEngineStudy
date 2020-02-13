@@ -36,40 +36,49 @@ namespace sandbox {
 namespace application {
 
 static custom::Bytecode gbc;
-static custom::window::Data * window;
-static init_func * init_callback;
-static viewport_func * viewport_callback;
-static update_func * update_callback;
+static custom::window::Data * app_window;
+static struct {
+	init_func * init;
+	viewport_func * viewport;
+	update_func * update;
+} callbacks;
+
+static void impl_viewport(custom::window::Data * window, ivec2 size) {
+	custom::renderer::viewport({0, 0}, size);
+	(*callbacks.viewport)(size);
+}
 
 static void init(void) {
 	custom::system::init();
 	custom::timer::init();
 	
-	window = custom::window::create();
-	custom::window::init_context(window);
-	custom::window::set_vsync(window, 1);
+	app_window = custom::window::create();
+	custom::window::set_viewport_callback(app_window, &impl_viewport);
+	custom::window::init_context(app_window);
+	custom::window::set_vsync(app_window, 1);
 
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 	sandbox::renderer::init(&gbc);
 	custom::graphics::init();
 
-	(*init_callback)();
+	(*callbacks.init)();
 	
-	ivec2 size = custom::window::get_size(window);
-	(*viewport_callback)(size);
+	ivec2 size = custom::window::get_size(app_window);
+	custom::renderer::viewport({0, 0}, size);
+	(*callbacks.viewport)(size);
 }
 
 void set_init_callback(init_func * callback) {
-	init_callback = callback;
+	callbacks.init = callback;
 }
 
 void set_viewport_callback(viewport_func * callback) {
-	viewport_callback = callback;
+	callbacks.viewport = callback;
 }
 
 void set_update_callback(update_func * callback) {
-	update_callback = callback;
+	callbacks.update = callback;
 }
 
 void run(void) {
@@ -77,20 +86,20 @@ void run(void) {
 
 	while (true) {
 		if (custom::system::should_close) { break; }
-		if (custom::window::get_should_close(window)) { break; }
+		if (custom::window::get_should_close(app_window)) { break; }
 
 		// prepare for a frame
-		u64 last_frame_ticks = get_last_frame_ticks(custom::window::check_vsync(window));
-		DISPLAY_PERFORMANCE(window, last_frame_ticks, custom::timer::ticks_per_second);
+		u64 last_frame_ticks = get_last_frame_ticks(custom::window::check_vsync(app_window));
+		DISPLAY_PERFORMANCE(app_window, last_frame_ticks, custom::timer::ticks_per_second);
 
 		// process the frame
 		custom::system::update();
 
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
-		(*update_callback)(dt);
+		(*callbacks.update)(dt);
 
 		custom::graphics::update(gbc);
-		custom::window::update(window);
+		custom::window::update(app_window);
 
 		// clean up after the frame
 		gbc.offset = 0;
@@ -98,7 +107,7 @@ void run(void) {
 	}
 
 	custom::graphics::shutdown();
-	custom::window::destroy(window);
+	custom::window::destroy(app_window);
 }
 
 }}

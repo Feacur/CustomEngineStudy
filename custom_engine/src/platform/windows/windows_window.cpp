@@ -32,6 +32,10 @@ struct Internal_Data
 	bool should_close;
 	context::Data * graphics_context;
 	ivec2 size;
+
+	struct {
+		viewport_func * viewport;
+	} callbacks;
 };
 
 Internal_Data * create(void) {
@@ -90,6 +94,10 @@ ivec2 get_size(Internal_Data * data) {
 
 bool get_should_close(Internal_Data * data) {
 	return data->should_close;
+}
+
+void set_viewport_callback(Internal_Data * data, viewport_func * callback) {
+	data->callbacks.viewport = callback;
 }
 
 HDC get_hdc(Internal_Data * window) {
@@ -256,7 +264,10 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
 			if (window) {
-				window->size = platform_get_window_size(hwnd);
+				window->size = {LOWORD(lParam), HIWORD(lParam)};
+				if (window->callbacks.viewport) {
+					(*window->callbacks.viewport)(window, window->size);
+				}
 			}
 			if (wParam == SIZE_MINIMIZED) {
 			}
@@ -269,17 +280,11 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_SIZING: {
 			// Sent to a window that the user is resizing.
-			if (window) {
-				window->size = platform_get_window_size(hwnd);
-			}
 			return TRUE; // An application should return TRUE if it processes this message.
 		}
 
 		case WM_EXITSIZEMOVE: {
 			// Sent one time to a window, after it has exited the moving or sizing modal loop.
-			if (window) {
-				window->size = platform_get_window_size(hwnd);
-			}
 			return 0; // An application should return zero if it processes this message.
 		} break;
 
