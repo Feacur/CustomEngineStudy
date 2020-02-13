@@ -35,6 +35,19 @@ struct Internal_Data
 	ivec2 size;
 
 	struct {
+		u8 keys[(u8)custom::Key_Code::Last];
+	} keyboard;
+
+	struct {
+		u8 keys[(u8)custom::Mouse_Code::Last];
+		ivec2 position;
+		ivec2 delta;
+		vec2 wheel;
+		POINT screen;
+		POINT client;
+	} mouse;
+
+	struct {
 		viewport_func * viewport;
 	} callbacks;
 };
@@ -89,12 +102,32 @@ void set_header(Internal_Data * data, cstring value) {
 	SetWindowText(data->hwnd, value);
 }
 
-ivec2 get_size(Internal_Data * data) {
+ivec2 const & get_size(Internal_Data * data) {
 	return data->size;
 }
 
 bool get_should_close(Internal_Data * data) {
 	return data->should_close;
+}
+
+u8 get_key(Internal_Data * data, Key_Code key) {
+	return data->keyboard.keys[(u8)key];
+}
+
+u8 get_mouse_key(Internal_Data * data, Mouse_Code key) {
+	return data->mouse.keys[(u8)key];
+}
+
+ivec2 const & get_mouse_pos(Internal_Data * data) {
+	return data->mouse.position;
+}
+
+ivec2 const & get_mouse_delta(Internal_Data * data) {
+	return data->mouse.delta;
+}
+
+vec2 const & get_mouse_wheel(Internal_Data * data) {
+	return data->mouse.wheel;
 }
 
 void set_viewport_callback(Internal_Data * data, viewport_func * callback) {
@@ -110,6 +143,12 @@ HDC get_hdc(Internal_Data * window) {
 //
 // platform implementation
 //
+
+static ivec2 platform_get_window_size(HWND hwnd) {
+	RECT client_rect;
+	GetClientRect(hwnd, &client_rect);
+	return {client_rect.right, client_rect.bottom};
+}
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static ATOM platform_register_window_class(void) {
@@ -153,23 +192,25 @@ static HWND platform_create_window(void) {
 // input
 //
 
-static ivec2 platform_get_window_size(HWND hwnd) {
-	RECT client_rect;
-	GetClientRect(hwnd, &client_rect);
-	return {client_rect.right, client_rect.bottom};
-}
-
 typedef custom::window::Internal_Data Window;
+
+enum struct Input_Mode {
+	Raw,
+	Message,
+};
+UNDERLYING_TYPE_META(Input_Mode, u8)
+IS_ENUM_META(Input_Mode)
+
+static Input_Mode keyboard_mode   = Input_Mode::Message;
+static Input_Mode mouse_pos_mode  = Input_Mode::Message;
+static Input_Mode mouse_keys_mode = Input_Mode::Message;
 
 #include "windows_input_raw.h"
 #include "windows_input_keyboard.h"
 #include "windows_input_mouse.h"
 
 #if !defined(CUSTOM_FEATURE_RAW_INPUT)
-	static void platform_raw_input_init(HWND hwnd) {
-		mouse_position_mode = Mouse_Mode::Message;
-		mouse_keys_mode     = Mouse_Mode::Message;
-	}
+	static void platform_raw_input_init(HWND hwnd) { /**/ }
 	static void process_message_raw(Window * window, WPARAM wParam, LPARAM lParam) { /**/ }
 #else
 	static void raw_input_callback(Window * window, RAWHID const & data) { /*not implemented*/ }
@@ -232,7 +273,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_MOUSEWHEEL: {
 			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			r32 value = (r32)delta / WHEEL_DELTA;
+			window->mouse.wheel.y = (r32)delta / WHEEL_DELTA;
 			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
 			// POINTS points = MAKEPOINTS(lParam);
 			// POINT point; point.x = points.x; point.y = points.y;
@@ -242,7 +283,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		
 		case WM_MOUSEHWHEEL: {
 			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			r32 value = (r32)delta / WHEEL_DELTA;
+			window->mouse.wheel.x = (r32)delta / WHEEL_DELTA;
 			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
 			// POINTS points = MAKEPOINTS(lParam);
 			// POINT point; point.x = points.x; point.y = points.y;

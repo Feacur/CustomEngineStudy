@@ -34,6 +34,10 @@ static constexpr inline RAWINPUTDEVICE raw_input_device(HWND hwnd, USHORT usage,
 }
 
 static void platform_raw_input_init(HWND hwnd) {
+	keyboard_mode   = Input_Mode::Raw;
+	mouse_pos_mode  = Input_Mode::Raw;
+	mouse_keys_mode = Input_Mode::Raw;
+
 	using U = meta::underlying_type<Raw_Input_Device_Usage>::type;
 	RAWINPUTDEVICE devices[] = {
 		raw_input_device(hwnd, (U)Raw_Input_Device_Usage::Keyboard, 0),
