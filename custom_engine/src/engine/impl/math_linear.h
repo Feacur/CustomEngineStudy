@@ -6,11 +6,28 @@
 //
 //
 
+/*
+vector 3d math representation
+(i * j) = -(j * i) = k
+(j * k) = -(k * j) = i
+(k * i) = -(i * k) = j
+*/
+
+/*
+This code is a result of expanding the following expression
+(x1*i + y1*j) * (x2*i + y2*j)
+(i * i) = (j * j) = 0 == sin(0)
+*/
 template<typename T>
 constexpr inline T cross_product(xvec2<T> first, xvec2<T> second) {
 	return first.x * second.y - first.y * second.x;
 }
 
+/*
+This code is a result of expanding the following expression
+(x1*i + y1*j + z1*k) * (x2*i + y2*j + z2*k)
+(i * i) = (j * j) = (k * k) = (i * j * k) = 0 == sin(0)
+*/
 template<typename T>
 constexpr inline xvec3<T> cross_product(xvec3<T> first, xvec3<T> second) {
 	return {
@@ -167,6 +184,11 @@ constexpr inline xvec2<T> & operator/=(xvec2<T> & first, T second) {
 }
 #endif // defined(__cplusplus) // operator xvec2<T>
 
+/*
+This code is a result of expanding the following expression
+(x1*i + y1*j) * (x2*i + y2*j)
+(i * i) = (j * j) = 1 == cos(0)
+*/
 template<typename T>
 constexpr inline T dot_product(xvec2<T> first, xvec2<T> second) {
 	return first.x * second.x
@@ -413,6 +435,11 @@ constexpr inline xvec3<T> & operator/=(xvec3<T> & first, T second) {
 }
 #endif // defined(__cplusplus) // operator xvec3<T>
 
+/*
+This code is a result of expanding the following expression
+(x1*i + y1*j + z1*k) * (x2*i + y2*j + z2*k)
+(i * i) = (j * j) = (k * k) = (i * j * k) = 1 == cos(0)
+*/
 template<typename T>
 constexpr inline T dot_product(xvec3<T> first, xvec3<T> second) {
 	return first.x * second.x
@@ -854,11 +881,11 @@ quat = w + (x * i) + (y * j) + (z * k)
 quat = e ^ (angle * axis)
 quat = cos(angle) + axis * sin(angle)
 
-(i * i) = (j * j) = (k * k) = (i * j * k) = -1
-
 (i * j) = -(j * i) = k
 (j * k) = -(k * j) = i
 (k * i) = -(i * k) = j
+
+(i * i) = (j * j) = (k * k) = (i * j * k) = -1
 
 * https://en.wikipedia.org/wiki/Quaternion
 * https://www.youtube.com/watch?v=UaK2q22mMEg
@@ -919,6 +946,11 @@ inline quat quat_from_axis(vec3 axis, r32 radians) {
 	return {axis.x * s, axis.y * s, axis.z * s, c};
 }
 
+/*
+This code is a result of expanding the following expression
+(x1*i + y1*j + z1*k + w1) * (x2*i + y2*j + z2*k + w2)
+(i * i) = (j * j) = (k * k) = (i * j * k) = -1 == cos(pi)
+*/
 constexpr inline quat quat_product(quat first, quat second) {
 	return {
 		cross_product(first.xyz, second.xyz) + first.xyz * second.w + second.xyz * first.w,
@@ -927,7 +959,7 @@ constexpr inline quat quat_product(quat first, quat second) {
 }
 
 /*
-This code is a result of expanding following expression,
+This code is a result of expanding the following expression,
 excluding stuff negated by multiplication with zero
 
 return quat_product(
@@ -951,7 +983,7 @@ inline quat quat_from_radians(vec3 euler_radians) {
 };
 
 /*
-This code is a result of expanding following expression,
+This code is a result of expanding the following expression,
 excluding stuff negated by multiplication with zero
 
 return quat_product(
@@ -968,14 +1000,14 @@ constexpr inline vec3 quat_rotate_vector(quat q, vec3 vector) {
 }
 
 /*
-This code is a result of expanding following expressions,
+This code is a result of expanding the following expressions,
 excluding stuff negated by multiplication with zero
 
 right   = quat_rotate_vector(quat, {1, 0, 0});
 up      = quat_rotate_vector(quat, {0, 1, 0});
 forward = quat_rotate_vector(quat, {0, 0, 1});
 */
-inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
+constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
 	quat reciprocal = quat_reciprocal(q);
 
 	vec3 product_axis_a = {q.w, q.z, -q.y};
