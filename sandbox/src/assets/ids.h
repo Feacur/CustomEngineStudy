@@ -7,8 +7,6 @@ enum struct Shader : u32
 {
 	v2_texture_tint,
 	v3_texture_tint,
-	v0_texture,
-	v0_particle_color,
 	count,
 };
 UNDERLYING_TYPE_META(Shader, u32)
@@ -29,6 +27,7 @@ IS_ENUM_META(Uniform)
 enum struct Texture : u32
 {
 	checkerboard,
+	blue_noise,
 	count,
 };
 UNDERLYING_TYPE_META(Texture, u32)

@@ -18,14 +18,10 @@ namespace shader {
 	cstring paths[ids_count + 1] = {
 		"assets/shaders/v2_texture_tint.glsl",
 		"assets/shaders/v3_texture_tint.glsl",
-		"assets/shaders/v0_texture.glsl",
-		"assets/shaders/v0_particle_color.glsl",
 		NULL
 	};
 	
 	u8 meta_ids[ids_count] = {
-		0,
-		0,
 		0,
 		0,
 	};
@@ -52,6 +48,12 @@ namespace texture {
 			graphics::Filter_Mode::None,
 			graphics::Wrap_Mode::Repeat, graphics::Wrap_Mode::Repeat,
 		},
+		{
+			graphics::Filter_Mode::None,
+			graphics::Filter_Mode::None,
+			graphics::Filter_Mode::None,
+			graphics::Wrap_Mode::Repeat, graphics::Wrap_Mode::Repeat,
+		},
 	};
 	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
 
@@ -59,11 +61,13 @@ namespace texture {
 	u32 count = ids_count;
 	cstring paths[ids_count + 1] = {
 		"assets/textures/checkerboard.png",
+		"assets/textures/blue_noise.png",
 		NULL
 	};
 	
 	u8 meta_ids[ids_count] = {
 		0,
+		1,
 	};
 };
 
