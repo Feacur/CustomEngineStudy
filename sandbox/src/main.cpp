@@ -108,12 +108,11 @@ int main(int argc, char * argv[]) {
 	custom::window::init_context(window);
 	custom::window::set_vsync(window, 1);
 
-	custom::graphics::VM gvm;
-
 	custom::Bytecode gbc;
 	custom::loader::init(&gbc);
 	custom::renderer::init(&gbc);
 	sandbox::renderer::init(&gbc);
+	custom::graphics::init();
 	init_entity_components();
 
 	ivec2 size = custom::window::get_size(window);
@@ -168,7 +167,7 @@ int main(int argc, char * argv[]) {
 		custom::renderer::clear();
 		sandbox::renderer::update(camera.transform, camera.projection);
 
-		gvm.update(gbc);
+		custom::graphics::update(gbc);
 		custom::window::update(window);
 
 		// clean up after the frame
@@ -176,6 +175,7 @@ int main(int argc, char * argv[]) {
 		gbc.buffer.count = 0;
 	}
 
+	custom::graphics::shutdown();
 	custom::window::destroy(window);
 
 	// getchar();

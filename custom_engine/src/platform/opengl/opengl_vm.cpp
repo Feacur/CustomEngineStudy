@@ -185,8 +185,7 @@ namespace graphics {
 
 static void consume_single_instruction(Bytecode const & bc);
 
-VM::VM()
-{
+void init(void) {
 	glGetIntegerv(GL_MAJOR_VERSION, &version_major);
 	glGetIntegerv(GL_MINOR_VERSION, &version_minor);
 
@@ -236,12 +235,11 @@ VM::VM()
 	}
 }
 
-VM::~VM() {
+void shutdown(void) {
 	ogl.opengl::Data::~Data();
 }
 
-void VM::update(Bytecode const & bc)
-{
+void update(Bytecode const & bc) {
 	while (bc.offset < bc.buffer.count) {
 		consume_single_instruction(bc);
 		#if !defined(CUSTOM_SHIPPING)

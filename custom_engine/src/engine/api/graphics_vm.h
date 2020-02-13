@@ -7,12 +7,8 @@ struct Bytecode;
 namespace custom {
 namespace graphics {
 
-struct VM
-{
-	VM();
-	~VM();
-
-	void update(Bytecode const & bc);
-};
+void init(void);
+void shutdown(void);
+void update(Bytecode const & bc);
 
 }}
