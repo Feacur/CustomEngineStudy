@@ -7,8 +7,6 @@ namespace window {
 
 typedef struct Internal_Data Data; // @Note: an opaque pointer
 
-typedef void viewport_func(Data * data, ivec2 size);
-
 Data * create(void);
 void destroy(Data * data);
 
@@ -22,6 +20,9 @@ bool check_vsync(Data * data);
 void set_header(Data * data, cstring value);
 ivec2 get_size(Data * data);
 bool get_should_close(Data * data);
+
+// callbacks
+typedef void viewport_func(Data * data, ivec2 size);
 
 void set_viewport_callback(Data * data, viewport_func * callback);
 

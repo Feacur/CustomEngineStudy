@@ -42,31 +42,31 @@ static void platform_raw_input_init(HWND hwnd) {
 	RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE));
 }
 
-static void raw_input_callback(HWND hwnd, RAWMOUSE    const & data);
-static void raw_input_callback(HWND hwnd, RAWKEYBOARD const & data);
-static void raw_input_callback(HWND hwnd, RAWHID      const & data);
-static void process_message_raw(HWND hwnd, WPARAM wParam, LPARAM lParam) {
+static void raw_input_callback(Window * window, RAWMOUSE    const & data);
+static void raw_input_callback(Window * window, RAWKEYBOARD const & data);
+static void raw_input_callback(Window * window, RAWHID      const & data);
+static void process_message_raw(Window * window, WPARAM wParam, LPARAM lParam) {
 	char buffer[sizeof(RAWINPUT)]; // = {};
 	ZeroMemory(buffer, sizeof(buffer));
 	UINT size = sizeof(RAWINPUT);
 	GetRawInputData(
-		reinterpret_cast<HRAWINPUT>(lParam),
+		(HRAWINPUT)lParam,
 		RID_INPUT,
 		buffer,
 		&size,
 		sizeof(RAWINPUTHEADER)
 	);
 
-	auto raw = reinterpret_cast<RAWINPUT *>(buffer);
+	RAWINPUT * raw = (RAWINPUT *)buffer;
 	switch (raw->header.dwType) {
 		case RIM_TYPEMOUSE:
-			raw_input_callback(hwnd, raw->data.mouse);
+			raw_input_callback(window, raw->data.mouse);
 			break;
 		case RIM_TYPEKEYBOARD:
-			raw_input_callback(hwnd, raw->data.keyboard);
+			raw_input_callback(window, raw->data.keyboard);
 			break;
 		case RIM_TYPEHID:
-			raw_input_callback(hwnd, raw->data.hid);
+			raw_input_callback(window, raw->data.hid);
 			break;
 	}
 }

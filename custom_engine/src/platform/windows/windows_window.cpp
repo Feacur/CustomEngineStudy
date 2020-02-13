@@ -10,6 +10,7 @@
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
+	// #include <windowsx.h>
 #endif
 
 #define CUSTOM_WINDOW_PTR "cwptr"
@@ -158,6 +159,8 @@ static ivec2 platform_get_window_size(HWND hwnd) {
 	return {client_rect.right, client_rect.bottom};
 }
 
+typedef custom::window::Internal_Data Window;
+
 #include "windows_input_raw.h"
 #include "windows_input_keyboard.h"
 #include "windows_input_mouse.h"
@@ -167,9 +170,9 @@ static ivec2 platform_get_window_size(HWND hwnd) {
 		mouse_position_mode = Mouse_Mode::Message;
 		mouse_keys_mode     = Mouse_Mode::Message;
 	}
-	static void process_message_raw(HWND hwnd, WPARAM wParam, LPARAM lParam) { /**/ }
+	static void process_message_raw(Window * window, WPARAM wParam, LPARAM lParam) { /**/ }
 #else
-	static void raw_input_callback(HWND hwnd, RAWHID const & data) { /*not implemented*/ }
+	static void raw_input_callback(Window * window, RAWHID const & data) { /*not implemented*/ }
 #endif
 
 //
@@ -178,12 +181,15 @@ static ivec2 platform_get_window_size(HWND hwnd) {
 //
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	custom::window::Internal_Data * window = (custom::window::Internal_Data *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+	Window * window = (Window *)GetProp(hwnd, TEXT(CUSTOM_WINDOW_PTR));
+	if (!window) {
+		return DefWindowProc(hwnd, message, wParam, lParam);
+	}
 
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
 		case WM_INPUT: {
-			process_message_raw(hwnd, wParam, lParam);
+			process_message_raw(window, wParam, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
@@ -192,7 +198,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
 		case WM_KEYDOWN: {
-			process_message_keyboard(hwnd, wParam, lParam);
+			process_message_keyboard(window, wParam, lParam);
 			return 0; // An application should return zero if it processes this message.
 		} break;
 		
@@ -200,15 +206,15 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// 	return 0; // An application should return zero if it processes this message.
 		// } break;
 
-		case WM_SETFOCUS: {
-			// Sent to a window after it has gained the keyboard focus.
-			return 0; // An application should return zero if it processes this message.
-		} break;
+		// case WM_SETFOCUS: {
+		// 	// Sent to a window after it has gained the keyboard focus.
+		// 	return 0; // An application should return zero if it processes this message.
+		// } break;
 		
-		case WM_KILLFOCUS: {
-			// Sent to a window immediately before it loses the keyboard focus.
-			return 0; // An application should return zero if it processes this message.
-		} break;
+		// case WM_KILLFOCUS: {
+		// 	// Sent to a window immediately before it loses the keyboard focus.
+		// 	return 0; // An application should return zero if it processes this message.
+		// } break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/mouse-input
 		case WM_MOUSEMOVE:
@@ -220,54 +226,61 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_RBUTTONUP:
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP: {
-			process_message_mouse(hwnd, wParam, lParam);
+			process_message_mouse(window, wParam, lParam);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
 		case WM_MOUSEWHEEL: {
-			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			// r32 delta = (r32)delta / WHEEL_DELTA;
+			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
+			r32 value = (r32)delta / WHEEL_DELTA;
+			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
+			// POINTS points = MAKEPOINTS(lParam);
+			// POINT point; point.x = points.x; point.y = points.y;
+			// ScreenToClient(window->hwnd, &point);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 		
 		case WM_MOUSEHWHEEL: {
-			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			// r32 delta = (r32)delta / WHEEL_DELTA;
+			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
+			r32 value = (r32)delta / WHEEL_DELTA;
+			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
+			// POINTS points = MAKEPOINTS(lParam);
+			// POINT point; point.x = points.x; point.y = points.y;
+			// ScreenToClient(window->hwnd, &point);
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/menurc/cursor-notifications
-		case WM_SETCURSOR: {
-			// Sent to a window if the mouse causes the cursor to move within a window and mouse input is not capture
-			WORD hit_test = LOWORD(lParam);
-			WORD source_message = HIWORD(lParam);
-			// If an application processes this message, it should return TRUE to halt further processing or FALSE to continue.
-		} break;
+		// case WM_SETCURSOR: {
+		// 	// Sent to a window if the mouse causes the cursor to move within a window and mouse input is not capture
+		// 	WORD hit_test = LOWORD(lParam);
+		// 	WORD source_message = HIWORD(lParam);
+		// 	return TRUE; // If an application processes this message, it should return TRUE to halt further processing or FALSE to continue.
+		// } break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/gdi/painting-and-drawing-messages
-		case WM_PAINT: {
-			// Is sent when the system or another application makes a request to paint a portion of an application's window.
-			bool has_update_region = GetUpdateRect(hwnd, NULL, false);
-			if (has_update_region) {
-				PAINTSTRUCT paint;
-				HDC hdc = BeginPaint(hwnd, &paint);
-				EndPaint(hwnd, &paint);
-			}
-			return 0; // An application returns zero if it processes this message.
-		} break;
+		// case WM_PAINT: {
+		// 	// Is sent when the system or another application makes a request to paint a portion of an application's window.
+		// 	bool has_update_region = GetUpdateRect(hwnd, NULL, false);
+		// 	if (has_update_region) {
+		// 		PAINTSTRUCT paint;
+		// 		HDC hdc = BeginPaint(hwnd, &paint);
+		// 		EndPaint(hwnd, &paint);
+		// 	}
+		// 	return 0; // An application returns zero if it processes this message.
+		// } break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/winmsg/window-notifications
-		case WM_CREATE: {
-			return 0; // If an application processes this message, it should return zero to continue creation of the window.
-		} break;
+		// case WM_CREATE: {
+		// 	CREATESTRUCT * data = (CREATESTRUCTA *)lParam;
+		// 	return 0; // If an application processes this message, it should return zero to continue creation of the window.
+		// } break;
 
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
-			if (window) {
-				window->size = {LOWORD(lParam), HIWORD(lParam)};
-				if (window->callbacks.viewport) {
-					(*window->callbacks.viewport)(window, window->size);
-				}
+			window->size = {LOWORD(lParam), HIWORD(lParam)};
+			if (window->callbacks.viewport) {
+				(*window->callbacks.viewport)(window, window->size);
 			}
 			if (wParam == SIZE_MINIMIZED) {
 			}
@@ -278,20 +291,35 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
-		case WM_SIZING: {
-			// Sent to a window that the user is resizing.
-			return TRUE; // An application should return TRUE if it processes this message.
-		}
+		// case WM_SIZING: {
+		// 	// Sent to a window that the user is resizing.
+		// 	// wParam
+		// 	// WMSZ_BOTTOM
+		// 	// WMSZ_BOTTOMLEFT
+		// 	// WMSZ_BOTTOMRIGHT
+		// 	// WMSZ_LEFT
+		// 	// WMSZ_RIGHT
+		// 	// WMSZ_TOP
+		// 	// WMSZ_TOPLEFT
+		// 	// WMSZ_TOPRIGHT
+		// 	RECT * rect = (RECT *)lParam;
+		// 	return TRUE; // An application should return TRUE if it processes this message.
+		// }
 
-		case WM_EXITSIZEMOVE: {
-			// Sent one time to a window, after it has exited the moving or sizing modal loop.
-			return 0; // An application should return zero if it processes this message.
-		} break;
+		// case WM_ENTERSIZEMOVE: {
+		// 	// Sent one time to a window after it enters the moving or sizing modal loop.
+		// 	return 0; // An application should return zero if it processes this message.
+		// } break;
+
+		// case WM_EXITSIZEMOVE: {
+		// 	// Sent one time to a window, after it has exited the moving or sizing modal loop.
+		// 	return 0; // An application should return zero if it processes this message.
+		// } break;
 
 		// @Note: forgo the normal pipeline and just prompt the window to close
 		case WM_CLOSE: {
 			// Sent as a signal that a window or an application should terminate.
-			if (window) { window->should_close = true; }
+			window->should_close = true;
 			// DestroyWindow(hwnd); // Go to WM_DESTROY
 			return 0; // If an application processes this message, it should return zero.
 		} break;
@@ -299,7 +327,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// @Note: forgo the normal pipeline and just prompt the window to close
 		case WM_DESTROY: {
 			// Sent when a window is being destroyed. It is sent to the window procedure of the window being destroyed after the window is removed from the screen.
-			if (window) { window->should_close = true; }
+			window->should_close = true;
 			// 	PostQuitMessage(0); // Go to WM_QUIT
 			return 0; // If an application processes this message, it should return zero.
 		} break;

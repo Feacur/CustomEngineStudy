@@ -46,7 +46,7 @@ static bool key_test_range(
 	if (virtual_key_code < min_code) { return false; }
 	if (virtual_key_code > max_code) { return false; }
 
-	auto offset = (s32)(virtual_key_code - min_code);
+	s32 offset = (s32)(virtual_key_code - min_code);
 	s32 index = (s32)base + offset;
 	input_keyboard.is_pressed[index] = is_pressed;
 	return true;
@@ -94,13 +94,19 @@ static void keyboard_set_key(WPARAM virtual_key_code, bool is_pressed) {
 //
 // processing
 //
-static void process_message_keyboard(HWND window, WPARAM wParam, LPARAM lParam) {
+static void process_message_keyboard(Window * window, WPARAM wParam, LPARAM lParam) {
+	// https://docs.microsoft.com/ru-ru/windows/win32/inputdev/about-keyboard-input
 	if (keyboard_mode == Keyboard_Mode::Message) {
-		bool is_an_extended_key = get_bit_at_index(lParam, 24);
-		bool alt_key_is_pressed = get_bit_at_index(lParam, 29);
-		bool was_pressed        = get_bit_at_index(lParam, 30);
-		bool is_released        = get_bit_at_index(lParam, 31);
-		
+		// WORD repeats = LOWORD(lParam);
+		WORD flag = HIWORD(lParam);
+		// bool is_extended = BITS_ARE_SET(flag, KF_EXTENDED);
+		// bool is_dialogue = BITS_ARE_SET(flag, KF_DLGMODE);
+		// bool is_menu     = BITS_ARE_SET(flag, KF_MENUMODE);
+		// bool is_alt      = BITS_ARE_SET(flag, KF_ALTDOWN);
+		bool was_pressed = BITS_ARE_SET(flag, KF_REPEAT);
+		bool is_released = BITS_ARE_SET(flag, KF_UP);
+
+
 		bool is_transition      = (was_pressed == is_released);
 
 		keyboard_set_key(wParam, !is_released);
@@ -108,10 +114,10 @@ static void process_message_keyboard(HWND window, WPARAM wParam, LPARAM lParam) 
 }
 
 #if defined(CUSTOM_FEATURE_RAW_INPUT)
-static void raw_input_callback(HWND window, RAWKEYBOARD const & data) {
+static void raw_input_callback(Window * window, RAWKEYBOARD const & data) {
 	if (keyboard_mode == Keyboard_Mode::Raw) {
-		bool scan_e0_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E0);
-		bool scan_e1_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E1);
+		// bool scan_e0_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E0);
+		// bool scan_e1_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E1);
 		bool was_pressed    = BITS_ARE_SET(data.Flags, RI_KEY_MAKE);
 		bool is_released    = BITS_ARE_SET(data.Flags, RI_KEY_BREAK);
 		
