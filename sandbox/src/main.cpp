@@ -98,12 +98,22 @@ static void impl_viewport(ivec2 size) {
 }
 
 static void impl_update(r32 dt) {
-	// @Todo: input, logic
+	vec3 delta_euler_angles;
+	if (sandbox::application::get_mouse_key(custom::Mouse_Code::Key1) != custom::Key_State::Released) {
+		ivec2 mouse_delta = sandbox::application::get_mouse_delta();
+		delta_euler_angles.x = mouse_delta.y * 0.1f;
+		delta_euler_angles.y = -mouse_delta.x * 0.1f;
+		delta_euler_angles.z = 0;
+	}
+	else {
+		delta_euler_angles = {0.05f, 0.2f, 0.1f};
+	}
+
 	Transform * transform4 = entity4->get_component<Transform>().operator->();
 	if (transform4) {
+		// @Note: rotate in world space
 		transform4->rotation = normalize(quat_product(
-			transform4->rotation,
-			quat_from_radians({pi * 0.05f * dt, pi * 0.2f * dt, pi * 0.1f * dt})
+			quat_from_radians(delta_euler_angles * (pi * dt)), transform4->rotation
 		));
 	}
 

@@ -7,7 +7,6 @@
 #include "engine/core/utf8.h"
 #include "engine/core/meta.h"
 #include "engine/core/key_codes.h"
-#include "engine/core/mouse_codes.h"
 #include "engine/debug/log.h"
 
 #include "engine/api/system.h"

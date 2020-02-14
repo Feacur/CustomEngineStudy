@@ -69,6 +69,27 @@ static void init(void) {
 	(*callbacks.viewport)(size);
 }
 
+custom::Key_State get_key(custom::Key_Code key) {
+	return custom::window::get_key(app_window, key);
+}
+
+custom::Key_State get_mouse_key(custom::Mouse_Code key) {
+	return custom::window::get_mouse_key(app_window, key);
+}
+
+ivec2 const & get_mouse_pos() {
+	return custom::window::get_mouse_pos(app_window);
+}
+
+ivec2 const & get_mouse_delta() {
+	return custom::window::get_mouse_delta(app_window);
+}
+
+vec2 const & get_mouse_wheel() {
+	return custom::window::get_mouse_wheel(app_window);
+}
+
+
 void set_init_callback(init_func * callback) {
 	callbacks.init = callback;
 }

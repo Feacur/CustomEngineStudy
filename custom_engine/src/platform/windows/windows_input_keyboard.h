@@ -5,6 +5,20 @@
 //
 // utility
 //
+static inline void keyboard_set(Window * window, custom::Key_Code key, bool is_pressed) {
+	if (is_pressed) {
+		if (window->keyboard.keys[(u8)key] != custom::Key_State::Pressed) {
+			window->keyboard.keys[(u8)key] = custom::Key_State::Pressed;
+		}
+		else {
+			window->keyboard.keys[(u8)key] = custom::Key_State::Repeated;
+		}
+	}
+	else {
+		window->keyboard.keys[(u8)key] = custom::Key_State::Released;
+	}
+}
+
 static bool key_test_range(
 	Window * window,
 	custom::Key_Code base,
@@ -17,7 +31,7 @@ static bool key_test_range(
 	if (virtual_key_code > max_code) { return false; }
 	u8 offset = (u8)(virtual_key_code - min_code);
 	u8 index = (u8)base + offset;
-	window->keyboard.keys[index] = is_pressed;
+	keyboard_set(window, (custom::Key_Code)index, is_pressed);
 	return true;
 }
 
@@ -29,7 +43,7 @@ static bool key_test_value(
 	WPARAM expected_code
 ) {
 	if (virtual_key_code != expected_code) { return false; }
-	window->keyboard.keys[(u8)key] = is_pressed;
+	keyboard_set(window, key, is_pressed);
 	return true;
 }
 

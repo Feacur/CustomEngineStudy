@@ -16,4 +16,18 @@ enum struct Key_Code : u8 {
 UNDERLYING_TYPE_META(Key_Code, u8)
 IS_ENUM_META(Key_Code)
 
+enum struct Mouse_Code : u8 {
+	None,
+	Key1, Key2, Key3, Key4, Key5,
+	Last
+};
+UNDERLYING_TYPE_META(Mouse_Code, u8)
+IS_ENUM_META(Mouse_Code)
+
+enum struct Key_State : u8 {
+	Released, Pressed, Repeated
+};
+UNDERLYING_TYPE_META(Key_State, u8)
+IS_ENUM_META(Key_State)
+
 }

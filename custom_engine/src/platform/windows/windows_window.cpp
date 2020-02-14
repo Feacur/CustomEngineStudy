@@ -2,9 +2,6 @@
 #include "engine/api/window.h"
 #include "platform/graphics_context.h"
 #include "engine/core/code.h"
-#include "engine/core/meta.h"
-#include "engine/core/key_codes.h"
-#include "engine/core/mouse_codes.h"
 #include "engine/impl/math_bitwise.h"
 #include "engine/debug/log.h"
 
@@ -35,11 +32,11 @@ struct Internal_Data
 	ivec2 size;
 
 	struct {
-		u8 keys[(u8)custom::Key_Code::Last];
+		Key_State keys[(u8)custom::Key_Code::Last];
 	} keyboard;
 
 	struct {
-		u8 keys[(u8)custom::Mouse_Code::Last];
+		Key_State keys[(u8)custom::Mouse_Code::Last];
 		ivec2 position;
 		ivec2 delta;
 		vec2 wheel;
@@ -87,6 +84,7 @@ void init_context(Internal_Data * data)
 }
 
 void update(Internal_Data * data) {
+	data->mouse.delta = {};
 	context::swap_buffers(data->graphics_context);
 }
 
@@ -110,11 +108,11 @@ bool get_should_close(Internal_Data * data) {
 	return data->should_close;
 }
 
-u8 get_key(Internal_Data * data, Key_Code key) {
+Key_State get_key(Internal_Data * data, Key_Code key) {
 	return data->keyboard.keys[(u8)key];
 }
 
-u8 get_mouse_key(Internal_Data * data, Mouse_Code key) {
+Key_State get_mouse_key(Internal_Data * data, Mouse_Code key) {
 	return data->mouse.keys[(u8)key];
 }
 

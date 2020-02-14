@@ -5,8 +5,18 @@
 //
 // utility
 //
-static inline void mouse_set_key(Window * window, custom::Mouse_Code key, bool is_pressed) {
-	window->mouse.keys[(u8)key] = is_pressed;
+static inline void mouse_set(Window * window, custom::Mouse_Code key, bool is_pressed) {
+	if (is_pressed) {
+		if (window->mouse.keys[(u8)key] != custom::Key_State::Pressed) {
+			window->mouse.keys[(u8)key] = custom::Key_State::Pressed;
+		}
+		else {
+			window->mouse.keys[(u8)key] = custom::Key_State::Repeated;
+		}
+	}
+	else {
+		window->mouse.keys[(u8)key] = custom::Key_State::Released;
+	}
 }
 
 static void update_current_mouse(Window * window, POINT const & screen_position, POINT const & client_position, ivec2 const & window_size) {
@@ -28,7 +38,7 @@ static constexpr inline ivec2 mouse_input_get_delta(Window * window, LONG x, LON
 //
 // processing
 //
-#define MOUSE_SET_MESSAGE_VALUE(VALUE, EXPECTED) mouse_set_key(window, custom::Mouse_Code::VALUE, BITS_ARE_SET(virtual_key_code, EXPECTED))
+#define MOUSE_SET_MESSAGE_VALUE(VALUE, EXPECTED) mouse_set(window, custom::Mouse_Code::VALUE, BITS_ARE_SET(virtual_key_code, EXPECTED))
 static void process_message_mouse(Window * window, WPARAM wParam, LPARAM lParam) {
 	static Input_Mode const mode = Input_Mode::Message;
 	
@@ -67,7 +77,7 @@ static bool mouse_is_inside(Window * window) {
 
 #define MOUSE_TEST_RAW_VALUE(VALUE, EXPECTED, is_pressed)\
 if (BITS_ARE_SET(flags, EXPECTED)) {\
-	mouse_set_key(window, custom::Mouse_Code::VALUE, is_pressed);\
+	mouse_set(window, custom::Mouse_Code::VALUE, is_pressed);\
 }
 
 static void raw_input_callback(Window * window, RAWMOUSE const & data) {

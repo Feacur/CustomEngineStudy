@@ -178,8 +178,8 @@ void destroy(Internal_Data * data) {
 		wgl.DeleteContext(data->hrc); LOG_LAST_ERROR();
 		data->hrc = NULL;
 	}
-	data->hdc = NULL;
 	FreeLibrary(wgl.instance); LOG_LAST_ERROR();
+	ZeroMemory(&wgl, sizeof(wgl));
 }
 
 void set_vsync(Internal_Data * data, s32 value)
