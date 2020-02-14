@@ -112,6 +112,7 @@ bool get_should_close(Internal_Data * data) {
 	return data->should_close;
 }
 
+// input
 Key_State get_key(Internal_Data * data, Key_Code key) {
 	return data->keyboard.keys[(u8)key];
 }
@@ -132,10 +133,12 @@ vec2 const & get_mouse_wheel(Internal_Data * data) {
 	return data->mouse.wheel;
 }
 
+// callbacks
 void set_viewport_callback(Internal_Data * data, viewport_func * callback) {
 	data->callbacks.viewport = callback;
 }
 
+// platform internal access
 HDC get_hdc(Internal_Data * window) {
 	return GetDC(window->hwnd);
 }
