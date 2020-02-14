@@ -83,9 +83,11 @@ struct Camera2d
 };
 
 Camera camera;
-static void impl_viewport(ivec2 size) {
-	r32 const scale = 1 / tangent((pi / 2) / 2);
-	r32 const aspect = (r32)size.y / (r32)size.x;
+r32 camera_zoom = 1;
+ivec2 camera_size;
+static void update_camera() {
+	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
+	r32 const aspect = (r32)camera_size.y / (r32)camera_size.x;
 	camera = {
 		{{0, 0, 0}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
@@ -97,7 +99,18 @@ static void impl_viewport(ivec2 size) {
 	// };
 }
 
+static void impl_viewport(ivec2 size) {
+	camera_size = size;
+	update_camera();
+}
+
 static void impl_update(r32 dt) {
+	vec2 wheel = sandbox::application::get_mouse_wheel();
+	if (wheel.y != 0.0f) {
+		camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
+		update_camera();
+	}
+
 	vec3 delta_euler_angles;
 	if (sandbox::application::get_mouse_key(custom::Mouse_Code::Key1) != custom::Key_State::Released) {
 		ivec2 mouse_delta = sandbox::application::get_mouse_delta();

@@ -6,16 +6,17 @@
 // utility
 //
 static inline void keyboard_set(Window * window, custom::Key_Code key, bool is_pressed) {
+	using U = meta::underlying_type<custom::Key_Code>::type;
 	if (is_pressed) {
-		if (window->keyboard.keys[(u8)key] != custom::Key_State::Pressed) {
-			window->keyboard.keys[(u8)key] = custom::Key_State::Pressed;
+		if (window->keyboard.keys[(U)key] != custom::Key_State::Pressed) {
+			window->keyboard.keys[(U)key] = custom::Key_State::Pressed;
 		}
 		else {
-			window->keyboard.keys[(u8)key] = custom::Key_State::Repeated;
+			window->keyboard.keys[(U)key] = custom::Key_State::Repeated;
 		}
 	}
 	else {
-		window->keyboard.keys[(u8)key] = custom::Key_State::Released;
+		window->keyboard.keys[(U)key] = custom::Key_State::Released;
 	}
 }
 
@@ -27,10 +28,11 @@ static bool key_test_range(
 	WPARAM min_code,
 	WPARAM max_code
 ) {
+	using U = meta::underlying_type<custom::Key_Code>::type;
 	if (virtual_key_code < min_code) { return false; }
 	if (virtual_key_code > max_code) { return false; }
-	u8 offset = (u8)(virtual_key_code - min_code);
-	u8 index = (u8)base + offset;
+	U offset = (U)(virtual_key_code - min_code);
+	U index = (U)base + offset;
 	keyboard_set(window, (custom::Key_Code)index, is_pressed);
 	return true;
 }
@@ -79,35 +81,35 @@ static void keyboard_set_key(Window * window, WPARAM virtual_key_code, bool is_p
 // processing
 //
 static void process_message_keyboard(Window * window, WPARAM wParam, LPARAM lParam) {
+	if (keyboard_mode != Input_Mode::Message) { return; }
+
 	// https://docs.microsoft.com/ru-ru/windows/win32/inputdev/about-keyboard-input
-	if (keyboard_mode == Input_Mode::Message) {
-		// WORD repeats = LOWORD(lParam);
-		WORD flag = HIWORD(lParam);
-		// bool is_extended = BITS_ARE_SET(flag, KF_EXTENDED);
-		// bool is_dialogue = BITS_ARE_SET(flag, KF_DLGMODE);
-		// bool is_menu     = BITS_ARE_SET(flag, KF_MENUMODE);
-		// bool is_alt      = BITS_ARE_SET(flag, KF_ALTDOWN);
-		bool was_pressed = BITS_ARE_SET(flag, KF_REPEAT);
-		bool is_released = BITS_ARE_SET(flag, KF_UP);
+	// WORD repeats = LOWORD(lParam);
+	WORD flag = HIWORD(lParam);
+	// bool is_extended = BITS_ARE_SET(flag, KF_EXTENDED);
+	// bool is_dialogue = BITS_ARE_SET(flag, KF_DLGMODE);
+	// bool is_menu     = BITS_ARE_SET(flag, KF_MENUMODE);
+	// bool is_alt      = BITS_ARE_SET(flag, KF_ALTDOWN);
+	bool was_pressed = BITS_ARE_SET(flag, KF_REPEAT);
+	bool is_released = BITS_ARE_SET(flag, KF_UP);
 
-		// bool is_transition      = (was_pressed == is_released);
+	// bool is_transition      = (was_pressed == is_released);
 
-		keyboard_set_key(window, wParam, !is_released);
-	}
+	keyboard_set_key(window, wParam, !is_released);
 }
 
 #if defined(CUSTOM_FEATURE_RAW_INPUT)
 static void raw_input_callback(Window * window, RAWKEYBOARD const & data) {
-	if (keyboard_mode == Input_Mode::Raw) {
-		// bool scan_e0_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E0);
-		// bool scan_e1_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E1);
-		bool was_pressed    = BITS_ARE_SET(data.Flags, RI_KEY_MAKE);
-		bool is_released    = BITS_ARE_SET(data.Flags, RI_KEY_BREAK);
-		
-		// bool is_transition  = (was_pressed == is_released);
-		
-		keyboard_set_key(window, data.VKey, !is_released);
-	}
+	if (keyboard_mode != Input_Mode::Raw) { return; }
+
+	// bool scan_e0_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E0);
+	// bool scan_e1_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E1);
+	bool was_pressed    = BITS_ARE_SET(data.Flags, RI_KEY_MAKE);
+	bool is_released    = BITS_ARE_SET(data.Flags, RI_KEY_BREAK);
+	
+	// bool is_transition  = (was_pressed == is_released);
+	
+	keyboard_set_key(window, data.VKey, !is_released);
 }
 #endif // defined(CUSTOM_FEATURE_RAW_INPUT)
 

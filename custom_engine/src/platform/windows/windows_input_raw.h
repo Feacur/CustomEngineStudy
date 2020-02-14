@@ -10,15 +10,17 @@
 
 // namespace custom {
 
-enum struct Raw_Input_Device_Usage : USHORT {
-	Pointer  = 0x01,
-	Mouse    = 0x02,
-	Joystick = 0x04,
-	Gamepad  = 0x05,
-	Keyboard = 0x06,
+enum struct Raw_Input_Device : USHORT { // usage page 0x01
+	Pointer  = 0x01, // Win32  -- Exclusive
+	Mouse    = 0x02, // Win32  -- Exclusive
+	Joystick = 0x04, // DInput -- Shared
+	Gamepad  = 0x05, // DInput -- Shared
+	Keyboard = 0x06, // Win32  -- Exclusive
+	Keypad   = 0x07, // Win32  -- Exclusive
+	System   = 0x80, // Win32  -- Shared
 };
-UNDERLYING_TYPE_META(Raw_Input_Device_Usage, USHORT)
-IS_ENUM_META(Raw_Input_Device_Usage)
+UNDERLYING_TYPE_META(Raw_Input_Device, USHORT)
+IS_ENUM_META(Raw_Input_Device)
 
 // RIDEV_APPKEYS:      the application command keys are handled (only with keyboard's RIDEV_NOLEGACY)
 // RIDEV_NOLEGACY:     prevents mouse and keyboard from generating legacy messages
@@ -33,17 +35,27 @@ static constexpr inline RAWINPUTDEVICE raw_input_device(HWND hwnd, USHORT usage,
 	return device;
 }
 
-static void platform_raw_input_init(HWND hwnd) {
-	keyboard_mode   = Input_Mode::Raw;
-	mouse_pos_mode  = Input_Mode::Raw;
-	mouse_keys_mode = Input_Mode::Raw;
-
-	using U = meta::underlying_type<Raw_Input_Device_Usage>::type;
+static void platform_raw_input_set(HWND hwnd, DWORD flags, Input_Mode mode) {
+	// https://docs.microsoft.com/ru-ru/windows/win32/api/winuser/ns-winuser-rawinputdevice
+	using U = meta::underlying_type<Raw_Input_Device>::type;
 	RAWINPUTDEVICE devices[] = {
-		raw_input_device(hwnd, (U)Raw_Input_Device_Usage::Keyboard, 0),
-		raw_input_device(hwnd, (U)Raw_Input_Device_Usage::Mouse, 0),
+		raw_input_device(hwnd, (U)Raw_Input_Device::Keyboard, flags),
+		raw_input_device(hwnd, (U)Raw_Input_Device::Mouse, flags),
 	};
-	RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE));
+	if (RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE))) {
+		keyboard_mode = mode;
+		mouse_mode    = mode;
+	}
+}
+
+static void platform_raw_input_init(HWND hwnd) {
+	// @Todo: fullscreen handling
+	//        RIDEV_NOLEGACY | RIDEV_NOHOTKEYS | RIDEV_CAPTUREMOUSE
+	platform_raw_input_set(hwnd, 0, Input_Mode::Raw);
+}
+
+static void platform_raw_input_shutdown(HWND hwnd) {
+	platform_raw_input_set(NULL, RIDEV_REMOVE, Input_Mode::Message);
 }
 
 static void raw_input_callback(Window * window, RAWMOUSE    const & data);

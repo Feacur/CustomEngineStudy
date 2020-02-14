@@ -3,6 +3,7 @@
 #include "platform/graphics_context.h"
 #include "engine/core/code.h"
 #include "engine/impl/math_bitwise.h"
+#include "engine/impl/math_linear.h"
 #include "engine/debug/log.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -17,6 +18,7 @@
 //
 
 static void platform_raw_input_init(HWND hwnd);
+static void platform_raw_input_shutdown(HWND hwnd);
 static ivec2 platform_get_window_size(HWND hwnd);
 static ATOM platform_register_window_class(void);
 static HWND platform_create_window(void);
@@ -65,6 +67,7 @@ Internal_Data * create(void) {
 }
 
 void destroy(Internal_Data * data) {
+	platform_raw_input_shutdown(data->hwnd);
 	if (data->graphics_context) {
 		context::destroy(data->graphics_context);
 		data->graphics_context = NULL;
@@ -85,6 +88,7 @@ void init_context(Internal_Data * data)
 
 void update(Internal_Data * data) {
 	data->mouse.delta = {};
+	data->mouse.wheel = {};
 	context::swap_buffers(data->graphics_context);
 }
 
@@ -199,9 +203,8 @@ enum struct Input_Mode {
 UNDERLYING_TYPE_META(Input_Mode, u8)
 IS_ENUM_META(Input_Mode)
 
-static Input_Mode keyboard_mode   = Input_Mode::Message;
-static Input_Mode mouse_pos_mode  = Input_Mode::Message;
-static Input_Mode mouse_keys_mode = Input_Mode::Message;
+static Input_Mode keyboard_mode = Input_Mode::Message;
+static Input_Mode mouse_mode    = Input_Mode::Message;
 
 #include "windows_input_raw.h"
 #include "windows_input_keyboard.h"
@@ -209,6 +212,7 @@ static Input_Mode mouse_keys_mode = Input_Mode::Message;
 
 #if !defined(CUSTOM_FEATURE_RAW_INPUT)
 	static void platform_raw_input_init(HWND hwnd) { /**/ }
+	static void platform_raw_input_shutdown(HWND hwnd) { /**/ }
 	static void process_message_raw(Window * window, WPARAM wParam, LPARAM lParam) { /**/ }
 #else
 	static void raw_input_callback(Window * window, RAWHID const & data) { /*not implemented*/ }
@@ -265,27 +269,17 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_RBUTTONUP:
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP: {
-			process_message_mouse(window, wParam, lParam);
+			process_message_mouse(window, wParam, lParam, true, {0, 0}); // @Note: client-space, NO wheel
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
 		case WM_MOUSEWHEEL: {
-			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			window->mouse.wheel.y = (r32)delta / WHEEL_DELTA;
-			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
-			// POINTS points = MAKEPOINTS(lParam);
-			// POINT point; point.x = points.x; point.y = points.y;
-			// ScreenToClient(window->hwnd, &point);
+			process_message_mouse(window, wParam, lParam, false, {0, 1}); // @Note: screen-space, Y wheel
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 		
 		case WM_MOUSEHWHEEL: {
-			WORD delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			window->mouse.wheel.x = (r32)delta / WHEEL_DELTA;
-			// WORD keystate = GET_KEYSTATE_WPARAM(wParam);
-			// POINTS points = MAKEPOINTS(lParam);
-			// POINT point; point.x = points.x; point.y = points.y;
-			// ScreenToClient(window->hwnd, &point);
+			process_message_mouse(window, wParam, lParam, false, {1, 0}); // @Note: screen-space, X wheel
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
