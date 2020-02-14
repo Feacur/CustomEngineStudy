@@ -41,6 +41,10 @@ static constexpr inline ivec2 mouse_input_get_delta(Window * window, LONG x, LON
 //
 #define MOUSE_SET_MESSAGE_VALUE(VALUE, EXPECTED) mouse_set(window, custom::Mouse_Code::VALUE, BITS_ARE_SET(virtual_key_code, EXPECTED))
 static void process_message_mouse(Window * window, WPARAM wParam, LPARAM lParam, bool client_space, vec2 const & wheel_mask) {
+	// @Note: always process wheel messages input, as I didn't figure out raw input
+	window->mouse.wheel.x += wheel_mask.x * GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+	window->mouse.wheel.y += wheel_mask.y * GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+
 	if (mouse_mode != Input_Mode::Message) { return; }
 
 	POINTS points = MAKEPOINTS(lParam);
@@ -66,19 +70,16 @@ static void process_message_mouse(Window * window, WPARAM wParam, LPARAM lParam,
 	MOUSE_SET_MESSAGE_VALUE(Key3, MK_RBUTTON);
 	MOUSE_SET_MESSAGE_VALUE(Key4, MK_XBUTTON1);
 	MOUSE_SET_MESSAGE_VALUE(Key5, MK_XBUTTON2);
-	
-	window->mouse.wheel.x += wheel_mask.x * GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-	window->mouse.wheel.y += wheel_mask.y * GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 }
 #undef MOUSE_SET_MESSAGE_VALUE
 
 #if defined(CUSTOM_FEATURE_RAW_INPUT)
-static bool mouse_is_inside(Window * window) {
-	return window->mouse.client.x >= 0
-		&& window->mouse.client.y >= 0
-		&& window->mouse.client.x <  window->size.x
-		&& window->mouse.client.y <  window->size.y;
-}
+// static bool mouse_is_inside(Window * window) {
+// 	return window->mouse.client.x >= 0
+// 		&& window->mouse.client.y >= 0
+// 		&& window->mouse.client.x <  window->size.x
+// 		&& window->mouse.client.y <  window->size.y;
+// }
 
 #define MOUSE_TEST_RAW_VALUE(VALUE, EXPECTED, is_pressed)\
 if (BITS_ARE_SET(flags, EXPECTED)) {\
@@ -106,24 +107,24 @@ static void raw_input_callback(Window * window, RAWMOUSE const & data) {
 	update_current_mouse(window, screen, client, window->size);
 
 	USHORT flags = data.usButtonFlags;
-	if (mouse_is_inside(window)) {
-		MOUSE_TEST_RAW_VALUE(Key1, RI_MOUSE_BUTTON_1_DOWN, true);
-		MOUSE_TEST_RAW_VALUE(Key2, RI_MOUSE_BUTTON_2_DOWN, true);
-		MOUSE_TEST_RAW_VALUE(Key3, RI_MOUSE_BUTTON_3_DOWN, true);
-		MOUSE_TEST_RAW_VALUE(Key4, RI_MOUSE_BUTTON_4_DOWN, true);
-		MOUSE_TEST_RAW_VALUE(Key5, RI_MOUSE_BUTTON_5_DOWN, true);
-	}
+	MOUSE_TEST_RAW_VALUE(Key1, RI_MOUSE_BUTTON_1_DOWN, true);
+	MOUSE_TEST_RAW_VALUE(Key2, RI_MOUSE_BUTTON_2_DOWN, true);
+	MOUSE_TEST_RAW_VALUE(Key3, RI_MOUSE_BUTTON_3_DOWN, true);
+	MOUSE_TEST_RAW_VALUE(Key4, RI_MOUSE_BUTTON_4_DOWN, true);
+	MOUSE_TEST_RAW_VALUE(Key5, RI_MOUSE_BUTTON_5_DOWN, true);
+
 	MOUSE_TEST_RAW_VALUE(Key1, RI_MOUSE_BUTTON_1_UP, false);
 	MOUSE_TEST_RAW_VALUE(Key2, RI_MOUSE_BUTTON_2_UP, false);
 	MOUSE_TEST_RAW_VALUE(Key3, RI_MOUSE_BUTTON_3_UP, false);
 	MOUSE_TEST_RAW_VALUE(Key4, RI_MOUSE_BUTTON_4_UP, false);
 	MOUSE_TEST_RAW_VALUE(Key5, RI_MOUSE_BUTTON_5_UP, false);
 
-	if (BITS_ARE_SET(flags, RI_MOUSE_WHEEL)) {
-		// @Note: value is signed; alike GET_WHEEL_DELTA_WPARAM
-		window->mouse.wheel.x += (r32)(short)HIWORD(data.usButtonData) / WHEEL_DELTA; // @Bug: wrong?
-		window->mouse.wheel.y += (r32)(short)LOWORD(data.usButtonData) / WHEEL_DELTA;
-	}
+	// @Note: process wheel input as messages, as I didn't figure out raw input
+	// if (BITS_ARE_SET(flags, RI_MOUSE_WHEEL)) {
+	// 	// @Note: value is signed; alike GET_WHEEL_DELTA_WPARAM
+	// 	window->mouse.wheel.x += (r32)(short)HIWORD(data.usButtonData) / WHEEL_DELTA; // @Bug: wrong?
+	// 	window->mouse.wheel.y += (r32)(short)LOWORD(data.usButtonData) / WHEEL_DELTA;
+	// }
 }
 
 #undef MOUSE_TEST_RAW_VALUE

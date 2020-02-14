@@ -68,12 +68,12 @@ Internal_Data * create(void) {
 }
 
 void destroy(Internal_Data * data) {
-	platform_raw_input_shutdown(data->hwnd);
 	if (data->graphics_context) {
 		context::destroy(data->graphics_context);
 		data->graphics_context = NULL;
 	}
 	if (data->hwnd) {
+		platform_raw_input_shutdown(data->hwnd);
 		RemoveProp(data->hwnd, TEXT(CUSTOM_WINDOW_PTR));
 		DestroyWindow(data->hwnd);
 		data->hwnd = NULL;
