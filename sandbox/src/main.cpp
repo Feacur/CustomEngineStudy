@@ -2,7 +2,6 @@
 #include "assets/ids.h"
 #include "entity_system/components.h"
 #include "entity_system/renderer.h"
-#include "application.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -58,7 +57,7 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 
 custom::Ref<custom::Entity> entity4;
 void init_entity_components(void);
-static void impl_init() {
+static void impl_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
 
 	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
@@ -68,6 +67,8 @@ static void impl_init() {
 		cube_asset_id,
 		{0.0f, 0.0f, 1.5f}
 	);
+
+	sandbox::entity_renderer::init(renderer_bc);
 }
 
 struct Camera
@@ -105,15 +106,15 @@ static void impl_viewport(ivec2 size) {
 }
 
 static void impl_update(r32 dt) {
-	vec2 wheel = sandbox::application::get_mouse_wheel();
+	vec2 wheel = custom::application::get_mouse_wheel();
 	if (wheel.y != 0.0f) {
 		camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
 		update_camera();
 	}
 
 	vec3 delta_euler_angles;
-	if (sandbox::application::get_mouse_key(custom::Mouse_Code::Key1) != custom::Key_State::Released) {
-		ivec2 mouse_delta = sandbox::application::get_mouse_delta();
+	if (custom::application::get_mouse_key(custom::Mouse_Code::Key1) != custom::Key_State::Released) {
+		ivec2 mouse_delta = custom::application::get_mouse_delta();
 		delta_euler_angles.x = mouse_delta.y * 0.1f;
 		delta_euler_angles.y = -mouse_delta.x * 0.1f;
 		delta_euler_angles.z = 0;
@@ -132,14 +133,14 @@ static void impl_update(r32 dt) {
 
 	// render entities
 	custom::renderer::clear();
-	sandbox::renderer::update(camera.transform, camera.projection);
+	sandbox::entity_renderer::update(camera.transform, camera.projection);
 }
 
 int main(int argc, char * argv[]) {
-	sandbox::application::set_init_callback(&impl_init);
-	sandbox::application::set_viewport_callback(&impl_viewport);
-	sandbox::application::set_update_callback(&impl_update);
-	sandbox::application::run();
+	custom::application::set_init_callback(&impl_init);
+	custom::application::set_viewport_callback(&impl_viewport);
+	custom::application::set_update_callback(&impl_update);
+	custom::application::run();
 	// getchar();
 	return 0;
 }

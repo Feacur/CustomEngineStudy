@@ -11,6 +11,8 @@ struct Bytecode
 	Bytecode();
 	~Bytecode();
 
+	void reset();
+
 	template<typename T>
 	void write(T const * data, u32 count);
 

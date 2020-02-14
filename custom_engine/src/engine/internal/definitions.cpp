@@ -14,6 +14,11 @@ Bytecode::Bytecode()
 
 Bytecode::~Bytecode() = default;
 
+void Bytecode::reset() {
+	buffer.count = 0;
+	offset = 0;
+}
+
 }
 
 // @Note: not like I need them all now, this template definitions;

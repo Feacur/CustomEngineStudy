@@ -1,4 +1,4 @@
-#include "application.h"
+#include "engine/api/application.h"
 #include "engine/api/system.h"
 #include "engine/api/timer.h"
 #include "engine/api/window.h"
@@ -7,7 +7,6 @@
 #include "engine/api/graphics_vm.h"
 #include "engine/impl/bytecode.h"
 #include "engine/impl/math_linear.h"
-#include "entity_system/renderer.h"
 
 #if !defined(CUSTOM_SHIPPING)
 static void display_performace(custom::window::Data * window, u64 duration, u64 precision) {
@@ -32,10 +31,11 @@ static u64 get_last_frame_ticks(bool vsync) {
 	return custom::timer::wait_next_frame(duration, precision);
 }
 
-namespace sandbox {
+namespace custom {
 namespace application {
 
-static custom::Bytecode gbc;
+static custom::Bytecode loader_gbc;
+static custom::Bytecode renderer_gbc;
 static custom::window::Data * app_window;
 static struct {
 	init_func * init;
@@ -51,21 +51,21 @@ static void impl_viewport(custom::window::Data * window, ivec2 size) {
 static void init(void) {
 	custom::system::init();
 	custom::timer::init();
-	
+	custom::loader::init(&loader_gbc);
+	custom::renderer::init(&renderer_gbc);
+
+	// @Todo: init context outside a window environment?
 	app_window = custom::window::create();
-	custom::window::set_viewport_callback(app_window, &impl_viewport);
 	custom::window::init_context(app_window);
-	custom::window::set_vsync(app_window, 1);
 
-	custom::loader::init(&gbc);
-	custom::renderer::init(&gbc);
-	sandbox::renderer::init(&gbc);
-	custom::graphics::init();
-
-	(*callbacks.init)();
-	
 	ivec2 size = custom::window::get_size(app_window);
 	custom::renderer::viewport({0, 0}, size);
+
+	// @Todo: expose vsync setting
+	custom::window::set_vsync(app_window, 1);
+	custom::window::set_viewport_callback(app_window, &impl_viewport);
+
+	(*callbacks.init)(&loader_gbc, &renderer_gbc);
 	(*callbacks.viewport)(size);
 }
 
@@ -86,12 +86,13 @@ void run(void) {
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 		(*callbacks.update)(dt);
 
-		custom::graphics::update(gbc);
+		custom::graphics::update(loader_gbc);
+		custom::graphics::update(renderer_gbc);
 		custom::window::update(app_window);
 
 		// clean up after the frame
-		gbc.offset = 0;
-		gbc.buffer.count = 0;
+		loader_gbc.reset();
+		renderer_gbc.reset();
 	}
 
 	custom::graphics::shutdown();

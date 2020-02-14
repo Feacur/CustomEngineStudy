@@ -1,7 +1,11 @@
 #include "engine/core/math_types.h"
 #include "engine/core/key_codes.h"
 
-namespace sandbox {
+namespace custom {
+struct Bytecode;
+}
+
+namespace custom {
 namespace application {
 
 void run(void);
@@ -14,7 +18,7 @@ ivec2 const & get_mouse_delta();
 vec2 const & get_mouse_wheel();
 
 // callbacks
-typedef void init_func();
+typedef void init_func(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc);
 typedef void viewport_func(ivec2);
 typedef void update_func(r32);
 

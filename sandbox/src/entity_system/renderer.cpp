@@ -12,7 +12,7 @@
 //        - batch and rebind if running out of slots/units
 
 namespace sandbox {
-namespace renderer {
+namespace entity_renderer {
 
 static custom::Bytecode * bc = NULL;
 

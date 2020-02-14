@@ -11,7 +11,7 @@ struct Transform;
 struct Transform2d;
 
 namespace sandbox {
-namespace renderer {
+namespace entity_renderer {
 
 void init(custom::Bytecode * bytecode);
 void update(Transform const & camera, mat4 const & projection);

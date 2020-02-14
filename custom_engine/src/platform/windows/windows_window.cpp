@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 #include "engine/api/window.h"
+#include "engine/api/graphics_vm.h"
 #include "platform/graphics_context.h"
 #include "engine/core/code.h"
 #include "engine/impl/math_bitwise.h"
@@ -84,6 +85,7 @@ void init_context(Internal_Data * data)
 {
 	CUSTOM_ASSERT(!data->graphics_context, "trying to create a second rendering context");
 	data->graphics_context = context::create(data);
+	graphics::init();
 }
 
 void update(Internal_Data * data) {

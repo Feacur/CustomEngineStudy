@@ -20,6 +20,7 @@
 #include "engine/api/loader.h"
 #include "engine/api/renderer.h"
 #include "engine/api/entity_system.h"
+#include "engine/api/application.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
