@@ -39,8 +39,9 @@
 
 #define OPENGL_LIBRARY_NAME "opengl32.dll"
 
-struct Wgl_Data
-{
+// @Todo: dynamically allocate upon creation?
+//        incorporate into the Internal_Data?
+static struct {
 	HINSTANCE instance;
 
 	// OGL functions
@@ -83,7 +84,7 @@ struct Wgl_Data
 	// current pixel_format
 	custom::Pixel_Format pixel_format;
 	PIXELFORMATDESCRIPTOR pfd;
-};
+} wgl;
 
 // #include "engine/math/bitwise.h"
 static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
@@ -103,9 +104,6 @@ static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 //
 // API implementation
 //
-
-// @Todo: put into rendering context object?
-static Wgl_Data wgl;
 
 static void * wgl_get_proc_address(cstring name);
 static void platform_init_wgl(void);

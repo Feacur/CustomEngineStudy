@@ -135,7 +135,6 @@ static void impl_update(r32 dt) {
 	sandbox::renderer::update(camera.transform, camera.projection);
 }
 
-
 int main(int argc, char * argv[]) {
 	sandbox::application::set_init_callback(&impl_init);
 	sandbox::application::set_viewport_callback(&impl_viewport);
