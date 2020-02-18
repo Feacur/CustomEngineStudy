@@ -49,7 +49,7 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 	}
 
 	if (mesh < (u32)sandbox::Mesh::count) {
-		custom::loader::mesh(mesh);
+		custom::loader::mesh_obj(mesh);
 	}
 
 	return entity;
@@ -60,11 +60,11 @@ void init_entity_components(void);
 static void impl_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
 
-	u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
+	// u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
 	entity4 = create_visual(
 		(u32)sandbox::Shader::v3_texture_tint,
 		(u32)sandbox::Texture::checkerboard,
-		cube_asset_id,
+		(u32)sandbox::Mesh::suzanne, // cube_asset_id,
 		{0.0f, 0.0f, 1.5f}
 	);
 
@@ -90,7 +90,7 @@ static void update_camera() {
 	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)camera_size.y / (r32)camera_size.x;
 	camera = {
-		{{0, 0, 0}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
+		{{0, 0, -3}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
 		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
 		// mat_ortho({scale * aspect, scale}, 0, 10)
 	};

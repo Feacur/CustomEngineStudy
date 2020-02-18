@@ -6,8 +6,9 @@
 *.cpp text diff=cpp
 *.inl text diff=cpp
 
+*.lua  text diff=cpp
 *.glsl text diff=cpp
-*.png  binary
+*.obj binary
+*.png binary
 
-*.lua text diff=cpp
 *.bat text eol=crlf

@@ -14,6 +14,7 @@ extern u64 ticks_per_second;
 extern u64 frame_start_ticks;
 
 void init(void);
+u64  get_ticks(void);
 u64  snapshot(void);
 u64  wait_next_frame(u64 duration, u64 precision);
 

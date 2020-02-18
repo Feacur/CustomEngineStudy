@@ -51,6 +51,10 @@ void init(void) {
 	snapshot();
 }
 
+u64 get_ticks(void) {
+	return (u64)platform_get_counter();
+}
+
 u64 snapshot(void) {
 	u64 current_ticks = (u64)platform_get_counter();
 	u64 frame_ticks = current_ticks - frame_start_ticks;

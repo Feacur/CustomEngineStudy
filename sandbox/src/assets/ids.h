@@ -35,7 +35,8 @@ IS_ENUM_META(Texture)
 
 enum struct Mesh : u32
 {
-	teapot,
+	suzanne,
+	suzanne_tris,
 	count,
 };
 UNDERLYING_TYPE_META(Mesh, u32)
