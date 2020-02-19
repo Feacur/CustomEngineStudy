@@ -46,6 +46,12 @@ void Bytecode::write(T const (& data)[count]) {
 }
 
 template<typename T>
+void Bytecode::write(Array<T> const & array) {
+	write(array.count);
+	write((T *)array.data, array.count);
+}
+
+template<typename T>
 T const * Bytecode::read(u32 count) const {
 	#if defined(CUSTOM_GET_PADDING)
 	offset += CUSTOM_GET_PADDING(T, offset);

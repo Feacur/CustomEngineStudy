@@ -165,23 +165,21 @@ void shader(u32 asset_id) {
 void mesh_obj(u32 asset_id) {
 	if (has_mesh(asset_id)) { return; }
 
-	u64 read1 = custom::timer::get_ticks();
+	// u64 read1 = custom::timer::get_ticks();
 	cstring path = asset::mesh::paths[asset_id];
 	Array<u8> file; file_read(path, file);
-	CUSTOM_MESSAGE("read obj:  %f", (float)(custom::timer::get_ticks() - read1) / custom::timer::ticks_per_second);
+	// CUSTOM_MESSAGE("read obj:  %f", (float)(custom::timer::get_ticks() - read1) / custom::timer::ticks_per_second);
 	if (file.count != file.capacity) { return; }
 
-	u64 parse1 = custom::timer::get_ticks();
+	// u64 parse1 = custom::timer::get_ticks();
+	Array<u8> vertex_attributes;
 	Array<r32> vertices;
 	Array<u32> indices;
-	obj::parse(file, vertices, indices);
-	CUSTOM_MESSAGE("parse obj: %f", (float)(custom::timer::get_ticks() - parse1) / custom::timer::ticks_per_second);
+	obj::parse(file, vertex_attributes, vertices, indices);
+	// CUSTOM_MESSAGE("parse obj: %f", (float)(custom::timer::get_ticks() - parse1) / custom::timer::ticks_per_second);
 
 	u8 meta_id = asset::mesh::meta_ids[asset_id];
 	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
-
-	// @Todo: deduce from file data
-	u8 const vertex_attributes[] = { 3, 2, 3 };
 
 	bc->write(graphics::Instruction::Allocate_Mesh);
 	bc->write(asset_id);
@@ -193,13 +191,13 @@ void mesh_obj(u32 asset_id) {
 	bc->write(graphics::Data_Type::u32); bc->write(indices.count); bc->write(indices.count);
 	bc->write((u32)0);
 
-	u64 write1 = custom::timer::get_ticks();
+	// u64 write1 = custom::timer::get_ticks();
 	bc->write(graphics::Instruction::Load_Mesh);
 	bc->write(asset_id);
 	bc->write((u8)2);
 	bc->write((u32)0); write_data_array_custom(vertices);
 	bc->write((u32)0); write_data_array_custom(indices);
-	CUSTOM_MESSAGE("write obj: %f", (float)(custom::timer::get_ticks() - write1) / custom::timer::ticks_per_second);
+	// CUSTOM_MESSAGE("write obj: %f", (float)(custom::timer::get_ticks() - write1) / custom::timer::ticks_per_second);
 }
 
 u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
@@ -403,8 +401,7 @@ static void write_data_array(T const (& data)[count]) {
 template<typename T>
 static void write_data_array_custom(custom::Array<T> const & data) {
 	bc->write(graphics::get_data_type<T>());
-	bc->write(data.count);
-	bc->write(data.data, data.count);
+	bc->write(data);
 }
 
 static void describe_texture(

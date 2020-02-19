@@ -120,6 +120,7 @@ static void impl_update(r32 dt) {
 		delta_euler_angles.z = 0;
 	}
 	else {
+		// delta_euler_angles = {0.0f, 0.0f, 0.0f};
 		delta_euler_angles = {0.05f, 0.2f, 0.1f};
 	}
 
