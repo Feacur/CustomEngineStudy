@@ -24,10 +24,4 @@ enum struct Mouse_Code : u8 {
 UNDERLYING_TYPE_META(Mouse_Code, u8)
 IS_ENUM_META(Mouse_Code)
 
-enum struct Key_State : u8 {
-	Released, Pressed, Repeated
-};
-UNDERLYING_TYPE_META(Key_State, u8)
-IS_ENUM_META(Key_State)
-
 }

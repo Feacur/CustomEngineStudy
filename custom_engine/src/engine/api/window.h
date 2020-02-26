@@ -22,8 +22,10 @@ ivec2 const & get_size(Data * data);
 bool get_should_close(Data * data);
 
 // input
-Key_State get_key(Internal_Data * data, Key_Code key);
-Key_State get_mouse_key(Internal_Data * data, Mouse_Code key);
+bool get_key(Internal_Data * data, Key_Code key);
+bool get_mouse_key(Internal_Data * data, Mouse_Code key);
+bool get_key_transition(Internal_Data * data, Key_Code key, bool to_state);
+bool get_mouse_key_transition(Internal_Data * data, Mouse_Code key, bool to_state);
 ivec2 const & get_mouse_pos(Internal_Data * data);
 ivec2 const & get_mouse_delta(Internal_Data * data);
 vec2 const & get_mouse_wheel(Internal_Data * data);

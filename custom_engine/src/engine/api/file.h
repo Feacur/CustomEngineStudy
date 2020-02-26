@@ -2,9 +2,12 @@
 #include "engine/core/types.h"
 
 namespace custom {
-
 template<typename T> struct Array;
-
-void file_read(cstring path, Array<u8> & buffer);
-
 }
+
+namespace custom {
+namespace file {
+
+void read(cstring path, Array<u8> & buffer);
+
+}}

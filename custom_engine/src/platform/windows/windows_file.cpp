@@ -24,8 +24,9 @@ static LONGLONG platform_get_file_size(HANDLE handle);
 static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read);
 
 namespace custom {
+namespace file {
 
-void file_read(cstring path, Array<u8> & buffer) {
+void read(cstring path, Array<u8> & buffer) {
 	HANDLE file = CreateFile(
 		path,
 		GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
@@ -48,7 +49,7 @@ void file_read(cstring path, Array<u8> & buffer) {
 	CloseHandle(file);
 }
 
-}
+}}
 
 //
 // platform implementation

@@ -28,6 +28,7 @@ enum struct Texture : u32
 {
 	checkerboard,
 	blue_noise,
+	proto_blue,
 	count,
 };
 UNDERLYING_TYPE_META(Texture, u32)
@@ -44,7 +45,8 @@ IS_ENUM_META(Mesh)
 
 enum struct Runtime_Mesh : u32
 {
-	quad,
+	quad_xy,
+	quad_xz,
 	quad2d,
 	cube,
 	particle_test,

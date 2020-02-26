@@ -11,14 +11,16 @@ namespace application {
 void run(void);
 
 // input
-custom::Key_State get_key(custom::Key_Code key);
-custom::Key_State get_mouse_key(custom::Mouse_Code key);
+bool get_key(Key_Code key);
+bool get_mouse_key(Mouse_Code key);
+bool get_key_transition(Key_Code key, bool to_state);
+bool get_mouse_key_transition(Mouse_Code key, bool to_state);
 ivec2 const & get_mouse_pos();
 ivec2 const & get_mouse_delta();
 vec2 const & get_mouse_wheel();
 
 // callbacks
-typedef void init_func(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc);
+typedef void init_func(Bytecode * loader_bc, Bytecode * renderer_bc);
 typedef void viewport_func(ivec2);
 typedef void update_func(r32);
 

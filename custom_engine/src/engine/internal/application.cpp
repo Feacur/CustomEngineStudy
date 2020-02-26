@@ -100,12 +100,20 @@ void run(void) {
 }
 
 // input
-custom::Key_State get_key(custom::Key_Code key) {
+bool get_key(Key_Code key) {
 	return custom::window::get_key(app_window, key);
 }
 
-custom::Key_State get_mouse_key(custom::Mouse_Code key) {
+bool get_mouse_key(Mouse_Code key) {
 	return custom::window::get_mouse_key(app_window, key);
+}
+
+bool get_key_transition(Key_Code key, bool to_state) {
+	return custom::window::get_key_transition(app_window, key, to_state);
+}
+
+bool get_mouse_key_transition(Mouse_Code key, bool to_state) {
+	return custom::window::get_mouse_key_transition(app_window, key, to_state);
 }
 
 ivec2 const & get_mouse_pos() {

@@ -7,17 +7,16 @@
 //
 static inline void keyboard_set(Window * window, custom::Key_Code key, bool is_pressed) {
 	using U = meta::underlying_type<custom::Key_Code>::type;
-	if (is_pressed) {
-		if (window->keyboard.keys[(U)key] != custom::Key_State::Pressed) {
-			window->keyboard.keys[(U)key] = custom::Key_State::Pressed;
-		}
-		else {
-			window->keyboard.keys[(U)key] = custom::Key_State::Repeated;
-		}
-	}
-	else {
-		window->keyboard.keys[(U)key] = custom::Key_State::Released;
-	}
+	window->keyboard.keys[(U)key] = is_pressed;
+}
+
+static inline void keyboard_reset(Window * window) {
+	ZeroMemory(window->keyboard.prev, sizeof(window->keyboard.keys));
+	ZeroMemory(window->keyboard.keys, sizeof(window->keyboard.keys));
+}
+
+static inline void keyboard_update(Window * window) {
+	CopyMemory(window->keyboard.prev, window->keyboard.keys, sizeof(window->keyboard.keys));
 }
 
 static bool key_test_range(

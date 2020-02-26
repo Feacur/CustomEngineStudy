@@ -23,7 +23,7 @@
 // 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 // }
 
-custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position) {
+custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position, quat rotation, vec3 scale) {
 	custom::Ref<custom::Entity> entity = custom::World::create();
 
 	entity->add_component<Visual>();
@@ -37,8 +37,8 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 	custom::Ref<Transform> transform = entity->get_component<Transform>();
 	Transform * transform_ptr = transform.operator->();
 	transform_ptr->position = position;
-	transform_ptr->rotation = quat_from_radians({0, 0, 0});
-	transform_ptr->scale = {1, 1, 1};
+	transform_ptr->rotation = rotation;
+	transform_ptr->scale = scale;
 
 	if (shader < (u32)sandbox::Shader::count) {
 		custom::loader::shader(shader);
@@ -55,80 +55,107 @@ custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec
 	return entity;
 }
 
-custom::Ref<custom::Entity> entity4;
-void init_entity_components(void);
-static void impl_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
-	init_entity_components();
-
-	// u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
-	entity4 = create_visual(
-		(u32)sandbox::Shader::v3_texture_tint,
-		(u32)sandbox::Texture::checkerboard,
-		(u32)sandbox::Mesh::suzanne, // cube_asset_id,
-		{0.0f, 0.0f, 1.5f}
-	);
-
-	sandbox::entity_renderer::init(renderer_bc);
-}
-
 struct Camera
 {
 	Transform transform;
 	mat4 projection;
 };
 
-struct Camera2d
-{
-	Transform2d transform;
-	mat3 projection;
-};
+// struct Camera2d
+// {
+// 	Transform2d transform;
+// 	mat3 projection;
+// };
 
 Camera camera;
-r32 camera_zoom = 1;
-ivec2 camera_size;
-static void update_camera() {
-	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
-	r32 const aspect = (r32)camera_size.y / (r32)camera_size.x;
-	camera = {
-		{{0, 0, -3}, quat_from_radians({0, 0, 0}), {1, 1, 1}},
-		mat_persp({scale * aspect, scale}, 0.1f, 10.0f)
-		// mat_ortho({scale * aspect, scale}, 0, 10)
+custom::Ref<custom::Entity> suzanne;
+
+void init_entity_components(void);
+static void impl_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
+	init_entity_components();
+
+	camera.transform = {
+		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
 	};
+
+	// u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
+	suzanne = create_visual(
+		(u32)sandbox::Shader::v3_texture_tint,
+		(u32)sandbox::Texture::checkerboard,
+		(u32)sandbox::Mesh::suzanne, // cube_asset_id,
+		{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}
+	);
+	
+	u32 quad_xz_id = custom::loader::create_quad_xz((u32)sandbox::Runtime_Mesh::quad_xz);
+	create_visual(
+		(u32)sandbox::Shader::v3_texture_tint,
+		(u32)sandbox::Texture::proto_blue,
+		quad_xz_id,
+		{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}
+	);
+
+	sandbox::entity_renderer::init(renderer_bc);
+}
+
+r32 camera_zoom = 1;
+ivec2 viewport_size;
+static void update_camera_projection() {
+	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
+	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
+	camera.projection =
+		mat_persp({scale, scale * aspect}, 0.1f, 20);
+		// mat_ortho({scale, scale * aspect}, 0, 20);
 	// Camera2d camera2d = {
 	// 	{{0, 0}, complex_from_radians(0), {1, 1}},
-	// 	mat_position_scale(vec2{0, 0}, vec2{scale * aspect, scale})
+	// 	mat_position_scale(vec2{0, 0}, vec2{scale, scale * aspect})
 	// };
 }
 
 static void impl_viewport(ivec2 size) {
-	camera_size = size;
-	update_camera();
+	viewport_size = size;
+	update_camera_projection();
 }
 
 static void impl_update(r32 dt) {
 	vec2 wheel = custom::application::get_mouse_wheel();
-	if (wheel.y != 0.0f) {
+	if (wheel.y != 0) {
 		camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
-		update_camera();
+		update_camera_projection();
 	}
 
-	vec3 delta_euler_angles;
-	if (custom::application::get_mouse_key(custom::Mouse_Code::Key1) != custom::Key_State::Released) {
+	if (custom::application::get_mouse_key(custom::Mouse_Code::Key2)) {
 		ivec2 mouse_delta = custom::application::get_mouse_delta();
-		delta_euler_angles.x = mouse_delta.y * 0.1f;
-		delta_euler_angles.y = -mouse_delta.x * 0.1f;
-		delta_euler_angles.z = 0;
-	}
-	else {
-		// delta_euler_angles = {0.0f, 0.0f, 0.0f};
-		delta_euler_angles = {0.05f, 0.2f, 0.1f};
+
+		#define GET_KEY_HELD_IMPL(key) (custom::application::get_key(custom::Key_Code::key))
+		#define GET_DIR_IMPL(pos, neg) (r32)(GET_KEY_HELD_IMPL(pos) - GET_KEY_HELD_IMPL(neg))
+		vec3 move_delta{GET_DIR_IMPL(D, A), GET_DIR_IMPL(E, Q), GET_DIR_IMPL(W, S)};
+		r32 move_speed = GET_KEY_HELD_IMPL(Shift) ? 4.0f : 1.0f;
+		#undef GET_KEY_HELD_IMPL
+		#undef GET_DIR_IMPL
+
+		// @Note: object-space rotation
+		camera.transform.rotation = normalize(quat_product(
+			camera.transform.rotation,
+			quat_from_radians(
+				vec3{-(r32)mouse_delta.y, (r32)mouse_delta.x, 0} * (0.3f * dt)
+			)
+		));
+
+		camera.transform.position += quat_rotate_vector(camera.transform.rotation, move_delta) * (move_speed * dt);
 	}
 
-	Transform * transform4 = entity4->get_component<Transform>().operator->();
-	if (transform4) {
-		// @Note: rotate in world space
-		transform4->rotation = normalize(quat_product(
-			quat_from_radians(delta_euler_angles * (pi * dt)), transform4->rotation
+	static bool rotate_suzanne = false;
+	if (custom::application::get_key_transition(custom::Key_Code::Space, true)) {
+		rotate_suzanne = !rotate_suzanne;
+	}
+	if (rotate_suzanne) {
+		// @Note: world-space rotation
+		Transform * suzanne_transform = suzanne->get_component<Transform>().operator->();
+		suzanne_transform->rotation = normalize(quat_product(
+			quat_from_radians(
+				vec3{0.1f, 0.3f, 0.05f} * dt
+			),
+			suzanne_transform->rotation
 		));
 	}
 

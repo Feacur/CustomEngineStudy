@@ -7,17 +7,18 @@
 //
 static inline void mouse_set(Window * window, custom::Mouse_Code key, bool is_pressed) {
 	using U = meta::underlying_type<custom::Mouse_Code>::type;
-	if (is_pressed) {
-		if (window->mouse.keys[(U)key] != custom::Key_State::Pressed) {
-			window->mouse.keys[(U)key] = custom::Key_State::Pressed;
-		}
-		else {
-			window->mouse.keys[(U)key] = custom::Key_State::Repeated;
-		}
-	}
-	else {
-		window->mouse.keys[(U)key] = custom::Key_State::Released;
-	}
+	window->mouse.keys[(U)key] = is_pressed;
+}
+
+static inline void mouse_reset(Window * window) {
+	ZeroMemory(window->mouse.prev, sizeof(window->mouse.keys));
+	ZeroMemory(window->mouse.keys, sizeof(window->mouse.keys));
+}
+
+static inline void mouse_update(Window * window) {
+	CopyMemory(window->mouse.prev, window->mouse.keys, sizeof(window->mouse.keys));
+	window->mouse.delta = {};
+	window->mouse.wheel = {};
 }
 
 static void update_current_mouse(Window * window, POINT const & screen, POINT const & client, ivec2 const & window_size) {

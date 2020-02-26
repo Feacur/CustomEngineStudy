@@ -6,7 +6,6 @@
 #include "engine/core/math_types.h"
 #include "engine/api/asset_lookup.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/runtime_data.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
 #include "engine/debug/log.h"
@@ -68,7 +67,7 @@ void image(u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; file_read(path, file);
+	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	ivec2 size;
@@ -95,7 +94,7 @@ void imagef(u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; file_read(path, file);
+	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	ivec2 size;
@@ -122,7 +121,7 @@ void image16(u32 asset_id) {
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	cstring path = asset::texture::paths[asset_id];
-	Array<u8> file; file_read(path, file);
+	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	ivec2 size;
@@ -146,7 +145,7 @@ void shader(u32 asset_id) {
 	if (has_shader(asset_id)) { return; }
 
 	cstring path = asset::shader::paths[asset_id];
-	Array<u8> file; file_read(path, file);
+	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	u8 meta_id = asset::shader::meta_ids[asset_id];
@@ -167,7 +166,7 @@ void mesh_obj(u32 asset_id) {
 
 	// u64 read1 = custom::timer::get_ticks();
 	cstring path = asset::mesh::paths[asset_id];
-	Array<u8> file; file_read(path, file);
+	Array<u8> file; file::read(path, file);
 	// CUSTOM_MESSAGE("read obj:  %f", (float)(custom::timer::get_ticks() - read1) / custom::timer::ticks_per_second);
 	if (file.count != file.capacity) { return; }
 
@@ -200,6 +199,13 @@ void mesh_obj(u32 asset_id) {
 	// CUSTOM_MESSAGE("write obj: %f", (float)(custom::timer::get_ticks() - write1) / custom::timer::ticks_per_second);
 }
 
+}}
+
+#include "engine/api/runtime_data.h"
+
+namespace custom {
+namespace loader {
+
 u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 	u32 asset_id = asset::mesh::count + local_id;
 	if (has_mesh(asset_id)) { return asset_id; }
@@ -218,7 +224,7 @@ u32 create_mesh(u32 local_id, runtime::Buffer const * buffers, u8 count) {
 	return asset_id;
 }
 
-u32 create_quad(u32 local_id) {
+u32 create_quad_xy(u32 local_id) {
 	u32 asset_id = asset::mesh::count + local_id;
 	if (has_mesh(asset_id)) { return asset_id; }
 
@@ -227,6 +233,46 @@ u32 create_quad(u32 local_id) {
 		/*position*/  0.5f, -0.5f, 0.0f, /*UV*/ 1.0f, 0.0f,
 		/*position*/  0.5f,  0.5f, 0.0f, /*UV*/ 1.0f, 1.0f,
 		/*position*/ -0.5f,  0.5f, 0.0f, /*UV*/ 0.0f, 1.0f,
+	};
+	u32 vertex_data_count = (u32)C_ARRAY_LENGTH(vertex_data);
+	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };
+
+	u8 const index_data[] = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+	u32 index_data_count = (u32)C_ARRAY_LENGTH(index_data);
+
+	// might use graphics::get_data_type<decltype(+value)>(), but it's cryptic
+
+	bc->write(graphics::Instruction::Allocate_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::r32); bc->write(vertex_data_count); bc->write(vertex_data_count);
+	bc->write(vertex_attributes);
+	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+	bc->write(graphics::Data_Type::u8); bc->write(index_data_count); bc->write(index_data_count);
+	bc->write((u32)0);
+
+	bc->write(graphics::Instruction::Load_Mesh);
+	bc->write(asset_id);
+	bc->write((u8)2);
+	bc->write((u32)0); write_data_array(vertex_data);
+	bc->write((u32)0); write_data_array(index_data);
+
+	return asset_id;
+}
+
+u32 create_quad_xz(u32 local_id) {
+	u32 asset_id = asset::mesh::count + local_id;
+	if (has_mesh(asset_id)) { return asset_id; }
+
+	r32 const vertex_data[] = {
+		/*position*/ -0.5f, 0.0f, -0.5f, /*UV*/ 0.0f, 0.0f,
+		/*position*/  0.5f, 0.0f, -0.5f, /*UV*/ 1.0f, 0.0f,
+		/*position*/  0.5f, 0.0f,  0.5f, /*UV*/ 1.0f, 1.0f,
+		/*position*/ -0.5f, 0.0f,  0.5f, /*UV*/ 0.0f, 1.0f,
 	};
 	u32 vertex_data_count = (u32)C_ARRAY_LENGTH(vertex_data);
 	u8 const vertex_attributes[] = { /*position*/ 3, /*UV*/ 2, };

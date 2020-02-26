@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 namespace custom {
+namespace file {
 
 static long get_file_size(FILE * file) {
 	fseek (file, 0, SEEK_END);
@@ -16,7 +17,7 @@ static long get_file_size(FILE * file) {
 	return value;
 }
 
-void file_read_stdio(cstring path, Array<u8> & buffer) {
+void read_stdio(cstring path, Array<u8> & buffer) {
 	FILE * file = fopen(path, "rb");
 	if (!file) {
 		CUSTOM_ASSERT(false, "failed to open file: %s", path);
@@ -33,4 +34,4 @@ void file_read_stdio(cstring path, Array<u8> & buffer) {
 	fclose(file);
 }
 
-}
+}}

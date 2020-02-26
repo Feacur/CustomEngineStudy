@@ -62,6 +62,7 @@ namespace texture {
 	cstring paths[ids_count + 1] = {
 		"assets/textures/checkerboard.png",
 		"assets/textures/blue_noise.png",
+		"assets/textures/proto_blue.png",
 		NULL
 	};
 	

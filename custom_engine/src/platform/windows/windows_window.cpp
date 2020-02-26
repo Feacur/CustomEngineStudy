@@ -24,6 +24,9 @@ static ivec2 platform_get_window_size(HWND hwnd);
 static ATOM platform_register_window_class(void);
 static HWND platform_create_window(void);
 
+static inline void keyboard_update(custom::window::Data * data);
+static inline void mouse_update(custom::window::Data * data);
+
 namespace custom {
 namespace window {
 
@@ -35,11 +38,13 @@ struct Internal_Data
 	ivec2 size;
 
 	struct {
-		Key_State keys[(u8)custom::Key_Code::Last];
+		bool keys[(u8)custom::Key_Code::Last];
+		bool prev[(u8)custom::Key_Code::Last];
 	} keyboard;
 
 	struct {
-		Key_State keys[(u8)custom::Mouse_Code::Last];
+		bool keys[(u8)custom::Mouse_Code::Last];
+		bool prev[(u8)custom::Mouse_Code::Last];
 		ivec2 position;
 		ivec2 delta;
 		vec2 wheel;
@@ -89,8 +94,8 @@ void init_context(Internal_Data * data)
 }
 
 void update(Internal_Data * data) {
-	data->mouse.delta = {};
-	data->mouse.wheel = {};
+	keyboard_update(data);
+	mouse_update(data);
 	context::swap_buffers(data->graphics_context);
 }
 
@@ -115,12 +120,28 @@ bool get_should_close(Internal_Data * data) {
 }
 
 // input
-Key_State get_key(Internal_Data * data, Key_Code key) {
-	return data->keyboard.keys[(u8)key];
+bool get_key(Internal_Data * data, Key_Code key) {
+	using U = meta::underlying_type<custom::Key_Code>::type;
+	return data->keyboard.keys[(U)key];
 }
 
-Key_State get_mouse_key(Internal_Data * data, Mouse_Code key) {
-	return data->mouse.keys[(u8)key];
+bool get_mouse_key(Internal_Data * data, Mouse_Code key) {
+	using U = meta::underlying_type<Mouse_Code>::type;
+	return data->mouse.keys[(U)key];
+}
+
+bool get_key_transition(Internal_Data * data, Key_Code key, bool to_state) {
+	using U = meta::underlying_type<Key_Code>::type;
+	bool from = data->keyboard.prev[(U)key];
+	bool to = data->keyboard.keys[(U)key];
+	return (from != to) && (to == to_state);
+}
+
+bool get_mouse_key_transition(Internal_Data * data, Mouse_Code key, bool to_state) {
+	using U = meta::underlying_type<Mouse_Code>::type;
+	bool from = data->mouse.prev[(U)key];
+	bool to = data->mouse.keys[(U)key];
+	return (from != to) && (to == to_state);
 }
 
 ivec2 const & get_mouse_pos(Internal_Data * data) {
@@ -259,10 +280,12 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// 	return 0; // An application should return zero if it processes this message.
 		// } break;
 		
-		// case WM_KILLFOCUS: {
-		// 	// Sent to a window immediately before it loses the keyboard focus.
-		// 	return 0; // An application should return zero if it processes this message.
-		// } break;
+		case WM_KILLFOCUS: {
+			// Sent to a window immediately before it loses the keyboard focus.
+			keyboard_reset(window);
+			mouse_reset(window);
+			return 0; // An application should return zero if it processes this message.
+		} break;
 
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/mouse-input
 		case WM_MOUSEMOVE:
