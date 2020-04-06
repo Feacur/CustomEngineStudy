@@ -38,6 +38,12 @@ struct Program
 	bool allocated;
 	// custom::Array<Field> attributes;
 	custom::Array<Field> uniforms;
+
+	~Program() {
+		if (!allocated) { return; }
+		// attributes.~Array();v
+		uniforms.~Array();
+	}
 };
 template struct custom::Array<Program>;
 
@@ -80,6 +86,10 @@ struct Buffer
 	custom::graphics::Data_Type type;
 	u32 capacity, count;
 	custom::Array<Attribute> attributes;
+
+	~Buffer() {
+		attributes.~Array();
+	}
 };
 template struct custom::Array<Buffer>;
 
@@ -89,6 +99,12 @@ struct Mesh
 	bool allocated;
 	custom::Array<Buffer> buffers;
 	u8 index_buffer;
+
+	~Mesh() {
+		if (!allocated) { return; }
+		for (u32 i = 0; i < buffers.count; ++i) { buffers[i].~Buffer(); }
+		buffers.~Array();
+	}
 };
 template struct custom::Array<Mesh>;
 
@@ -106,6 +122,12 @@ struct Data
 	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
 	custom::Array<Sampler> samplers; // count indicates amount of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // count indicates amount of GPU allocated objects
+
+	~Data() {
+		// @Note: these arrays are sparse, thus [count - 1] doesn't signify the last active index
+		for (u32 i = 0; i < programs.capacity; ++i) { programs[i].~Program(); } programs.~Array();
+		for (u32 i = 0; i < meshes.capacity; ++i)   { meshes[i].~Mesh(); }      meshes.~Array();
+	}
 };
 
 }
