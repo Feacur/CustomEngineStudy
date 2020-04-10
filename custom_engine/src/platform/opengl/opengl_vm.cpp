@@ -113,15 +113,15 @@ struct Data
 	custom::Array<u32>  uniform_names_offsets;
 	custom::Array<char> uniform_names;
 
-	custom::Array<u32> texture_units; // count indicates amount of GPU bound objects
-	custom::Array<u32> sampler_units; // count indicates amount of GPU bound objects
+	custom::Array<u32> texture_units; // count indicates the number of GPU bound objects
+	custom::Array<u32> sampler_units; // count indicates the number of GPU bound objects
 	u32 active_mesh = empty_id;
 	u32 active_program = empty_id;
 
-	custom::Array<Program> programs; // count indicates amount of GPU allocated objects
-	custom::Array<Texture> textures; // count indicates amount of GPU allocated objects
-	custom::Array<Sampler> samplers; // count indicates amount of GPU allocated objects
-	custom::Array<Mesh>    meshes;   // count indicates amount of GPU allocated objects
+	custom::Array<Program> programs; // count indicates the number of GPU allocated objects
+	custom::Array<Texture> textures; // count indicates the number of GPU allocated objects
+	custom::Array<Sampler> samplers; // count indicates the number of GPU allocated objects
+	custom::Array<Mesh>    meshes;   // count indicates the number of GPU allocated objects
 
 	~Data() {
 		// @Note: these arrays are sparse, thus [count - 1] doesn't signify the last active index

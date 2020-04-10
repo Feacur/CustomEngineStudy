@@ -55,16 +55,16 @@ void Array_Fixed<T, capacity>::push(T const & value) {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push_range(u16 amount) {
-	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
-	count += amount;
+void Array_Fixed<T, capacity>::push_range(u16 number) {
+	CUSTOM_ASSERT(count + number <= capacity, "count exceeds capacity");
+	count += number;
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push_range(T const * values, u16 amount) {
-	CUSTOM_ASSERT(count + amount <= capacity, "count exceeds capacity");
-	memcpy(data + count, values, amount * sizeof(T));
-	count += amount;
+void Array_Fixed<T, capacity>::push_range(T const * values, u16 number) {
+	CUSTOM_ASSERT(count + number <= capacity, "count exceeds capacity");
+	memcpy(data + count, values, number * sizeof(T));
+	count += number;
 }
 
 template<typename T, u16 capacity>

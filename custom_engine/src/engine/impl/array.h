@@ -8,7 +8,7 @@ namespace custom {
 template<typename T>
 Array<T>::Array(u32 capacity, u32 count)
 	: data(NULL)
-	, capacity(0)
+	, capacity(capacity)
 	, count(count)
 {
 	CUSTOM_ASSERT(count <= capacity, "count exceeds capacity");
@@ -53,28 +53,28 @@ inline T & Array<T>::operator[](u32 i) {
 }
 
 template<typename T>
-void Array<T>::set_capacity(u32 amount) {
-	if (!amount) {
+void Array<T>::set_capacity(u32 number) {
+	if (!number) {
 		free(data); data = NULL;
 		capacity = count = 0;
 		return;
 	}
 
 	if (!data) {
-		data = (T *)calloc(amount, sizeof(T));
-		capacity = amount;
+		data = (T *)calloc(number, sizeof(T));
+		capacity = number;
 		return;
 	}
 
-	void * new_buffer = realloc(data, amount * sizeof(T));
-	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", amount * sizeof(T));
+	void * new_buffer = realloc(data, number * sizeof(T));
+	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", number * sizeof(T));
 
 	if (new_buffer) {
-		if (amount > capacity) {
-			memset((T *)new_buffer + capacity, 0, (amount - capacity) * sizeof(T));
+		if (number > capacity) {
+			memset((T *)new_buffer + capacity, 0, (number - capacity) * sizeof(T));
 		}
 		data = (T *)new_buffer;
-		capacity = amount;
+		capacity = number;
 		if (count > capacity) {
 			count = capacity;
 		}
@@ -82,10 +82,10 @@ void Array<T>::set_capacity(u32 amount) {
 }
 
 template<typename T>
-void Array<T>::ensure_capacity(u32 amount) {
-	if (amount > capacity) {
+void Array<T>::ensure_capacity(u32 number) {
+	if (number > capacity) {
 		// @Note: might require mul_div(...)
-		set_capacity((amount + 1) * 3 / 2);
+		set_capacity((number + 1) * 3 / 2);
 	}
 }
 
@@ -101,15 +101,15 @@ void Array<T>::push(T const & value) {
 }
 
 template<typename T>
-void Array<T>::push_range(u32 amount) {
-	ensure_capacity(count += amount);
+void Array<T>::push_range(u32 number) {
+	ensure_capacity(count += number);
 }
 
 template<typename T>
-void Array<T>::push_range(T const * values, u32 amount) {
-	ensure_capacity(count + amount);
-	memcpy(data + count, values, amount * sizeof(T));
-	count += amount;
+void Array<T>::push_range(T const * values, u32 number) {
+	ensure_capacity(count + number);
+	memcpy(data + count, values, number * sizeof(T));
+	count += number;
 }
 
 template<typename T>
