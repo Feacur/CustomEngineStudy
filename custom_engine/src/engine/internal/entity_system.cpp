@@ -3,11 +3,16 @@
 
 namespace custom {
 
+// @Note: instantiate static data
 Ref_Pool<Entity> Entity::pool;
 u32 Entity::component_types_count;
 Array<Plain_Ref> Entity::components;
 
 Array<Ref_Pool_Base *> World::component_pools;
+
+//
+//
+//
 
 Ref<Entity> World::create() {
 	return Entity::pool.create();

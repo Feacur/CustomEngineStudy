@@ -102,7 +102,7 @@ void Ref_Pool<T>::destroy_safe(u32 id, u32 gen) {
 //
 
 template<typename T>
-void Entity::add_component() {
+void Entity::add_component(void) {
 	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	Entity::components.ensure_capacity((id + 1) * Entity::component_types_count);
@@ -113,7 +113,7 @@ void Entity::add_component() {
 }
 
 template<typename T>
-void Entity::remove_component() {
+void Entity::remove_component(void) {
 	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	if (Entity::components.capacity <= id_offset) { return; }
@@ -124,7 +124,7 @@ void Entity::remove_component() {
 }
 
 template<typename T>
-bool Entity::has_component() const {
+bool Entity::has_component(void) const {
 	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	if (Entity::components.capacity <= id_offset) { return false; }
@@ -133,7 +133,7 @@ bool Entity::has_component() const {
 }
 
 template<typename T>
-Ref<T> Entity::get_component() {
+Ref<T> Entity::get_component(void) {
 	u32 id = Entity::pool.get_id(this);
 	u32 id_offset = id * Entity::component_types_count + T::offset;
 	if (Entity::components.capacity <= id_offset) { return {}; }
