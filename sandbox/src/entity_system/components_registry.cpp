@@ -20,10 +20,11 @@ void init_entity_components(void) {
 	// @Note: initialize runtime component-specific data
 	//        - assign components' offsets
 	//        - assign component pools
-	#define COMPONENT_IMPL(T) T::offset = custom::Entity::component_types_count++;
+	u32 component_types_count = 0;
+	#define COMPONENT_IMPL(T) T::offset = component_types_count++;
 	#include "components_registry_impl.h"
 
-	custom::World::component_pools.set_capacity(custom::Entity::component_types_count);
-	#define COMPONENT_IMPL(T) custom::World::component_pools.push(&T::pool);
+	custom::Entity::component_pools.set_capacity(component_types_count);
+	#define COMPONENT_IMPL(T) custom::Entity::component_pools.push(&T::pool);
 	#include "components_registry_impl.h"
 }

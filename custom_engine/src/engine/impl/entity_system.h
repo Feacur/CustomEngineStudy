@@ -103,10 +103,10 @@ void Ref_Pool<T>::destroy_safe(u32 id, u32 gen) {
 
 template<typename T>
 void Entity::add_component(void) {
-	u32 id = Entity::pool.get_id(this);
-	u32 id_offset = id * Entity::component_types_count + T::offset;
-	Entity::components.ensure_capacity((id + 1) * Entity::component_types_count);
-	Plain_Ref & c_ref = Entity::components[id_offset];
+	u32 entity_id = Entity::pool.get_id(this);
+	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	Entity::components.ensure_capacity((entity_id + 1) * Entity::component_pools.count);
+	Plain_Ref & c_ref = Entity::components[component_id];
 	CUSTOM_ASSERT(!T::pool.contains(c_ref.id, c_ref.gen), "component already exist");
 	Ref<T> ref = T::pool.create();
 	c_ref = { ref.id, ref.gen };
@@ -114,10 +114,10 @@ void Entity::add_component(void) {
 
 template<typename T>
 void Entity::remove_component(void) {
-	u32 id = Entity::pool.get_id(this);
-	u32 id_offset = id * Entity::component_types_count + T::offset;
-	if (Entity::components.capacity <= id_offset) { return; }
-	Plain_Ref & c_ref = Entity::components[id_offset];
+	u32 entity_id = Entity::pool.get_id(this);
+	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	if (Entity::components.capacity <= component_id) { return; }
+	Plain_Ref & c_ref = Entity::components[component_id];
 	CUSTOM_ASSERT(T::pool.contains(c_ref.id, c_ref.gen), "component doesn't exist");
 	T::pool.destroy({ c_ref.id, c_ref.gen });
 	// c_ref = {}; // @Note: relevant if [gen] value is not stored
@@ -125,19 +125,19 @@ void Entity::remove_component(void) {
 
 template<typename T>
 bool Entity::has_component(void) const {
-	u32 id = Entity::pool.get_id(this);
-	u32 id_offset = id * Entity::component_types_count + T::offset;
-	if (Entity::components.capacity <= id_offset) { return false; }
-	Plain_Ref & c_ref = Entity::components[id_offset];
+	u32 entity_id = Entity::pool.get_id(this);
+	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	if (Entity::components.capacity <= component_id) { return false; }
+	Plain_Ref & c_ref = Entity::components[component_id];
 	return T::pool.contains(c_ref.id, c_ref.gen);
 }
 
 template<typename T>
 Ref<T> Entity::get_component(void) {
-	u32 id = Entity::pool.get_id(this);
-	u32 id_offset = id * Entity::component_types_count + T::offset;
-	if (Entity::components.capacity <= id_offset) { return {}; }
-	Plain_Ref & c_ref = Entity::components[id_offset];
+	u32 entity_id = Entity::pool.get_id(this);
+	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	if (Entity::components.capacity <= component_id) { return {}; }
+	Plain_Ref & c_ref = Entity::components[component_id];
 	return { c_ref.id, c_ref.gen };
 }
 

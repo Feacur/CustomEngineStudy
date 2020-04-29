@@ -77,6 +77,7 @@ struct Entity
 
 	// components
 	static u32 component_types_count;
+	static Array<Ref_Pool_Base *> component_pools;
 	static Array<Plain_Ref> components;
 
 	template<typename T> void add_component();
@@ -86,15 +87,6 @@ struct Entity
 
 	// Ref<T> API, creation
 	static Ref_Pool<Entity> pool;
-};
-
-//
-// world, a utility over entities
-//
-
-struct World
-{
-	static Array<Ref_Pool_Base *> component_pools;
 	static Ref<Entity> create();
 	static void destroy(Ref<Entity> ref);
 };

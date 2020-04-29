@@ -24,7 +24,7 @@
 // }
 
 custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position, quat rotation, vec3 scale) {
-	custom::Ref<custom::Entity> entity = custom::World::create();
+	custom::Ref<custom::Entity> entity = custom::Entity::create();
 
 	entity->add_component<Visual>();
 	custom::Ref<Visual> visual = entity->get_component<Visual>();

@@ -5,24 +5,22 @@ namespace custom {
 
 // @Note: instantiate static data
 Ref_Pool<Entity> Entity::pool;
-u32 Entity::component_types_count;
 Array<Plain_Ref> Entity::components;
-
-Array<Ref_Pool_Base *> World::component_pools;
+Array<Ref_Pool_Base *> Entity::component_pools;
 
 //
 //
 //
 
-Ref<Entity> World::create() {
+Ref<Entity> Entity::create() {
 	return Entity::pool.create();
 }
 
-void World::destroy(Ref<Entity> ref) {
-	u32 entity_offset = ref.id * Entity::component_types_count;
-	for (u32 i = 0; i < component_pools.count; ++i) {
+void Entity::destroy(Ref<Entity> ref) {
+	u32 entity_offset = ref.id * Entity::component_pools.count;
+	for (u32 i = 0; i < Entity::component_pools.count; ++i) {
 		Plain_Ref & c_ref = Entity::components[entity_offset + i];
-		component_pools[i]->destroy_safe(c_ref.id, c_ref.gen);
+		Entity::component_pools[i]->destroy_safe(c_ref.id, c_ref.gen);
 	}
 	Entity::pool.destroy(ref);
 }
