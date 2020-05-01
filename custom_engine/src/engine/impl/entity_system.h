@@ -10,11 +10,23 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
+// @Note: relies on the fact, that Array<T> is zero-initialized by default
+//        - leave it as is?
+//        - provide Array<T> with a default value?
+//        - provide each Entity with a bitfield for components?
+constexpr u32 const empty_ref_id = 0;
+
 namespace custom {
 
 //
 // reference
 //
+
+template<typename T>
+Ref<T>::Ref()
+	: id(empty_ref_id)
+	, gen(0)
+{ }
 
 template<typename T>
 Ref<T>::Ref(u32 id, u32 gen)
@@ -34,7 +46,7 @@ Ref<T> & Ref<T>::operator=(T const * instance) {
 		gen = T::pool.get_gen(id);
 	}
 	else {
-		id = 0;
+		id = empty_ref_id;
 	}
 	return *this;
 }
@@ -55,6 +67,7 @@ T * Ref<T>::operator->() {
 
 template<typename T>
 Ref_Pool<T>::Ref_Pool() {
+	// @Note: it's required for the current implementation where 0 is a default and invalid id
 	Ref<T> null_instance = create();
 }
 
@@ -136,7 +149,7 @@ template<typename T>
 Ref<T> Entity::get_component(void) {
 	u32 entity_id = Entity::pool.get_id(this);
 	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
-	if (Entity::components.capacity <= component_id) { return {}; }
+	if (Entity::components.capacity <= component_id) { return {empty_ref_id, 0}; }
 	Plain_Ref & c_ref = Entity::components[component_id];
 	return { c_ref.id, c_ref.gen };
 }

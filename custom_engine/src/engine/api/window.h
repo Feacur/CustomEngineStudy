@@ -5,21 +5,21 @@
 namespace custom {
 namespace window {
 
-typedef struct Internal_Data Data; // @Note: an opaque pointer
+struct Internal_Data; // @Note: an opaque pointer
 
-Data * create(void);
-void destroy(Data * data);
+Internal_Data * create(void);
+void destroy(Internal_Data * data);
 
-void init_context(Data * data);
+void init_context(Internal_Data * data);
 
-void update(Data * data);
+void update(Internal_Data * data);
 
-void set_vsync(Data * data, s32 value);
-bool check_vsync(Data * data);
+void set_vsync(Internal_Data * data, s32 value);
+bool check_vsync(Internal_Data * data);
 
-void set_header(Data * data, cstring value);
-ivec2 const & get_size(Data * data);
-bool get_should_close(Data * data);
+void set_header(Internal_Data * data, cstring value);
+ivec2 const & get_size(Internal_Data * data);
+bool get_should_close(Internal_Data * data);
 
 // input
 bool get_key(Internal_Data * data, Key_Code key);
@@ -31,8 +31,8 @@ ivec2 const & get_mouse_delta(Internal_Data * data);
 vec2 const & get_mouse_wheel(Internal_Data * data);
 
 // callbacks
-typedef void viewport_func(Data * data, ivec2 size);
+typedef void viewport_func(Internal_Data * data, ivec2 size);
 
-void set_viewport_callback(Data * data, viewport_func * callback);
+void set_viewport_callback(Internal_Data * data, viewport_func * callback);
 
 }}

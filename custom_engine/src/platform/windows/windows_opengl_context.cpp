@@ -125,7 +125,7 @@ struct Internal_Data
 	bool is_vsync;
 };
 
-Data * create(window::Internal_Data * window) {
+Internal_Data * create(window::Internal_Data * window) {
 	switch (custom::context_settings.major_version)
 	{
 		case 0:

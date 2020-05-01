@@ -1,14 +1,16 @@
 #include "engine/api/entity_system.h"
 #include "engine/core/math_types.h"
 
+#define COMPONENT_IMPL(T)\
+	static u32 offset;\
+	static custom::Ref_Pool<T> pool;\
+
 struct Visual
 {
 	u32 shader;
 	u32 texture;
 	u32 mesh;
-
-	static u32 offset; // Entity API
-	static custom::Ref_Pool<Visual> pool; // Ref<T> API, creation
+	COMPONENT_IMPL(Visual)
 };
 
 struct Transform
@@ -16,9 +18,7 @@ struct Transform
 	vec3 position;
 	quat rotation;
 	vec3 scale;
-
-	static u32 offset; // Entity API
-	static custom::Ref_Pool<Transform> pool; // Ref<T> API, creation
+	COMPONENT_IMPL(Transform)
 };
 
 struct Transform2d
@@ -26,7 +26,7 @@ struct Transform2d
 	vec2 position;
 	complex rotation;
 	vec2 scale;
-
-	static u32 offset; // Entity API
-	static custom::Ref_Pool<Transform2d> pool; // Ref<T> API, creation
+	COMPONENT_IMPL(Transform2d)
 };
+
+#undef COMPONENT_IMPL

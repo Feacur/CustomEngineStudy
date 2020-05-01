@@ -31,7 +31,7 @@ void update(Transform const & camera, mat4 const & projection) {
 
 		Visual * visual = e->get_component<Visual>().operator->();
 		if (!visual) { continue; }
-		if (visual->shader == empty_id) { continue; }
+		if (visual->shader == empty_asset_id) { continue; }
 
 		Transform * transform = e->get_component<Transform>().operator->();
 		if (!transform) { continue; }
@@ -39,7 +39,7 @@ void update(Transform const & camera, mat4 const & projection) {
 		bc->write(custom::graphics::Instruction::Use_Shader);
 		bc->write(visual->shader);
 
-		if (visual->texture != empty_id) {
+		if (visual->texture != empty_asset_id) {
 			bc->write(custom::graphics::Instruction::Use_Texture);
 			bc->write(visual->texture);
 
@@ -66,7 +66,7 @@ void update(Transform const & camera, mat4 const & projection) {
 		bc->write(custom::graphics::Data_Type::mat4);
 		bc->write((u32)1); bc->write(mat);
 
-		if (visual->mesh != empty_id) {
+		if (visual->mesh != empty_asset_id) {
 			bc->write(custom::graphics::Instruction::Use_Mesh);
 			bc->write(visual->mesh);
 		}
@@ -86,7 +86,7 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 
 		Visual * visual = e->get_component<Visual>().operator->();
 		if (!visual) { continue; }
-		if (visual->shader == empty_id) { continue; }
+		if (visual->shader == empty_asset_id) { continue; }
 
 		Transform2d * transform = e->get_component<Transform2d>().operator->();
 		if (!transform) { continue; }
@@ -94,7 +94,7 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 		bc->write(custom::graphics::Instruction::Use_Shader);
 		bc->write(visual->shader);
 
-		if (visual->texture != empty_id) {
+		if (visual->texture != empty_asset_id) {
 			bc->write(custom::graphics::Instruction::Use_Texture);
 			bc->write(visual->texture);
 
@@ -121,7 +121,7 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 		bc->write(custom::graphics::Data_Type::mat3);
 		bc->write((u32)1); bc->write(mat);
 
-		if (visual->mesh != empty_id) {
+		if (visual->mesh != empty_asset_id) {
 			bc->write(custom::graphics::Instruction::Use_Mesh);
 			bc->write(visual->mesh);
 		}

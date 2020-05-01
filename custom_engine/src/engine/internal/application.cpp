@@ -9,7 +9,7 @@
 #include "engine/impl/math_linear.h"
 
 #if !defined(CUSTOM_SHIPPING)
-static void display_performace(custom::window::Data * window, u64 duration, u64 precision) {
+static void display_performace(custom::window::Internal_Data * window, u64 duration, u64 precision) {
 	float debug_ms = duration * 1000 / (float)precision;
 	float debug_fps = precision / (float)duration;
 	static char header_text[64];
@@ -36,14 +36,14 @@ namespace application {
 
 static custom::Bytecode loader_gbc;
 static custom::Bytecode renderer_gbc;
-static custom::window::Data * app_window;
+static custom::window::Internal_Data * app_window;
 static struct {
 	init_func * init;
 	viewport_func * viewport;
 	update_func * update;
 } callbacks;
 
-static void impl_viewport(custom::window::Data * window, ivec2 size) {
+static void impl_viewport(custom::window::Internal_Data * window, ivec2 size) {
 	custom::renderer::viewport({0, 0}, size);
 	(*callbacks.viewport)(size);
 }

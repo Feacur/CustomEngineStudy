@@ -24,8 +24,8 @@ static ivec2 platform_get_window_size(HWND hwnd);
 static ATOM platform_register_window_class(void);
 static HWND platform_create_window(void);
 
-static inline void keyboard_update(custom::window::Data * data);
-static inline void mouse_update(custom::window::Data * data);
+static inline void keyboard_update(custom::window::Internal_Data * data);
+static inline void mouse_update(custom::window::Internal_Data * data);
 
 namespace custom {
 namespace window {
@@ -34,7 +34,7 @@ struct Internal_Data
 {
 	HWND hwnd;
 	bool should_close;
-	context::Data * graphics_context;
+	context::Internal_Data * graphics_context;
 	ivec2 size;
 
 	struct {

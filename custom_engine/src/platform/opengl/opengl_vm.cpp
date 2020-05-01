@@ -115,8 +115,8 @@ struct Data
 
 	custom::Array<u32> texture_units; // count indicates the number of GPU bound objects
 	custom::Array<u32> sampler_units; // count indicates the number of GPU bound objects
-	u32 active_mesh = empty_id;
-	u32 active_program = empty_id;
+	u32 active_mesh = empty_asset_id;
+	u32 active_program = empty_asset_id;
 
 	custom::Array<Program> programs; // count indicates the number of GPU allocated objects
 	custom::Array<Texture> textures; // count indicates the number of GPU allocated objects
@@ -141,7 +141,7 @@ static u32 find_uniform_id(cstring value) {
 		if (strcmp(value, name) == 0) { return i; }
 	}
 	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
-	return empty_id;
+	return empty_asset_id;
 }
 
 static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
@@ -237,8 +237,8 @@ void init(void) {
 	ogl.texture_units.set_capacity(max_combined_texture_image_units);
 	ogl.sampler_units.set_capacity(max_combined_texture_image_units);
 	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
-		ogl.texture_units[i] = empty_id;
-		ogl.sampler_units[i] = empty_id;
+		ogl.texture_units[i] = empty_asset_id;
+		ogl.sampler_units[i] = empty_asset_id;
 	}
 	// {
 	// 	GLint value;
@@ -956,7 +956,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			--ogl.programs.count;
 			resource->allocated = false;
 			if (ogl.active_program == asset_id) {
-				ogl.active_program = empty_id;
+				ogl.active_program = empty_asset_id;
 			}
 		} return;
 
@@ -966,7 +966,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			glDeleteTextures(1, &resource->id);
 
 			if (resource->unit != empty_unit) {
-				ogl.texture_units[resource->unit] = empty_id;
+				ogl.texture_units[resource->unit] = empty_asset_id;
 				--ogl.texture_units.count;
 			}
 
@@ -981,7 +981,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			glDeleteSamplers(1, &resource->id);
 
 			if (resource->unit != empty_unit) {
-				ogl.sampler_units[resource->unit] = empty_id;
+				ogl.sampler_units[resource->unit] = empty_asset_id;
 				--ogl.sampler_units.count;
 			}
 
@@ -1001,7 +1001,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			--ogl.meshes.count;
 			resource->allocated = false;
 			if (ogl.active_mesh == asset_id) {
-				ogl.active_mesh = empty_id;
+				ogl.active_mesh = empty_asset_id;
 			}
 		} return;
 
@@ -1023,7 +1023,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			u32 unit = empty_unit;
 			for (u32 i = 0; i < ogl.texture_units.capacity; ++i) {
-				if (ogl.texture_units[i] == empty_id) {
+				if (ogl.texture_units[i] == empty_asset_id) {
 					unit = i; break;
 				}
 			}
@@ -1051,7 +1051,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			u32 unit = empty_unit;
 			for (u32 i = 0; i < ogl.sampler_units.capacity; ++i) {
-				if (ogl.sampler_units[i] == empty_id) {
+				if (ogl.sampler_units[i] == empty_asset_id) {
 					unit = i; break;
 				}
 			}
@@ -1080,7 +1080,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Texture * resource = &ogl.textures[asset_id];
 			if (resource->unit != empty_unit) {
-				ogl.texture_units[resource->unit] = empty_id;
+				ogl.texture_units[resource->unit] = empty_asset_id;
 				--ogl.texture_units.count;
 			}
 		} return;
@@ -1089,7 +1089,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			u32 asset_id = *bc.read<u32>();
 			opengl::Sampler * resource = &ogl.samplers[asset_id];
 			if (resource->unit != empty_unit) {
-				ogl.sampler_units[resource->unit] = empty_id;
+				ogl.sampler_units[resource->unit] = empty_asset_id;
 				--ogl.sampler_units.count;
 			}
 		} return;
@@ -1366,12 +1366,12 @@ static void consume_single_instruction(Bytecode const & bc)
 		case Instruction::Draw: {
 			// // GLint program_id;
 			// // glGetIntegerv(GL_CURRENT_PROGRAM, &program_id);
-			CUSTOM_ASSERT(ogl.active_program != empty_id, "no active program");
+			CUSTOM_ASSERT(ogl.active_program != empty_asset_id, "no active program");
 			opengl::Program const * program = &ogl.programs[ogl.active_program];
 			// glValidateProgram(program->id);
 			// platform_verify_program(program->id, GL_VALIDATE_STATUS);
 
-			CUSTOM_ASSERT(ogl.active_mesh != empty_id, "no active mesh");
+			CUSTOM_ASSERT(ogl.active_mesh != empty_asset_id, "no active mesh");
 			opengl::Mesh const * mesh = &ogl.meshes[ogl.active_mesh];
 
 			opengl::Buffer const & indices = mesh->buffers[mesh->index_buffer];

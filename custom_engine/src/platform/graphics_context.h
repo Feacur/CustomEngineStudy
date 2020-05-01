@@ -5,19 +5,19 @@
 
 namespace custom {
 namespace window {
-typedef struct Internal_Data Data;
+struct Internal_Data; // @Note: an opaque pointer
 }}
 
 namespace custom {
 namespace context {
 
-typedef struct Internal_Data Data; // @Note: an opaque pointer
+struct Internal_Data; // @Note: an opaque pointer
 
-Data * create(window::Data * window);
-void destroy(Data * data);
+Internal_Data * create(window::Internal_Data * window);
+void destroy(Internal_Data * data);
 
-void set_vsync(Data * data, s32 value);
-bool check_vsync(Data * data);
-void swap_buffers(Data * data);
+void set_vsync(Internal_Data * data, s32 value);
+bool check_vsync(Internal_Data * data);
+void swap_buffers(Internal_Data * data);
 
 }}

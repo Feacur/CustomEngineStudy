@@ -12,7 +12,8 @@ struct Ref
 {
 	u32 id, gen;
 
-	Ref(u32 id = 0, u32 gen = 0);
+	Ref();
+	Ref(u32 id, u32 gen);
 	Ref(T const * instance);
 	~Ref() = default;
 
@@ -50,8 +51,8 @@ struct Ref_Pool : public Ref_Pool_Base
 	// API
 	Ref<T> create();
 	void destroy(Ref<T> ref);
-	bool check_active(u32 id) { return id && active[id]; };
-	bool contains(u32 id, u32 gen) { return id && active[id] && (gens[id] == gen); };
+	bool check_active(u32 id) { return id && (id < active.count) && active[id]; };
+	bool contains(u32 id, u32 gen) { return check_active(id) && (gens[id] == gen); };
 
 	// World API
 	void destroy_safe(u32 id, u32 gen) override;
@@ -76,7 +77,6 @@ struct Entity
 	u8 data; // @Note: explicit dummy data of a single byte size
 
 	// components
-	static u32 component_types_count;
 	static Array<Ref_Pool_Base *> component_pools;
 	static Array<Plain_Ref> components;
 
