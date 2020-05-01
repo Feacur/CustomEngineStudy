@@ -1,8 +1,8 @@
 #pragma once
-#include "engine/api/bytecode.h"
-#include "engine/impl/array.h"
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/bytecode.h"
+#include "engine/impl/array.h"
 
 namespace custom {
 

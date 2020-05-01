@@ -1,5 +1,7 @@
 #include "custom_pch.h"
+
 #include "platform/graphics_context.h"
+
 #include "engine/api/rendering_settings.h"
 #include "engine/core/code.h"
 #include "engine/debug/log.h"

@@ -1,4 +1,4 @@
-#include "engine/api/entity_system.h"
+#include "engine/api/internal/entity_system.h"
 #include "engine/core/math_types.h"
 
 #define COMPONENT_IMPL(T)\

@@ -1,5 +1,6 @@
-#include "components.h"
 #include "engine/impl/entity_system.h"
+
+#include "components.h"
 
 // @Note: instantiate component-specific templates and static data:
 //        - entire Ref<T> structure

@@ -1,7 +1,7 @@
 #include "custom_pch.h"
-#include "engine/core/types.h"
+
 #include "engine/core/math_types.h"
-#include "engine/api/bytecode.h"
+#include "engine/api/internal/bytecode.h"
 #include "engine/impl/array.h"
 
 // @Note: thought that a separate translation unit is currently too much for this

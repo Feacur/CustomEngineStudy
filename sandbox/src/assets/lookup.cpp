@@ -1,6 +1,7 @@
-#include "ids.h"
-#include "engine/api/asset_lookup.h"
+#include "engine/api/client/asset_lookup.h"
 #include "engine/core/code.h"
+
+#include "ids.h"
 
 namespace custom {
 namespace asset {

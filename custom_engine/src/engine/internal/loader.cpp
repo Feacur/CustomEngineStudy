@@ -1,14 +1,16 @@
 #include "custom_pch.h"
-#include "engine/api/loader.h"
-#include "engine/api/resource.h"
-#include "engine/api/file.h"
+
 #include "engine/core/code.h"
 #include "engine/core/math_types.h"
-#include "engine/api/asset_lookup.h"
+#include "engine/core/code.h"
+#include "engine/debug/log.h"
+#include "engine/api/platform/file.h"
+#include "engine/api/internal/loader.h"
+#include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/resource.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
-#include "engine/debug/log.h"
 
 #include <stb_image.h>
 

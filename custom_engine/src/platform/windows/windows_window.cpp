@@ -1,11 +1,13 @@
 #include "custom_pch.h"
-#include "engine/api/window.h"
-#include "engine/api/graphics_vm.h"
-#include "platform/graphics_context.h"
+
 #include "engine/core/code.h"
+#include "engine/debug/log.h"
+#include "engine/api/platform/window.h"
+#include "engine/api/platform/graphics_vm.h"
 #include "engine/impl/math_bitwise.h"
 #include "engine/impl/math_linear.h"
-#include "engine/debug/log.h"
+
+#include "platform/graphics_context.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>

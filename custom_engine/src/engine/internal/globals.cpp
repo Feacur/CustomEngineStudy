@@ -1,8 +1,7 @@
 #include "custom_pch.h"
 
-#include "engine/core/types.h"
-#include "engine/api/system.h"
-#include "engine/api/timer.h"
+#include "engine/api/platform/system.h"
+#include "engine/api/platform/timer.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/impl/array.h"
 

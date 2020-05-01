@@ -1,10 +1,12 @@
 #include "renderer.h"
-#include "../assets/ids.h"
-#include "components.h"
+
+#include "engine/api/internal/loader.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/loader.h"
 #include "engine/impl/math_linear.h"
 #include "engine/impl/bytecode.h"
+
+#include "../assets/ids.h"
+#include "components.h"
 
 // @Note: thoughts on factoring code for a renderer
 //        - batch together materials/objects with the same shaders
