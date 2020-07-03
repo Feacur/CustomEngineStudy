@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+// enable ANSI escape codes for CMD: set `HKEY_CURRENT_USER\Console\VirtualTerminalLevel` to `0x00000001`
+// use UTF-8: chcp 65001
+
 #if defined(_MSC_VER)
 	#define CUSTOM_DEBUG_BREAK() __debugbreak()
 #else
