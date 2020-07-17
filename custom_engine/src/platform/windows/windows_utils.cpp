@@ -24,11 +24,11 @@ void log_last_error(cstring source) {
 	);
 
 	if (size) {
-		CUSTOM_MESSAGE("'0x%x' system error: %s\n\tlog source: %s", error, message_buffer, source);
+		CUSTOM_MESSAGE("'0x%x' system error: %s    log source: %s", error, message_buffer, source);
 		LocalFree(message_buffer);
 	}
 	else {
-		CUSTOM_MESSAGE("'0x%x' system error: unknown\n\tlog source: %s", error, source);
+		CUSTOM_MESSAGE("'0x%x' system error: unknown\n    log source: %s", error, source);
 	}
 }
 #endif

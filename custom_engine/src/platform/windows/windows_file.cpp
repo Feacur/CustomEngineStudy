@@ -44,7 +44,7 @@ void read(cstring path, Array<u8> & buffer) {
 	buffer.set_capacity((u32)file_size);
 	if (buffer.data) {
 		buffer.count = (u32)platform_read_file(file, buffer.data, file_size);
-		CUSTOM_ASSERT(buffer.count == buffer.capacity, "failed to read file: %s;\n\tread %d out of %d bytes", path, buffer.count, buffer.capacity);
+		CUSTOM_ASSERT(buffer.count == buffer.capacity, "failed to read file: %s;\n    read %d out of %d bytes", path, buffer.count, buffer.capacity);
 	}
 
 	CloseHandle(file);
