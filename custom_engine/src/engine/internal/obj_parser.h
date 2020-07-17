@@ -4,103 +4,53 @@
 // https://github.com/rlk/obj/blob/master/obj.c
 // https://github.com/Oblomov/faster-parser/blob/master/parse-float.h
 
+#include <math.h>
 
 namespace custom {
 namespace obj {
 
-#define IS_BLANK(value) (((value) == ' ') || ((value) == '\t'))
-#define IS_EOL(value) (((value) == '\r') || ((value) == '\n'))
-#define IS_DIGIT(value) (((value) >= '0') && ((value) <= '9'))
+inline static bool IS_BLANK(char value) { return (value == ' ')  || (value == '\t'); }
+inline static bool IS_EOL(char value)   { return (value == '\r') || (value == '\n'); }
+inline static bool IS_DIGIT(char value) { return (value >= '0')  && (value <= '9'); }
 
-static void skip_blank(cstring line, cstring * next_out) {
+static cstring skip_blank(cstring line) {
 	while (IS_BLANK(*line)) { ++line; }
-	*next_out = line;
+	return line;
 }
-
-static u32 translate_index(s32 value, u32 base) {
-	if (value > 0) { return value - 1; }
-	if (value == 0) { return 0; }
-	return base + value;
-}
-
-#include <math.h>
 
 static s8 parse_sign(cstring line, cstring * next_out) {
-	s8 value;
-	if (*line == '-') {      ++line; value = -1; }
-	else if (*line == '+') { ++line; value =  1; }
-	else {                           value =  1; }
-	*next_out = line;
-	return value;
+	if (*line == '-') { *next_out = line + 1; return -1; }
+	if (*line == '+') { *next_out = line + 1; return  1; }
+	*next_out = line; return 1;
+}
+
+inline static u32 parse_u32(u32 value, cstring line, cstring * next_out) {
+	// @Note: no overflow protection
+	while (IS_DIGIT(*line)) {
+		value = value * 10 + (*line - '0');
+		++line;
+	}
+	*next_out = line; return value;
 }
 
 static s32 parse_s32(cstring line, cstring * next_out) {
-	skip_blank(line, &line);
-	s8 sign = parse_sign(line, &line);
-
-	s32 value = 0;
-	char c = *line;
-	while (IS_DIGIT(c)) {
-		value = value * 10 + (c - '0');
-		c = *(++line);
-	}
-
-	*next_out = line;
-	return sign * value;
+	s8 sign = parse_sign(skip_blank(line), &line);
+	u32 value = parse_u32(0u, line, next_out);
+	return sign * (s32)value;
 }
 
-static r32 parse_r32(cstring line, cstring * next_out) {
-	skip_blank(line, &line);
-	s8 sign = parse_sign(line, &line);
-
-	// @Todo: u64 mantissa and a larger digits limit?
-	u32 mantissa = 0;
-	s32 exponent = 0;
-	u8 digits_limit = 7;
-
-	char c = *line;
-	while (IS_DIGIT(c)) {
-		if (digits_limit) {
-			u32 n = mantissa * 10 + (c - '0');
-			if (n > mantissa) { --digits_limit; }
-			mantissa = n;
-		} else {
-			// @Note: compensate for loss of significance; fractional part is ignored in this case
-			++exponent; // m * 10^e
-		}
-		c = *(++line);
-	}
-
-	if (c == '.') {
-		c = *(++line);
-		while (IS_DIGIT(c)) {
-			if (digits_limit) {
-				u32 n = mantissa * 10 + (c - '0');
-				if (n > mantissa) { --digits_limit; }
-				mantissa = n;
-				--exponent; // m * 10^e
-			}
-			c = *(++line);
-		}
-	}
-
-	if (c == 'e' || c == 'E') {
-		exponent += parse_s32(line + 1, &line);
-	}
-
-	*next_out = line;
+inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent) {
+	// @Note: basically this happens
+	// return sign * (mantissa * powf(10, (r32)exponent));
+	// return sign * ldexpf(mantissa * powf(5, (r32)exponent), exponent);
 
 	// @Note: both manstissa and exponent are base 10, so the
 	//        resulting value = mantissa * 10^exponent
 	//        - x^n * y^n = (x*y)^n
 	//        - ldexp(a, b) = a * 2^b
 	//        - ldexp(a * 5^b, b) = (a * 5^b) * 2^b = a * (5*2)^b = a * 10^b
-	if (!mantissa) { return 0; }
+	if (!mantissa) { return 0.0f; }
 	if (!exponent) { return (r32)mantissa; }
-
-	// @Note: basically this happens
-	// return sign * (mantissa * powf(10, (r32)exponent));
-	// return sign * ldexpf(mantissa * powf(5, (r32)exponent), exponent);
 
 	// @Note: figure out mantissa2 and exponent2
 	//        - mantissa2 * 2^exponent2 ~~~~ mantissa1 * 10^exponent1
@@ -111,34 +61,52 @@ static r32 parse_r32(cstring line, cstring * next_out) {
 	s32 exponent2 = exponent;
 	if (exponent > 0) {
 		// multiply mantissa1 by 5 exponent1 times
+		// @Note: correct mantissa1 before multiplication by
+		//        keeping 3 most significant bits intact
+		//        - closest larger power of two for 5 is 2^3
+		//        0b 1110 0000  0000 0000  0000 0000  0000 0000
 		while (exponent > 0) {
-			// @Note: correct mantissa1 before multiplication by
-			//        keeping 3 most significant bits intact
-			//        - closest larger power of two for 5 is 2^3
-			//        0b 1110 0000  0000 0000  0000 0000  0000 0000
 			while (mantissa & 0xe0000000) {
-				mantissa >>= 1; ++exponent2;
+				mantissa >>= 1u; ++exponent2;
 			}
-			//
-			mantissa *= 5; --exponent;
+			mantissa *= 5u; --exponent;
 		}
 	}
 	else {
 		// divide mantissa1 by 5 exponent1 times
+		// @Note: correct mantissa1 before division by
+		//        making use of most significant bits
+		//        0b 1000 0000  0000 0000  0000 0000  0000 0000
 		while (exponent < 0) {
-			// @Note: correct mantissa1 before division by
-			//        making use of most significant bits
-			//        0b 1000 0000  0000 0000  0000 0000  0000 0000
 			while (!(mantissa & 0x80000000)) {
-				mantissa <<= 1; --exponent2;
+				mantissa <<= 1u; --exponent2;
 			}
-			//
-			mantissa /= 5; ++exponent;
+			mantissa /= 5u; ++exponent;
 		}
 	}
 	return sign * ldexpf((r32)mantissa, exponent2);
 }
 
+static r32 parse_r32(cstring line, cstring * next_out) {
+	s8 sign = parse_sign(skip_blank(line), &line);
+
+	// @Note: no digits count limit
+	u32 mantissa = parse_u32(0u, line, &line);
+	s32 exponent = 0;
+
+	if (*line == '.') {
+		cstring line_before = ++line;
+		mantissa = parse_u32(mantissa, line, &line);
+		exponent -= (s32)(line - line_before);
+	}
+
+	if (*line == 'e' || *line == 'E') {
+		exponent += parse_s32(line + 1, &line);
+	}
+
+	*next_out = line;
+	return construct_r32(sign, mantissa, exponent);
+}
 
 struct face_index { s32 v, t, n; };
 static face_index parse_face_index(cstring line, cstring * next_out) {
@@ -175,6 +143,12 @@ static void parse_vec3_line(cstring line, Array<vec3> & array) {
 	item.z = parse_r32(line, &line);
 }
 
+inline static u32 translate_index(s32 value, u32 base) {
+	if (value > 0) { return value - 1; }
+	if (value == 0) { return 0; }
+	return base + value;
+}
+
 struct tri_index { u32 v, t, n; u32 index; };
 static void parse_face_line(cstring line, Array<tri_index> & array, u32 vcount, u32 tcount, u32 ncount) {
 	Array<tri_index> face(4);
@@ -187,7 +161,7 @@ static void parse_face_line(cstring line, Array<tri_index> & array, u32 vcount, 
 			translate_index(fi.n, ncount),
 			UINT32_MAX
 		});
-		skip_blank(line, &line);
+		line = skip_blank(line);
 	}
 
 	// @Note: triangulate CCW
@@ -212,7 +186,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	while (read_i < file.count) {
 		cstring line = (cstring)(file.data + read_i);
 
-		skip_blank(line, &line);
+		line = skip_blank(line);
 		if (*line == 'v') {
 			if (line[1] == ' ') {
 				++count_buffer_v;
@@ -249,7 +223,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 		cstring line = (cstring)(file.data + read_i);
 
 		// u64 t1 = custom::timer::get_ticks();
-		skip_blank(line, &line);
+		line = skip_blank(line);
 		if (*line == 'v') {
 			if (line[1] == ' ') {
 				parse_vec3_line(line + 2, packed_v);
