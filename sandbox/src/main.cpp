@@ -72,7 +72,7 @@ Camera camera;
 custom::Ref<custom::Entity> suzanne;
 
 void init_entity_components(void);
-static void impl_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
+static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
 
 	camera.transform = {
@@ -112,12 +112,13 @@ static void update_camera_projection() {
 	// };
 }
 
-static void impl_viewport(ivec2 size) {
+static void on_app_viewport(ivec2 size) {
 	viewport_size = size;
 	update_camera_projection();
+	custom::renderer::viewport({0, 0}, size);
 }
 
-static void impl_update(r32 dt) {
+static void on_app_update(r32 dt) {
 	vec2 wheel = custom::application::get_mouse_wheel();
 	if (wheel.y != 0) {
 		camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
@@ -166,9 +167,9 @@ static void impl_update(r32 dt) {
 }
 
 int main(int argc, char * argv[]) {
-	custom::application::set_init_callback(&impl_init);
-	custom::application::set_viewport_callback(&impl_viewport);
-	custom::application::set_update_callback(&impl_update);
+	custom::application::set_init_callback(&on_app_init);
+	custom::application::set_viewport_callback(&on_app_viewport);
+	custom::application::set_update_callback(&on_app_update);
 	custom::application::run();
 	// getchar();
 	return 0;

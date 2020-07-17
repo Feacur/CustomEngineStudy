@@ -342,9 +342,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_SIZE: {
 			// Sent to a window after its size has changed.
 			window->size = {LOWORD(lParam), HIWORD(lParam)};
-			if (window->callbacks.viewport) {
-				(*window->callbacks.viewport)(window, window->size);
-			}
+			CALL_SAFELY(window->callbacks.viewport, window, window->size);
 			if (wParam == SIZE_MINIMIZED) {
 			}
 			else if (wParam == SIZE_MAXIMIZED) {

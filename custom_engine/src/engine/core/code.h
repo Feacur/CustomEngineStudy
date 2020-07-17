@@ -18,6 +18,8 @@
 #define CUSTOM_FILE_AND_LINE __FILE__ ":" CUSTOM_STRINGIFY_A_MACRO(__LINE__)
 #define C_ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
+#define CALL_SAFELY(func_ptr, ...) if (func_ptr) (*func_ptr)(__VA_ARGS__)
+
 #if !defined(__cplusplus)
 	#define constexpr
 #endif
