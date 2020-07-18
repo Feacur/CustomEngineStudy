@@ -39,52 +39,33 @@ static s32 parse_s32(cstring line, cstring * next_out) {
 	return sign * (s32)value;
 }
 
-inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent) {
-	// @Note: basically this happens
+inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10) {
+	// ldexp(a, b) == a * 2^b
 	// return sign * (mantissa * powf(10, (r32)exponent));
 	// return sign * ldexpf(mantissa * powf(5, (r32)exponent), exponent);
 
-	// @Note: both manstissa and exponent are base 10, so the
-	//        resulting value = mantissa * 10^exponent
-	//        - x^n * y^n = (x*y)^n
-	//        - ldexp(a, b) = a * 2^b
-	//        - ldexp(a * 5^b, b) = (a * 5^b) * 2^b = a * (5*2)^b = a * 10^b
 	if (!mantissa) { return 0.0f; }
-	if (!exponent) { return (r32)mantissa; }
+	if (!exponent_10) { return sign * (r32)mantissa; }
 
-	// @Note: figure out mantissa2 and exponent2
-	//        - mantissa2 * 2^exponent2 ~~~~ mantissa1 * 10^exponent1
-	//        - start with [exponent2 = exponent1]
-	//          compute [mantissa2 ~~~~ mantissa1 * 5^exponent1] by division or multiplication
-	//        - preserve significance by correcting mantissa1 and exponent2
-	//          mantissa2 ~~~~ mantissa1 * 5^exponent1 * 2^(exponent1 - exponent2)
-	s32 exponent2 = exponent;
-	if (exponent > 0) {
-		// multiply mantissa1 by 5 exponent1 times
-		// @Note: correct mantissa1 before multiplication by
-		//        keeping 3 most significant bits intact
-		//        - closest larger power of two for 5 is 2^3
-		//        0b 1110 0000  0000 0000  0000 0000  0000 0000
-		while (exponent > 0) {
-			while (mantissa & 0xe0000000) {
-				mantissa >>= 1u; ++exponent2;
-			}
-			mantissa *= 5u; --exponent;
-		}
+	// > mantissa_x * 2^exponent_2 == mantissa * 10^exponent_10
+	// > [start with] exponent_2 == exponent_10
+	// > [calculate]  mantissa_x == mantissa * 5^exponent_10
+	// > preserve significance by transferring powers of 2 from mantissa to exponent_2
+	s32 exponent_2 = exponent_10;
+
+	while (exponent_10 > 0) {
+		constexpr int const mask = 0b11100000000000000000000000000000;
+		while (mantissa & mask) { mantissa >>= 1u; ++exponent_2; }
+		mantissa *= 5u; --exponent_10;
 	}
-	else {
-		// divide mantissa1 by 5 exponent1 times
-		// @Note: correct mantissa1 before division by
-		//        making use of most significant bits
-		//        0b 1000 0000  0000 0000  0000 0000  0000 0000
-		while (exponent < 0) {
-			while (!(mantissa & 0x80000000)) {
-				mantissa <<= 1u; --exponent2;
-			}
-			mantissa /= 5u; ++exponent;
-		}
+
+	while (exponent_10 < 0) {
+		constexpr int const mask = 0b10000000000000000000000000000000;
+		while (!(mantissa & mask)) { mantissa <<= 1u; --exponent_2; }
+		mantissa /= 5u; ++exponent_10;
 	}
-	return sign * ldexpf((r32)mantissa, exponent2);
+
+	return sign * ldexpf((r32)mantissa, exponent_2);
 }
 
 static r32 parse_r32(cstring line, cstring * next_out) {
