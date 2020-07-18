@@ -260,8 +260,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	for (u32 i = 0; i < packed_tris.count; ++i) {
 		tri_index * fi = packed_tris.data + i;
 
-		// @Optimize: - suzanne.obj:      0.12 instead of 0.0015
-		//            - suzanne_tris.obj: 0.12 instead of 0.0015
+		// @Optimize: - suzanne.obj: 22500 ticks instead of 900 (25x slower)
 		for (u32 prev = 0; prev < i; ++prev) {
 			tri_index * prev_fi = packed_tris.data + prev;
 			if (fi->v != prev_fi->v) { continue; }
@@ -285,7 +284,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 
 		indices.push(fi->index);
 	}
-	// CUSTOM_MESSAGE("unpack:    %f", (float)(custom::timer::get_ticks() - unpack1) / custom::timer::ticks_per_second);
+	// CUSTOM_MESSAGE("unpack:    %lld", (custom::timer::get_ticks() - unpack1));
 	// CUSTOM_MESSAGE("- reused:  %d", reused_fi);
 }
 
