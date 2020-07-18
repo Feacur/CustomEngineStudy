@@ -213,13 +213,15 @@ void init(void) {
 	glGetIntegerv(GL_MINOR_VERSION, &version_minor);
 
 	#if !defined(GES_SHIPPING)
-	CUSTOM_MESSAGE("OpenGL version %d.%d", version_major, version_minor);
-
 	if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(opengl_message_callback, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		CUSTOM_TRACE("enabled OpenGL debug");
+	}
+	else {
+		CUSTOM_WARNING("OpenGL debug is unavailable");
 	}
 	#endif
 
@@ -234,7 +236,7 @@ void init(void) {
 
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-	// CUSTOM_MESSAGE("texture/sampler units available: %d", max_combined_texture_image_units);
+	// CUSTOM_TRACE("texture/sampler units available: %d", max_combined_texture_image_units);
 	ogl.texture_units.set_capacity(max_combined_texture_image_units);
 	ogl.sampler_units.set_capacity(max_combined_texture_image_units);
 	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
@@ -244,17 +246,17 @@ void init(void) {
 	// {
 	// 	GLint value;
 	// 	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - vertex ....... %d", value);
+	// 	CUSTOM_TRACE("  - vertex ....... %d", value);
 	// 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - fragment ..... %d", value);
+	// 	CUSTOM_TRACE("  - fragment ..... %d", value);
 	// 	glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - geometry ..... %d", value);
+	// 	CUSTOM_TRACE("  - geometry ..... %d", value);
 	// 	glGetIntegerv(GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - compute ...... %d", value);
+	// 	CUSTOM_TRACE("  - compute ...... %d", value);
 	// 	glGetIntegerv(GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - tess control . %d", value);
+	// 	CUSTOM_TRACE("  - tess control . %d", value);
 	// 	glGetIntegerv(GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS, &value);
-	// 	CUSTOM_MESSAGE("  - tess eval .... %d", value);
+	// 	CUSTOM_TRACE("  - tess eval .... %d", value);
 	// }
 }
 
@@ -1105,7 +1107,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			Shader_Part parts = *bc.read<Shader_Part>();
 			platform_link_program(resource->id, source.data, parts);
 
-			// CUSTOM_MESSAGE("program %d info:", asset_id);
+			// CUSTOM_TRACE("program %d info:", asset_id);
 			Shader_Field field_buffer;
 
 			// GLint attributes_capacity;
@@ -1115,7 +1117,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	// resource->attributes.push();
 			// 	// opengl::Field * field = new (&resource->attributes[i]) opengl::Field;
 			// 	platform_get_active_attribute(resource->id, i, field_buffer);
-			// 	// CUSTOM_MESSAGE(
+			// 	// CUSTOM_TRACE(
 			// 	// 	"  - attribute 0x%x '%s' [%d]; // ind %d, loc %d",
 			// 	// 	field_buffer.type, field_buffer.name, field_buffer.size,
 			// 	// 	i, field_buffer.location
@@ -1131,7 +1133,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				resource->uniforms.push();
 				opengl::Field * field = new (&resource->uniforms[i]) opengl::Field;
 				platform_get_active_uniform(resource->id, i, field_buffer);
-				// CUSTOM_MESSAGE(
+				// CUSTOM_TRACE(
 				// 	"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",
 				// 	field_buffer.type, field_buffer.name, field_buffer.size,
 				// 	i, field_buffer.location
@@ -1201,7 +1203,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// else {
 			// 	if (ogl.active_mesh != asset_id) {
 			// 		glBindVertexArray(0);
-			// 		CUSTOM_MESSAGE("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
+			// 		CUSTOM_WARNING("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
 			// 	}
 			// 	for (u32 i = 0; i < buffers_count; ++i) {
 			// 		opengl::Buffer & buffer = resource->buffers[i];
@@ -1227,7 +1229,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_id) {
 			// 		opengl::Mesh * active_mesh = &ogl.meshes[asset_id];
 			// 		glBindVertexArray(active_mesh->id);
-			// 		CUSTOM_MESSAGE("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
+			// 		CUSTOM_WARNING("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
 			// 	}
 			// }
 		} return;
@@ -1297,7 +1299,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// else {
 			// 	if (ogl.active_program != asset_id) {
 			// 		glUseProgram(resource->id);
-			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
+			// 		CUSTOM_WARNING("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
 			// 	}
 			// 	switch (uniform.type) {
 			// 		case Data_Type::texture_unit: {
@@ -1345,7 +1347,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			// 	if (ogl.active_program != asset_id && ogl.active_program != empty_id) {
 			// 		opengl::Program const * active_program = &ogl.programs[ogl.active_program];
 			// 		glUseProgram(active_program->id);
-			// 		CUSTOM_MESSAGE("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
+			// 		CUSTOM_WARNING("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
 			// 	}
 			// }
 		} return;
@@ -1393,12 +1395,12 @@ static void consume_single_instruction(Bytecode const & bc)
 	{
 		case Instruction::Message_Pointer: {
 			cstring message = *bc.read<cstring>();
-			CUSTOM_MESSAGE("OpenGL VM: %s", message);
+			CUSTOM_TRACE("OpenGL VM: %s", message);
 		} return;
 
 		case Instruction::Message_Inline: {
 			C_String message = read_cstring(bc);
-			CUSTOM_MESSAGE("OpenGL VM: %s", message.data);
+			CUSTOM_TRACE("OpenGL VM: %s", message.data);
 		} return;
 	}
 
@@ -1470,14 +1472,14 @@ static void opengl_message_callback(
 	cstring severity_string = NULL;
 	switch (severity)
 	{
-		case GL_DEBUG_SEVERITY_HIGH:         severity_string = "high"; break;         // All OpenGL Errors, shader compilation/linking errors, or highly-dangerous undefined behavior
-		case GL_DEBUG_SEVERITY_MEDIUM:       severity_string = "medium"; break;       // Major performance warnings, shader compilation/linking warnings, or the use of deprecated functionality
-		case GL_DEBUG_SEVERITY_LOW:          severity_string = "low"; break;          // Redundant state change performance warning, or unimportant undefined behavior
-		case GL_DEBUG_SEVERITY_NOTIFICATION: severity_string = "notification"; break; // Anything that isn't an error or performance issue.
-		default:                             severity_string = "unknown"; break;
+		case GL_DEBUG_SEVERITY_HIGH:         severity_string = ANSI_BKG_RED "[crt]" ANSI_CLR; break; // All OpenGL Errors, shader compilation/linking errors, or highly-dangerous undefined behavior
+		case GL_DEBUG_SEVERITY_MEDIUM:       severity_string = ANSI_TXT_RED "[err]" ANSI_CLR; break; // Major performance warnings, shader compilation/linking warnings, or the use of deprecated functionality
+		case GL_DEBUG_SEVERITY_LOW:          severity_string = ANSI_TXT_YLW "[wrn]" ANSI_CLR; break; // Redundant state change performance warning, or unimportant undefined behavior
+		case GL_DEBUG_SEVERITY_NOTIFICATION: severity_string = ANSI_TXT_GRY "[trc]" ANSI_CLR; break; // Anything that isn't an error or performance issue.
+		default:                             severity_string = ANSI_BKG_MGT "[???]" ANSI_CLR; break; // ?
 	}
 
-	CUSTOM_MESSAGE(
+	CUSTOM_TRACE(
 		"OpenGL message '0x%x'"
 		"\n  %s"
 		"\n  - type:     %s"
@@ -1527,8 +1529,8 @@ static void platform_consume_errors()
 // {
 // 	custom::Array<GLchar> text;
 // 	get_shader_source(id, text);
-// 	if (text.count) { CUSTOM_MESSAGE("shader source:\n%s", text.data); }
-// 	else { CUSTOM_MESSAGE("no shader source"); }
+// 	if (text.count) { CUSTOM_TRACE("shader source:\n%s", text.data); }
+// 	else { CUSTOM_TRACE("no shader source"); }
 // }
 
 // static void platform_get_program_binary(GLuint id, GLenum & format, custom::Array<u8> & buffer)
@@ -1558,7 +1560,7 @@ static bool verify_shader(GLuint id, GLenum parameter)
 	if (max_length) {
 		custom::Array<GLchar> text(max_length);
 		glGetShaderInfoLog(id, max_length, &max_length, text.data);
-		CUSTOM_MESSAGE("shader status:\n%s", text.data);
+		CUSTOM_TRACE("shader status:\n%s", text.data);
 	}
 
 	return false;
@@ -1580,7 +1582,7 @@ static bool platform_verify_program(GLuint id, GLenum parameter)
 	if (max_length) {
 		custom::Array<GLchar> text(max_length);
 		glGetProgramInfoLog(id, max_length, &max_length, text.data);
-		CUSTOM_MESSAGE("program status:\n%s", text.data);
+		CUSTOM_TRACE("program status:\n%s", text.data);
 	}
 
 	return false;
@@ -1680,7 +1682,7 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 // 		case GL_FLOAT_MAT3: return GL_FLOAT;
 // 		case GL_FLOAT_MAT4: return GL_FLOAT;
 // 	}
-// 	CUSTOM_MESSAGE("unknown OGL type 0x%x", value);
+// 	CUSTOM_WARNING("unknown OGL type 0x%x", value);
 // 	return GL_NONE;
 // }
 

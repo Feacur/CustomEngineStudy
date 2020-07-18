@@ -11,7 +11,7 @@ Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 	, data()
 { }
 
-#if !defined(CUSTOM_SHIPPING)
+#if !defined(COLLECTION_COPY_WARNING)
 	template<typename T, u16 capacity>
 	Array_Fixed<T, capacity>::Array_Fixed(Array_Fixed<T, capacity> const & source) {
 		CUSTOM_ASSERT(false, "ERROR! trying to copy a fixed array");
@@ -21,7 +21,7 @@ Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 template<typename T, u16 capacity>
 Array_Fixed<T, capacity>::~Array_Fixed() = default;
 
-#if !defined(CUSTOM_SHIPPING)
+#if !defined(COLLECTION_COPY_WARNING)
 	template<typename T, u16 capacity>
 	inline Array_Fixed<T, capacity> & Array_Fixed<T, capacity>::operator=(Array_Fixed<T, capacity> const & source) {
 		CUSTOM_ASSERT(false, "ERROR! trying to copy a fixed array");

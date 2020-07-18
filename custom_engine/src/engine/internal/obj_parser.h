@@ -251,7 +251,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 
 		indices.push(index);
 	}
-	// CUSTOM_MESSAGE("unpack: %lld", (custom::timer::get_ticks() - ticks_before));
+	// CUSTOM_TRACE("unpack: %lld", (custom::timer::get_ticks() - ticks_before));
 }
 
 #undef IS_BLANK

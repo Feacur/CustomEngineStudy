@@ -157,12 +157,12 @@ Internal_Data * create(window::Internal_Data * window) {
 	LOG_LAST_ERROR();
 	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
 
-	CUSTOM_MESSAGE(
+	CUSTOM_TRACE(
 		"OpenGL info:"
-		"\n  - vendor:   %s"
-		"\n  - renderer: %s"
-		"\n  - version:  %s"
-		"\n  - shaders:  %s",
+		ANSI_TXT_GRY "\n  - vendor:   " ANSI_TXT_GRN "%s" ANSI_CLR
+		ANSI_TXT_GRY "\n  - renderer: " ANSI_TXT_GRN "%s" ANSI_CLR
+		ANSI_TXT_GRY "\n  - version:  " ANSI_TXT_GRN "%s" ANSI_CLR
+		ANSI_TXT_GRY "\n  - shaders:  " ANSI_TXT_GRN "%s" ANSI_CLR,
 		glGetString(GL_VENDOR),
 		glGetString(GL_RENDERER),
 		glGetString(GL_VERSION),
@@ -215,7 +215,7 @@ static void * wgl_get_proc_address(cstring name) {
 	if (!address) {
 		address = GetProcAddress(wgl.instance, name);
 	}
-	// if (!address) { CUSTOM_MESSAGE("missing an OpenGL function: %s", name); }
+	// if (!address) { CUSTOM_WARNING("missing an OpenGL function: %s", name); }
 	return address;
 }
 
@@ -432,7 +432,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		int pf_id = i + 1;
 		if (!wgl.GetPixelFormatAttribivARB(hdc, pf_id, 0, attr_count, attr_keys, attr_vals)) {
 			LOG_LAST_ERROR();
-			CUSTOM_MESSAGE("failed to get pixel format %d values", pf_id);
+			CUSTOM_WARNING("failed to get pixel format %d values", pf_id);
 			continue;
 		}
 		// should support
@@ -517,7 +517,7 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		if (!DescribePixelFormat(hdc, pf_id, sizeof(pfd), &pfd))
 		{
 			LOG_LAST_ERROR();
-			CUSTOM_MESSAGE("failed to describe pixel format %d", pf_id);
+			CUSTOM_WARNING("failed to describe pixel format %d", pf_id);
 			continue;
 		}
 		// should support

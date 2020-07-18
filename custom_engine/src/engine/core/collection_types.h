@@ -1,6 +1,10 @@
 #pragma once
 #include "engine/core/types.h"
 
+#if !defined(CUSTOM_SHIPPING)
+	#define COLLECTION_COPY_WARNING
+#endif
+
 // @Note: this code implies POD types
 //        all of the T, Array<T>, Array_Fixed<T, N>
 
@@ -13,13 +17,13 @@ struct Array
 	u32 capacity, count;
 
 	Array(u32 capacity = 0, u32 count = 0);
-	#if !defined(CUSTOM_SHIPPING)
-		Array(Array const & source); // @Note: warn if a copy occures
+	#if !defined(COLLECTION_COPY_WARNING)
+		Array(Array const & source);
 	#endif
 	~Array();
 
-	#if !defined(CUSTOM_SHIPPING)
-		Array & operator=(Array const & source); // @Note: warn if a copy occures
+	#if !defined(COLLECTION_COPY_WARNING)
+		Array & operator=(Array const & source);
 	#endif
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
@@ -47,13 +51,13 @@ struct Array_Fixed
 	u16 count;
 
 	Array_Fixed(u16 count = 0);
-	#if !defined(CUSTOM_SHIPPING)
-		Array_Fixed(Array_Fixed const & source); // @Note: warn if a copy occures
+	#if !defined(COLLECTION_COPY_WARNING)
+		Array_Fixed(Array_Fixed const & source);
 	#endif
 	~Array_Fixed();
 
-	#if !defined(CUSTOM_SHIPPING)
-		Array_Fixed & operator=(Array_Fixed const & source); // @Note: warn if a copy occures
+	#if !defined(COLLECTION_COPY_WARNING)
+		Array_Fixed & operator=(Array_Fixed const & source);
 	#endif
 	T const & operator[](u16 i) const;
 	T & operator[](u16 i);

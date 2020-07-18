@@ -7,6 +7,8 @@
 	#include <Windows.h>
 #endif
 
+// https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessage
+
 #if !defined(CUSTOM_SHIPPING)
 void log_last_error(cstring source) {
 	DWORD const error = GetLastError();
@@ -16,7 +18,8 @@ void log_last_error(cstring source) {
 	DWORD size = FormatMessage(
 		FORMAT_MESSAGE_FROM_SYSTEM
 		| FORMAT_MESSAGE_ALLOCATE_BUFFER
-		| FORMAT_MESSAGE_IGNORE_INSERTS,
+		| FORMAT_MESSAGE_IGNORE_INSERTS
+		| FORMAT_MESSAGE_MAX_WIDTH_MASK,
 		NULL, error,
 		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
 		(LPTSTR)&message_buffer, 0,
@@ -24,11 +27,12 @@ void log_last_error(cstring source) {
 	);
 
 	if (size) {
-		CUSTOM_MESSAGE("'0x%x' system error: %s    log source: %s", error, message_buffer, source);
+		CUSTOM_ERROR("'0x%x': %s", error, message_buffer);
 		LocalFree(message_buffer);
 	}
 	else {
-		CUSTOM_MESSAGE("'0x%x' system error: unknown\n    log source: %s", error, source);
+		CUSTOM_ERROR("'0x%x': unknown", error);
 	}
+	CUSTOM_MESSAGE(ANSI_TXT_GRY "  at: %s" ANSI_CLR "\n", source);
 }
 #endif

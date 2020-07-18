@@ -14,10 +14,10 @@
 // @Todo: scope each frame or scope entire runtime?
 static UINT system_timer_period;
 #define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
-	CUSTOM_MESSAGE("failed to adjust timer precision");\
+	CUSTOM_WARNING("failed to adjust timer precision");\
 }
 #define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
-	CUSTOM_MESSAGE("failed to adjust timer precision");\
+	CUSTOM_WARNING("failed to adjust timer precision");\
 }
 
 #if !defined(CUSTOM_SHIPPING)
@@ -92,7 +92,7 @@ static UINT platform_get_resolution(void) {
 	MMRESULT status = timeGetDevCaps(&timecaps, sizeof(timecaps));
 	if (status != MMSYSERR_NOERROR) {
 		LOG_LAST_ERROR();
-		CUSTOM_MESSAGE("failed to retrieve timer resolution");
+		CUSTOM_WARNING("failed to retrieve timer resolution");
 		return 1;
 	}
 	return timecaps.wPeriodMin;

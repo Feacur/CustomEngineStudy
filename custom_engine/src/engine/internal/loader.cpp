@@ -167,18 +167,14 @@ void shader(u32 asset_id) {
 void mesh_obj(u32 asset_id) {
 	if (has_mesh(asset_id)) { return; }
 
-	// u64 read1 = custom::timer::get_ticks();
 	cstring path = asset::mesh::paths[asset_id];
 	Array<u8> file; file::read(path, file);
-	// CUSTOM_MESSAGE("read obj:  %f", (float)(custom::timer::get_ticks() - read1) / custom::timer::ticks_per_second);
 	if (file.count != file.capacity) { return; }
 
-	// u64 parse1 = custom::timer::get_ticks();
 	Array<u8> vertex_attributes;
 	Array<r32> vertices;
 	Array<u32> indices;
 	obj::parse(file, vertex_attributes, vertices, indices);
-	// CUSTOM_MESSAGE("parse obj: %f", (float)(custom::timer::get_ticks() - parse1) / custom::timer::ticks_per_second);
 
 	u8 meta_id = asset::mesh::meta_ids[asset_id];
 	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
@@ -193,13 +189,11 @@ void mesh_obj(u32 asset_id) {
 	bc->write(graphics::Data_Type::u32); bc->write(indices.count); bc->write(indices.count);
 	bc->write((u32)0);
 
-	// u64 write1 = custom::timer::get_ticks();
 	bc->write(graphics::Instruction::Load_Mesh);
 	bc->write(asset_id);
 	bc->write((u8)2);
 	bc->write((u32)0); write_data_array_custom(vertices);
 	bc->write((u32)0); write_data_array_custom(indices);
-	// CUSTOM_MESSAGE("write obj: %f", (float)(custom::timer::get_ticks() - write1) / custom::timer::ticks_per_second);
 }
 
 }}
