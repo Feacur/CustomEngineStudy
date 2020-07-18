@@ -10,6 +10,7 @@
 #include "engine/api/graphics_params.h"
 #include "engine/api/resource.h"
 #include "engine/impl/array.h"
+#include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
 
 #include <stb_image.h>

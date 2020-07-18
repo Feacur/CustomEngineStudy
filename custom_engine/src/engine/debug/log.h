@@ -26,13 +26,17 @@
 #if !defined(CUSTOM_SHIPPING)
 	#define CUSTOM_MESSAGE(...) { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); }
 	#define CUSTOM_REPORT_LINE() CUSTOM_MESSAGE("  at: " CUSTOM_FILE_AND_LINE)
+#else
+	#define CUSTOM_MESSAGE(...)
+	#define CUSTOM_REPORT_LINE(...)
+#endif
+
+#if !defined(CUSTOM_SHIPPING) && 1
 	#define CUSTOM_ASSERT(statement, ...) if(statement) { /**/ } else {\
 		CUSTOM_MESSAGE(__VA_ARGS__);\
 		CUSTOM_REPORT_LINE();\
 		CUSTOM_DEBUG_BREAK();\
 	}
 #else
-	#define CUSTOM_MESSAGE(...)
-	#define CUSTOM_REPORT_LINE(...)
 	#define CUSTOM_ASSERT(statement, ...)
 #endif
