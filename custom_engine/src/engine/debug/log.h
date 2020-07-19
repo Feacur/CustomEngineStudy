@@ -5,23 +5,44 @@
 // enable ANSI escape codes for CMD: set `HKEY_CURRENT_USER\Console\VirtualTerminalLevel` to `0x00000001`
 // use UTF-8: chcp 65001
 
+// https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 // https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
 
-#define ANSI_CLR "\u001b[0m"
+#if 1
+	#define ANSI_ESC "\x1b"
+	#define ANSI_CLR ANSI_ESC "[0m"
 
-#define ANSI_BKG_RED "\u001b[48;5;1m"
-#define ANSI_BKG_GRN "\u001b[48;5;2m"
-#define ANSI_BKG_YLW "\u001b[48;5;3m"
-#define ANSI_BKG_GRY "\u001b[48;5;8m"
-#define ANSI_BKG_MGT "\u001b[48;5;13m"
-#define ANSI_BKG_CYN "\u001b[48;5;14m"
+	#define ANSI_BKG_RED ANSI_ESC "[48;5;1m"
+	#define ANSI_BKG_GRN ANSI_ESC "[48;5;2m"
+	#define ANSI_BKG_YLW ANSI_ESC "[48;5;3m"
+	#define ANSI_BKG_GRY ANSI_ESC "[48;5;8m"
+	#define ANSI_BKG_MGT ANSI_ESC "[48;5;13m"
+	#define ANSI_BKG_CYN ANSI_ESC "[48;5;14m"
 
-#define ANSI_TXT_RED "\u001b[38;5;1m"
-#define ANSI_TXT_GRN "\u001b[38;5;2m"
-#define ANSI_TXT_YLW "\u001b[38;5;3m"
-#define ANSI_TXT_GRY "\u001b[38;5;8m"
-#define ANSI_TXT_MGT "\u001b[38;5;13m"
-#define ANSI_TXT_CYN "\u001b[38;5;14m"
+	#define ANSI_TXT_RED ANSI_ESC "[38;5;1m"
+	#define ANSI_TXT_GRN ANSI_ESC "[38;5;2m"
+	#define ANSI_TXT_YLW ANSI_ESC "[38;5;3m"
+	#define ANSI_TXT_GRY ANSI_ESC "[38;5;8m"
+	#define ANSI_TXT_MGT ANSI_ESC "[38;5;13m"
+	#define ANSI_TXT_CYN ANSI_ESC "[38;5;14m"
+#else
+	#define ANSI_ESC
+	#define ANSI_CLR
+
+	#define ANSI_BKG_RED
+	#define ANSI_BKG_GRN
+	#define ANSI_BKG_YLW
+	#define ANSI_BKG_GRY
+	#define ANSI_BKG_MGT
+	#define ANSI_BKG_CYN
+
+	#define ANSI_TXT_RED
+	#define ANSI_TXT_GRN
+	#define ANSI_TXT_YLW
+	#define ANSI_TXT_GRY
+	#define ANSI_TXT_MGT
+	#define ANSI_TXT_CYN
+#endif
 
 #if defined(_MSC_VER)
 	#define CUSTOM_DEBUG_BREAK() __debugbreak()
@@ -42,11 +63,11 @@
 #endif
 
 #if !defined(CUSTOM_SHIPPING)
-	#define CUSTOM_MESSAGE(...)  { fprintf(stderr, __VA_ARGS__); }
-	#define CUSTOM_TRACE(...)    { fprintf(stderr, ANSI_TXT_GRY "[trc] " ANSI_CLR); CUSTOM_MESSAGE(__VA_ARGS__); fprintf(stderr, "\n"); }
-	#define CUSTOM_WARNING(...)  { fprintf(stderr, ANSI_TXT_YLW "[wrn] " ANSI_CLR); CUSTOM_MESSAGE(__VA_ARGS__); fprintf(stderr, "\n"); }
-	#define CUSTOM_ERROR(...)    { fprintf(stderr, ANSI_TXT_RED "[err] " ANSI_CLR); CUSTOM_MESSAGE(__VA_ARGS__); fprintf(stderr, "\n"); }
-	#define CUSTOM_CRITICAL(...) { fprintf(stderr, ANSI_BKG_RED "[crt] " ANSI_CLR); CUSTOM_MESSAGE(__VA_ARGS__); fprintf(stderr, "\n"); }
+	#define CUSTOM_MESSAGE(...)  do { printf(__VA_ARGS__); } while(0)
+	#define CUSTOM_TRACE(...)    do { printf(ANSI_TXT_GRY "[trc]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
+	#define CUSTOM_WARNING(...)  do { printf(ANSI_TXT_YLW "[wrn]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
+	#define CUSTOM_ERROR(...)    do { printf(ANSI_TXT_RED "[err]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
+	#define CUSTOM_CRITICAL(...) do { printf(ANSI_BKG_RED "[crt]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
 #else
 	#define CUSTOM_MESSAGE(...)
 	#define CUSTOM_TRACE(...)

@@ -34,6 +34,7 @@
 // API implementation
 //
 
+static void enable_virtual_terminal_processing();
 static bool platform_poll_events(void);
 static ULONGLONG platform_get_system_time(void);
 static void signal_handler(int value);
@@ -48,6 +49,8 @@ namespace system {
 
 void init(void) {
 	globals::init();
+
+	enable_virtual_terminal_processing();
 
 	signal(SIGABRT, signal_handler);
 	// signal(SIGFPE, SIG_DFL);
@@ -74,6 +77,22 @@ u64 get_time(void)
 //
 // platform implementation
 //
+
+static void enable_virtual_terminal_processing() {
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (handle == INVALID_HANDLE_VALUE) {
+		CUSTOM_WARNING("can't get std out handle");
+		return;
+	}
+	DWORD mode = 0;
+	if (!GetConsoleMode(handle, &mode)) {
+		CUSTOM_WARNING("can't get std out mode");
+		return;
+	}
+	if (!SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+		CUSTOM_WARNING("can't enable virtual terminal processing for std out");
+	}
+}
 
 static bool platform_poll_events(void) {
 	bool quit_request = false;

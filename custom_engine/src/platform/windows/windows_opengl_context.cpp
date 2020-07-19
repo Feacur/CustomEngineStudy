@@ -719,16 +719,16 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	if (!hrc) {
 		DWORD const error = GetLastError();
 		if (bits_are_set(error, ERROR_INVALID_VERSION_ARB)) {
-			CUSTOM_ASSERT(false, "'0x%x' failed to create context: invalid version", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid version", error);
 		}
 		else if (bits_are_set(error, ERROR_INVALID_PROFILE_ARB)) {
-			CUSTOM_ASSERT(false, "'0x%x' failed to create context: invalid profile", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid profile", error);
 		}
 		else if (bits_are_set(error, ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB)) {
-			CUSTOM_ASSERT(false, "'0x%x' failed to create context: incopatible device context", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: incopatible device context", error);
 		}
 		else {
-			CUSTOM_ASSERT(false, "'0x%x' failed to create context: unknown", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: unknown", error);
 		}
 		return NULL;
 	} LOG_LAST_ERROR();

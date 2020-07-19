@@ -1481,19 +1481,19 @@ static void opengl_message_callback(
 
 	CUSTOM_TRACE(
 		"OpenGL message '0x%x'"
-		"\n  %s"
-		"\n  - type:     %s"
-		"\n  - severity: %s"
-		"\n  - source:   %s",
+		ANSI_TXT_GRY "\n  - message:  " ANSI_CLR "%s"
+		ANSI_TXT_GRY "\n  - severity: " ANSI_CLR "%s"
+		ANSI_TXT_GRY "\n  - type:     " ANSI_CLR "%s"
+		ANSI_TXT_GRY "\n  - source:   " ANSI_CLR "%s",
 		id,
 		message,
-		type_string,
 		severity_string,
+		type_string,
 		source_string
 	);
 }
 
-#define CASE_IMPL(T) case T: CUSTOM_ASSERT(false, "'0x%x' OpenGL error: " #T, error); break
+#define CASE_IMPL(T) case T: CUSTOM_ASSERT(false, "OpenGL error '0x%x': " #T, error); break
 static void platform_consume_errors()
 {
 	GLenum error;
@@ -1506,7 +1506,7 @@ static void platform_consume_errors()
 			CASE_IMPL(GL_OUT_OF_MEMORY);
 			CASE_IMPL(GL_STACK_UNDERFLOW);
 			CASE_IMPL(GL_STACK_OVERFLOW);
-			default: CUSTOM_ASSERT(false, "'0x%x' OpenGL error: unknown", error);
+			default: CUSTOM_ASSERT(false, "OpenGL error '0x%x': unknown", error);
 		}
 	}
 }
