@@ -83,7 +83,18 @@ u64 get_time(void)
 //
 
 #if !defined(CUSTOM_SHIPPING)
-static void enable_virtual_terminal_processing() {
+static void PLATFORM_WINMAIN_SHOW_CONSOLE() {
+	if (AllocConsole()) {
+		FILE * file_stdout = NULL;
+		freopen_s(&file_stdout, "CONOUT$", "w", stdout);
+		
+		FILE * file_stdin = NULL;
+		freopen_s(&file_stdin, "CONIN$", "r", stdin);
+	}
+	// FreeConsole();
+}
+
+static void platform_enable_virtual_terminal_processing() {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (handle == INVALID_HANDLE_VALUE) {
 		CUSTOM_WARNING("can't get std out handle");
@@ -100,13 +111,15 @@ static void enable_virtual_terminal_processing() {
 }
 
 static void platform_setup_console() {
-	enable_virtual_terminal_processing();
+	platform_enable_virtual_terminal_processing();
 	SetConsoleOutputCP(65001);
 }
 #else
+#define PLATFORM_WINMAIN_SHOW_CONSOLE() (void)0
 static void platform_setup_console() {
 	if (HWND console = GetConsoleWindow()) {
 		ShowWindow(console, SW_HIDE);
+		// ShowWindow(console, SW_SHOW);
 	}
 }
 #endif
@@ -162,3 +175,25 @@ static void signal_handler(int value) {
 // 	(s32)GetDeviceCaps(device_context, HORZRES),
 // 	(s32)GetDeviceCaps(device_context, VERTRES)
 // };
+
+//
+//
+//
+
+#include <stdlib.h>
+
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/argc-argv-wargv
+// https://docs.microsoft.com/en-us/windows/win32/desktop-programming
+// https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain
+// https://docs.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
+
+extern int main(int argc, char * argv[]);
+int WINAPI WinMain(
+	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
+	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
+	PSTR      pCmdLine,      // contains the command-line arguments as an ANSI string.
+	int       nCmdShow       // is a flag that says whether the main application window will be minimized, maximized, or shown normally.
+) {
+	PLATFORM_WINMAIN_SHOW_CONSOLE();
+	return main(__argc, __argv);
+}

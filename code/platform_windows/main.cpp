@@ -42,7 +42,7 @@ void             process_raw_input(HWND window, LPARAM lParam);
 // Entry point
 //
 
-// https://docs.microsoft.com/ru-ru/windows/win32/desktop-programming
+// https://docs.microsoft.com/en-us/windows/win32/desktop-programming
 // https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain
 // https://docs.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
 

@@ -1,10 +1,10 @@
 #define FEATURE_RAW_INPUT
 
 // https://blog.molecular-matters.com/2011/09/05/properly-handling-keyboard-input/
-// https://docs.microsoft.com/ru-ru/windows/desktop/inputdev/about-raw-input
-// https://docs.microsoft.com/ru-ru/windows/desktop/inputdev/wm-input
-// https://docs.microsoft.com/ru-ru/windows/desktop/inputdev/using-raw-input
-// https://docs.microsoft.com/ru-ru/windows-hardware/drivers/hid/top-level-collections-opened-by-windows-for-system-use
+// https://docs.microsoft.com/en-us/windows/desktop/inputdev/about-raw-input
+// https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-input
+// https://docs.microsoft.com/en-us/windows/desktop/inputdev/using-raw-input
+// https://docs.microsoft.com/en-us/windows-hardware/drivers/hid/top-level-collections-opened-by-windows-for-system-use
 // http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html
 
 enum struct Raw_Input_Device_Usage : USHORT {
