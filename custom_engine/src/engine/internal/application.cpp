@@ -11,6 +11,10 @@
 #include "engine/impl/math_linear.h"
 
 #if !defined(CUSTOM_SHIPPING)
+	#define APP_DISPLAY_PERFORMANCE
+#endif
+
+#if defined(APP_DISPLAY_PERFORMANCE)
 	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision) {
 		float debug_ms = duration * 1000 / (float)precision;
 		float debug_fps = precision / (float)duration;

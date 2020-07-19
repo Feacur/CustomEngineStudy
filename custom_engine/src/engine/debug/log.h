@@ -2,6 +2,11 @@
 
 #include <stdio.h>
 
+#if !defined(CUSTOM_SHIPPING)
+	#define LOG_MESSAGE_ENABLED
+	#define LOG_ASSERT_ENABLED
+#endif
+
 // enable ANSI escape codes for CMD: set `HKEY_CURRENT_USER\Console\VirtualTerminalLevel` to `0x00000001`
 // use UTF-8: chcp 65001
 
@@ -62,24 +67,24 @@
 	#define CUSTOM_STATIC_ASSERT(statement) typedef char static_assertion_##__LINE__[(statement) ? 1 : -1]
 #endif
 
-#if !defined(CUSTOM_SHIPPING)
+#if defined(LOG_MESSAGE_ENABLED)
 	#define CUSTOM_MESSAGE(...)  do { printf(__VA_ARGS__); } while(0)
-	#define CUSTOM_TRACE(...)    do { printf(ANSI_TXT_GRY "[trc]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
-	#define CUSTOM_WARNING(...)  do { printf(ANSI_TXT_YLW "[wrn]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
-	#define CUSTOM_ERROR(...)    do { printf(ANSI_TXT_RED "[err]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
-	#define CUSTOM_CRITICAL(...) do { printf(ANSI_BKG_RED "[crt]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); printf("\n"); } while(0)
+	#define CUSTOM_TRACE(...)    do { CUSTOM_MESSAGE(ANSI_TXT_GRY "[trc]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
+	#define CUSTOM_WARNING(...)  do { CUSTOM_MESSAGE(ANSI_TXT_YLW "[wrn]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
+	#define CUSTOM_ERROR(...)    do { CUSTOM_MESSAGE(ANSI_TXT_RED "[err]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
+	#define CUSTOM_CRITICAL(...) do { CUSTOM_MESSAGE(ANSI_BKG_RED "[crt]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
 #else
-	#define CUSTOM_MESSAGE(...)
-	#define CUSTOM_TRACE(...)
-	#define CUSTOM_WARNING(...)
-	#define CUSTOM_ERROR(...)
-	#define CUSTOM_EXCEPTION(...)
+	#define CUSTOM_MESSAGE(...)  (void)0
+	#define CUSTOM_TRACE(...)    (void)0
+	#define CUSTOM_WARNING(...)  (void)0
+	#define CUSTOM_ERROR(...)    (void)0
+	#define CUSTOM_CRITICAL(...) (void)0
 #endif
 
-#if !defined(CUSTOM_SHIPPING) && 1
+#if defined(LOG_ASSERT_ENABLED)
 	#define CUSTOM_ASSERT(statement, ...) if(statement) { /**/ } else {\
 		CUSTOM_CRITICAL(__VA_ARGS__);\
-		CUSTOM_MESSAGE(ANSI_TXT_GRY "  at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
+		CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
 		CUSTOM_DEBUG_BREAK();\
 	}
 #else

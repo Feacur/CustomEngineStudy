@@ -13,6 +13,14 @@
 	#include <new>
 #endif
 
+#if !defined(CUSTOM_SHIPPING)
+	static void PLATFORM_CONSUME_ERRORS();
+	static void PLATFORM_INIT_DEBUG();
+#else
+	#define PLATFORM_CONSUME_ERRORS() (void)0
+	#define PLATFORM_INIT_DEBUG() (void)0
+#endif
+
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
@@ -193,11 +201,6 @@ struct Shader_Field
 	GLint location;
 };
 
-static void opengl_message_callback(
-	GLenum source, GLenum type, GLuint id, GLenum severity,
-	GLsizei length, glstring message, cmemory userParam
-);
-static void platform_consume_errors();
 static bool platform_verify_program(GLuint id, GLenum parameter);
 static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts);
 static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer);
@@ -211,19 +214,7 @@ static void consume_single_instruction(Bytecode const & bc);
 void init(void) {
 	glGetIntegerv(GL_MAJOR_VERSION, &version_major);
 	glGetIntegerv(GL_MINOR_VERSION, &version_minor);
-
-	#if !defined(GES_SHIPPING)
-	if (version_major == 4 && version_minor >= 3 || version_major > 4) {
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(opengl_message_callback, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
-		CUSTOM_TRACE("enabled OpenGL debug");
-	}
-	else {
-		CUSTOM_WARNING("OpenGL debug is unavailable");
-	}
-	#endif
+	PLATFORM_INIT_DEBUG();
 
 	// glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	// glDepthRangef(0.0f, 1.0f);
@@ -267,9 +258,7 @@ void shutdown(void) {
 void update(Bytecode const & bc) {
 	while (bc.offset < bc.buffer.count) {
 		consume_single_instruction(bc);
-		#if !defined(CUSTOM_SHIPPING)
-		platform_consume_errors();
-		#endif
+		PLATFORM_CONSUME_ERRORS();
 	}
 }
 
@@ -1429,7 +1418,7 @@ static void consume_single_instruction(Bytecode const & bc)
 // platform implementation
 //
 
-#if !defined(GES_SHIPPING)
+#if !defined(PLATFORM_INIT_DEBUG)
 static void opengl_message_callback(
 	GLenum source,
 	GLenum type,
@@ -1493,8 +1482,24 @@ static void opengl_message_callback(
 	);
 }
 
+static void PLATFORM_INIT_DEBUG()
+{
+	if (version_major == 4 && version_minor >= 3 || version_major > 4) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(opengl_message_callback, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		CUSTOM_TRACE("enabled OpenGL debug");
+	}
+	else {
+		CUSTOM_WARNING("OpenGL debug is unavailable");
+	}
+}
+#endif // !defined(PLATFORM_INIT_DEBUG)
+
+#if !defined(PLATFORM_CONSUME_ERRORS)
 #define CASE_IMPL(T) case T: CUSTOM_ASSERT(false, "OpenGL error '0x%x': " #T, error); break
-static void platform_consume_errors()
+static void PLATFORM_CONSUME_ERRORS()
 {
 	GLenum error;
 	while ((error = glGetError()) != GL_NO_ERROR) {
@@ -1511,8 +1516,7 @@ static void platform_consume_errors()
 	}
 }
 #undef CASE_IMPL
-
-#endif
+#endif // !defined(PLATFORM_CONSUME_ERRORS)
 
 // static void platform_get_shader_source(GLuint id, custom::Array<GLchar> & buffer)
 // {

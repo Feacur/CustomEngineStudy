@@ -33,6 +33,6 @@ void log_last_error(cstring source) {
 	else {
 		CUSTOM_ERROR("system error '0x%x': unknown", error);
 	}
-	CUSTOM_MESSAGE(ANSI_TXT_GRY "  at: %s" ANSI_CLR "\n", source);
+	CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: %s" ANSI_CLR "\n", source);
 }
 #endif

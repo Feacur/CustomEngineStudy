@@ -18,8 +18,8 @@ Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 	}
 #endif
 
-template<typename T, u16 capacity>
-Array_Fixed<T, capacity>::~Array_Fixed() = default;
+// template<typename T, u16 capacity>
+// Array_Fixed<T, capacity>::~Array_Fixed() = default;
 
 #if !defined(COLLECTION_COPY_WARNING)
 	template<typename T, u16 capacity>

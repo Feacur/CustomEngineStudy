@@ -54,7 +54,7 @@ struct Array_Fixed
 	#if !defined(COLLECTION_COPY_WARNING)
 		Array_Fixed(Array_Fixed const & source);
 	#endif
-	~Array_Fixed();
+	// ~Array_Fixed();
 
 	#if !defined(COLLECTION_COPY_WARNING)
 		Array_Fixed & operator=(Array_Fixed const & source);
