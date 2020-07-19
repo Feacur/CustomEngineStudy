@@ -30,11 +30,16 @@
 
 // https://github.com/Marzac/le3d/blob/master/engine/system_win.cpp
 
+// code page 65001: Unicode (UTF-8)
+// code page 1250:  ANSI Central European; Central European (Windows)
+// code page 1251:  ANSI Cyrillic; Cyrillic (Windows)
+// code page 1252:  ANSI Latin 1; Western European (Windows)
+
 //
 // API implementation
 //
 
-static void enable_virtual_terminal_processing();
+static void platform_setup_console();
 static bool platform_poll_events(void);
 static ULONGLONG platform_get_system_time(void);
 static void signal_handler(int value);
@@ -49,8 +54,7 @@ namespace system {
 
 void init(void) {
 	globals::init();
-
-	enable_virtual_terminal_processing();
+	platform_setup_console();
 
 	signal(SIGABRT, signal_handler);
 	// signal(SIGFPE, SIG_DFL);
@@ -78,6 +82,7 @@ u64 get_time(void)
 // platform implementation
 //
 
+#if !defined(CUSTOM_SHIPPING)
 static void enable_virtual_terminal_processing() {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (handle == INVALID_HANDLE_VALUE) {
@@ -93,6 +98,18 @@ static void enable_virtual_terminal_processing() {
 		CUSTOM_WARNING("can't enable virtual terminal processing for std out");
 	}
 }
+
+static void platform_setup_console() {
+	enable_virtual_terminal_processing();
+	SetConsoleOutputCP(65001);
+}
+#else
+static void platform_setup_console() {
+	if (HWND console = GetConsoleWindow()) {
+		ShowWindow(console, SW_HIDE);
+	}
+}
+#endif
 
 static bool platform_poll_events(void) {
 	bool quit_request = false;
