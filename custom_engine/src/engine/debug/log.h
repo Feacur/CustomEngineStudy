@@ -82,7 +82,7 @@
 #endif
 
 #if defined(LOG_ASSERT_ENABLED)
-	#define CUSTOM_ASSERT(statement, ...) if(statement) { /**/ } else {\
+	#define CUSTOM_ASSERT(statement, ...) if (statement) { /**/ } else {\
 		CUSTOM_CRITICAL(__VA_ARGS__);\
 		CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
 		CUSTOM_DEBUG_BREAK();\

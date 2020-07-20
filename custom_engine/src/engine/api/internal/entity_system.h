@@ -41,9 +41,9 @@ struct Ref_Pool : public Ref_Pool_Base
 	~Ref_Pool() = default;
 
 	// SoA data
-	Array<T> instances;
-	Array<u32> gens;
-	Array<b8> active;
+	Array<T> instances; // sparse; count indicates the last active object
+	Array<u32> gens;    // sparse; count indicates the last active object
+	Array<b8> active;   // sparse; count indicates the last active object
 
 	// in-between data
 	Array<u32> gaps;
@@ -78,7 +78,7 @@ struct Entity
 
 	// components
 	static Array<Ref_Pool_Base *> component_pools;
-	static Array<Plain_Ref> components;
+	static Array<Plain_Ref> components; // sparse
 
 	template<typename T> void add_component();
 	template<typename T> void remove_component();

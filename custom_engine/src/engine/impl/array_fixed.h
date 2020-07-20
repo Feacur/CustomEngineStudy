@@ -31,14 +31,26 @@ Array_Fixed<T, capacity>::Array_Fixed(u16 count)
 
 template<typename T, u16 capacity>
 inline T const & Array_Fixed<T, capacity>::operator[](u16 i) const {
-	// @Todo: warn of reading beyond count?
-	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	CUSTOM_ASSERT(i < count, "index exceeds capacity");
+	// CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
 
 template<typename T, u16 capacity>
 inline T & Array_Fixed<T, capacity>::operator[](u16 i) {
-	// @Todo: warn of reading beyond count?
+	CUSTOM_ASSERT(i < count, "index exceeds capacity");
+	// CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	return data[i];
+}
+
+template<typename T, u16 capacity>
+inline T const & Array_Fixed<T, capacity>::get(u16 i) const {
+	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	return data[i];
+}
+
+template<typename T, u16 capacity>
+inline T & Array_Fixed<T, capacity>::get(u16 i) {
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }

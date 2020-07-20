@@ -40,14 +40,26 @@ Array<T>::~Array() {
 
 template<typename T>
 inline T const & Array<T>::operator[](u32 i) const {
-	// @Todo: warn of reading beyond count?
-	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	CUSTOM_ASSERT(i < count, "index exceeds capacity");
+	// CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }
 
 template<typename T>
 inline T & Array<T>::operator[](u32 i) {
-	// @Todo: warn of reading beyond count?
+	CUSTOM_ASSERT(i < count, "index exceeds capacity");
+	// CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	return data[i];
+}
+
+template<typename T>
+inline T const & Array<T>::get(u32 i) const {
+	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
+	return data[i];
+}
+
+template<typename T>
+inline T & Array<T>::get(u32 i) {
 	CUSTOM_ASSERT(i < capacity, "index exceeds capacity");
 	return data[i];
 }

@@ -27,6 +27,8 @@ struct Array
 	#endif
 	T const & operator[](u32 i) const;
 	T & operator[](u32 i);
+	T const & get(u32 i) const;
+	T & get(u32 i);
 
 	void set_capacity(u32 number);
 	void ensure_capacity(u32 number);
@@ -48,6 +50,7 @@ template<typename T, u16 capacity>
 struct Array_Fixed
 {
 	T data[capacity];
+	constexpr static u16 const capacity = capacity;
 	u16 count;
 
 	Array_Fixed(u16 count = 0);
@@ -61,6 +64,8 @@ struct Array_Fixed
 	#endif
 	T const & operator[](u16 i) const;
 	T & operator[](u16 i);
+	T const & get(u16 i) const;
+	T & get(u16 i);
 
 	void push();
 	void push(T const & value);
