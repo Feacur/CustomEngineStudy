@@ -224,6 +224,9 @@ void init(void) {
 	if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	}
+	else {
+		CUSTOM_WARNING("no clip control");
+	}
 
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
@@ -744,50 +747,50 @@ static void consume_single_instruction(Bytecode const & bc)
 			GLenum const target = GL_TEXTURE_2D;
 
 			// -- allocate memory --
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glCreateTextures(target, 1, &resource->id);
 				glTextureStorage2D(
 					resource->id, 1,
 					get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
 					resource->size.x, resource->size.y
 				);
-			// }
-			// else {
-			// 	glGenTextures(1, &resource->id);
-			// 	glBindTexture(target, resource->id);
-			// 	if (version_major == 4 && version_minor >= 2 || version_major > 4) {
-			// 		glTexStorage2D(
-			// 			target, 1,
-			// 			get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
-			// 			resource->size.x, resource->size.y
-			// 		);
-			// 	}
-			// 	else {
-			// 		glTexImage2D(
-			// 			target, 0,
-			// 			get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
-			// 			resource->size.x, resource->size.y, 0,
-			// 			get_texture_data_format(resource->texture_type, resource->channels),
-			// 			get_texture_data_type(resource->texture_type, resource->data_type),
-			// 			NULL
-			// 		);
-			// 	}
-			// }
+			}
+			else {
+				glGenTextures(1, &resource->id);
+				glBindTexture(target, resource->id);
+				if (version_major == 4 && version_minor >= 2 || version_major > 4) {
+					glTexStorage2D(
+						target, 1,
+						get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
+						resource->size.x, resource->size.y
+					);
+				}
+				else {
+					glTexImage2D(
+						target, 0,
+						get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
+						resource->size.x, resource->size.y, 0,
+						get_texture_data_format(resource->texture_type, resource->channels),
+						get_texture_data_type(resource->texture_type, resource->data_type),
+						NULL
+					);
+				}
+			}
 
 			// -- chart memory --
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
 				glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
 				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
 				glTextureParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
-			// }
-			// else {
-			// 	// glBindTexture(target, resource->id);
-			// 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
-			// 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
-			// 	glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
-			// 	glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
-			// }
+			}
+			else {
+				// glBindTexture(target, resource->id);
+				glTexParameteri(target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
+				glTexParameteri(target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
+				glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
+				glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
+			}
 		} return;
 
 		case Instruction::Allocate_Sampler: {
@@ -804,6 +807,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			resource->wrap_x = *bc.read<Wrap_Mode>();
 			resource->wrap_y = *bc.read<Wrap_Mode>();
 
+			CUSTOM_ASSERT((version_major == 3 && version_minor >= 2 || version_major > 3), "samplers are not supported");
 			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				GLuint id;
 				glCreateSamplers(1, &id);
@@ -851,7 +855,7 @@ static void consume_single_instruction(Bytecode const & bc)
 			}
 
 			// -- allocate memory --
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				for (u16 i = 0; i < resource->buffers.count; ++i) {
 					opengl::Buffer & buffer = resource->buffers[i];
 					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
@@ -862,21 +866,21 @@ static void consume_single_instruction(Bytecode const & bc)
 						NULL, usage
 					);
 				}
-			// }
-			// else {
-			// 	for (u16 i = 0; i < resource->buffers.count; ++i) {
-			// 		opengl::Buffer & buffer = resource->buffers[i];
-			// 		GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-			// 		GLenum target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-			// 		glGenBuffers(1, &buffer.id);
-			// 		glBindBuffer(target, buffer.id);
-			// 		glBufferData(
-			// 			target,
-			// 			buffer.capacity * get_type_size(buffer.type),
-			// 			NULL, usage
-			// 		);
-			// 	}
-			// }
+			}
+			else {
+				for (u16 i = 0; i < resource->buffers.count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+					GLenum target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+					glGenBuffers(1, &buffer.id);
+					glBindBuffer(target, buffer.id);
+					glBufferData(
+						target,
+						buffer.capacity * get_type_size(buffer.type),
+						NULL, usage
+					);
+				}
+			}
 
 			// -- chart memory --
 			glGenVertexArrays(1, &resource->id);
@@ -887,7 +891,7 @@ static void consume_single_instruction(Bytecode const & bc)
 				glBindBuffer(target, buffer.id);
 			}
 
-			// if (version_major == 4 && version_minor >= 3 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 3 || version_major > 4) {
 				for (u16 i = 0; i < resource->buffers.count; ++i) {
 					opengl::Buffer & buffer = resource->buffers[i];
 					u16 element_size = get_type_size(buffer.type);
@@ -911,33 +915,33 @@ static void consume_single_instruction(Bytecode const & bc)
 						attrib_offset += attr.count * element_size;
 					}
 				}
-			// }
-			// else {
-			// 	for (u16 i = 0; i < resource->buffers.count; ++i) {
-			// 		opengl::Buffer & buffer = resource->buffers[i];
-			// 		u16 element_size = get_type_size(buffer.type);
-			// 		GLenum element_type = get_data_type(buffer.type);
-			// 
-			// 		GLsizei stride = 0;
-			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-			// 			opengl::Attribute & attr = buffer.attributes[attr_i];
-			// 			stride += attr.count * element_size;
-			// 		}
-			// 
-			// 		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-			// 		glBindBuffer(target, buffer.id);
-			// 		uptr attrib_offset = 0;
-			// 		for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-			// 			opengl::Attribute & attr = buffer.attributes[attr_i];
-			// 			glEnableVertexAttribArray(attr_i);
-			// 			glVertexAttribPointer(
-			// 				attr_i, attr.count, element_type, false,
-			// 				stride, (cmemory)attrib_offset
-			// 			);
-			// 			attrib_offset += attr.count * element_size;
-			// 		}
-			// 	}
-			// }
+			}
+			else {
+				for (u16 i = 0; i < resource->buffers.count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					u16 element_size = get_type_size(buffer.type);
+					GLenum element_type = get_data_type(buffer.type);
+			
+					GLsizei stride = 0;
+					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+						opengl::Attribute & attr = buffer.attributes[attr_i];
+						stride += attr.count * element_size;
+					}
+			
+					GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+					glBindBuffer(target, buffer.id);
+					uptr attrib_offset = 0;
+					for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+						opengl::Attribute & attr = buffer.attributes[attr_i];
+						glEnableVertexAttribArray(attr_i);
+						glVertexAttribPointer(
+							attr_i, attr.count, element_type, false,
+							stride, (cmemory)attrib_offset
+						);
+						attrib_offset += attr.count * element_size;
+					}
+				}
+			}
 		} return;
 
 		//
@@ -1026,14 +1030,14 @@ static void consume_single_instruction(Bytecode const & bc)
 			resource->unit = unit;
 			ogl.texture_units.get(unit) = asset_id;
 			++ogl.texture_units.count;
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				glBindTextureUnit(unit, resource->id);
-			// }
-			// else {
-			// 	GLenum const target = GL_TEXTURE_2D;
-			// 	glActiveTexture(GL_TEXTURE0 + unit);
-			// 	glBindTexture(target, resource->id);
-			// }
+			}
+			else {
+				GLenum const target = GL_TEXTURE_2D;
+				glActiveTexture(GL_TEXTURE0 + unit);
+				glBindTexture(target, resource->id);
+			}
 		} return;
 
 		case Instruction::Use_Sampler: {
@@ -1151,14 +1155,28 @@ static void consume_single_instruction(Bytecode const & bc)
 			CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id)
 			CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id)
 
-			glTextureSubImage2D(
-				resource->id,
-				0,
-				offset.x, offset.y, size.x, size.y,
-				get_texture_data_format(texture_type, channels),
-				get_texture_data_type(texture_type, data_type),
-				data
-			);
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+				glTextureSubImage2D(
+					resource->id,
+					0,
+					offset.x, offset.y, size.x, size.y,
+					get_texture_data_format(texture_type, channels),
+					get_texture_data_type(texture_type, data_type),
+					data
+				);
+			}
+			else {
+				GLenum const target = GL_TEXTURE_2D;
+				glBindTexture(target, resource->id);
+				glTexSubImage2D(
+					target,
+					0,
+					offset.x, offset.y, size.x, size.y,
+					get_texture_data_format(texture_type, channels),
+					get_texture_data_type(texture_type, data_type),
+					data
+				);
+			}
 		} return;
 		
 		case Instruction::Load_Mesh: {
@@ -1168,7 +1186,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			u8 buffers_count = *bc.read<u8>();
 
-			// if (version_major == 4 && version_minor >= 5 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 5 || version_major > 4) {
 				for (u16 i = 0; i < buffers_count; ++i) {
 					opengl::Buffer & buffer = resource->buffers[i];
 					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
@@ -1189,39 +1207,39 @@ static void consume_single_instruction(Bytecode const & bc)
 						in_buffer.data
 					);
 				}
-			// }
-			// else {
-			// 	if (ogl.active_mesh != asset_id) {
-			// 		glBindVertexArray(0);
-			// 		CUSTOM_WARNING("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
-			// 	}
-			// 	for (u16 i = 0; i < buffers_count; ++i) {
-			// 		opengl::Buffer & buffer = resource->buffers[i];
-			// 		GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-			// 		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-			// 
-			// 		u32 offset = *bc.read<u32>();
-			// 		DT_Array in_buffer = read_data_array(bc);
-			// 
-			// 		CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
-			// 		CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
-			// 
-			// 		GLsizeiptr type_size = get_type_size(in_buffer.type);
-			// 
-			// 		glBindBuffer(target, buffer.id);
-			// 		glBufferSubData(
-			// 			target,
-			// 			offset * type_size,
-			// 			in_buffer.count * type_size,
-			// 			in_buffer.data
-			// 		);
-			// 	}
-			// 	if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_id) {
-			// 		opengl::Mesh * active_mesh = &ogl.meshes.get(asset_id);
-			// 		glBindVertexArray(active_mesh->id);
-			// 		CUSTOM_WARNING("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
-			// 	}
-			// }
+			}
+			else {
+				if (ogl.active_mesh != asset_id) {
+					glBindVertexArray(0);
+					CUSTOM_WARNING("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
+				}
+				for (u16 i = 0; i < buffers_count; ++i) {
+					opengl::Buffer & buffer = resource->buffers[i];
+					GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+					GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			
+					u32 offset = *bc.read<u32>();
+					DT_Array in_buffer = read_data_array(bc);
+			
+					CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
+					CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
+			
+					GLsizeiptr type_size = get_type_size(in_buffer.type);
+			
+					glBindBuffer(target, buffer.id);
+					glBufferSubData(
+						target,
+						offset * type_size,
+						in_buffer.count * type_size,
+						in_buffer.data
+					);
+				}
+				if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_asset_id) {
+					opengl::Mesh * active_mesh = &ogl.meshes.get(asset_id);
+					glBindVertexArray(active_mesh->id);
+					CUSTOM_WARNING("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
+				}
+			}
 		} return;
 
 		case Instruction::Load_Uniform: {
@@ -1241,7 +1259,7 @@ static void consume_single_instruction(Bytecode const & bc)
 
 			// @Todo: cache units, then assign uniforms at once?
 
-			// if (version_major == 4 && version_minor >= 1 || version_major > 4) {
+			if (version_major == 4 && version_minor >= 1 || version_major > 4) {
 				switch (uniform.type) {
 					case Data_Type::texture_unit: {
 						static custom::Array<s32> units; units.count = 0;
@@ -1285,61 +1303,61 @@ static void consume_single_instruction(Bytecode const & bc)
 					case Data_Type::mat3: glProgramUniformMatrix3fv(resource->id, field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 					case Data_Type::mat4: glProgramUniformMatrix4fv(resource->id, field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 				}
-			// }
-			// else {
-			// 	if (ogl.active_program != asset_id) {
-			// 		glUseProgram(resource->id);
-			// 		CUSTOM_WARNING("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
-			// 	}
-			// 	switch (uniform.type) {
-			// 		case Data_Type::texture_unit: {
-			// 			static custom::Array<s32> units; units.count = 0;
-			// 			u32 const * texture_ids = (u32 *)uniform.data;
-			// 			for (u32 i = 0; i < uniform.count; ++i) {
-			// 				u32 texture_id = texture_ids[i];
-			// 				opengl::Texture const * texture = &ogl.textures.get(texture_id);
-			// 				CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
-			// 				units.push((s32)texture->unit);
-			// 			}
-			// 			glUniform1iv(field->location, units.count, units.data);
-			// 		} break;
-			// 		case Data_Type::sampler_unit: {
-			// 			static custom::Array<s32> units; units.count = 0;
-			// 			u32 const * sampler_ids = (u32 *)uniform.data;
-			// 			for (u32 i = 0; i < uniform.count; ++i) {
-			// 				u32 sampler_id = sampler_ids[i];
-			// 				opengl::Sampler const * sampler = &ogl.samplers.get(sampler_id);
-			// 				CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
-			// 				units.push((s32)sampler->unit);
-			// 			}
-			// 			glUniform1iv(field->location, units.count, units.data);
-			// 		} break;
-			// 		//
-			// 		case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;
-			// 		case Data_Type::vec2: glUniform2fv(field->location, uniform.count, (r32 *)uniform.data); break;
-			// 		case Data_Type::vec3: glUniform3fv(field->location, uniform.count, (r32 *)uniform.data); break;
-			// 		case Data_Type::vec4: glUniform4fv(field->location, uniform.count, (r32 *)uniform.data); break;
-			// 		//
-			// 		case Data_Type::s32:   glUniform1iv(field->location, uniform.count, (s32 *)uniform.data); break;
-			// 		case Data_Type::ivec2: glUniform2iv(field->location, uniform.count, (s32 *)uniform.data); break;
-			// 		case Data_Type::ivec3: glUniform3iv(field->location, uniform.count, (s32 *)uniform.data); break;
-			// 		case Data_Type::ivec4: glUniform4iv(field->location, uniform.count, (s32 *)uniform.data); break;
-			// 		//
-			// 		case Data_Type::u32:   glUniform1uiv(field->location, uniform.count, (u32 *)uniform.data); break;
-			// 		case Data_Type::uvec2: glUniform2uiv(field->location, uniform.count, (u32 *)uniform.data); break;
-			// 		case Data_Type::uvec3: glUniform3uiv(field->location, uniform.count, (u32 *)uniform.data); break;
-			// 		case Data_Type::uvec4: glUniform4uiv(field->location, uniform.count, (u32 *)uniform.data); break;
-			// 		//
-			// 		case Data_Type::mat2: glUniformMatrix2fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
-			// 		case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
-			// 		case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
-			// 	}
-			// 	if (ogl.active_program != asset_id && ogl.active_program != empty_id) {
-			// 		opengl::Program const * active_program = &ogl.programs.get(ogl.active_program);
-			// 		glUseProgram(active_program->id);
-			// 		CUSTOM_WARNING("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
-			// 	}
-			// }
+			}
+			else {
+				if (ogl.active_program != asset_id) {
+					glUseProgram(resource->id);
+					CUSTOM_WARNING("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
+				}
+				switch (uniform.type) {
+					case Data_Type::texture_unit: {
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * texture_ids = (u32 *)uniform.data;
+						for (u32 i = 0; i < uniform.count; ++i) {
+							u32 texture_id = texture_ids[i];
+							opengl::Texture const * texture = &ogl.textures.get(texture_id);
+							CUSTOM_ASSERT(texture->unit != empty_unit, "no texture unit bound for %d", texture_id);
+							units.push((s32)texture->unit);
+						}
+						glUniform1iv(field->location, units.count, units.data);
+					} break;
+					case Data_Type::sampler_unit: {
+						static custom::Array<s32> units; units.count = 0;
+						u32 const * sampler_ids = (u32 *)uniform.data;
+						for (u32 i = 0; i < uniform.count; ++i) {
+							u32 sampler_id = sampler_ids[i];
+							opengl::Sampler const * sampler = &ogl.samplers.get(sampler_id);
+							CUSTOM_ASSERT(sampler->unit != empty_unit, "no sampler unit bound for %d", sampler_id);
+							units.push((s32)sampler->unit);
+						}
+						glUniform1iv(field->location, units.count, units.data);
+					} break;
+					//
+					case Data_Type::r32:  glUniform1fv(field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec2: glUniform2fv(field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec3: glUniform3fv(field->location, uniform.count, (r32 *)uniform.data); break;
+					case Data_Type::vec4: glUniform4fv(field->location, uniform.count, (r32 *)uniform.data); break;
+					//
+					case Data_Type::s32:   glUniform1iv(field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec2: glUniform2iv(field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec3: glUniform3iv(field->location, uniform.count, (s32 *)uniform.data); break;
+					case Data_Type::ivec4: glUniform4iv(field->location, uniform.count, (s32 *)uniform.data); break;
+					//
+					case Data_Type::u32:   glUniform1uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec2: glUniform2uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec3: glUniform3uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+					case Data_Type::uvec4: glUniform4uiv(field->location, uniform.count, (u32 *)uniform.data); break;
+					//
+					case Data_Type::mat2: glUniformMatrix2fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+					case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+					case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
+				}
+				if (ogl.active_program != asset_id && ogl.active_program != empty_asset_id) {
+					opengl::Program const * active_program = &ogl.programs.get(ogl.active_program);
+					glUseProgram(active_program->id);
+					CUSTOM_WARNING("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
+				}
+			}
 		} return;
 
 		//
