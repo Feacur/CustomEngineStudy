@@ -10,15 +10,23 @@
 	#endif
 #endif
 
+// #define TIMER_ADJUST_PRECISION
+
+// https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-sleep
 // https://docs.microsoft.com/ru-ru/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
 // @Todo: scope each frame or scope entire runtime?
 static UINT system_timer_period;
-#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
-	CUSTOM_WARNING("failed to adjust timer precision");\
-}
-#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
-	CUSTOM_WARNING("failed to adjust timer precision");\
-}
+#if defined(TIMER_ADJUST_PRECISION)
+	#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
+		CUSTOM_WARNING("failed to adjust timer precision");\
+	}
+	#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
+		CUSTOM_WARNING("failed to adjust timer precision");\
+	}
+#else
+	#define TIME_BEGIN() (void)0
+	#define TIME_END() (void)0
+#endif
 
 #if !defined(CUSTOM_SHIPPING)
 	extern void log_last_error(cstring source);

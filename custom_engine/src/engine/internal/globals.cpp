@@ -3,7 +3,6 @@
 #include "engine/api/platform/system.h"
 #include "engine/api/platform/timer.h"
 #include "engine/api/rendering_settings.h"
-#include "engine/impl/array.h"
 
 namespace custom {
 

@@ -185,7 +185,13 @@ void destroy(Internal_Data * data) {
 void set_vsync(Internal_Data * data, s32 value)
 {
 	if (wgl.pixel_format.doublebuffer) {
-		data->is_vsync = platform_swap_interval(data->hdc, value);
+		if (platform_swap_interval(data->hdc, value)) {
+			data->is_vsync = value > 0;
+		}
+		else {
+			LOG_LAST_ERROR();
+			CUSTOM_WARNING("failed to set vsync");
+		}
 	}
 }
 
@@ -866,8 +872,9 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc) {
 }
 
 static bool platform_swap_interval(HDC hdc, s32 value) {
+	// https://www.khronos.org/registry/OpenGL/extensions/EXT/WGL_EXT_swap_control.txt
 	if (wgl.EXT_swap_control) {
 		return wgl.SwapIntervalEXT(value);
 	}
-	return false;
+	return true;
 }
