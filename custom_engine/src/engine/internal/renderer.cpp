@@ -7,6 +7,10 @@
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
 
+// https://developer.nvidia.com/content/depth-precision-visualized
+// https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
+#define REVERSED_Z
+
 namespace custom {
 namespace renderer {
 
@@ -46,20 +50,26 @@ static void init_defaults() {
 	bc->write((b8)1);
 
 	#if defined(REVERSED_Z)
+		bc->write(graphics::Instruction::Depth_Range);
+		bc->write(vec2{1, 0});
+
 		bc->write(graphics::Instruction::Depth_Comparison);
 		bc->write(graphics::Comparison::Greater);
 
-		bc->write(graphics::Instruction::Clear_Depth);
+		bc->write(graphics::Instruction::Depth_Clear);
 		bc->write(0.0f);
 	#else
+		bc->write(graphics::Instruction::Depth_Range);
+		bc->write(vec2{0, 1});
+
 		bc->write(graphics::Instruction::Depth_Comparison);
 		bc->write(graphics::Comparison::Less);
 
-		bc->write(graphics::Instruction::Clear_Depth);
+		bc->write(graphics::Instruction::Depth_Clear);
 		bc->write(1.0f);
 	#endif
 
-	bc->write(graphics::Instruction::Clear_Color);
+	bc->write(graphics::Instruction::Color_Clear);
 	bc->write(vec4{0, 0, 0, 0});
 
 	bc->write(graphics::Instruction::Blend_Mode);
@@ -67,6 +77,9 @@ static void init_defaults() {
 
 	bc->write(graphics::Instruction::Cull_Mode);
 	bc->write(graphics::Cull_Mode::Back);
+
+	bc->write(graphics::Instruction::Front_Face);
+	bc->write(graphics::Front_Face::CCW);
 }
 
 }}

@@ -214,18 +214,6 @@ void init(void) {
 
 	PLATFORM_INIT_DEBUG();
 
-	// glFrontFace(GL_CCW);
-
-	#if defined(REVERSED_Z)
-	if (ogl.version > 41) {
-		glDepthRangef(1.0f, 0.0f);
-	}
-	else {
-		glDepthRange(1.0, 0.0);
-	}
-	CUSTOM_TRACE("depth is reversed");
-	#endif
-
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 		CUSTOM_TRACE("clip set to `lower left` [0 .. 1]");
@@ -892,9 +880,24 @@ static void platform_Depth_Write(Bytecode const & bc) {
 	glDepthMask(value);
 }
 
+static void platform_Depth_Range(Bytecode const & bc) {
+	vec2 value = *bc.read<vec2>();
+	if (ogl.version >= COMPILE_VERSION(4, 1)) {
+		glDepthRangef(value.x, value.y);
+	}
+	else {
+		glDepthRange(value.x, value.y);
+	}
+}
+
 static void platform_Depth_Comparison(Bytecode const & bc) {
 	Comparison value = *bc.read<Comparison>();
 	glDepthFunc(get_comparison(value));
+}
+
+static void platform_Depth_Clear(Bytecode const & bc) {
+	r32 value = *bc.read<r32>();
+	glClearDepth(value);
 }
 
 static void platform_Color_Write(Bytecode const & bc) {
@@ -905,6 +908,11 @@ static void platform_Color_Write(Bytecode const & bc) {
 		bits_are_set(value, Color_Write::B),
 		bits_are_set(value, Color_Write::A)
 	);
+}
+
+static void platform_Color_Clear(Bytecode const & bc) {
+	vec4 value = *bc.read<vec4>();
+	glClearColor(value.x, value.y, value.z, value.w);
 }
 
 static void platform_Blend_Mode(Bytecode const & bc) {
@@ -960,14 +968,19 @@ static void platform_Cull_Mode(Bytecode const & bc) {
 	CUSTOM_ASSERT(false, "unknown cull mode %d", value);
 }
 
-static void platform_Clear_Color(Bytecode const & bc) {
-	vec4 value = *bc.read<vec4>();
-	glClearColor(value.x, value.y, value.z, value.w);
-}
+static void platform_Front_Face(Bytecode const & bc) {
+	Front_Face value = *bc.read<Front_Face>();
 
-static void platform_Clear_Depth(Bytecode const & bc) {
-	r32 value = *bc.read<r32>();
-	glClearDepth(value);
+	switch (value) {
+		case Front_Face::CW:
+			glFrontFace(GL_CW);
+			return;
+		case Front_Face::CCW:
+			glFrontFace(GL_CCW);
+			return;
+	}
+
+	CUSTOM_ASSERT(false, "unknown front face %d", value);
 }
 
 static void platform_Stencil_Read(Bytecode const & bc) {

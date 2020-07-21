@@ -5,10 +5,6 @@
 
 constexpr u32 const empty_asset_id = UINT32_MAX;
 
-// https://developer.nvidia.com/content/depth-precision-visualized
-// https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
-#define REVERSED_Z
-
 namespace custom {
 namespace graphics {
 
@@ -82,6 +78,14 @@ enum struct Cull_Mode : u8
 };
 UNDERLYING_TYPE_META(Cull_Mode, u8)
 IS_ENUM_META(Cull_Mode)
+
+enum struct Front_Face : u8
+{
+	CW,
+	CCW,
+};
+UNDERLYING_TYPE_META(Front_Face, u8)
+IS_ENUM_META(Front_Face)
 
 enum struct Texture_Type : u8
 {
