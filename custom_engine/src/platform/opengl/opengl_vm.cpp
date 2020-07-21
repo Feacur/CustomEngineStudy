@@ -21,6 +21,8 @@
 	#define PLATFORM_INIT_DEBUG() (void)0
 #endif
 
+#define COMPILE_VERSION(major, minor) (major * 10 + minor)
+
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
@@ -208,7 +210,7 @@ void init(void) {
 	GLint version_minor;
 	glGetIntegerv(GL_MAJOR_VERSION, &version_major);
 	glGetIntegerv(GL_MINOR_VERSION, &version_minor);
-	ogl.version = version_major * 10 + version_minor;
+	ogl.version = COMPILE_VERSION(version_major, version_minor);
 
 	PLATFORM_INIT_DEBUG();
 
@@ -219,7 +221,7 @@ void init(void) {
 	CUSTOM_TRACE("depth is reversed");
 	#endif
 
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 		CUSTOM_TRACE("clip set to `lower left` [0 .. 1]");
 	}
@@ -350,7 +352,7 @@ static void opengl_message_callback(
 
 static void PLATFORM_INIT_DEBUG()
 {
-	if (ogl.version >= 43) {
+	if (ogl.version >= COMPILE_VERSION(4, 3)) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(opengl_message_callback, nullptr);
@@ -1032,7 +1034,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	GLenum const target = GL_TEXTURE_2D;
 
 	// -- allocate memory --
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glCreateTextures(target, 1, &resource->id);
 		glTextureStorage2D(
 			resource->id, 1,
@@ -1043,7 +1045,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	else {
 		glGenTextures(1, &resource->id);
 		glBindTexture(target, resource->id);
-		if (ogl.version >= 42) {
+		if (ogl.version >= COMPILE_VERSION(4, 2)) {
 			glTexStorage2D(
 				target, 1,
 				get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
@@ -1063,7 +1065,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	}
 
 	// -- chart memory --
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glTextureParameteri(resource->id, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
 		glTextureParameteri(resource->id, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
 		glTextureParameteri(resource->id, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
@@ -1092,8 +1094,8 @@ static void platform_Allocate_Sampler(Bytecode const & bc) {
 	resource->wrap_x = *bc.read<Wrap_Mode>();
 	resource->wrap_y = *bc.read<Wrap_Mode>();
 
-	CUSTOM_ASSERT(ogl.version >= 32, "samplers are not supported");
-	if (ogl.version >= 45) {
+	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		GLuint id;
 		glCreateSamplers(1, &id);
 	}
@@ -1140,7 +1142,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	}
 
 	// -- allocate memory --
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
@@ -1176,7 +1178,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		glBindBuffer(target, buffer.id);
 	}
 
-	if (ogl.version >= 43) {
+	if (ogl.version >= COMPILE_VERSION(4, 3)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			u16 element_size = get_type_size(buffer.type);
@@ -1313,7 +1315,7 @@ static void platform_Use_Texture(Bytecode const & bc) {
 	resource->unit = unit;
 	ogl.texture_units.get(unit) = asset_id;
 	++ogl.texture_units.count;
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glBindTextureUnit(unit, resource->id);
 	}
 	else {
@@ -1418,7 +1420,7 @@ static void platform_Load_Texture(Bytecode const & bc) {
 	CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id)
 	CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id)
 
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glTextureSubImage2D(
 			resource->id,
 			0,
@@ -1449,7 +1451,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 
 	u8 buffers_count = *bc.read<u8>();
 
-	if (ogl.version >= 45) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < buffers_count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
@@ -1522,7 +1524,7 @@ static void platform_Load_Uniform(Bytecode const & bc) {
 
 	// @Todo: cache units, then assign uniforms at once?
 
-	if (ogl.version >= 41) {
+	if (ogl.version >= COMPILE_VERSION(4, 1)) {
 		switch (uniform.type) {
 			case Data_Type::texture_unit: {
 				static custom::Array<s32> units; units.count = 0;
