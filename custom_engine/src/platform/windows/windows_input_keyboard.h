@@ -48,11 +48,8 @@ static bool key_test_value(
 	return true;
 }
 
-#define KEY_TEST_RANGE(VALUE_BASE, MIN, MAX)\
-if (key_test_range(window, custom::Key_Code::VALUE_BASE, is_pressed, virtual_key_code, MIN, MAX)) { return; }
-
-#define KEY_TEST_VALUE(VALUE, EXPECTED)\
-if (key_test_value(window, custom::Key_Code::VALUE, is_pressed, virtual_key_code, EXPECTED)) { return; }
+#define KEY_TEST_RANGE(VALUE_BASE, MIN, MAX) if (key_test_range(window, custom::Key_Code::VALUE_BASE, is_pressed, virtual_key_code, MIN, MAX)) { return; }
+#define KEY_TEST_VALUE(VALUE, EXPECTED) if (key_test_value(window, custom::Key_Code::VALUE, is_pressed, virtual_key_code, EXPECTED)) { return; }
 
 static void keyboard_set_key(Window * window, WPARAM virtual_key_code, bool is_pressed) {
 	KEY_TEST_RANGE(D0,      '0', '9')

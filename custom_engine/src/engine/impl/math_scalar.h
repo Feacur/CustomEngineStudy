@@ -17,11 +17,11 @@ static constexpr r32 const deg_to_rad = 0.01745329251f; // pi / 180
 // thanks: https://github.com/rust-lang/rust/blob/master/src/libstd/sys_common/mod.rs
 
 #define MUL_DIV_IMPL(T)\
-constexpr inline T mul_div(T value, T numerator, T denominator) {\
-	T a = value / denominator;\
-	T b = value % denominator;\
-	return a * numerator + b * numerator / denominator;\
-}
+	constexpr inline T mul_div(T value, T numerator, T denominator) {\
+		T a = value / denominator;\
+		T b = value % denominator;\
+		return a * numerator + b * numerator / denominator;\
+	}\
 
 MUL_DIV_IMPL(s8)
 MUL_DIV_IMPL(s16)
@@ -41,26 +41,26 @@ MUL_DIV_IMPL(u48)
 //
 
 #define SIGN_NON_ZERO_IMPL(T)\
-constexpr inline T sign_non_zero(T value) {\
-	return (value < 0) ? -1 : 1;\
-}
+	constexpr inline T sign_non_zero(T value) {\
+		return (value < 0) ? -1 : 1;\
+	}\
 
 #define SIGN_IMPL(T)\
-constexpr inline T sign(T value) {\
-	if (value < 0) { return -1; }\
-	if (value > 0) { return 1; }\
-	return 0;\
-}
+	constexpr inline T sign(T value) {\
+		if (value < 0) { return -1; }\
+		if (value > 0) { return 1; }\
+		return 0;\
+	}\
 
 #define MIN_IMPL(T)\
-constexpr inline T min(T first, T second) {\
-	return (first < second) ? first : second;\
-}
+	constexpr inline T min(T first, T second) {\
+		return (first < second) ? first : second;\
+	}\
 
 #define MAX_IMPL(T)\
-constexpr inline T max(T first, T second) {\
-	return (first > second) ? first : second;\
-}
+	constexpr inline T max(T first, T second) {\
+		return (first > second) ? first : second;\
+	}\
 
 SIGN_NON_ZERO_IMPL(s8)
 SIGN_NON_ZERO_IMPL(s16)

@@ -13,9 +13,9 @@ inline u32 random_uint32(u32 * state) {
 }
 
 #define RANDOM_IN_RANGE_IMPL(T)\
-inline T random_in_range(u32 * state, T min, T max) {\
-	return min + (T)(random_uint32(state) % (u32)(max - min));\
-}
+	inline T random_in_range(u32 * state, T min, T max) {\
+		return min + (T)(random_uint32(state) % (u32)(max - min));\
+	}\
 
 RANDOM_IN_RANGE_IMPL(s8)
 RANDOM_IN_RANGE_IMPL(s16)

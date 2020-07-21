@@ -1329,66 +1329,66 @@ inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const &
 // @Todo: redefine them with templates?
 
 #define CLAMP_IMPL(T)\
-constexpr inline T clamp(T value, T low, T high) {\
-	return min(max(value, low), high);\
-}
+	constexpr inline T clamp(T value, T low, T high) {\
+		return min(max(value, low), high);\
+	}\
 
 #define MOVE_TOWARDS_CLAMPED_IMPL(T)\
-constexpr inline T move_towards_clamped(T from, T to, T delta) {\
-	return clamp(from + delta, from, to);\
-}
+	constexpr inline T move_towards_clamped(T from, T to, T delta) {\
+		return clamp(from + delta, from, to);\
+	}\
 
 #define VECTOR_MAGNITUDE_SQUARED_IMPL(T, S)\
-constexpr inline S magnitude_squared(T value) {\
-	return dot_product(value, value);\
-}
+	constexpr inline S magnitude_squared(T value) {\
+		return dot_product(value, value);\
+	}\
 
 #define VECTOR_MAGNITUDE_IMPL(T)\
-inline r32 magnitude(T value) {\
-	return square_root(magnitude_squared(value));\
-}
+	inline r32 magnitude(T value) {\
+		return square_root(magnitude_squared(value));\
+	}\
 
 #define VECTOR_NORMALIZE_IMPL(T)\
-inline T normalize(T value) {\
-	return value / magnitude(value);\
-}
+	inline T normalize(T value) {\
+		return value / magnitude(value);\
+	}\
 
 #define VECTOR_REFLECT_IMPL(T)\
-constexpr inline T reflect(T incident, T normal, r32 factor) {\
-	r32 incident_cosine = dot_product(incident, normal);\
-	r32 normal_factor   = incident_cosine * factor;\
-	return incident - normal * normal_factor;\
-}
+	constexpr inline T reflect(T incident, T normal, r32 factor) {\
+		r32 incident_cosine = dot_product(incident, normal);\
+		r32 normal_factor   = incident_cosine * factor;\
+		return incident - normal * normal_factor;\
+	}\
 
 #define VECTOR_REFRACT_IMPL(T)\
-inline T refract(T incident, T normal, r32 factor) {\
-	r32 incident_cosine = dot_product(incident, normal);\
-	r32 incident_sine_squared = 1 - incident_cosine * incident_cosine;\
-	r32 refracted_sine_squared = factor * factor * incident_sine_squared;\
-	if (refracted_sine_squared < 1) {\
-		r32 refracted_cosine = square_root(1 - refracted_sine_squared);\
-		r32 normal_factor = incident_cosine * factor + refracted_cosine;\
-		return incident * factor - normal * normal_factor;\
+	inline T refract(T incident, T normal, r32 factor) {\
+		r32 incident_cosine = dot_product(incident, normal);\
+		r32 incident_sine_squared = 1 - incident_cosine * incident_cosine;\
+		r32 refracted_sine_squared = factor * factor * incident_sine_squared;\
+		if (refracted_sine_squared < 1) {\
+			r32 refracted_cosine = square_root(1 - refracted_sine_squared);\
+			r32 normal_factor = incident_cosine * factor + refracted_cosine;\
+			return incident * factor - normal * normal_factor;\
+		}\
+		return {};\
 	}\
-	return {};\
-}
 
 #define VECTOR_MOVE_TOWARDS_CLAMPED_IMPL(T)\
-inline T move_towards_clamped(T from, T to, r32 delta) {\
-	T direction = to - from;\
-	r32 distance = magnitude(direction);\
-	if (delta <= 0) { return from; }\
-	if (delta >= distance) { return to; }\
-	return from + (direction / distance) * delta;\
-}
+	inline T move_towards_clamped(T from, T to, r32 delta) {\
+		T direction = to - from;\
+		r32 distance = magnitude(direction);\
+		if (delta <= 0) { return from; }\
+		if (delta >= distance) { return to; }\
+		return from + (direction / distance) * delta;\
+	}\
 
 #define VECTOR_CLAMP_MAGNITUDE_IMPL(T)\
-inline T clamp_magnitude(T value, r32 low, r32 high) {\
-	r32 length = magnitude(value);\
-	if (length < low) { return (value / length) * low; }\
-	if (length > high) { return (value / length) * high; }\
-	return value;\
-}
+	inline T clamp_magnitude(T value, r32 low, r32 high) {\
+		r32 length = magnitude(value);\
+		if (length < low) { return (value / length) * low; }\
+		if (length > high) { return (value / length) * high; }\
+		return value;\
+	}\
 
 CLAMP_IMPL(s32)
 CLAMP_IMPL(ivec2)

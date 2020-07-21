@@ -16,6 +16,7 @@
 	template void custom::Entity::remove_component<T>(void);\
 
 #include "components_registry_impl.h"
+#undef COMPONENT_IMPL
 
 void init_entity_components(void) {
 	// @Note: initialize runtime component-specific data
@@ -24,8 +25,10 @@ void init_entity_components(void) {
 	u32 component_types_count = 0;
 	#define COMPONENT_IMPL(T) T::offset = component_types_count++;
 	#include "components_registry_impl.h"
+	#undef COMPONENT_IMPL
 
 	custom::Entity::component_pools.set_capacity(component_types_count);
 	#define COMPONENT_IMPL(T) custom::Entity::component_pools.push(&T::pool);
 	#include "components_registry_impl.h"
+	#undef COMPONENT_IMPL
 }

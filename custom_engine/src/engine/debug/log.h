@@ -86,7 +86,8 @@
 		CUSTOM_CRITICAL(__VA_ARGS__);\
 		CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
 		CUSTOM_DEBUG_BREAK();\
-	}
+	}\
+
 #else
 	#define CUSTOM_ASSERT(statement, ...)
 #endif

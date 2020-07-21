@@ -19,10 +19,12 @@ static UINT system_timer_period;
 #if defined(TIMER_ADJUST_PRECISION)
 	#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
 		CUSTOM_WARNING("failed to adjust timer precision");\
-	}
+	}\
+
 	#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
 		CUSTOM_WARNING("failed to adjust timer precision");\
-	}
+	}\
+
 #else
 	#define TIME_BEGIN() (void)0
 	#define TIME_END() (void)0

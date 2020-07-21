@@ -261,7 +261,8 @@ static bool contains_full_word(cstring container, cstring value) {
 #define LOAD_OPENGL_FUNCTION(name, required) {\
 	wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);\
 	CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
-}
+}\
+
 static void load_opengl_functions() {
 	LOAD_OPENGL_FUNCTION(CreateContext,  true);
 	LOAD_OPENGL_FUNCTION(DeleteContext,  true);
@@ -357,7 +358,8 @@ static void load_extensions(HDC hdc) {
 #define ADD_ATTRIBUTE_KEY(key) {\
 	CUSTOM_ASSERT(count < cap, "attributes capacity reached");\
 	keys[count++] = key;\
-}
+}\
+
 static int add_atribute_keys(int * keys, int cap) {
 	ZeroMemory(keys, cap * sizeof(*keys));
 	int count = 0;

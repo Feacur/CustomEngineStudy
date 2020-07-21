@@ -83,9 +83,9 @@ static void process_message_mouse(Window * window, WPARAM wParam, LPARAM lParam,
 // }
 
 #define MOUSE_TEST_RAW_VALUE(VALUE, EXPECTED, is_pressed)\
-if (BITS_ARE_SET(flags, EXPECTED)) {\
-	mouse_set(window, custom::Mouse_Code::VALUE, is_pressed);\
-}
+	if (BITS_ARE_SET(flags, EXPECTED)) {\
+		mouse_set(window, custom::Mouse_Code::VALUE, is_pressed);\
+	}\
 
 static void raw_input_callback(Window * window, RAWMOUSE const & data) {
 	if (mouse_mode != Input_Mode::Raw) { return; }
