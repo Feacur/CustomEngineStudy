@@ -1,6 +1,8 @@
 #include "renderer.h"
 
 #include "engine/api/internal/loader.h"
+#include "engine/api/internal/renderer.h"
+#include "engine/api/graphics_params.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/math_linear.h"
 #include "engine/impl/bytecode.h"
@@ -23,111 +25,61 @@ void init(custom::Bytecode * bytecode) {
 }
 
 void update(Transform const & camera, mat4 const & projection) {
-	mat4 cam = to_matrix(camera.position, camera.rotation, camera.scale);
-	cam = mat_product(mat_inverse_transform(cam), projection);
+	mat4 camera_matrix = to_matrix(camera.position, camera.rotation, camera.scale);
+	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
 
 	// @Todo: prefetch all relevant components into a contiguous array?
-	for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
-		if (!custom::Entity::pool.check_active(i)) { continue; }
-		custom::Entity * e = &custom::Entity::pool.instances[i];
+	for (u32 i = 0; i < custom::Entity::entities.count; ++i) {
+		custom::Entity * entity = custom::Entity::get(i).operator->();
+		if (!entity) { continue; }
 
-		Visual * visual = e->get_component<Visual>().operator->();
+		Visual * visual = entity->get_component<Visual>().operator->();
 		if (!visual) { continue; }
-		if (visual->shader == empty_asset_id) { continue; }
 
-		Transform * transform = e->get_component<Transform>().operator->();
+		Transform * transform = entity->get_component<Transform>().operator->();
 		if (!transform) { continue; }
 
-		bc->write(custom::graphics::Instruction::Use_Shader);
-		bc->write(visual->shader);
-
-		if (visual->texture != empty_asset_id) {
-			bc->write(custom::graphics::Instruction::Use_Texture);
-			bc->write(visual->texture);
-
-			bc->write(custom::graphics::Instruction::Load_Uniform);
-			bc->write(visual->shader);
-			bc->write((u32)sandbox::Uniform::texture);
-			bc->write(custom::graphics::Data_Type::texture_unit);
-			bc->write((u32)1); bc->write(visual->texture);
-		}
-
-		mat4 mat = to_matrix(
+		mat4 transform_matrix = to_matrix(
 			transform->position, transform->rotation, transform->scale
 		);
 
-		bc->write(custom::graphics::Instruction::Load_Uniform);
-		bc->write(visual->shader);
-		bc->write((u32)sandbox::Uniform::view_proj);
-		bc->write(custom::graphics::Data_Type::mat4);
-		bc->write((u32)1); bc->write(cam);
+		//
 
-		bc->write(custom::graphics::Instruction::Load_Uniform);
-		bc->write(visual->shader);
-		bc->write((u32)sandbox::Uniform::transform);
-		bc->write(custom::graphics::Data_Type::mat4);
-		bc->write((u32)1); bc->write(mat);
-
-		if (visual->mesh != empty_asset_id) {
-			bc->write(custom::graphics::Instruction::Use_Mesh);
-			bc->write(visual->mesh);
-		}
-
+		custom::renderer::set_shader(visual->shader);
+		custom::renderer::set_texture(visual->shader, (u32)sandbox::Uniform::texture, visual->texture);
+		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::view_proj, camera_matrix);
+		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::transform, transform_matrix);
+		custom::renderer::set_mesh(visual->mesh);
 		bc->write(custom::graphics::Instruction::Draw);
 	}
 }
 
 void update2d(Transform2d const & camera, mat3 const & projection) {
-	mat3 cam = to_matrix(camera.position, camera.rotation, camera.scale);
-	cam = mat_product(mat_inverse_transform(cam), projection);
+	mat3 camera_matrix = to_matrix(camera.position, camera.rotation, camera.scale);
+	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
 
 	// @Todo: prefetch all relevant components into a contiguous array?
-	for (u32 i = 0; i < custom::Entity::pool.instances.count; ++i) {
-		if (!custom::Entity::pool.check_active(i)) { continue; }
-		custom::Entity * e = &custom::Entity::pool.instances[i];
+	for (u32 i = 0; i < custom::Entity::entities.count; ++i) {
+		custom::Entity * entity = custom::Entity::get(i).operator->();
+		if (!entity) { continue; }
 
-		Visual * visual = e->get_component<Visual>().operator->();
+		Visual * visual = entity->get_component<Visual>().operator->();
 		if (!visual) { continue; }
-		if (visual->shader == empty_asset_id) { continue; }
 
-		Transform2d * transform = e->get_component<Transform2d>().operator->();
+		Transform2d * transform = entity->get_component<Transform2d>().operator->();
 		if (!transform) { continue; }
 
-		bc->write(custom::graphics::Instruction::Use_Shader);
-		bc->write(visual->shader);
-
-		if (visual->texture != empty_asset_id) {
-			bc->write(custom::graphics::Instruction::Use_Texture);
-			bc->write(visual->texture);
-
-			bc->write(custom::graphics::Instruction::Load_Uniform);
-			bc->write(visual->shader);
-			bc->write((u32)sandbox::Uniform::texture);
-			bc->write(custom::graphics::Data_Type::texture_unit);
-			bc->write((u32)1); bc->write(visual->texture);
-		}
-
-		mat3 mat = to_matrix(
+		mat3 transform_matrix = to_matrix(
 			transform->position, transform->rotation, transform->scale
 		);
 
-		bc->write(custom::graphics::Instruction::Load_Uniform);
-		bc->write(visual->shader);
-		bc->write((u32)sandbox::Uniform::view_proj);
-		bc->write(custom::graphics::Data_Type::mat3);
-		bc->write((u32)1); bc->write(cam);
+		//
 
-		bc->write(custom::graphics::Instruction::Load_Uniform);
-		bc->write(visual->shader);
-		bc->write((u32)sandbox::Uniform::transform);
-		bc->write(custom::graphics::Data_Type::mat3);
-		bc->write((u32)1); bc->write(mat);
-
-		if (visual->mesh != empty_asset_id) {
-			bc->write(custom::graphics::Instruction::Use_Mesh);
-			bc->write(visual->mesh);
-		}
-
+		custom::renderer::set_shader(visual->shader);
+		custom::renderer::set_texture(visual->shader, (u32)sandbox::Uniform::texture, visual->texture);
+		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::view_proj, camera_matrix);
+		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::transform, transform_matrix);
+		custom::renderer::set_mesh(visual->mesh);
 		bc->write(custom::graphics::Instruction::Draw);
 	}
 }

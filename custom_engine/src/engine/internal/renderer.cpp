@@ -23,14 +23,51 @@ void init(Bytecode * bytecode) {
 	init_defaults();
 }
 
-void clear() {
-	bc->write(graphics::Instruction::Clear);
-	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
+void set_shader(u32 shader) {
+	if (shader == empty_asset_id) { return; }
+	bc->write(custom::graphics::Instruction::Use_Shader);
+	bc->write(shader);
+}
+
+void set_texture(u32 shader, u32 uniform, u32 texture) {
+	if (texture == empty_asset_id) { return; }
+	bc->write(custom::graphics::Instruction::Use_Texture);
+	bc->write(texture);
+
+	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(shader); bc->write(uniform);
+	bc->write(custom::graphics::Data_Type::texture_unit);
+	bc->write((u32)1); bc->write(texture);
+}
+
+void set_mesh(u32 mesh) {
+	if (mesh == empty_asset_id) { return; }
+	bc->write(custom::graphics::Instruction::Use_Mesh);
+	bc->write(mesh);
+}
+
+void set_matrix(u32 shader, u32 uniform, mat4 matrix) {
+	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(shader); bc->write(uniform);
+	bc->write(custom::graphics::Data_Type::mat4);
+	bc->write((u32)1); bc->write(matrix);
+}
+
+void set_matrix(u32 shader, u32 uniform, mat3 matrix) {
+	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(shader); bc->write(uniform);
+	bc->write(custom::graphics::Data_Type::mat3);
+	bc->write((u32)1); bc->write(matrix);
 }
 
 void viewport(ivec2 const & position, ivec2 const & size) {
 	bc->write(custom::graphics::Instruction::Viewport);
 	bc->write(position); bc->write(size);
+}
+
+void clear() {
+	bc->write(graphics::Instruction::Clear);
+	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
 }
 
 }}

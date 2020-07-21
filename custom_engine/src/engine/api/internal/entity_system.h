@@ -53,6 +53,7 @@ struct Ref_Pool : public Ref_Pool_Base
 	void destroy(Ref<T> ref);
 	bool check_active(u32 id) { return id && (id < active.count) && active[id]; };
 	bool contains(u32 id, u32 gen) { return check_active(id) && (gens[id] == gen); };
+	T * operator[](u32 id) { return check_active(id) ? get_instance(id) : NULL; }
 
 	// World API
 	void destroy_safe(u32 id, u32 gen) override;
@@ -79,7 +80,9 @@ struct Entity
 	// components
 	static Array<Ref_Pool_Base *> component_pools;
 	static Array<Plain_Ref> components; // sparse
+	static Array<Plain_Ref> entities;
 
+	static Ref<Entity> get(u32 index) { return {entities[index].id, entities[index].gen}; }
 	template<typename T> void add_component();
 	template<typename T> void remove_component();
 	template<typename T> bool has_component() const;
