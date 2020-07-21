@@ -96,8 +96,8 @@ void run(void) {
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 		CALL_SAFELY(app.callbacks.update, dt);
 
-		custom::graphics::update(app.loader_gbc);
-		custom::graphics::update(app.renderer_gbc);
+		custom::graphics::consume(app.loader_gbc);
+		custom::graphics::consume(app.renderer_gbc);
 		custom::window::update(app.window);
 
 		// clean up after the frame

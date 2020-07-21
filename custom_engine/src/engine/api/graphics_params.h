@@ -160,53 +160,9 @@ IS_ENUM_META(Mesh_Access)
 enum struct Instruction : u8
 {
 	None,
-	//
-	Init_Uniforms,
-	//
-	Viewport,
-	Clear,
-	Depth_Read,
-	Depth_Write,
-	Depth_Comparison,
-	Color_Write,
-	Stencil_Read,
-	Stencil_Write,
-	Stencil_Comparison,
-	Stencil_Operation,
-	Stencil_Mask,
-	Blend_Mode,
-	Cull_Mode,
-	//
-	Allocate_Shader,
-	Allocate_Texture,
-	Allocate_Sampler,
-	Allocate_Mesh,
-	//
-	Free_Shader,
-	Free_Texture,
-	Free_Sampler,
-	Free_Mesh,
-	//
-	Use_Shader,
-	Use_Texture,
-	Use_Sampler,
-	Use_Mesh,
-	//
-	Suspend_Texture,
-	Suspend_Sampler,
-	//
-	Load_Shader,
-	Load_Texture,
-	Load_Mesh,
-	Load_Uniform,
-	//
-	Set_Mesh_Buffer_Count,
-	Draw,
-	Overlay,
-	//
-	Message_Pointer,
-	Message_Inline,
-	//
+	#define INSTRUCTION_IMPL(T) T,
+	#include "instructions_registry_impl.h"
+	#undef INSTRUCTION_IMPL
 	Last,
 };
 UNDERLYING_TYPE_META(Instruction, u8)
