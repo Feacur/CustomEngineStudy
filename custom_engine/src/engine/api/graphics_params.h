@@ -165,6 +165,22 @@ enum struct Mesh_Access : u8
 UNDERLYING_TYPE_META(Mesh_Access, u8)
 IS_ENUM_META(Mesh_Access)
 
+enum struct Clip_Origin : u8
+{
+	Lower_Left,
+	Upper_Left,
+};
+UNDERLYING_TYPE_META(Clip_Origin, u8)
+IS_ENUM_META(Clip_Origin)
+
+enum struct Clip_Depth : u8
+{
+	NegOne_One,
+	Zero_One,
+};
+UNDERLYING_TYPE_META(Clip_Depth, u8)
+IS_ENUM_META(Clip_Depth)
+
 enum struct Instruction : u8
 {
 	None,

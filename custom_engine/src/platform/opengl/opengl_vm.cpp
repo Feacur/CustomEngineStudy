@@ -214,14 +214,6 @@ void init(void) {
 
 	PLATFORM_INIT_DEBUG();
 
-	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-		CUSTOM_TRACE("clip set to `lower left` [0 .. 1]");
-	}
-	else {
-		CUSTOM_WARNING("no clip control");
-	}
-
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
 	// CUSTOM_TRACE("texture/sampler units available: %d", max_combined_texture_image_units);
@@ -580,7 +572,7 @@ namespace graphics {
 
 static GLenum get_comparison(Comparison value) {
 	switch (value) {
-		case Comparison::False:   return GL_NONE;
+		case Comparison::False:   return GL_NEVER;
 		case Comparison::Less:    return GL_LESS;
 		case Comparison::LEqual:  return GL_LEQUAL;
 		case Comparison::Equal:   return GL_EQUAL;
@@ -590,6 +582,43 @@ static GLenum get_comparison(Comparison value) {
 		case Comparison::True:    return GL_ALWAYS;
 	}
 	CUSTOM_ASSERT(false, "unknown comparison %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_clip_origin(Clip_Origin value) {
+	switch (value) {
+		case Clip_Origin::Lower_Left: return GL_LOWER_LEFT;
+		case Clip_Origin::Upper_Left: return GL_UPPER_LEFT;
+	}
+	CUSTOM_ASSERT(false, "unknown clip origin %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_clip_depth(Clip_Depth value) {
+	switch (value) {
+		case Clip_Depth::NegOne_One: return GL_NEGATIVE_ONE_TO_ONE;
+		case Clip_Depth::Zero_One: return GL_ZERO_TO_ONE;
+	}
+	CUSTOM_ASSERT(false, "unknown clip depth %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_cull_mode(Cull_Mode value) {
+	switch (value) {
+		case Cull_Mode::Back:  return GL_BACK;
+		case Cull_Mode::Front: return GL_FRONT;
+		case Cull_Mode::Both:  return GL_FRONT_AND_BACK;
+	}
+	CUSTOM_ASSERT(false, "unknown cull mode %d", value);
+	return GL_NONE;
+}
+
+static GLenum get_front_face(Front_Face value) {
+	switch (value) {
+		case Front_Face::CW:  return GL_CW;
+		case Front_Face::CCW: return GL_CCW;
+	}
+	CUSTOM_ASSERT(false, "unknown front face %d", value);
 	return GL_NONE;
 }
 
@@ -897,7 +926,12 @@ static void platform_Depth_Comparison(Bytecode const & bc) {
 
 static void platform_Depth_Clear(Bytecode const & bc) {
 	r32 value = *bc.read<r32>();
-	glClearDepth(value);
+	if (ogl.version >= COMPILE_VERSION(4, 1)) {
+		glClearDepthf(value);
+	}
+	else {
+		glClearDepth(value);
+	}
 }
 
 static void platform_Color_Write(Bytecode const & bc) {
@@ -920,11 +954,10 @@ static void platform_Blend_Mode(Bytecode const & bc) {
 
 	if (value == Blend_Mode::Opaque) {
 		glDisable(GL_BLEND);
-	}
-	else {
-		glEnable(GL_BLEND);
+		return;
 	}
 
+	glEnable(GL_BLEND);
 	switch (value) {
 		case Blend_Mode::Alpha:
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -939,7 +972,6 @@ static void platform_Blend_Mode(Bytecode const & bc) {
 			// glBlendFunc(GL_ZERO, GL_SRC_COLOR); // just the same
 			return;
 	}
-
 	CUSTOM_ASSERT(false, "unknown blend mode %d", value);
 }
 
@@ -948,39 +980,29 @@ static void platform_Cull_Mode(Bytecode const & bc) {
 
 	if (value == Cull_Mode::None) {
 		glDisable(GL_CULL_FACE);
-	}
-	else {
-		glEnable(GL_CULL_FACE);
+		return;
 	}
 
-	switch (value) {
-		case Cull_Mode::Back:
-			glCullFace(GL_BACK);
-			return;
-		case Cull_Mode::Front:
-			glCullFace(GL_FRONT);
-			return;
-		case Cull_Mode::Both:
-			glCullFace(GL_FRONT_AND_BACK);
-			return;
-	}
-
-	CUSTOM_ASSERT(false, "unknown cull mode %d", value);
+	glEnable(GL_CULL_FACE);
+	glCullFace(get_cull_mode(value));
 }
 
 static void platform_Front_Face(Bytecode const & bc) {
 	Front_Face value = *bc.read<Front_Face>();
+	glFrontFace(get_front_face(value));
+}
 
-	switch (value) {
-		case Front_Face::CW:
-			glFrontFace(GL_CW);
-			return;
-		case Front_Face::CCW:
-			glFrontFace(GL_CCW);
-			return;
+static void platform_Clip_Control(Bytecode const & bc) {
+	Clip_Origin origin = *bc.read<Clip_Origin>();
+	Clip_Depth depth = *bc.read<Clip_Depth>();
+
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		glClipControl(get_clip_origin(origin), get_clip_depth(depth));
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	}
-
-	CUSTOM_ASSERT(false, "unknown front face %d", value);
+	else {
+		CUSTOM_WARNING("no clip control");
+	}
 }
 
 static void platform_Stencil_Read(Bytecode const & bc) {

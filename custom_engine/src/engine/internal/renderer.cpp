@@ -80,6 +80,10 @@ static void init_defaults() {
 
 	bc->write(graphics::Instruction::Front_Face);
 	bc->write(graphics::Front_Face::CCW);
+
+	bc->write(graphics::Instruction::Clip_Control);
+	bc->write(graphics::Clip_Origin::Lower_Left);
+	bc->write(graphics::Clip_Depth::Zero_One);
 }
 
 }}
