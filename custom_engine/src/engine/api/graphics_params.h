@@ -5,6 +5,9 @@
 
 constexpr u32 const empty_asset_id = UINT32_MAX;
 
+// https://developer.nvidia.com/content/depth-precision-visualized
+#define REVERSED_Z
+
 namespace custom {
 namespace graphics {
 

@@ -104,8 +104,13 @@ static void update_camera_projection() {
 	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
 	camera.projection =
+		#if defined(REVERSED_Z)
+		mat_persp({scale, scale * aspect}, 20, 0.1f);
+		// mat_ortho({scale, scale * aspect}, 20, 0);
+		#else
 		mat_persp({scale, scale * aspect}, 0.1f, 20);
 		// mat_ortho({scale, scale * aspect}, 0, 20);
+		#endif
 	// Camera2d camera2d = {
 	// 	{{0, 0}, complex_from_radians(0), {1, 1}},
 	// 	mat_position_scale(vec2{0, 0}, vec2{scale, scale * aspect})
