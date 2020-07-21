@@ -217,7 +217,12 @@ void init(void) {
 	// glFrontFace(GL_CCW);
 
 	#if defined(REVERSED_Z)
-	glDepthRangef(1.0f, 0.0f);
+	if (ogl.version > 41) {
+		glDepthRangef(1.0f, 0.0f);
+	}
+	else {
+		glDepthRange(1.0, 0.0);
+	}
 	CUSTOM_TRACE("depth is reversed");
 	#endif
 

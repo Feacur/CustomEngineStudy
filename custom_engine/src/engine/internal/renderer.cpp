@@ -45,8 +45,22 @@ static void init_defaults() {
 	bc->write(graphics::Instruction::Depth_Write);
 	bc->write((b8)1);
 
-	bc->write(graphics::Instruction::Depth_Comparison);
-	bc->write(graphics::Comparison::Less);
+	#if defined(REVERSED_Z)
+		bc->write(graphics::Instruction::Depth_Comparison);
+		bc->write(graphics::Comparison::Greater);
+
+		bc->write(graphics::Instruction::Clear_Depth);
+		bc->write(0.0f);
+	#else
+		bc->write(graphics::Instruction::Depth_Comparison);
+		bc->write(graphics::Comparison::Less);
+
+		bc->write(graphics::Instruction::Clear_Depth);
+		bc->write(1.0f);
+	#endif
+
+	bc->write(graphics::Instruction::Clear_Color);
+	bc->write(vec4{0, 0, 0, 0});
 
 	bc->write(graphics::Instruction::Blend_Mode);
 	bc->write(graphics::Blend_Mode::Alpha);

@@ -6,6 +6,7 @@
 constexpr u32 const empty_asset_id = UINT32_MAX;
 
 // https://developer.nvidia.com/content/depth-precision-visualized
+// https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
 #define REVERSED_Z
 
 namespace custom {
