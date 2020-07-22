@@ -12,8 +12,6 @@ Bytecode::Bytecode()
 	, offset(0)
 { }
 
-Bytecode::~Bytecode() = default;
-
 void Bytecode::reset() {
 	buffer.count = 0;
 	offset = 0;

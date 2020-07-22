@@ -14,10 +14,10 @@ struct Ref
 
 	Ref();
 	Ref(u32 id, u32 gen);
-	Ref(T const * instance);
-	~Ref() = default;
+	// Ref(T const * instance);
+	// ~Ref() = default;
 
-	Ref<T> & operator=(T const * instance);
+	// Ref<T> & operator=(T const * instance);
 	bool operator==(Ref<T> const & other);
 	T * operator->();
 };

@@ -44,14 +44,8 @@ struct Program
 {
 	GLuint id;
 	bool allocated;
-	// custom::Array<Field> attributes;
-	custom::Array<Field> uniforms;
-
-	~Program() {
-		if (!allocated) { return; }
-		// attributes.~Array();v
-		uniforms.~Array();
-	}
+	// custom::Array_Fixed<Field, 4> attributes;
+	custom::Array_Fixed<Field, 10> uniforms;
 };
 template struct custom::Array<Program>;
 
@@ -93,11 +87,7 @@ struct Buffer
 	custom::graphics::Mesh_Access access;
 	custom::graphics::Data_Type type;
 	u32 capacity, count;
-	custom::Array<Attribute> attributes;
-
-	~Buffer() {
-		attributes.~Array();
-	}
+	custom::Array_Fixed<Attribute, 4> attributes;
 };
 template struct custom::Array<Buffer>;
 
@@ -107,17 +97,13 @@ struct Mesh
 	bool allocated;
 	custom::Array_Fixed<Buffer, 2> buffers;
 	u8 index_buffer;
-
-	~Mesh() {
-		if (!allocated) { return; }
-		for (u16 i = 0; i < buffers.count; ++i) { buffers[i].~Buffer(); }
-		// buffers.~Array();
-	}
 };
 template struct custom::Array<Mesh>;
 
 struct Data
 {
+	~Data() = default;
+
 	u32 version;
 
 	custom::Array<u32>  uniform_names_offsets;
@@ -132,12 +118,6 @@ struct Data
 	custom::Array<Texture> textures; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Sampler> samplers; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // sparse; count indicates the number of GPU allocated objects
-
-	~Data() {
-		// @Note: these arrays are sparse, thus [count - 1] doesn't signify the last active index
-		for (u32 i = 0; i < programs.capacity; ++i) { programs.get(i).~Program(); } programs.~Array();
-		for (u32 i = 0; i < meshes.capacity; ++i)   { meshes.get(i).~Mesh(); }      meshes.~Array();
-	}
 };
 
 }
@@ -156,7 +136,7 @@ static u32 find_uniform_id(cstring value) {
 
 static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
 	opengl::Program const * program = &ogl.programs.get(program_id);
-	for (u32 i = 0; i < program->uniforms.count; ++i) {
+	for (u16 i = 0; i < program->uniforms.count; ++i) {
 		if (program->uniforms[i].id == uniform_id) {
 			return &program->uniforms[i];
 		}
@@ -1172,8 +1152,9 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		buffer->count     = *bc.read<u32>();
 
 		u32 attr_count = *bc.read<u32>();
-		buffer->attributes.set_capacity(attr_count);
-		for (u32 attr_i = 0; attr_i < attr_count; ++attr_i) {
+		// buffer->attributes.set_capacity(attr_count);
+		CUSTOM_ASSERT(attr_count <= buffer->attributes.capacity, "too many attributes");
+		for (u16 attr_i = 0; attr_i < attr_count; ++attr_i) {
 			buffer->attributes.push();
 			opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
 			attribute->count = *bc.read<u8>();
@@ -1425,12 +1406,13 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	// 	// field->location = field_buffer.location;
 	// }
 
-	GLint uniforms_capacity;
-	glGetProgramiv(resource->id, GL_ACTIVE_UNIFORMS, &uniforms_capacity);
-	resource->uniforms.set_capacity(uniforms_capacity);
-	for (GLint i = 0; i < uniforms_capacity; ++i) {
+	GLint uniforms_count;
+	glGetProgramiv(resource->id, GL_ACTIVE_UNIFORMS, &uniforms_count);
+	CUSTOM_ASSERT(uniforms_count <= resource->uniforms.capacity, "too many uniforms");
+	// resource->uniforms.set_capacity(uniforms_count);
+	for (GLint i = 0; i < uniforms_count; ++i) {
 		resource->uniforms.push();
-		opengl::Field * field = new (&resource->uniforms[i]) opengl::Field;
+		opengl::Field * field = new (&resource->uniforms[(u16)i]) opengl::Field;
 		platform_get_active_uniform(resource->id, i, field_buffer);
 		// CUSTOM_TRACE(
 		// 	"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",

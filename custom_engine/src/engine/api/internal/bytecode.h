@@ -9,7 +9,7 @@ struct Bytecode
 	mutable u32 offset;
 
 	Bytecode();
-	~Bytecode();
+	~Bytecode() = default;
 
 	void reset();
 

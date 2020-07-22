@@ -34,22 +34,22 @@ Ref<T>::Ref(u32 id, u32 gen)
 	, gen(gen)
 { }
 
-template<typename T>
-Ref<T>::Ref(T const * instance) {
-	operator=(instance);
-}
+// template<typename T>
+// Ref<T>::Ref(T const * instance) {
+// 	operator=(instance);
+// }
 
-template<typename T>
-Ref<T> & Ref<T>::operator=(T const * instance) {
-	if (instance) {
-		id = T::pool.get_id(instance);
-		gen = T::pool.get_gen(id);
-	}
-	else {
-		id = empty_ref_id;
-	}
-	return *this;
-}
+// template<typename T>
+// Ref<T> & Ref<T>::operator=(T const * instance) {
+// 	if (instance) {
+// 		id = T::pool.get_id(instance);
+// 		gen = T::pool.get_gen(id);
+// 	}
+// 	else {
+// 		id = empty_ref_id;
+// 	}
+// 	return *this;
+// }
 
 template<typename T>
 bool Ref<T>::operator==(Ref<T> const & other) {
