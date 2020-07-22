@@ -19,7 +19,7 @@ Array<void_ref_func *> Entity::component_destructors;
 // pool
 //
 
-Ref Gen_Pool::create() {
+Ref Gen_Pool::create(void) {
 	u32 id;
 	if (gaps.count > 0) {
 		id = gaps[gaps.count - 1];
@@ -48,7 +48,7 @@ void Gen_Pool::destroy(Ref const & ref) {
 //
 //
 
-Entity Entity::create() {
+Entity Entity::create(void) {
 	Ref entity = Entity::pool.create();
 	instances.push({entity.id, entity.gen});
 	return {entity.id, entity.gen};

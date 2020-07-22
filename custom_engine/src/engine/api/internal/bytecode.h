@@ -8,10 +8,10 @@ struct Bytecode
 	Array<u8> buffer;
 	mutable u32 offset;
 
-	Bytecode();
-	~Bytecode() = default;
+	Bytecode(void);
+	~Bytecode(void) = default;
 
-	void reset();
+	void reset(void);
 
 	template<typename T>
 	void write(T const * data, u32 count);

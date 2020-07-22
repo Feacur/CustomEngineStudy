@@ -83,7 +83,7 @@ u64 get_time(void)
 //
 
 #if !defined(CUSTOM_SHIPPING)
-static void PLATFORM_WINMAIN_SHOW_CONSOLE() {
+static void PLATFORM_WINMAIN_SHOW_CONSOLE(void) {
 	if (AllocConsole()) {
 		FILE * file_stdout = NULL;
 		freopen_s(&file_stdout, "CONOUT$", "w", stdout);
@@ -94,7 +94,7 @@ static void PLATFORM_WINMAIN_SHOW_CONSOLE() {
 	// FreeConsole();
 }
 
-static void platform_enable_virtual_terminal_processing() {
+static void platform_enable_virtual_terminal_processing(void) {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (handle == INVALID_HANDLE_VALUE) {
 		CUSTOM_WARNING("can't get std out handle");
@@ -110,13 +110,13 @@ static void platform_enable_virtual_terminal_processing() {
 	}
 }
 
-static void platform_setup_console() {
+static void platform_setup_console(void) {
 	platform_enable_virtual_terminal_processing();
 	SetConsoleOutputCP(65001);
 }
 #else
 #define PLATFORM_WINMAIN_SHOW_CONSOLE() (void)0
-static void platform_setup_console() {
+static void platform_setup_console(void) {
 	if (HWND console = GetConsoleWindow()) {
 		ShowWindow(console, SW_HIDE);
 		// ShowWindow(console, SW_SHOW);

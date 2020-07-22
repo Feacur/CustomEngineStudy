@@ -421,7 +421,7 @@ u32 create_cube(u32 local_id) {
 namespace custom {
 namespace loader {
 
-static void init_uniforms() {
+static void init_uniforms(void) {
 	u32 const count = asset::uniform::count;
 
 	bc->write(graphics::Instruction::Init_Uniforms);

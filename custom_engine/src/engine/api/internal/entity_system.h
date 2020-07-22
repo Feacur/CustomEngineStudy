@@ -15,7 +15,7 @@ struct Ref
 template<typename T>
 struct RefT : public Ref
 {
-	inline T * get_instance() { return T::pool.get_instance(*this); }
+	inline T * get_instance(void) { return T::pool.get_instance(*this); }
 };
 
 //
@@ -28,13 +28,13 @@ typedef VOID_REF_FUNC(void_ref_func);
 // @Todo: factor out sparse array functionality?
 struct Gen_Pool
 {
-	~Gen_Pool() = default;
+	~Gen_Pool(void) = default;
 
 	Array<u32> gens; // sparse; count indicates the last active object
 	Array<u32> gaps;
 
 	// API
-	Ref create();
+	Ref create(void);
 	void destroy(Ref const & ref);
 	inline bool contains(Ref const & ref) { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
 };
@@ -45,13 +45,13 @@ struct Gen_Pool
 template<typename T>
 struct Ref_Pool
 {
-	~Ref_Pool() = default;
+	~Ref_Pool(void) = default;
 
 	Gen_Pool pool;
 	Array<T> instances; // sparse; count indicates the last active object
 
 	// API
-	RefT<T> create();
+	RefT<T> create(void);
 	void destroy(Ref const & ref);
 	inline bool contains(Ref const & ref) { return pool.contains(ref); };
 
@@ -70,9 +70,9 @@ struct Entity : public Ref
 	static Array<Entity> instances;
 
 	// API
-	static Entity create();
+	static Entity create(void);
 	static void destroy(Entity const & entity);
-	inline bool exists() const { return pool.contains(*this); }
+	inline bool exists(void) const { return pool.contains(*this); }
 
 	// components API
 	static Array<void_ref_func *> component_destructors; // count indicates number of component types

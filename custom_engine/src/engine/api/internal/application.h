@@ -15,9 +15,9 @@ bool get_key(Key_Code key);
 bool get_mouse_key(Mouse_Code key);
 bool get_key_transition(Key_Code key, bool to_state);
 bool get_mouse_key_transition(Mouse_Code key, bool to_state);
-ivec2 const & get_mouse_pos();
-ivec2 const & get_mouse_delta();
-vec2 const & get_mouse_wheel();
+ivec2 const & get_mouse_pos(void);
+ivec2 const & get_mouse_delta(void);
+vec2 const & get_mouse_wheel(void);
 
 // callbacks
 typedef void init_func(Bytecode * loader_bc, Bytecode * renderer_bc);

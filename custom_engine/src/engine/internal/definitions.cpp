@@ -7,12 +7,12 @@
 // @Note: thought that a separate translation unit is currently too much for this
 namespace custom {
 
-Bytecode::Bytecode()
+Bytecode::Bytecode(void)
 	: buffer()
 	, offset(0)
 { }
 
-void Bytecode::reset() {
+void Bytecode::reset(void) {
 	buffer.count = 0;
 	offset = 0;
 }

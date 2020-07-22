@@ -262,7 +262,7 @@ static bool contains_full_word(cstring container, cstring value) {
 	CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
 }\
 
-static void load_opengl_functions() {
+static void load_opengl_functions(void) {
 	LOAD_OPENGL_FUNCTION(CreateContext,  true);
 	LOAD_OPENGL_FUNCTION(DeleteContext,  true);
 	LOAD_OPENGL_FUNCTION(GetProcAddress, true);
@@ -274,7 +274,7 @@ static void load_opengl_functions() {
 #undef LOAD_OPENGL_FUNCTION
 
 #define LOAD_EXTENSION_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
-static void load_extension_functions() {
+static void load_extension_functions(void) {
 	// EXT functions
 	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
 	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);

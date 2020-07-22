@@ -22,7 +22,7 @@ namespace custom {
 //
 
 template<typename T>
-RefT<T> Ref_Pool<T>::create() {
+RefT<T> Ref_Pool<T>::create(void) {
 	if (pool.gaps.count == 0) { instances.push(); }
 	Ref ref = pool.create();
 	return {ref.id, ref.gen};

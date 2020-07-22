@@ -25,7 +25,7 @@ Array<T>::Array(u32 capacity, u32 count)
 #endif
 
 template<typename T>
-Array<T>::~Array() {
+Array<T>::~Array(void) {
 	free(data); data = NULL;
 	capacity = count = 0;
 }
@@ -99,7 +99,7 @@ void Array<T>::ensure_capacity(u32 number) {
 }
 
 template<typename T>
-void Array<T>::push() {
+void Array<T>::push(void) {
 	ensure_capacity(++count);
 }
 
@@ -135,7 +135,7 @@ void Array<T>::insert(u32 i, T const & value) {
 }
 
 template<typename T>
-void Array<T>::pop() {
+void Array<T>::pop(void) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	--count;
 }

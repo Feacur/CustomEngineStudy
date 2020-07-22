@@ -20,7 +20,7 @@ struct Array
 	#if defined(COLLECTION_COPY_WARNING)
 		Array(Array const & source);
 	#endif
-	~Array();
+	~Array(void);
 
 	#if defined(COLLECTION_COPY_WARNING)
 		Array & operator=(Array const & source);
@@ -33,7 +33,7 @@ struct Array
 	void set_capacity(u32 number);
 	void ensure_capacity(u32 number);
 
-	void push();
+	void push(void);
 	void push(T const & value);
 	void push_range(u32 number);
 	void push_range(T const * values, u32 number);
@@ -41,7 +41,7 @@ struct Array
 	void insert(u32 i);
 	void insert(u32 i, T const & value);
 
-	void pop();
+	void pop(void);
 	void remove_at(u32 i);
 	void remove_at_ordered(u32 i);
 };
@@ -57,7 +57,7 @@ struct Array_Fixed
 	#if defined(COLLECTION_COPY_WARNING)
 		Array_Fixed(Array_Fixed const & source);
 	#endif
-	// ~Array_Fixed() = default;
+	// ~Array_Fixed(void) = default;
 
 	#if defined(COLLECTION_COPY_WARNING)
 		Array_Fixed & operator=(Array_Fixed const & source);
@@ -67,7 +67,7 @@ struct Array_Fixed
 	T const & get(u16 i) const;
 	T & get(u16 i);
 
-	void push();
+	void push(void);
 	void push(T const & value);
 	void push_range(u16 number);
 	void push_range(T const * values, u16 number);
@@ -75,7 +75,7 @@ struct Array_Fixed
 	void insert(u16 i);
 	void insert(u16 i, T const & value);
 
-	void pop();
+	void pop(void);
 	void remove_at(u16 i);
 	void remove_at_ordered(u16 i);
 };

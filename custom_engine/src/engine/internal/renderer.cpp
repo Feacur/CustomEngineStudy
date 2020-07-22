@@ -65,7 +65,7 @@ void viewport(ivec2 const & position, ivec2 const & size) {
 	bc->write(position); bc->write(size);
 }
 
-void clear() {
+void clear(void) {
 	bc->write(graphics::Instruction::Clear);
 	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
 }
@@ -79,7 +79,7 @@ void clear() {
 namespace custom {
 namespace renderer {
 
-static void init_defaults() {
+static void init_defaults(void) {
 	bc->write(graphics::Instruction::Depth_Read);
 	bc->write((b8)1);
 

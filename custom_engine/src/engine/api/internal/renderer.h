@@ -17,6 +17,6 @@ void set_matrix(u32 shader, u32 uniform, mat4 matrix);
 void set_matrix(u32 shader, u32 uniform, mat3 matrix);
 
 void viewport(ivec2 const & position, ivec2 const & size);
-void clear();
+void clear(void);
 
 }}

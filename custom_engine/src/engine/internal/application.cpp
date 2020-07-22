@@ -126,15 +126,15 @@ bool get_mouse_key_transition(Mouse_Code key, bool to_state) {
 	return custom::window::get_mouse_key_transition(app.window, key, to_state);
 }
 
-ivec2 const & get_mouse_pos() {
+ivec2 const & get_mouse_pos(void) {
 	return custom::window::get_mouse_pos(app.window);
 }
 
-ivec2 const & get_mouse_delta() {
+ivec2 const & get_mouse_delta(void) {
 	return custom::window::get_mouse_delta(app.window);
 }
 
-vec2 const & get_mouse_wheel() {
+vec2 const & get_mouse_wheel(void) {
 	return custom::window::get_mouse_wheel(app.window);
 }
 

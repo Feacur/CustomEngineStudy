@@ -52,7 +52,7 @@ inline T & Array_Fixed<T, capacity>::get(u16 i) {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::push() {
+void Array_Fixed<T, capacity>::push(void) {
 	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	++count;
 }
@@ -90,7 +90,7 @@ void Array_Fixed<T, capacity>::insert(u16 i, T const & value) {
 }
 
 template<typename T, u16 capacity>
-void Array_Fixed<T, capacity>::pop() {
+void Array_Fixed<T, capacity>::pop(void) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	--count;
 }
