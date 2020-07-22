@@ -27,6 +27,7 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
+constexpr u32 const empty_id = UINT32_MAX;
 constexpr u32 const empty_unit = UINT32_MAX;
 
 typedef GLchar const * glstring;
@@ -43,7 +44,6 @@ template struct custom::Array<Field>;
 struct Program
 {
 	GLuint id;
-	bool allocated;
 	// custom::Array_Fixed<Field, 4> attributes;
 	custom::Array_Fixed<Field, 10> uniforms;
 };
@@ -52,7 +52,6 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id;
-	bool allocated;
 	u32 unit;
 	ivec2 size;
 	u8 channels;
@@ -66,7 +65,6 @@ template struct custom::Array<Texture>;
 struct Sampler
 {
 	GLuint id;
-	bool allocated;
 	u32 unit;
 	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	custom::graphics::Wrap_Mode wrap_x, wrap_y;
@@ -94,7 +92,6 @@ template struct custom::Array<Buffer>;
 struct Mesh
 {
 	GLuint id;
-	bool allocated;
 	custom::Array_Fixed<Buffer, 2> buffers;
 	u8 index_buffer;
 };
@@ -123,7 +120,7 @@ struct Data
 		u32 capacity_before = programs.capacity;
 		programs.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < programs.capacity; ++i) {
-			programs.data[i].allocated = false;
+			programs.data[i].id = empty_id;
 		}
 	}
 
@@ -131,7 +128,7 @@ struct Data
 		u32 capacity_before = textures.capacity;
 		textures.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < textures.capacity; ++i) {
-			textures.data[i].allocated = false;
+			textures.data[i].id = empty_id;
 		}
 	}
 
@@ -139,7 +136,7 @@ struct Data
 		u32 capacity_before = samplers.capacity;
 		samplers.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < samplers.capacity; ++i) {
-			samplers.data[i].allocated = false;
+			samplers.data[i].id = empty_id;
 		}
 	}
 
@@ -147,7 +144,7 @@ struct Data
 		u32 capacity_before = meshes.capacity;
 		meshes.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < meshes.capacity; ++i) {
-			meshes.data[i].allocated = false;
+			meshes.data[i].id = empty_id;
 		}
 	}
 };
@@ -173,7 +170,7 @@ static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) 
 			return &program->uniforms[i];
 		}
 	}
-	CUSTOM_ASSERT(false, "program %d doesn't have uniform %d", program_id, uniform_id);
+	CUSTOM_ASSERT(false, "program %d doesn't have uniform %d; or it was optimized out", program_id, uniform_id);
 	return NULL;
 }
 
@@ -181,22 +178,22 @@ namespace custom {
 
 bool has_shader(u32 id) {
 	if (id >= ogl.programs.capacity) { return false; }
-	return ogl.programs.get(id).allocated;
+	return ogl.programs.get(id).id != empty_id;
 }
 
 bool has_texture(u32 id) {
 	if (id >= ogl.textures.capacity) { return false; }
-	return ogl.textures.get(id).allocated;
+	return ogl.textures.get(id).id != empty_id;
 }
 
 bool has_sampler(u32 id) {
 	if (id >= ogl.samplers.capacity) { return false; }
-	return ogl.samplers.get(id).allocated;
+	return ogl.samplers.get(id).id != empty_id;
 }
 
 bool has_mesh(u32 id) {
 	if (id >= ogl.meshes.capacity) { return false; }
-	return ogl.meshes.get(id).allocated;
+	return ogl.meshes.get(id).id != empty_id;
 }
 
 }
@@ -1061,7 +1058,6 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 	ogl.programs_ensure_capacity(asset_id);
 	opengl::Program * resource = new (&ogl.programs.get(asset_id)) opengl::Program;
 	++ogl.programs.count;
-	resource->allocated = true;
 	resource->id = glCreateProgram();
 }
 
@@ -1070,7 +1066,6 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	ogl.textures_ensure_capacity(asset_id);
 	opengl::Texture * resource = new (&ogl.textures.get(asset_id)) opengl::Texture;
 	++ogl.textures.count;
-	resource->allocated = true;
 
 	resource->unit         = empty_unit;
 	resource->size         = *bc.read<ivec2>();
@@ -1137,7 +1132,6 @@ static void platform_Allocate_Sampler(Bytecode const & bc) {
 	ogl.samplers_ensure_capacity(asset_id);
 	opengl::Sampler * resource = new (&ogl.samplers.get(asset_id)) opengl::Sampler;
 	++ogl.samplers.count;
-	resource->allocated = true;
 
 	resource->unit    = empty_unit;
 	resource->min_tex = *bc.read<Filter_Mode>();
@@ -1167,7 +1161,6 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	ogl.meshes_ensure_capacity(asset_id);
 	opengl::Mesh * resource = new (&ogl.meshes.get(asset_id)) opengl::Mesh;
 	++ogl.meshes.count;
-	resource->allocated = true;
 
 	u8 buffers_count = *bc.read<u8>();
 	// resource->buffers.set_capacity(buffers_count);
@@ -1290,7 +1283,7 @@ static void platform_Free_Shader(Bytecode const & bc) {
 	glDeleteProgram(resource->id);
 	resource->opengl::Program::~Program();
 	--ogl.programs.count;
-	resource->allocated = false;
+	resource->id = empty_id;
 	if (ogl.active_program == asset_id) {
 		ogl.active_program = empty_asset_id;
 	}
@@ -1308,7 +1301,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 
 	resource->opengl::Texture::~Texture();
 	--ogl.textures.count;
-	resource->allocated = false;
+	resource->id = empty_id;
 }
 
 static void platform_Free_Sampler(Bytecode const & bc) {
@@ -1323,7 +1316,7 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 
 	resource->opengl::Sampler::~Sampler();
 	--ogl.samplers.count;
-	resource->allocated = false;
+	resource->id = empty_id;
 }
 
 static void platform_Free_Mesh(Bytecode const & bc) {
@@ -1335,7 +1328,7 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 	glDeleteVertexArrays(1, &resource->id);
 	resource->opengl::Mesh::~Mesh();
 	--ogl.meshes.count;
-	resource->allocated = false;
+	resource->id = empty_id;
 	if (ogl.active_mesh == asset_id) {
 		ogl.active_mesh = empty_asset_id;
 	}
