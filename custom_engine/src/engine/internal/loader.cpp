@@ -20,8 +20,8 @@
 namespace custom {
 namespace graphics {
 
-template<typename T> static constexpr inline Data_Type get_data_type() { return Data_Type::None; }
-#define GDT_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>() { return Data_Type::T; }
+template<typename T> static constexpr inline Data_Type get_data_type(void) { return Data_Type::None; }
+#define GDT_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>(void) { return Data_Type::T; }
 	GDT_IMPL(texture_unit); GDT_IMPL(sampler_unit);
 	GDT_IMPL(s8); GDT_IMPL(s16); GDT_IMPL(s32);
 	GDT_IMPL(u8); GDT_IMPL(u16); GDT_IMPL(u32);
@@ -65,11 +65,12 @@ void init(Bytecode * bytecode) {
 
 void image(u32 asset_id) {
 	if (has_texture(asset_id)) { return; }
+	if (asset_id >= asset::texture::count) { return; }
+	cstring path = asset::texture::paths[asset_id];
 
 	static graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	static graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
-	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
@@ -146,8 +147,9 @@ void image16(u32 asset_id) {
 
 void shader(u32 asset_id) {
 	if (has_shader(asset_id)) { return; }
-
+	if (asset_id >= asset::shader::count) { return; }
 	cstring path = asset::shader::paths[asset_id];
+
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
@@ -166,8 +168,9 @@ void shader(u32 asset_id) {
 
 void mesh_obj(u32 asset_id) {
 	if (has_mesh(asset_id)) { return; }
-
+	if (asset_id >= asset::mesh::count) { return; }
 	cstring path = asset::mesh::paths[asset_id];
+
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 

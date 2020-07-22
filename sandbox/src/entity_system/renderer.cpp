@@ -33,10 +33,10 @@ void update(Transform const & camera, mat4 const & projection) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
-		Visual * visual = entity.get_component<Visual>().get_instance();
+		Visual * visual = entity.get_component<Visual>().get_safe();
 		if (!visual) { continue; }
 
-		Transform * transform = entity.get_component<Transform>().get_instance();
+		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
 
 		mat4 transform_matrix = to_matrix(
@@ -63,10 +63,10 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
-		Visual * visual = entity.get_component<Visual>().get_instance();
+		Visual * visual = entity.get_component<Visual>().get_safe();
 		if (!visual) { continue; }
 
-		Transform2d * transform = entity.get_component<Transform2d>().get_instance();
+		Transform2d * transform = entity.get_component<Transform2d>().get_safe();
 		if (!transform) { continue; }
 
 		mat3 transform_matrix = to_matrix(

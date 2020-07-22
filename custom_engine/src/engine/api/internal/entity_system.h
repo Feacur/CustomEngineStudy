@@ -15,7 +15,8 @@ struct Ref
 template<typename T>
 struct RefT : public Ref
 {
-	inline T * get_instance(void) { return T::pool.get_instance(*this); }
+	inline T * get_fast(void) { return T::pool.get_fast(*this); }
+	inline T * get_safe(void) { return T::pool.get_safe(*this); }
 };
 
 //
@@ -51,12 +52,13 @@ struct Ref_Pool
 	Array<T> instances; // sparse; count indicates the last active object
 
 	// API
-	RefT<T> create(void);
+	template<typename... Args> RefT<T> create(Args... args);
 	void destroy(Ref const & ref);
 	inline bool contains(Ref const & ref) { return pool.contains(ref); };
 
 	// RefT API
-	inline T * get_instance(Ref const & ref) { return pool.contains(ref) ? &instances[ref.id] : NULL; }
+	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
+	inline T * get_safe(Ref const & ref) { return pool.contains(ref) ? &instances[ref.id] : NULL; }
 };
 
 //
@@ -75,13 +77,13 @@ struct Entity : public Ref
 	inline bool exists(void) const { return pool.contains(*this); }
 
 	// components API
-	static Array<void_ref_func *> component_destructors; // count indicates number of component types
+	static Array<void_ref_func *> component_destructors; // count indicates the number of component types
 	static Array<Ref> components; // sparse; count indicates number of active components
 
-	template<typename T> void add_component();
-	template<typename T> void remove_component();
-	template<typename T> bool has_component() const;
-	template<typename T> RefT<T> get_component() const;
+	template<typename T, typename... Args> RefT<T> add_component(Args... args);
+	template<typename T> void remove_component(void);
+	template<typename T> bool has_component(void) const;
+	template<typename T> RefT<T> get_component(void) const;
 };
 
 }

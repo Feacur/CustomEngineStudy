@@ -10,7 +10,8 @@
 	template struct custom::RefT<T>;\
 	u32 T::offset;\
 	custom::Ref_Pool<T> T::pool;\
-	template void custom::Entity::add_component<T>(void);\
+	template custom::RefT<T> custom::Entity::add_component<T>(void);\
+	template custom::RefT<T> custom::Entity::add_component<T, T const &>(T const & data);\
 	template void custom::Entity::remove_component<T>(void);\
 	template custom::RefT<T> custom::Entity::get_component<T>(void) const;\
 	template bool custom::Entity::has_component<T>(void) const;\

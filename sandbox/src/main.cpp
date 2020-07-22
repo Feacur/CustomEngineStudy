@@ -8,49 +8,14 @@
 // https://github.com/etodd/lasercrabs
 // https://github.com/Marzac/le3d
 
-// static u32 create_quads_3_4(u32 local_id, u32 capacity) {
-// 	using namespace custom::graphics;
-// 	custom::Array_Fixed<custom::runtime::Buffer, 2> buffers;
-// 	buffers.push({
-// 		false, Mesh_Frequency::Dynamic, Mesh_Access::Draw,
-// 		Data_Type::r32, (3 + 4) * 4 * capacity, 0,
-// 		2, {3, 4}
-// 	});
-// 	buffers.push({
-// 		true, Mesh_Frequency::Static, Mesh_Access::Draw,
-// 		Data_Type::u16, 3 * 2 * capacity, 0,
-// 		0, {}
-// 	});
-// 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
-// }
-
-custom::Entity create_visual(u32 shader, u32 texture, u32 mesh, vec3 position, quat rotation, vec3 scale) {
+custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	custom::Entity entity = custom::Entity::create();
+	entity.add_component<Visual>(visual_data);
+	entity.add_component<Transform>(transform_data);
 
-	entity.add_component<Visual>();
-	Visual * visual = entity.get_component<Visual>().get_instance();
-	visual->shader  = shader;
-	visual->texture = texture;
-	visual->mesh    = mesh;
-
-	entity.add_component<Transform>();
-	Transform * transform = entity.get_component<Transform>().get_instance();
-	transform->position = position;
-	transform->rotation = rotation;
-	transform->scale = scale;
-
-	if (shader < (u32)sandbox::Shader::count) {
-		custom::loader::shader(shader);
-	}
-
-	if (texture < (u32)sandbox::Texture::count) {
-		custom::loader::image(texture);
-	}
-
-	if (mesh < (u32)sandbox::Mesh::count) {
-		custom::loader::mesh_obj(mesh);
-	}
-
+	custom::loader::shader(visual_data.shader);
+	custom::loader::image(visual_data.texture);
+	custom::loader::mesh_obj(visual_data.mesh);
 	return entity;
 }
 
@@ -84,12 +49,13 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	// u32 cube_asset_id = custom::loader::create_cube((u32)sandbox::Runtime_Mesh::cube);
 	suzanne = create_visual(
-		(u32)sandbox::Shader::v3_texture_tint,
-		(u32)sandbox::Texture::checkerboard,
-		(u32)sandbox::Mesh::suzanne, // cube_asset_id,
-		{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}
+		{
+			(u32)sandbox::Shader::v3_texture_tint,
+			(u32)sandbox::Texture::checkerboard,
+			(u32)sandbox::Mesh::suzanne,
+		},
+		{{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}}
 	);
 
 	custom::Entity::destroy(entity21);
@@ -97,10 +63,12 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	
 	u32 quad_xz_id = custom::loader::create_quad_xz((u32)sandbox::Runtime_Mesh::quad_xz);
 	create_visual(
-		(u32)sandbox::Shader::v3_texture_tint,
-		(u32)sandbox::Texture::proto_blue,
-		quad_xz_id,
-		{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}
+		{
+			(u32)sandbox::Shader::v3_texture_tint,
+			(u32)sandbox::Texture::proto_blue,
+			quad_xz_id
+		},
+		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
 	);
 
 	custom::Entity::destroy(entity31);
@@ -108,7 +76,7 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 
 r32 camera_zoom = 1;
 ivec2 viewport_size;
-static void update_camera_projection() {
+static void update_camera_projection(void) {
 	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
 	camera.projection =
@@ -160,7 +128,7 @@ static void on_app_update(r32 dt) {
 	}
 	if (rotate_suzanne) {
 		// @Note: world-space rotation
-		Transform * suzanne_transform = suzanne.get_component<Transform>().get_instance();
+		Transform * suzanne_transform = suzanne.get_component<Transform>().get_safe();
 		suzanne_transform->rotation = normalize(quat_product(
 			quat_from_radians(
 				vec3{0.1f, 0.3f, 0.05f} * dt

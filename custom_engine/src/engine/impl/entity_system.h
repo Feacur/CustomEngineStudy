@@ -2,11 +2,7 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/impl/array.h"
 
-// #include <new>
-
-// @Note: I'm yet to provide possibility of components construction
-//        with parameters, if needed; until then there is no need
-//        to include <new>, as it's required for the placement new operator
+#include <new>
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
@@ -22,9 +18,11 @@ namespace custom {
 //
 
 template<typename T>
-RefT<T> Ref_Pool<T>::create(void) {
+template<typename... Args>
+RefT<T> Ref_Pool<T>::create(Args... args) {
 	if (pool.gaps.count == 0) { instances.push(); }
 	Ref ref = pool.create();
+	new (&instances.data[ref.id]) T (args...);
 	return {ref.id, ref.gen};
 }
 
@@ -42,8 +40,8 @@ template<typename T> VOID_REF_FUNC(ref_pool_destruct) {
 // entity
 //
 
-template<typename T>
-void Entity::add_component(void) {
+template<typename T, typename... Args>
+RefT<T> Entity::add_component(Args... args) {
 	// @Change: ignore, but warn, if component exists?
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
@@ -58,8 +56,10 @@ void Entity::add_component(void) {
 	Ref & ref = Entity::components.get(component_index);
 
 	CUSTOM_ASSERT(!T::pool.contains(ref), "component already exist");
-	ref = T::pool.create();
+	ref = T::pool.create(args...);
 	++Entity::components.count;
+
+	return {ref.id, ref.gen};
 }
 
 template<typename T>
