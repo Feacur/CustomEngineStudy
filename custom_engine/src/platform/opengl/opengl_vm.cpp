@@ -118,6 +118,38 @@ struct Data
 	custom::Array<Texture> textures; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Sampler> samplers; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // sparse; count indicates the number of GPU allocated objects
+
+	void programs_ensure_capacity(u32 id) {
+		u32 capacity_before = programs.capacity;
+		programs.ensure_capacity(id + 1);
+		for (u32 i = capacity_before; i < programs.capacity; ++i) {
+			programs.data[i].allocated = false;
+		}
+	}
+
+	void textures_ensure_capacity(u32 id) {
+		u32 capacity_before = textures.capacity;
+		textures.ensure_capacity(id + 1);
+		for (u32 i = capacity_before; i < textures.capacity; ++i) {
+			textures.data[i].allocated = false;
+		}
+	}
+
+	void samplers_ensure_capacity(u32 id) {
+		u32 capacity_before = samplers.capacity;
+		samplers.ensure_capacity(id + 1);
+		for (u32 i = capacity_before; i < samplers.capacity; ++i) {
+			samplers.data[i].allocated = false;
+		}
+	}
+
+	void meshes_ensure_capacity(u32 id) {
+		u32 capacity_before = meshes.capacity;
+		meshes.ensure_capacity(id + 1);
+		for (u32 i = capacity_before; i < meshes.capacity; ++i) {
+			meshes.data[i].allocated = false;
+		}
+	}
 };
 
 }
@@ -1026,7 +1058,7 @@ static void platform_Stencil_Mask(Bytecode const & bc) {
 
 static void platform_Allocate_Shader(Bytecode const & bc) {
 	u32     asset_id = *bc.read<u32>();
-	ogl.programs.ensure_capacity(asset_id + 1);
+	ogl.programs_ensure_capacity(asset_id);
 	opengl::Program * resource = new (&ogl.programs.get(asset_id)) opengl::Program;
 	++ogl.programs.count;
 	resource->allocated = true;
@@ -1035,7 +1067,7 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 
 static void platform_Allocate_Texture(Bytecode const & bc) {
 	u32   asset_id = *bc.read<u32>();
-	ogl.textures.ensure_capacity(asset_id + 1);
+	ogl.textures_ensure_capacity(asset_id);
 	opengl::Texture * resource = new (&ogl.textures.get(asset_id)) opengl::Texture;
 	++ogl.textures.count;
 	resource->allocated = true;
@@ -1102,7 +1134,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 
 static void platform_Allocate_Sampler(Bytecode const & bc) {
 	u32   asset_id = *bc.read<u32>();
-	ogl.samplers.ensure_capacity(asset_id + 1);
+	ogl.samplers_ensure_capacity(asset_id);
 	opengl::Sampler * resource = new (&ogl.samplers.get(asset_id)) opengl::Sampler;
 	++ogl.samplers.count;
 	resource->allocated = true;
@@ -1132,7 +1164,7 @@ static void platform_Allocate_Sampler(Bytecode const & bc) {
 
 static void platform_Allocate_Mesh(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
-	ogl.meshes.ensure_capacity(asset_id + 1);
+	ogl.meshes_ensure_capacity(asset_id);
 	opengl::Mesh * resource = new (&ogl.meshes.get(asset_id)) opengl::Mesh;
 	++ogl.meshes.count;
 	resource->allocated = true;

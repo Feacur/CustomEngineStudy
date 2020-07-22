@@ -4,7 +4,7 @@
 
 #if !defined(CUSTOM_SHIPPING)
 	#define LOG_MESSAGE_ENABLED
-	#define LOG_ASSERT_ENABLED
+	#define LOG_CONDITIONAL_ENABLED
 #endif
 
 // enable ANSI escape codes for CMD: set `HKEY_CURRENT_USER\Console\VirtualTerminalLevel` to `0x00000001`
@@ -81,13 +81,15 @@
 	#define CUSTOM_CRITICAL(...) (void)0
 #endif
 
-#if defined(LOG_ASSERT_ENABLED)
-	#define CUSTOM_ASSERT(statement, ...) if (statement) { /**/ } else {\
+#if defined(LOG_CONDITIONAL_ENABLED)
+	#define CUSTOM_CONDITIONAL(statement, command, ...) if (statement) { /**/ } else {\
 		CUSTOM_CRITICAL(__VA_ARGS__);\
 		CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
-		CUSTOM_DEBUG_BREAK();\
+		command;\
 	}\
 
 #else
-	#define CUSTOM_ASSERT(statement, ...)
+	#define CUSTOM_CONDITIONAL(statement, command, ...)
 #endif
+
+#define CUSTOM_ASSERT(statement, ...) CUSTOM_CONDITIONAL(statement, CUSTOM_DEBUG_BREAK(), __VA_ARGS__)

@@ -3,7 +3,7 @@
 #include "components.h"
 
 // @Note: instantiate component-specific templates and static data:
-//        - entire RefT<T> structure
+//        - entire RefT structure
 //        - static components' data
 //        - entity-structure's methods
 #define COMPONENT_IMPL(T)\

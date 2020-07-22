@@ -13,6 +13,8 @@
 
 #include "wgl_tiny.h"
 
+#define ALLOCATE_ARRAY(name, type, count) type * name = (type *)malloc(count * sizeof(type))
+
 // https://en.wikipedia.org/wiki/OpenGL
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 // https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-pixelformatdescriptor
@@ -99,9 +101,6 @@ static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
 #else
 	#define LOG_LAST_ERROR() (void)0
 #endif
-
-#define ALLOCATE(type, count) (type *)malloc(count * sizeof(type))
-#define CREATE_ARRAY(type, count, name) type * name = ALLOCATE(type, count)
 
 //
 // API implementation
@@ -435,7 +434,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 	int attr_count = add_atribute_keys(attr_keys, attr_cap);
 
 	int pf_count = 0;
-	CREATE_ARRAY(custom::Pixel_Format, formats_count, pf_list);
+	ALLOCATE_ARRAY(pf_list, custom::Pixel_Format, formats_count);
 	for (int i = 0; i < formats_count; ++i) {
 		int pf_id = i + 1;
 		if (!wgl.GetPixelFormatAttribivARB(hdc, pf_id, 0, attr_count, attr_keys, attr_vals)) {
@@ -518,7 +517,7 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 	if (!formats_count) { return NULL; }
 
 	int pf_count = 0;
-	CREATE_ARRAY(custom::Pixel_Format, formats_count, pf_list);
+	ALLOCATE_ARRAY(pf_list, custom::Pixel_Format, formats_count);
 	for (int i = 0; i < formats_count; ++i) {
 		int pf_id = i + 1;
 		PIXELFORMATDESCRIPTOR pfd;

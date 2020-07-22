@@ -17,9 +17,9 @@ Array<T>::Array(u32 capacity, u32 count)
 	}
 }
 
-#if !defined(COLLECTION_COPY_WARNING)
+#if defined(COLLECTION_COPY_WARNING)
 	template<typename T>
-	Array<T>::Array(Array<T> const & source) {
+	Array<T>::Array(Array const & source) {
 		CUSTOM_ASSERT(false, "ERROR! trying to copy an array");
 	}
 #endif
@@ -30,9 +30,9 @@ Array<T>::~Array() {
 	capacity = count = 0;
 }
 
-#if !defined(COLLECTION_COPY_WARNING)
+#if defined(COLLECTION_COPY_WARNING)
 	template<typename T>
-	Array<T> & Array<T>::operator=(Array<T> const & source) {
+	Array<T> & Array<T>::operator=(Array const & source) {
 		CUSTOM_ASSERT(false, "ERROR! trying to copy an array");
 		return *this;
 	}
@@ -73,7 +73,7 @@ void Array<T>::set_capacity(u32 number) {
 	}
 
 	if (!data) {
-		data = (T *)calloc(number, sizeof(T));
+		data = (T *)malloc(number * sizeof(T));
 		capacity = number;
 		return;
 	}
@@ -82,9 +82,6 @@ void Array<T>::set_capacity(u32 number) {
 	CUSTOM_ASSERT(new_buffer, "failed to allocate memory of %zd bytes", number * sizeof(T));
 
 	if (new_buffer) {
-		if (number > capacity) {
-			memset((T *)new_buffer + capacity, 0, (number - capacity) * sizeof(T));
-		}
 		data = (T *)new_buffer;
 		capacity = number;
 		if (count > capacity) {

@@ -17,12 +17,12 @@ struct Array
 	u32 capacity, count;
 
 	Array(u32 capacity = 0, u32 count = 0);
-	#if !defined(COLLECTION_COPY_WARNING)
+	#if defined(COLLECTION_COPY_WARNING)
 		Array(Array const & source);
 	#endif
 	~Array();
 
-	#if !defined(COLLECTION_COPY_WARNING)
+	#if defined(COLLECTION_COPY_WARNING)
 		Array & operator=(Array const & source);
 	#endif
 	T const & operator[](u32 i) const;
@@ -54,12 +54,12 @@ struct Array_Fixed
 	u16 count;
 
 	Array_Fixed(u16 count = 0);
-	#if !defined(COLLECTION_COPY_WARNING)
+	#if defined(COLLECTION_COPY_WARNING)
 		Array_Fixed(Array_Fixed const & source);
 	#endif
 	// ~Array_Fixed() = default;
 
-	#if !defined(COLLECTION_COPY_WARNING)
+	#if defined(COLLECTION_COPY_WARNING)
 		Array_Fixed & operator=(Array_Fixed const & source);
 	#endif
 	T const & operator[](u16 i) const;
