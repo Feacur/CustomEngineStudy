@@ -75,6 +75,10 @@ void init_entity_components(void);
 static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
 
+	custom::Ref<custom::Entity> entity11 = custom::Entity::create();
+	custom::Ref<custom::Entity> entity21 = custom::Entity::create();
+	custom::Ref<custom::Entity> entity31 = custom::Entity::create();
+
 	camera.transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
 	};
@@ -86,6 +90,9 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 		(u32)sandbox::Mesh::suzanne, // cube_asset_id,
 		{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}
 	);
+
+	custom::Entity::destroy(entity11);
+	custom::Entity::destroy(entity21);
 	
 	u32 quad_xz_id = custom::loader::create_quad_xz((u32)sandbox::Runtime_Mesh::quad_xz);
 	create_visual(
@@ -95,7 +102,12 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 		{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}
 	);
 
+	custom::Entity::destroy(entity31);
+
 	sandbox::entity_renderer::init(renderer_bc);
+
+	custom::Ref<custom::Entity> entity1 = custom::Entity::create();
+	custom::Ref<custom::Entity> entity2 = custom::Entity::create();
 }
 
 r32 camera_zoom = 1;

@@ -75,8 +75,8 @@ template<typename T>
 Ref<T> Ref_Pool<T>::create() {
 	u32 id;
 	if (gaps.count > 0) {
+		id = gaps[gaps.count - 1];
 		gaps.pop();
-		id = gaps[gaps.count];
 	}
 	else {
 		id = instances.count;
@@ -104,9 +104,9 @@ void Ref_Pool<T>::destroy(Ref<T> ref) {
 }
 
 template<typename T>
-void Ref_Pool<T>::destroy_safe(u32 id, u32 gen) {
-	if (contains(id, gen)) {
-		destroy({ id, gen });
+VOID_REF_FUNC(Ref_Pool<T>::destroy_safe) {
+	if (T::pool.contains(id, gen)) {
+		T::pool.destroy({id, gen});
 	}
 }
 
@@ -117,8 +117,8 @@ void Ref_Pool<T>::destroy_safe(u32 id, u32 gen) {
 template<typename T>
 void Entity::add_component(void) {
 	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
-	Entity::components.ensure_capacity((entity_id + 1) * Entity::component_pools.count);
+	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
+	Entity::components.ensure_capacity((entity_id + 1) * Entity::component_destructors.count);
 	Plain_Ref & c_ref = Entity::components.get(component_id);
 	CUSTOM_ASSERT(!T::pool.contains(c_ref.id, c_ref.gen), "component already exist");
 	Ref<T> ref = T::pool.create();
@@ -128,7 +128,7 @@ void Entity::add_component(void) {
 template<typename T>
 void Entity::remove_component(void) {
 	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
 	if (Entity::components.capacity <= component_id) { return; }
 	Plain_Ref & c_ref = Entity::components.get(component_id);
 	CUSTOM_ASSERT(T::pool.contains(c_ref.id, c_ref.gen), "component doesn't exist");
@@ -139,7 +139,7 @@ void Entity::remove_component(void) {
 template<typename T>
 bool Entity::has_component(void) const {
 	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
 	if (Entity::components.capacity <= component_id) { return false; }
 	Plain_Ref & c_ref = Entity::components.get(component_id);
 	return T::pool.contains(c_ref.id, c_ref.gen);
@@ -148,7 +148,7 @@ bool Entity::has_component(void) const {
 template<typename T>
 Ref<T> Entity::get_component(void) {
 	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_pools.count + T::offset;
+	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
 	if (Entity::components.capacity <= component_id) { return {empty_ref_id, 0}; }
 	Plain_Ref & c_ref = Entity::components.get(component_id);
 	return { c_ref.id, c_ref.gen };

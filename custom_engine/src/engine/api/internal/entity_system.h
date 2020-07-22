@@ -26,16 +26,14 @@ struct Ref
 // pool
 //
 
-struct Ref_Pool_Base
-{
-	virtual void destroy_safe(u32 id, u32 gen) = 0;
-};
+#define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(u32 id, u32 gen)
+typedef VOID_REF_FUNC(void_ref_func);
 
 // @Todo: might want to dynamically init pools should the code be used from a DLL?
 //        not quite relates to the pool itself, but definitely to Ref<T> and
 //        types/places that make use of it
 template<typename T>
-struct Ref_Pool : public Ref_Pool_Base
+struct Ref_Pool
 {
 	Ref_Pool();
 	~Ref_Pool() = default;
@@ -53,10 +51,9 @@ struct Ref_Pool : public Ref_Pool_Base
 	void destroy(Ref<T> ref);
 	bool check_active(u32 id) { return id && (id < active.count) && active[id]; };
 	bool contains(u32 id, u32 gen) { return check_active(id) && (gens[id] == gen); };
-	T * operator[](u32 id) { return check_active(id) ? get_instance(id) : NULL; }
 
 	// World API
-	void destroy_safe(u32 id, u32 gen) override;
+	static VOID_REF_FUNC(destroy_safe);
 
 	// Ref<T> API
 	u32 get_id(T const * instance) const { return (u32)(instance - instances.data); }
@@ -78,7 +75,7 @@ struct Entity
 	u8 data; // @Note: explicit dummy data of a single byte size
 
 	// components
-	static Array<Ref_Pool_Base *> component_pools;
+	static Array<void_ref_func *> component_destructors;
 	static Array<Plain_Ref> components; // sparse
 	static Array<Plain_Ref> entities;
 

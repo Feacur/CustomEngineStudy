@@ -27,8 +27,8 @@ void init_entity_components(void) {
 	#include "components_registry_impl.h"
 	#undef COMPONENT_IMPL
 
-	custom::Entity::component_pools.set_capacity(component_types_count);
-	#define COMPONENT_IMPL(T) custom::Entity::component_pools.push(&T::pool);
+	custom::Entity::component_destructors.set_capacity(component_types_count);
+	#define COMPONENT_IMPL(T) custom::Entity::component_destructors.push(&custom::Ref_Pool<T>::destroy_safe);
 	#include "components_registry_impl.h"
 	#undef COMPONENT_IMPL
 }
