@@ -24,22 +24,20 @@
 // 	return custom::loader::create_mesh(local_id, buffers.data, (u8)buffers.count);
 // }
 
-custom::Ref<custom::Entity> create_visual(u32 shader, u32 texture, u32 mesh, vec3 position, quat rotation, vec3 scale) {
-	custom::Ref<custom::Entity> entity = custom::Entity::create();
+custom::Entity create_visual(u32 shader, u32 texture, u32 mesh, vec3 position, quat rotation, vec3 scale) {
+	custom::Entity entity = custom::Entity::create();
 
-	entity->add_component<Visual>();
-	custom::Ref<Visual> visual = entity->get_component<Visual>();
-	Visual * visual_ptr = visual.operator->();
-	visual_ptr->shader  = shader;
-	visual_ptr->texture = texture;
-	visual_ptr->mesh    = mesh;
+	entity.add_component<Visual>();
+	Visual * visual = entity.get_component<Visual>().get_instance();
+	visual->shader  = shader;
+	visual->texture = texture;
+	visual->mesh    = mesh;
 
-	entity->add_component<Transform>();
-	custom::Ref<Transform> transform = entity->get_component<Transform>();
-	Transform * transform_ptr = transform.operator->();
-	transform_ptr->position = position;
-	transform_ptr->rotation = rotation;
-	transform_ptr->scale = scale;
+	entity.add_component<Transform>();
+	Transform * transform = entity.get_component<Transform>().get_instance();
+	transform->position = position;
+	transform->rotation = rotation;
+	transform->scale = scale;
 
 	if (shader < (u32)sandbox::Shader::count) {
 		custom::loader::shader(shader);
@@ -69,15 +67,15 @@ struct Camera
 // };
 
 Camera camera;
-custom::Ref<custom::Entity> suzanne;
+custom::Entity suzanne;
 
 void init_entity_components(void);
 static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
 
-	custom::Ref<custom::Entity> entity11 = custom::Entity::create();
-	custom::Ref<custom::Entity> entity21 = custom::Entity::create();
-	custom::Ref<custom::Entity> entity31 = custom::Entity::create();
+	custom::Entity entity11 = custom::Entity::create();
+	custom::Entity entity21 = custom::Entity::create();
+	custom::Entity entity31 = custom::Entity::create();
 
 	camera.transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
@@ -106,8 +104,8 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 
 	sandbox::entity_renderer::init(renderer_bc);
 
-	custom::Ref<custom::Entity> entity1 = custom::Entity::create();
-	custom::Ref<custom::Entity> entity2 = custom::Entity::create();
+	custom::Entity entity1 = custom::Entity::create();
+	custom::Entity entity2 = custom::Entity::create();
 }
 
 r32 camera_zoom = 1;
@@ -164,7 +162,7 @@ static void on_app_update(r32 dt) {
 	}
 	if (rotate_suzanne) {
 		// @Note: world-space rotation
-		Transform * suzanne_transform = suzanne->get_component<Transform>().operator->();
+		Transform * suzanne_transform = suzanne.get_component<Transform>().get_instance();
 		suzanne_transform->rotation = normalize(quat_product(
 			quat_from_radians(
 				vec3{0.1f, 0.3f, 0.05f} * dt

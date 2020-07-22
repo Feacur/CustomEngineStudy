@@ -19,94 +19,32 @@ constexpr u32 const empty_ref_id = 0;
 namespace custom {
 
 //
-// reference
-//
-
-template<typename T>
-Ref<T>::Ref()
-	: id(empty_ref_id)
-	, gen(0)
-{ }
-
-template<typename T>
-Ref<T>::Ref(u32 id, u32 gen)
-	: id(id)
-	, gen(gen)
-{ }
-
-// template<typename T>
-// Ref<T>::Ref(T const * instance) {
-// 	operator=(instance);
-// }
-
-// template<typename T>
-// Ref<T> & Ref<T>::operator=(T const * instance) {
-// 	if (instance) {
-// 		id = T::pool.get_id(instance);
-// 		gen = T::pool.get_gen(id);
-// 	}
-// 	else {
-// 		id = empty_ref_id;
-// 	}
-// 	return *this;
-// }
-
-template<typename T>
-bool Ref<T>::operator==(Ref<T> const & other) {
-	return id == other.id && gen == other.gen;
-}
-
-template<typename T>
-T * Ref<T>::operator->() {
-	return T::pool.contains(id, gen) ? T::pool.get_instance(id) : NULL;
-}
-
-//
 // pool
 //
 
 template<typename T>
 Ref_Pool<T>::Ref_Pool() {
 	// @Note: it's required for the current implementation where 0 is a default and invalid id
-	Ref<T> null_instance = create();
+	instances.push();
 }
 
 template<typename T>
-Ref<T> Ref_Pool<T>::create() {
-	u32 id;
-	if (gaps.count > 0) {
-		id = gaps[gaps.count - 1];
-		gaps.pop();
-	}
-	else {
-		id = instances.count;
-		instances.push();
-		gens.push();
-		active.push();
-	}
-	active.get(id) = true;
-	return { id, gens.get(id) };
+RefT<T> Ref_Pool<T>::create() {
+	if (pool.gaps.count == 0) { instances.push(); }
+	Ref ref = pool.create();
+	return {ref.id, ref.gen};
 }
 
 template<typename T>
-void Ref_Pool<T>::destroy(Ref<T> ref) {
-	CUSTOM_ASSERT(ref.gen == gens.get(ref.id), "destroying null data");
-	if (ref.id == instances.count - 1) {
-		instances.pop();
-		gens.pop();
-		active.pop();
-	}
-	else {
-		gaps.push(ref.id);
-	}
-	active[ref.id] = false;
-	++gens[ref.id];
+void Ref_Pool<T>::destroy(u32 id, u32 gen) {
+	pool.destroy(id, gen);
+	if (id == instances.count - 1) { instances.pop(); }
 }
 
 template<typename T>
 VOID_REF_FUNC(Ref_Pool<T>::destroy_safe) {
 	if (T::pool.contains(id, gen)) {
-		T::pool.destroy({id, gen});
+		T::pool.destroy(id, gen);
 	}
 }
 
@@ -116,42 +54,39 @@ VOID_REF_FUNC(Ref_Pool<T>::destroy_safe) {
 
 template<typename T>
 void Entity::add_component(void) {
-	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
-	Entity::components.ensure_capacity((entity_id + 1) * Entity::component_destructors.count);
-	Plain_Ref & c_ref = Entity::components.get(component_id);
-	CUSTOM_ASSERT(!T::pool.contains(c_ref.id, c_ref.gen), "component already exist");
-	Ref<T> ref = T::pool.create();
-	c_ref = { ref.id, ref.gen };
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	u32 component_index = id * Entity::component_destructors.count + T::offset;
+	Entity::components.ensure_capacity((id + 1) * Entity::component_destructors.count);
+	Ref & ref = Entity::components.get(component_index);
+	CUSTOM_ASSERT(!T::pool.contains(ref.id, ref.gen), "component already exist");
+	ref = T::pool.create();
 }
 
 template<typename T>
 void Entity::remove_component(void) {
-	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
-	if (Entity::components.capacity <= component_id) { return; }
-	Plain_Ref & c_ref = Entity::components.get(component_id);
-	CUSTOM_ASSERT(T::pool.contains(c_ref.id, c_ref.gen), "component doesn't exist");
-	T::pool.destroy({ c_ref.id, c_ref.gen });
-	// c_ref = {}; // @Note: relevant if [gen] value is not stored
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	u32 component_index = id * Entity::component_destructors.count + T::offset;
+	if (Entity::components.capacity <= component_index) { return; }
+	Ref & ref = Entity::components.get(component_index);
+	T::pool.destroy(ref.id, ref.gen);
 }
 
 template<typename T>
 bool Entity::has_component(void) const {
-	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
-	if (Entity::components.capacity <= component_id) { return false; }
-	Plain_Ref & c_ref = Entity::components.get(component_id);
-	return T::pool.contains(c_ref.id, c_ref.gen);
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	u32 component_index = id * Entity::component_destructors.count + T::offset;
+	if (Entity::components.capacity <= component_index) { return false; }
+	Ref ref = Entity::components.get(component_index);
+	return T::pool.contains(ref.id, ref.gen);
 }
 
 template<typename T>
-Ref<T> Entity::get_component(void) {
-	u32 entity_id = Entity::pool.get_id(this);
-	u32 component_id = entity_id * Entity::component_destructors.count + T::offset;
-	if (Entity::components.capacity <= component_id) { return {empty_ref_id, 0}; }
-	Plain_Ref & c_ref = Entity::components.get(component_id);
-	return { c_ref.id, c_ref.gen };
+RefT<T> Entity::get_component(void) const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	u32 component_index = id * Entity::component_destructors.count + T::offset;
+	if (Entity::components.capacity <= component_index) { return {empty_ref_id, 0}; }
+	Ref ref = Entity::components.get(component_index);
+	return {ref.id, ref.gen};
 }
 
 }

@@ -29,14 +29,14 @@ void update(Transform const & camera, mat4 const & projection) {
 	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
 
 	// @Todo: prefetch all relevant components into a contiguous array?
-	for (u32 i = 0; i < custom::Entity::entities.count; ++i) {
-		custom::Entity * entity = custom::Entity::get(i).operator->();
-		if (!entity) { continue; }
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::get(i);
+		if (!entity.exists()) { continue; }
 
-		Visual * visual = entity->get_component<Visual>().operator->();
+		Visual * visual = entity.get_component<Visual>().get_instance();
 		if (!visual) { continue; }
 
-		Transform * transform = entity->get_component<Transform>().operator->();
+		Transform * transform = entity.get_component<Transform>().get_instance();
 		if (!transform) { continue; }
 
 		mat4 transform_matrix = to_matrix(
@@ -59,14 +59,14 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
 
 	// @Todo: prefetch all relevant components into a contiguous array?
-	for (u32 i = 0; i < custom::Entity::entities.count; ++i) {
-		custom::Entity * entity = custom::Entity::get(i).operator->();
-		if (!entity) { continue; }
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::get(i);
+		if (!entity.exists()) { continue; }
 
-		Visual * visual = entity->get_component<Visual>().operator->();
+		Visual * visual = entity.get_component<Visual>().get_instance();
 		if (!visual) { continue; }
 
-		Transform2d * transform = entity->get_component<Transform2d>().operator->();
+		Transform2d * transform = entity.get_component<Transform2d>().get_instance();
 		if (!transform) { continue; }
 
 		mat3 transform_matrix = to_matrix(

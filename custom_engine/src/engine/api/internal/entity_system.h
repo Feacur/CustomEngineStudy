@@ -7,19 +7,15 @@ namespace custom {
 // reference
 //
 
-template<typename T>
 struct Ref
 {
 	u32 id, gen;
+};
 
-	Ref();
-	Ref(u32 id, u32 gen);
-	// Ref(T const * instance);
-	// ~Ref() = default;
-
-	// Ref<T> & operator=(T const * instance);
-	bool operator==(Ref<T> const & other);
-	T * operator->();
+template<typename T>
+struct RefT : public Ref
+{
+	inline T * get_instance() { return T::pool.get_instance(id, gen); }
 };
 
 //
@@ -29,8 +25,22 @@ struct Ref
 #define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(u32 id, u32 gen)
 typedef VOID_REF_FUNC(void_ref_func);
 
+struct Gen_Pool
+{
+	Gen_Pool();
+	~Gen_Pool() = default;
+
+	Array<u32> gens; // sparse; count indicates the last active object
+	Array<u32> gaps;
+
+	// API
+	Ref create();
+	void destroy(u32 id, u32 gen);
+	inline bool contains(u32 id, u32 gen) { return id && (id < gens.count) && (gens[id] == gen); };
+};
+
 // @Todo: might want to dynamically init pools should the code be used from a DLL?
-//        not quite relates to the pool itself, but definitely to Ref<T> and
+//        not quite relates to the pool itself, but definitely to RefT<T> and
 //        types/places that make use of it
 template<typename T>
 struct Ref_Pool
@@ -38,57 +48,45 @@ struct Ref_Pool
 	Ref_Pool();
 	~Ref_Pool() = default;
 
-	// SoA data
+	Gen_Pool pool;
 	Array<T> instances; // sparse; count indicates the last active object
-	Array<u32> gens;    // sparse; count indicates the last active object
-	Array<b8> active;   // sparse; count indicates the last active object
-
-	// in-between data
-	Array<u32> gaps;
 
 	// API
-	Ref<T> create();
-	void destroy(Ref<T> ref);
-	bool check_active(u32 id) { return id && (id < active.count) && active[id]; };
-	bool contains(u32 id, u32 gen) { return check_active(id) && (gens[id] == gen); };
+	RefT<T> create();
+	void destroy(u32 id, u32 gen);
+	inline bool contains(u32 id, u32 gen) { return pool.contains(id, gen); };
 
-	// World API
+	// Entity API
 	static VOID_REF_FUNC(destroy_safe);
 
-	// Ref<T> API
-	u32 get_id(T const * instance) const { return (u32)(instance - instances.data); }
-	T * get_instance(u32 id) { return &instances[id]; }
-	u32 get_gen(u32 id) const { return gens[id]; }
+	// RefT<T> API
+	inline T * get_instance(u32 id, u32 gen) { return pool.contains(id, gen) ? &instances[id] : NULL; }
 };
 
 //
 // entity
 //
 
-struct Plain_Ref
+struct Entity : public Ref
 {
-	u32 id, gen;
-};
+	// entities
+	static Array<Entity> instances;
+	static Gen_Pool pool;
 
-struct Entity
-{
-	u8 data; // @Note: explicit dummy data of a single byte size
+	static Entity get(u32 index) { return instances[index]; }
+	static Entity create();
+	static void destroy(Entity entity);
+
+	bool exists() const { return pool.contains(id, gen); }
 
 	// components
 	static Array<void_ref_func *> component_destructors;
-	static Array<Plain_Ref> components; // sparse
-	static Array<Plain_Ref> entities;
+	static Array<Ref> components; // sparse
 
-	static Ref<Entity> get(u32 index) { return {entities[index].id, entities[index].gen}; }
 	template<typename T> void add_component();
 	template<typename T> void remove_component();
 	template<typename T> bool has_component() const;
-	template<typename T> Ref<T> get_component();
-
-	// Ref<T> API, creation
-	static Ref_Pool<Entity> pool;
-	static Ref<Entity> create();
-	static void destroy(Ref<Entity> ref);
+	template<typename T> RefT<T> get_component() const;
 };
 
 }

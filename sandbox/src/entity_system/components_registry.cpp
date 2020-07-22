@@ -3,17 +3,17 @@
 #include "components.h"
 
 // @Note: instantiate component-specific templates and static data:
-//        - entire Ref<T> structure
+//        - entire RefT<T> structure
 //        - static components' data
 //        - entity-structure's methods
 #define COMPONENT_IMPL(T)\
-	template struct custom::Ref<T>;\
+	template struct custom::RefT<T>;\
 	u32 T::offset;\
 	custom::Ref_Pool<T> T::pool;\
 	template void custom::Entity::add_component<T>(void);\
-	template custom::Ref<T> custom::Entity::get_component<T>(void);\
-	template bool custom::Entity::has_component<T>(void) const;\
 	template void custom::Entity::remove_component<T>(void);\
+	template custom::RefT<T> custom::Entity::get_component<T>(void) const;\
+	template bool custom::Entity::has_component<T>(void) const;\
 
 #include "components_registry_impl.h"
 #undef COMPONENT_IMPL
