@@ -15,14 +15,14 @@ struct Ref
 template<typename T>
 struct RefT : public Ref
 {
-	inline T * get_instance() { return T::pool.get_instance(id, gen); }
+	inline T * get_instance() { return T::pool.get_instance(*this); }
 };
 
 //
 // pool
 //
 
-#define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(u32 id, u32 gen)
+#define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & ref)
 typedef VOID_REF_FUNC(void_ref_func);
 
 struct Gen_Pool
@@ -35,8 +35,8 @@ struct Gen_Pool
 
 	// API
 	Ref create();
-	void destroy(u32 id, u32 gen);
-	inline bool contains(u32 id, u32 gen) { return id && (id < gens.count) && (gens[id] == gen); };
+	void destroy(Ref const & ref);
+	inline bool contains(Ref const & ref) { return ref.id && (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
 };
 
 // @Todo: might want to dynamically init pools should the code be used from a DLL?
@@ -53,14 +53,11 @@ struct Ref_Pool
 
 	// API
 	RefT<T> create();
-	void destroy(u32 id, u32 gen);
-	inline bool contains(u32 id, u32 gen) { return pool.contains(id, gen); };
-
-	// Entity API
-	static VOID_REF_FUNC(destroy_safe);
+	void destroy(Ref const & ref);
+	inline bool contains(Ref const & ref) { return pool.contains(ref); };
 
 	// RefT<T> API
-	inline T * get_instance(u32 id, u32 gen) { return pool.contains(id, gen) ? &instances[id] : NULL; }
+	inline T * get_instance(Ref const & ref) { return pool.contains(ref) ? &instances[ref.id] : NULL; }
 };
 
 //
@@ -70,16 +67,15 @@ struct Ref_Pool
 struct Entity : public Ref
 {
 	// entities
-	static Array<Entity> instances;
 	static Gen_Pool pool;
+	static Array<Entity> instances;
 
-	static Entity get(u32 index) { return instances[index]; }
+	// API
 	static Entity create();
-	static void destroy(Entity entity);
+	static void destroy(Entity const & entity);
+	inline bool exists() const { return pool.contains(*this); }
 
-	bool exists() const { return pool.contains(id, gen); }
-
-	// components
+	// components API
 	static Array<void_ref_func *> component_destructors;
 	static Array<Ref> components; // sparse
 

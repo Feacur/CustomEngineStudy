@@ -30,7 +30,7 @@ void update(Transform const & camera, mat4 const & projection) {
 
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::get(i);
+		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
 		Visual * visual = entity.get_component<Visual>().get_instance();
@@ -60,7 +60,7 @@ void update2d(Transform2d const & camera, mat3 const & projection) {
 
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::get(i);
+		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
 		Visual * visual = entity.get_component<Visual>().get_instance();

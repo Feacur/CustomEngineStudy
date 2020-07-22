@@ -37,15 +37,15 @@ Ref Gen_Pool::create() {
 	return { id, gens.get(id) };
 }
 
-void Gen_Pool::destroy(u32 id, u32 gen) {
-	CUSTOM_ASSERT(gen == gens.get(id), "destroying null data");
-	if (id == gens.count - 1) {
+void Gen_Pool::destroy(Ref const & ref) {
+	CUSTOM_ASSERT(ref.gen == gens.get(ref.id), "destroying null data");
+	if (ref.id == gens.count - 1) {
 		gens.pop();
 	}
 	else {
-		gaps.push(id);
+		gaps.push(ref.id);
 	}
-	++gens[id];
+	++gens[ref.id];
 }
 
 //
@@ -58,7 +58,7 @@ Entity Entity::create() {
 	return {entity.id, entity.gen};
 }
 
-void Entity::destroy(Entity entity) {
+void Entity::destroy(Entity const & entity) {
 	CUSTOM_ASSERT(entity.exists(), "entity doesn't exist");
 
 	u32 index = UINT32_MAX;
@@ -67,15 +67,20 @@ void Entity::destroy(Entity entity) {
 		if (instances[i].gen != entity.gen) { continue; }
 		index = i; break;
 	}
-	CUSTOM_ASSERT(index < instances.count, "no entity %d:%d", entity.id, entity.gen);
-	instances.remove_at(index);
+
+	if (index < instances.count) {
+		instances.remove_at(index);
+	}
+	else {
+		CUSTOM_WARNING("no entity instance for %d:%d", entity.id, entity.gen);
+	}
 
 	u32 entity_offset = entity.id * Entity::component_destructors.count;
 	for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
-		Ref ref = Entity::components.get(entity_offset + i);
-		(*Entity::component_destructors[i])(ref.id, ref.gen);
+		Ref const & ref = Entity::components.get(entity_offset + i);
+		(*Entity::component_destructors[i])(ref);
 	}
-	Entity::pool.destroy(entity.id, entity.gen);
+	Entity::pool.destroy(entity);
 }
 
 }
