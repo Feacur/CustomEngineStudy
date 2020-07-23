@@ -26,7 +26,7 @@ project "custom_engine"
 	includedirs {
 		"%{engine_includes.custom_engine}",
 		-- "%{engine_includes.imgui}",
-		-- "%{engine_includes.lua}",
+		"%{engine_includes.lua}",
 		"%{engine_includes.stb}",
 	}
 
@@ -45,7 +45,7 @@ project "custom_engine"
 
 	links {
 		-- "imgui",
-		-- "lua",
+		"lua",
 		"stb",
 	}
 

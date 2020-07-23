@@ -101,11 +101,11 @@ enginename = "custom_engine"
 
 engine_includes = {}
 engine_includes["custom_engine"] = "src"
-engine_includes["glad"]   = "vendor/glad/include"
--- engine_includes["glfw"]   = "vendor/glfw/include"
--- engine_includes["imgui"]  = "vendor/imgui"
--- engine_includes["lua"]    = "vendor/lua/src"
-engine_includes["stb"] = "vendor/stb"
+engine_includes["glad"]  = "vendor/glad/include"
+-- engine_includes["glfw"]  = "vendor/glfw/include"
+-- engine_includes["imgui"] = "vendor/imgui"
+engine_includes["lua"]   = "vendor/lua/src"
+engine_includes["stb"]   = "vendor/stb"
 
 root_directory = os.getcwd()
 
@@ -113,7 +113,7 @@ group "dependecies"
 include "custom_engine/vendor/premake5_glad.lua"
 -- include "custom_engine/vendor/premake5_glfw.lua"
 -- include "custom_engine/vendor/premake5_imgui.lua"
--- include "custom_engine/vendor/premake5_lua.lua"
+include "custom_engine/vendor/premake5_lua.lua"
 include "custom_engine/vendor/premake5_stb.lua"
 group ""
 
