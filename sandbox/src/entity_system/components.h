@@ -1,4 +1,3 @@
-#include "engine/api/internal/entity_system.h"
 #include "engine/core/math_types.h"
 
 struct Visual
