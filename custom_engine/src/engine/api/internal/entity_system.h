@@ -12,11 +12,14 @@ struct Ref
 	u32 id, gen;
 };
 
+template<typename T> struct Ref_Pool;
+
 template<typename T>
 struct RefT : public Ref
 {
-	inline T * get_fast(void) { return T::pool.get_fast(*this); }
-	inline T * get_safe(void) { return T::pool.get_safe(*this); }
+	static Ref_Pool<T> pool;
+	inline T * get_fast(void) { return pool.get_fast(*this); }
+	inline T * get_safe(void) { return pool.get_safe(*this); }
 };
 
 //
@@ -48,33 +51,35 @@ struct Ref_Pool
 {
 	~Ref_Pool(void) = default;
 
-	Gen_Pool pool;
+	Gen_Pool generations;
 	Array<T> instances; // sparse; count indicates the last active object
 
 	// API
 	template<typename... Args> RefT<T> create(Args... args);
 	void destroy(Ref const & ref);
-	inline bool contains(Ref const & ref) { return pool.contains(ref); };
+	inline bool contains(Ref const & ref) { return generations.contains(ref); };
 
 	// RefT API
 	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
-	inline T * get_safe(Ref const & ref) { return pool.contains(ref) ? &instances[ref.id] : NULL; }
+	inline T * get_safe(Ref const & ref) { return generations.contains(ref) ? &instances[ref.id] : NULL; }
 };
 
 //
 // entity
 //
 
+template<typename T> struct Component_Registry { static u32 offset; };
+
 struct Entity : public Ref
 {
 	// entities
-	static Gen_Pool pool;
+	static Gen_Pool generations;
 	static Array<Entity> instances;
 
 	// API
 	static Entity create(void);
 	static void destroy(Entity const & entity);
-	inline bool exists(void) const { return pool.contains(*this); }
+	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
 	static Array<void_ref_func *> component_destructors; // count indicates the number of component types

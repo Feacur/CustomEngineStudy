@@ -8,8 +8,8 @@
 //        - entity-structure's methods
 #define COMPONENT_IMPL(T)\
 	template struct custom::RefT<T>;\
-	u32 T::offset;\
-	custom::Ref_Pool<T> T::pool;\
+	custom::Ref_Pool<T> custom::RefT<T>::pool;\
+	u32 custom::Component_Registry<T>::offset;\
 	template custom::RefT<T> custom::Entity::add_component<T>(void);\
 	template custom::RefT<T> custom::Entity::add_component<T, T const &>(T const & data);\
 	template void custom::Entity::remove_component<T>(void);\
@@ -24,7 +24,7 @@ void init_entity_components(void) {
 	//        - assign components' offsets
 	//        - assign component pools
 	u32 component_types_count = 0;
-	#define COMPONENT_IMPL(T) T::offset = component_types_count++;
+	#define COMPONENT_IMPL(T) custom::Component_Registry<T>::offset = component_types_count++;
 	#include "components_registry_impl.h"
 	#undef COMPONENT_IMPL
 

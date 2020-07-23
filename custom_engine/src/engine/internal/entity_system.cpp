@@ -5,15 +5,10 @@
 namespace custom {
 
 // @Note: instantiate static data
-Gen_Pool Entity::pool;
+Gen_Pool Entity::generations;
 Array<Entity> Entity::instances;
 Array<Ref> Entity::components;
 Array<void_ref_func *> Entity::component_destructors;
-
-//
-//
-//
-
 
 //
 // pool
@@ -49,9 +44,9 @@ void Gen_Pool::destroy(Ref const & ref) {
 //
 
 Entity Entity::create(void) {
-	Ref entity = Entity::pool.create();
-	instances.push({entity.id, entity.gen});
-	return {entity.id, entity.gen};
+	Ref ref = Entity::generations.create();
+	instances.push({ref.id, ref.gen});
+	return {ref.id, ref.gen};
 }
 
 void Entity::destroy(Entity const & entity) {
@@ -62,7 +57,7 @@ void Entity::destroy(Entity const & entity) {
 		Ref const & ref = Entity::components.get(entity_offset + i);
 		(*Entity::component_destructors[i])(ref);
 	}
-	Entity::pool.destroy(entity);
+	Entity::generations.destroy(entity);
 
 	u32 instance_index = UINT32_MAX;
 	for (u32 i = 0; i < instances.count; ++i) {
