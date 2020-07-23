@@ -1,6 +1,6 @@
 project "platform_windows"
 	-- location "."
-	kind "ConsoleApp"
+	kind "ConsoleApp" -- WindowedApp
 	-- entrypoint "mainCRTStartup"
 	language "C++"
 	cdialect "C11"

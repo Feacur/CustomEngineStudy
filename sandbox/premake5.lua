@@ -1,6 +1,6 @@
 project "sandbox"
 	-- location "."
-	kind "ConsoleApp"
+	kind "ConsoleApp" -- WindowedApp
 	-- entrypoint "mainCRTStartup"
 	language "C++"
 	cdialect "C11"
