@@ -4,6 +4,8 @@
 #include "entity_system/components.h"
 #include "entity_system/renderer.h"
 
+#include <lua.hpp>
+
 // studying these:
 // https://github.com/etodd/lasercrabs
 // https://github.com/Marzac/le3d
@@ -142,7 +144,11 @@ static void on_app_update(r32 dt) {
 	sandbox::entity_renderer::update(camera.transform, camera.projection);
 }
 
+#include "test_lua.h"
+
 int main(int argc, char * argv[]) {
+	test_lua();
+
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);

@@ -20,7 +20,7 @@ project "sandbox"
 	includedirs {
 		sandbox_to_root .. "/custom_engine/%{engine_includes.custom_engine}",
 		-- sandbox_to_root .. "/custom_engine/%{engine_includes.imgui}",
-		-- sandbox_to_root .. "/custom_engine/%{engine_includes.lua}",
+		sandbox_to_root .. "/custom_engine/%{engine_includes.lua}",
 	}
 
 	defines {
