@@ -1,3 +1,6 @@
+// @Note: utility for automatic registration of GVM instructions:
+//        - #define a INSTRUCTION_IMPL(T) macro
+//        - #include this file
 INSTRUCTION_IMPL(Depth_Read)
 INSTRUCTION_IMPL(Depth_Write)
 INSTRUCTION_IMPL(Depth_Range)
@@ -47,3 +50,5 @@ INSTRUCTION_IMPL(Suspend_Texture)
 INSTRUCTION_IMPL(Suspend_Sampler)
 INSTRUCTION_IMPL(Message_Pointer)
 INSTRUCTION_IMPL(Message_Inline)
+//
+#undef INSTRUCTION_IMPL

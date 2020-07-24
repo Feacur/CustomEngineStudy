@@ -1,12 +1,9 @@
-local hello_string = "Hello, Lua!"
-print(hello_string .. " (of lenght: " .. string.len(hello_string) .. ")")
+local counter = 0
 
-function CustomAdd(a, b)
-	print("[Lua] 'CustomAdd(" .. a .. ", " .. b .. ")'")
-	return a + b
-end
-
-function CallNativeCustomAdd(a, b)
-	print("[Lua] 'CallNativeCustomAdd(" .. a .. ", " .. b .. ")'")
-	print("[Lua] its result is '" .. NativeCustomAdd(a, b) .. "'")
+function ecs_update()
+	counter = counter + 1
+	if counter > 100 then
+		counter = 0
+		print("update")
+	end
 end

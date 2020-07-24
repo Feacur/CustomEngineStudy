@@ -255,7 +255,6 @@ void shutdown(void) {
 
 #define INSTRUCTION_IMPL(T) static void platform_##T(Bytecode const & bc);
 #include "engine/api/instructions_registry_impl.h"
-#undef INSTRUCTION_IMPL
 
 void consume(Bytecode const & bc) {
 	while (bc.offset < bc.buffer.count) {
@@ -266,7 +265,6 @@ void consume(Bytecode const & bc) {
 			case Instruction::None: CUSTOM_ASSERT(false, "null instruction encountered"); break;
 			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
 			#include "engine/api/instructions_registry_impl.h"
-			#undef INSTRUCTION_IMPL
 			case Instruction::Last: CUSTOM_ASSERT(false, "non-instruction encountered"); break;
 			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
 		}

@@ -5,10 +5,10 @@
 namespace custom {
 
 // @Note: instantiate static data
-Gen_Pool Entity::generations;
-Array<Entity> Entity::instances;
-Array<Ref> Entity::components;
+Gen_Pool               Entity::generations;
+Array<Entity>          Entity::instances;
 Array<void_ref_func *> Entity::component_destructors;
+Array<Ref>             Entity::components;
 
 //
 // pool

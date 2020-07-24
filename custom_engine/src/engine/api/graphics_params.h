@@ -186,7 +186,6 @@ enum struct Instruction : u8
 	None,
 	#define INSTRUCTION_IMPL(T) T,
 	#include "instructions_registry_impl.h"
-	#undef INSTRUCTION_IMPL
 	Last,
 };
 UNDERLYING_TYPE_META(Instruction, u8)

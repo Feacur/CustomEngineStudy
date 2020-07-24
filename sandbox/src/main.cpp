@@ -2,9 +2,8 @@
 
 #include "assets/ids.h"
 #include "entity_system/components.h"
-#include "entity_system/renderer.h"
-
-#include <lua.hpp>
+#include "entity_system/ecs_renderer.h"
+#include "entity_system/ecs_lua_runner.h"
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -21,25 +20,14 @@ custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	return entity;
 }
 
-struct Camera
-{
-	Transform transform;
-	mat4 projection;
-};
-
-// struct Camera2d
-// {
-// 	Transform2d transform;
-// 	mat3 projection;
-// };
-
 Camera camera;
 custom::Entity suzanne;
 
 void init_entity_components(void);
 static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
 	init_entity_components();
-	sandbox::entity_renderer::init(renderer_bc);
+	sandbox::ecs_renderer::init(renderer_bc);
+	sandbox::ecs_lua_runner::init();
 
 	camera.transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
@@ -74,6 +62,9 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	);
 
 	custom::Entity::destroy(entity31);
+	
+	custom::Entity script_entity = custom::Entity::create();
+	script_entity.add_component<Lua_Script>(Lua_Script{"assets/scripts/test.lua", false});
 }
 
 r32 camera_zoom = 1;
@@ -136,14 +127,11 @@ static void on_app_update(r32 dt) {
 
 	// render entities
 	custom::renderer::clear();
-	sandbox::entity_renderer::update(camera.transform, camera.projection);
+	sandbox::ecs_renderer::process(camera.transform, camera.projection);
+	sandbox::ecs_lua_runner::process();
 }
 
-#include "test_lua.h"
-
 int main(int argc, char * argv[]) {
-	test_lua();
-
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);

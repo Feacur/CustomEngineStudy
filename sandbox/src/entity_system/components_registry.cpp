@@ -2,10 +2,7 @@
 
 #include "components.h"
 
-// @Note: instantiate component-specific templates and static data:
-//        - entire RefT structure
-//        - static components' data
-//        - entity-structure's methods
+// @Note: initialize compile-time components' data:
 #define COMPONENT_IMPL(T)\
 	template struct custom::RefT<T>;\
 	custom::Ref_Pool<T> custom::RefT<T>::pool;\
@@ -17,19 +14,14 @@
 	template bool custom::Entity::has_component<T>(void) const;\
 
 #include "components_registry_impl.h"
-#undef COMPONENT_IMPL
 
 void init_entity_components(void) {
-	// @Note: initialize runtime component-specific data
-	//        - assign components' offsets
-	//        - assign component pools
+// @Note: initialize runtime components' data:
 	u32 component_types_count = 0;
 	#define COMPONENT_IMPL(T) custom::Component_Registry<T>::offset = component_types_count++;
 	#include "components_registry_impl.h"
-	#undef COMPONENT_IMPL
 
 	custom::Entity::component_destructors.set_capacity(component_types_count);
 	#define COMPONENT_IMPL(T) custom::Entity::component_destructors.push(&custom::ref_pool_destruct<T>);
 	#include "components_registry_impl.h"
-	#undef COMPONENT_IMPL
 }
