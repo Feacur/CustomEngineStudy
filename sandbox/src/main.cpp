@@ -79,15 +79,10 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 r32 camera_zoom = 1;
 ivec2 viewport_size;
 static void update_camera_projection(void) {
-	r32 const scale = camera_zoom / tangent((pi / 2) / 2);
+	r32 const near = 0.1f; r32 const far  = 20.0f;
+	r32 const scale_x = camera_zoom / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
-	camera.projection =
-		mat_persp({scale, scale * aspect}, 0.1f, 20);
-		// mat_ortho({scale, scale * aspect}, 0, 20);
-	// Camera2d camera2d = {
-	// 	{{0, 0}, complex_from_radians(0), {1, 1}},
-	// 	mat_position_scale(vec2{0, 0}, vec2{scale, scale * aspect})
-	// };
+	camera.projection = mat_persp01({scale_x, scale_x * aspect}, 0.1f, 20.0f);
 }
 
 static void on_app_viewport(ivec2 size) {

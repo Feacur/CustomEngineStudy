@@ -1213,90 +1213,78 @@ XY scale is usually represented by:
 Orthograhic projection:
 - XYZ' = (a + b * XYZ) / 1
 - XY scale; a constant scale from [-bounds .. bounds] to [-1 .. 1]
-- Z  scale; a constant scale from [Znear .. Zfar] to [near clipping plane .. 1]
+- Z  scale; a constant scale from [Znear .. Zfar] to [NCP .. 1]
 - offset in case of assymetry
 - any other optional distortion
-> Z
-  near clipping plane = a + b * Znear = 0
-  far  clipping place = a + b * Zfar  = 1
-  ---> b = 1 / (Zfar - Znear)      ---> scale
-  ---> a = -Znear / (Zfar - Znear) ---> offset
+
+> Z [0 .. 1]
+  NCP = a + b * Min = 0
+  FCP = a + b * Max = 1
+  ---> b = 1 / (Max - Min)    ---> scale
+  ---> a = -Min / (Max - Min) ---> offset
+
+> Z [-1 .. 1]
+  NCP = a / Min + b = -1
+  FCP = a / Max + b =  1
+  ---> b = 2 / (Max - Min)             ---> scale
+  ---> a = -(Max + Min) / (Max - Min)  ---> offset
+
 > XY
-  s1 + s2 * left = -1
-  s1 + s2  * right = 1
-  ---> s2 = 2 / (right - left)               ---> scale
-  ---> s1 = -(left + right) / (right - left) ---> offset
+  s1 + s2 * Min = -1
+  s1 + s2 * Max =  1
+  ---> s2 = 2 / (Max - Min)            ---> scale
+  ---> s1 = -(Min + Max) / (Max - Min) ---> offset
 
 Perspective projection:
 - XYZ' = (a + b * XYZ) / Z
 - XY scale; a linear scale from [-bounds .. bounds] to [-1 .. 1]
-- Z  scale; an exponential scale from [Znear .. Zfar] to [near clipping plane .. 1]
+- Z  scale; an exponential scale from [Znear .. Zfar] to [NCP .. 1]
 - offset in case of assymetry
 - any other optional distortion
-> Z
-  near clipping plane = a / Znear + b = 0
-  far  clipping place = a / Zfar  + b = 1
-  ---> b = Zfar / (Zfar - Znear)          ---> scale
-  ---> a = -Znear * Zfar / (Zfar - Znear) ---> offset
-> XY
-  s1 + s2 * left = -Z
-  s1 + s2 * right = Z
-  ---> s2 = 2 * Z / (right - left)               ---> scale
-  ---> s1 = -(left + right) * Z / (right - left) ---> offset
+
+> Z [0 .. 1]
+  NCP = a / Min + b = 0
+  FCP = a / Max + b = 1
+  ---> b = Max / (Max - Min)        ---> scale
+  ---> a = -Min * Max / (Max - Min) ---> offset
+
+> Z [-1 .. 1]
+  NCP = a / Min + b = -1
+  FCP = a / Max + b =  1
+  ---> b = (Min + Max) / (Max - Min) ---> scale
+  ---> a = -Min * Max / (Max - Min)  ---> offset
+
+> XY [-1 .. 1]
+  s1 + s2 * Min = -Z
+  s1 + s2 * Max =  Z
+  ---> s2 = 2 * Z / (Max - Min)            ---> scale
+  ---> s1 = -(Min + Max) * Z / (Max - Min) ---> offset
 
 */
 
-constexpr inline mat4 mat_persp(vec2 scale, r32 near, r32 far) {
-	// @Note: left-handed, XY symmetric, zero to one
-	r32 const z_scale = far / (far - near); // -- diff, b value
+constexpr inline mat4 mat_persp01(vec2 scale, r32 near, r32 far) {
+	r32 const z_scale = far / (far - near);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
 	result[2][2] = z_scale;
-	result[2][3] = 1; // -- diff: normalize XY by Z value; W += 1 * vec4.z
-	result[3][2] = -z_scale * near; // offset by N to [0..1]
-	result[3][3] = 0; // -- diff: W += 0 * vec4.w
-	return result;
-}
-
-constexpr inline mat4 mat_persp(vec3 min, vec3 max) {
-	// @Note: left-handed, zero to one
-	vec3 const scale = vec3{min.xy * (min.z * 2), max.z} / (max - min);
-	mat4 result = {};
-	result[0][0] = scale.x;
-	result[1][1] = scale.y;
-	result[2][2] = scale.z;
-	result[2][3] = 0; // -- diff: normalize XY by Z value; W += 1 * vec4.z
-	result[3].xy = -scale.xy * (min.xy + max.xy) / (r32)2;
-	result[3].z  = -scale.z * min.z;
-	result[3][3] = 1; // -- diff: W += 0 * vec4.w
-	return result;
-}
-
-constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
-	// @Note: left-handed, XY symmetric, zero to one
-	r32 const z_scale = 1 / (far - near); // -- diff, b value
-	mat4 result = {};
-	result[0][0] = scale.x;
-	result[1][1] = scale.y;
-	result[2][2] = z_scale;
-	result[2][3] = 0; // -- diff: do not normalize XY by Z; W += 0 * vec4.z
+	result[2][3] = 1; // W += 1 * vec4.z
+	// result[3].xy = offset;
 	result[3][2] = -z_scale * near;
-	result[3][3] = 1; // -- diff: W += 1 * vec4.w
+	result[3][3] = 0; // W += 0 * vec4.w
 	return result;
 }
 
-constexpr inline mat4 mat_ortho(vec3 min, vec3 max) {
-	// @Note: left-handed, zero to one
-	vec3 const scale = vec3{2, 2, 1} / (max - min);
+constexpr inline mat4 mat_ortho01(vec2 scale, r32 near, r32 far) {
+	r32 const z_scale = 1 / (far - near);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = scale.z;
-	result[2][3] = 0; // -- diff: do not normalize XY by Z; W += 0 * vec4.z
-	result[3].xy = -scale.xy * (min.xy + max.xy) / (r32)2;
-	result[3].z  = -scale.z * min.z;
-	result[3][3] = 1; // -- diff: W += 1 * vec4.w
+	result[2][2] = z_scale;
+	result[2][3] = 0; // W += 0 * vec4.z
+	// result[3].xy = offset;
+	result[3][2] = -z_scale * near;
+	result[3][3] = 1; // W += 1 * vec4.w
 	return result;
 }
 
