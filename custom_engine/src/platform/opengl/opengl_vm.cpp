@@ -1721,8 +1721,8 @@ static void platform_Overlay(Bytecode const & bc) {
 static void platform_Init_Uniforms(Bytecode const & bc) {
 	u32 const name_capacity = C_ARRAY_LENGTH(Shader_Field::name);
 	u32 count = *bc.read<u32>();
-	ogl.uniform_names_offsets.set_capacity(count);
-	ogl.uniform_names.ensure_capacity(count * name_capacity);
+	ogl.uniform_names_offsets.set_capacity(count); ogl.uniform_names_offsets.count = 0;
+	ogl.uniform_names.set_capacity(count * name_capacity); ogl.uniform_names.count = 0;
 	for (u32 i = 0; i < count; ++i) {
 		Inline_String name = read_cstring(bc);
 		ogl.uniform_names_offsets.get(i) = ogl.uniform_names.count;

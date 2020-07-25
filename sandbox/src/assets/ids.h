@@ -3,6 +3,14 @@
 
 namespace sandbox {
 
+enum struct Script : u32
+{
+	main,
+	count,
+};
+UNDERLYING_TYPE_META(Script, u32)
+IS_ENUM_META(Script)
+
 enum struct Shader : u32
 {
 	v2_texture_tint,

@@ -6,6 +6,15 @@
 namespace custom {
 namespace asset {
 
+namespace script {
+	constexpr u32 const ids_count = (u32)sandbox::Script::count;
+	u32 count = ids_count;
+	cstring paths[ids_count + 1] = {
+		"assets/scripts/main.lua",
+		NULL
+	};
+};
+
 namespace shader {
 	Meta meta_presets[] = {
 		{

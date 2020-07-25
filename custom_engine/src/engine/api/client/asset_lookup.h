@@ -4,6 +4,11 @@
 namespace custom {
 namespace asset {
 
+namespace script {
+	extern u32 count;
+	extern cstring paths[];
+};
+
 namespace shader {
 	struct Meta
 	{

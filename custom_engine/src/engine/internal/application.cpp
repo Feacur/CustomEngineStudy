@@ -62,7 +62,7 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 static void init(void) {
 	custom::system::init();
 	custom::timer::init();
-	custom::loader::init(&app.loader_gbc);
+	custom::loader::uniforms(&app.loader_gbc);
 	custom::renderer::init(&app.renderer_gbc);
 
 	// @Todo: init context outside a window environment?

@@ -3,11 +3,13 @@
 #include "engine/core/code.h"
 #include "engine/core/types.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/loader.h"
+#include "engine/impl/array.h"
 
 #include "components.h"
+#include "../assets/ids.h"
 
 #include <lua.hpp>
-#include <lstate.h>
 
 namespace sandbox {
 namespace ecs_lua_runner {
@@ -20,6 +22,8 @@ void init() {
 	// luaL_openlibs(L);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
+
+	custom::loader::script(L, (u32)sandbox::Script::main);
 }
 
 void process() {
@@ -33,22 +37,12 @@ void process() {
 
 		//
 
-		if (!lua_script->loaded) {
-			lua_script->loaded = true;
-			if (luaL_dofile(L, lua_script->file_path) != LUA_OK) {
-				CUSTOM_ERROR("lua error: '%s'", lua_tostring(L, -1));
-				lua_pop(L, 1);
-				continue;
-			}
-			CUSTOM_TRACE("loaded %s", lua_script->file_path);
-		}
-
 		if (lua_getglobal(L, "ecs_update") != LUA_TFUNCTION) {
-			CUSTOM_ERROR("lua error: '%s'", lua_tostring(L, -1));
+			CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
 			lua_pop(L, 1);
 		}
 		else if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-			CUSTOM_ERROR("lua error: '%s'", lua_tostring(L, -1));
+			CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
 			lua_pop(L, 1);
 		}
 	}

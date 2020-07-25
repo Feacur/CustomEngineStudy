@@ -9,14 +9,14 @@
 // https://github.com/etodd/lasercrabs
 // https://github.com/Marzac/le3d
 
-custom::Entity create_visual(Visual visual_data, Transform transform_data) {
+custom::Entity create_visual(custom::Bytecode * bc, Visual visual_data, Transform transform_data) {
 	custom::Entity entity = custom::Entity::create();
 	entity.add_component<Visual>(visual_data);
 	entity.add_component<Transform>(transform_data);
 
-	custom::loader::shader(visual_data.shader);
-	custom::loader::image(visual_data.texture);
-	custom::loader::mesh_obj(visual_data.mesh);
+	custom::loader::shader(bc, visual_data.shader);
+	custom::loader::image(bc, visual_data.texture);
+	custom::loader::mesh_obj(bc, visual_data.mesh);
 	return entity;
 }
 
@@ -40,6 +40,7 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity entity31 = custom::Entity::create();
 
 	suzanne = create_visual(
+		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::checkerboard,
@@ -51,8 +52,9 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity::destroy(entity21);
 	custom::Entity::destroy(entity11);
 	
-	u32 quad_xz_id = custom::loader::create_quad_xz((u32)sandbox::Runtime_Mesh::quad_xz);
+	u32 quad_xz_id = custom::loader::create_quad_xz(loader_bc, (u32)sandbox::Runtime_Mesh::quad_xz);
 	create_visual(
+		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::proto_blue,
