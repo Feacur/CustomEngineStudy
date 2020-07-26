@@ -46,11 +46,9 @@ void image(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	bc->write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	bc->write(graphics::Instruction::Load_Texture);
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
@@ -75,11 +73,9 @@ void imagef(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	bc->write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	bc->write(graphics::Instruction::Load_Texture);
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
@@ -104,11 +100,9 @@ void image16(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	bc->write(graphics::Instruction::Allocate_Texture);
 	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	bc->write(graphics::Instruction::Load_Texture);
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
@@ -131,6 +125,7 @@ static void describe_texture(
 ) {	
 	u8 meta_id = asset::texture::meta_ids[asset_id];
 	asset::texture::Meta const & meta = asset::texture::meta_presets[meta_id];
+	bc->write(graphics::Instruction::Allocate_Texture);
 	bc->write(asset_id);
 	bc->write(size);
 	bc->write(channels);
@@ -147,6 +142,7 @@ static void describe_texture_load(
 	u32 asset_id, ivec2 offset, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 ) {
+	bc->write(graphics::Instruction::Load_Texture);
 	bc->write(asset_id);
 	bc->write(offset);
 	bc->write(size);

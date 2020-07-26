@@ -30,6 +30,8 @@ struct RefT : public Ref
 typedef VOID_REF_FUNC(void_ref_func);
 
 // @Todo: factor out sparse array functionality?
+// @GEAB: replace `gaps` with a `next_free` pointer
+//        although, might be not the valid case here if `gens` needs to be consistent
 struct Gen_Pool
 {
 	~Gen_Pool(void) = default;
