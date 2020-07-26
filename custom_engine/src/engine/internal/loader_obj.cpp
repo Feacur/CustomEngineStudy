@@ -4,11 +4,13 @@
 #include "engine/core/collection_types.h"
 #include "engine/core/math_types.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/bytecode.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
 #include "engine/api/resource.h"
-#include "engine/impl/bytecode.h"
+#include "engine/impl/array.h"
+#include "engine/impl/array_fixed.h"
 
 #include "obj_parser.h"
 
@@ -56,7 +58,7 @@ void mesh_obj(Bytecode * bc, u32 asset_id) {
 	bc->write((u8)2);
 	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
 	bc->write(graphics::Data_Type::r32); bc->write(vertices.count); bc->write(vertices.count);
-	bc->write(vertex_attributes);
+	bc->write_sized_array(vertex_attributes);
 	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
 	bc->write(graphics::Data_Type::u32); bc->write(indices.count); bc->write(indices.count);
 	bc->write((u32)0);
@@ -80,7 +82,7 @@ namespace loader {
 template<typename T>
 static void write_data_array(Bytecode * bc, custom::Array<T> const & data) {
 	bc->write(graphics::get_data_type<T>());
-	bc->write(data);
+	bc->write_sized_array(data);
 }
 
 }}

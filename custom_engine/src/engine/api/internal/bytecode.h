@@ -19,11 +19,14 @@ struct Bytecode
 	template<typename T>
 	void write(T const & datum);
 
+	template<typename T>
+	void write_sized_array(T const * data, u32 count);
+
 	template<typename T, u32 count>
-	void write(T const (& data)[count]);
+	void write_sized_array(T const (& data)[count]);
 
 	template<typename T>
-	void write(Array<T> const & data);
+	void write_sized_array(Array<T> const & data);
 
 	template<typename T>
 	T const * read(u32 count = 1) const;

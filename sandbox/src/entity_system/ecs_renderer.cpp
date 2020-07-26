@@ -1,11 +1,11 @@
 #include "ecs_renderer.h"
 
+#include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/graphics_params.h"
+#include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
-#include "engine/impl/bytecode.h"
 
 #include "../assets/ids.h"
 #include "components.h"

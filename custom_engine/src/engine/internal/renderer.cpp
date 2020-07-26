@@ -2,10 +2,9 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/graphics_params.h"
-#include "engine/impl/array.h"
-#include "engine/impl/bytecode.h"
 
 // https://developer.nvidia.com/content/depth-precision-visualized
 // https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/

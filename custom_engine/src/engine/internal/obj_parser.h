@@ -4,8 +4,6 @@
 // https://github.com/rlk/obj/blob/master/obj.c
 // https://github.com/Oblomov/faster-parser/blob/master/parse-float.h
 
-#include "engine/impl/array_fixed.h"
-
 #include <math.h>
 
 namespace custom {

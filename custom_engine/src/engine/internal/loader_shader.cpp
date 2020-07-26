@@ -22,8 +22,7 @@ void uniforms(Bytecode * bc) {
 	for (u32 i = 0; i < count; ++i) {
 		cstring name = asset::uniform::names[i];
 		u32 length = (u32)strlen(name);
-		bc->write(length + 1);
-		bc->write(name, length); bc->write('\0');
+		bc->write_sized_array(name, length);
 	}
 }
 
@@ -43,8 +42,7 @@ void shader(Bytecode * bc, u32 asset_id) {
 	
 	bc->write(graphics::Instruction::Load_Shader);
 	bc->write(asset_id);
-	bc->write(file.count + 1);
-	bc->write(file.data, file.count); bc->write('\0');
+	bc->write_sized_array(file.data, file.count);
 	bc->write(meta.parts);
 }
 

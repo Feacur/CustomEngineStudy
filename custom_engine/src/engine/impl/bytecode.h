@@ -39,14 +39,20 @@ void Bytecode::write(T const & datum) {
 	buffer.push_range((u8 *)&datum, sizeof(T));
 }
 
+template<typename T>
+void Bytecode::write_sized_array(T const * data, u32 count) {
+	write(count);
+	write((T *)data, count);
+}
+
 template<typename T, u32 count>
-void Bytecode::write(T const (& data)[count]) {
+void Bytecode::write_sized_array(T const (& data)[count]) {
 	write(count);
 	write((T *)data, count);
 }
 
 template<typename T>
-void Bytecode::write(Array<T> const & array) {
+void Bytecode::write_sized_array(Array<T> const & array) {
 	write(array.count);
 	write((T *)array.data, array.count);
 }

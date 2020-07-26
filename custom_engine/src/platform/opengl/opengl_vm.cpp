@@ -103,8 +103,9 @@ struct Data
 
 	u32 version;
 
-	custom::Array<u32>  uniform_names_offsets;
+	// @Note: might store offsets for random search
 	custom::Array<char> uniform_names;
+	custom::Array<u32>  uniform_names_lengths;
 
 	custom::Array<u32> texture_units; // sparse; count indicates the number of GPU bound objects
 	custom::Array<u32> sampler_units; // sparse; count indicates the number of GPU bound objects
@@ -153,11 +154,13 @@ struct Data
 
 static opengl::Data ogl;
 
-static u32 find_uniform_id(cstring value) {
-	for (u32 i = 0; i < ogl.uniform_names_offsets.count; ++i) {
-		u32 name_offset = ogl.uniform_names_offsets[i];
+static u32 find_uniform_id(cstring value, u32 value_length) {
+	u32 name_offset = 0;
+	for (u32 i = 0; i < ogl.uniform_names_lengths.count; ++i) {
+		u32 name_length = ogl.uniform_names_lengths[i];
 		cstring name = &ogl.uniform_names[name_offset];
-		if (strcmp(value, name) == 0) { return i; }
+		if (strncmp(value, name, value_length) == 0) { return i; }
+		name_offset += name_length;
 	}
 	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
 	return empty_asset_id;
@@ -389,12 +392,17 @@ static void PLATFORM_CONSUME_ERRORS()
 // 	}
 // }
 
-// static void print_shader_source(GLuint id)
+// static void platform_print_shader_source(GLuint id)
 // {
 // 	custom::Array<GLchar> text;
-// 	get_shader_source(id, text);
-// 	if (text.count) { CUSTOM_TRACE("shader source:\n%s", text.data); }
-// 	else { CUSTOM_TRACE("no shader source"); }
+// 	platform_get_shader_source(id, text);
+// 	if (text.count) {
+// 		// for (u32 i = 0; i < text.count; ++i) { if (text[i] == '\t') { text[i] = ' '; } }
+// 		CUSTOM_TRACE("shader source:\n%s", text.data);
+// 	}
+// 	else {
+// 		CUSTOM_TRACE("shader source: unknown");
+// 	}
 // }
 
 // static void platform_get_program_binary(GLuint id, GLenum & format, custom::Array<u8> & buffer)
@@ -452,11 +460,12 @@ static bool platform_verify_program(GLuint id, GLenum parameter)
 	return false;
 }
 
+struct GL_String { GLint count; glstring data; };
 struct Shader_Props
 {
-	GLenum  type;
-	cstring version;
-	cstring defines;
+	GLenum    type;
+	GL_String version;
+	GL_String defines;
 };
 
 static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, u8 cap)
@@ -464,25 +473,40 @@ static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, 
 	u8 count = 0;
 
 	if (bits_are_set(parts, custom::graphics::Shader_Part::Vertex)) {
-		props[count++] = { GL_VERTEX_SHADER, "#version 330 core\n", "#define VERTEX_SECTION\n" };
+		constexpr static GLchar const version[] = "#version 330 core\n";
+		constexpr static GLchar const defines[] = "#define VERTEX_SECTION";
+		props[count++] = { GL_VERTEX_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
 	if (bits_are_set(parts, custom::graphics::Shader_Part::Pixel)) {
-		props[count++] = { GL_FRAGMENT_SHADER, "#version 330 core\n", "#define FRAGMENT_SECTION\n" };
+		constexpr static GLchar const version[] = "#version 330 core\n";
+		constexpr static GLchar const defines[] = "#define FRAGMENT_SECTION\n";
+		props[count++] = { GL_FRAGMENT_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
 	if (bits_are_set(parts, custom::graphics::Shader_Part::Geometry)) {
-		props[count++] = { GL_GEOMETRY_SHADER, "#version 330 core\n", "#define GEOMETRY_SECTION\n" };
+		constexpr static GLchar const version[] = "#version 330 core\n";
+		constexpr static GLchar const defines[] = "#define GEOMETRY_SECTION\n";
+		props[count++] = { GL_GEOMETRY_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
 	if (bits_are_set(parts, custom::graphics::Shader_Part::Compute)) {
-		props[count++] = { GL_COMPUTE_SHADER, "#version 430 core\n", "#define COMPUTE_SECTION\n" };
+		constexpr static GLchar const version[] = "#version 430 core\n";
+		constexpr static GLchar const defines[] = "#define COMPUTE_SECTION\n";
+		props[count++] = { GL_COMPUTE_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
+	}
+
+	// @Note: exclude '\0' from the length
+	//        alternative is to call `strlen` instead of `C_ARRAY_LENGTH`
+	for (u8 i = 0; i < count; ++i) {
+		--props[i].version.count;
+		--props[i].defines.count;
 	}
 
 	return count;
 }
 
-static bool platform_link_program(GLuint program_id, cstring source, custom::graphics::Shader_Part parts)
+static bool platform_link_program(GLuint program_id, GL_String source, custom::graphics::Shader_Part parts)
 {
 	u8 const props_cap = 4;
 	static Shader_Props props[props_cap];
@@ -491,9 +515,10 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 
 	// Compile shaders
 	for (u8 i = 0; i < props_count; ++i) {
-		glstring code[] = { props[i].version, props[i].defines, source };
+		glstring code[] = { props[i].version.data,  props[i].defines.data,  source.data };
+		GLint length[]  = { props[i].version.count, props[i].defines.count, source.count };
 		GLuint shader_id = glCreateShader(props[i].type);
-		glShaderSource(shader_id, C_ARRAY_LENGTH(code), code, 0);
+		glShaderSource(shader_id, C_ARRAY_LENGTH(code), code, length);
 		glCompileShader(shader_id);
 		shaders[i] = shader_id;
 	}
@@ -501,7 +526,7 @@ static bool platform_link_program(GLuint program_id, cstring source, custom::gra
 	bool is_compiled = true;
 	for (u8 i = 0; i < props_count; ++i) {
 		bool isOk = verify_shader(shaders[i], GL_COMPILE_STATUS);
-		// if (!isOk) { print_shader_source(shaders[i]); }
+		// if (!isOk) { platform_print_shader_source(shaders[i]); }
 		is_compiled = is_compiled && isOk;
 	}
 
@@ -1408,7 +1433,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 
 	Inline_String source = read_cstring(bc);
 	Shader_Part parts = *bc.read<Shader_Part>();
-	platform_link_program(resource->id, source.data, parts);
+	platform_link_program(resource->id, {(GLint)source.count, source.data}, parts);
 
 	// CUSTOM_TRACE("program %d info:", asset_id);
 	Shader_Field field_buffer;
@@ -1442,7 +1467,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// 	field_buffer.type, field_buffer.name, field_buffer.size,
 		// 	i, field_buffer.location
 		// );
-		field->id = find_uniform_id(field_buffer.name);
+		field->id = find_uniform_id(field_buffer.name, field_buffer.name_count);
 		field->location = field_buffer.location;
 	}
 }
@@ -1721,14 +1746,13 @@ static void platform_Overlay(Bytecode const & bc) {
 static void platform_Init_Uniforms(Bytecode const & bc) {
 	u32 const name_capacity = C_ARRAY_LENGTH(Shader_Field::name);
 	u32 count = *bc.read<u32>();
-	ogl.uniform_names_offsets.set_capacity(count); ogl.uniform_names_offsets.count = 0;
 	ogl.uniform_names.set_capacity(count * name_capacity); ogl.uniform_names.count = 0;
+	ogl.uniform_names_lengths.set_capacity(count); ogl.uniform_names_lengths.count = 0;
 	for (u32 i = 0; i < count; ++i) {
 		Inline_String name = read_cstring(bc);
-		ogl.uniform_names_offsets.get(i) = ogl.uniform_names.count;
 		ogl.uniform_names.push_range(name.data, name.count);
+		ogl.uniform_names_lengths.push(name.count);
 	}
-	ogl.uniform_names_offsets.count = count;
 }
 
 static void platform_Suspend_Texture(Bytecode const & bc) {
