@@ -21,7 +21,6 @@
 #include "engine/api/internal/application.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/runtime_data.h"
 
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"

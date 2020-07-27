@@ -44,6 +44,7 @@ IS_ENUM_META(Texture)
 
 enum struct Mesh : u32
 {
+	plane_xz,
 	suzanne,
 	suzanne_tris,
 	count,

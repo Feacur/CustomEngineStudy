@@ -98,12 +98,14 @@ namespace mesh {
 	constexpr u32 const ids_count = (u32)sandbox::Mesh::count;
 	u32 count = ids_count;
 	cstring paths[ids_count + 1] = {
+		"assets/meshes/plane_xz.obj",
 		"assets/meshes/suzanne.obj",
 		"assets/meshes/suzanne_tris.obj",
 		NULL
 	};
 	
 	u8 meta_ids[ids_count] = {
+		0,
 		0,
 		0,
 	};

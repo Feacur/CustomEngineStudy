@@ -52,13 +52,12 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity::destroy(entity21);
 	custom::Entity::destroy(entity11);
 	
-	u32 quad_xz_id = custom::loader::create_quad_xz(loader_bc, (u32)sandbox::Runtime_Mesh::quad_xz);
 	create_visual(
 		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::proto_blue,
-			quad_xz_id
+			(u32)sandbox::Mesh::plane_xz,
 		},
 		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
 	);
