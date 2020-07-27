@@ -26,7 +26,7 @@ IS_ENUM_META(Raw_Input_Device)
 // RIDEV_NOLEGACY:     prevents mouse and keyboard from generating legacy messages
 // RIDEV_CAPTUREMOUSE: the mouse button click does not activate the other window
 
-static constexpr inline RAWINPUTDEVICE raw_input_device(HWND hwnd, USHORT usage, DWORD flags) {
+constexpr static inline RAWINPUTDEVICE raw_input_device(HWND hwnd, USHORT usage, DWORD flags) {
 	RAWINPUTDEVICE device = {}; // ZeroMemory(&device, sizeof(device));
 	device.usUsagePage = 0x01;
 	device.usUsage     = usage;

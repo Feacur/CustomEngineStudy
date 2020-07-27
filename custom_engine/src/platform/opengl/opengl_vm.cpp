@@ -52,6 +52,7 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id;
+	GLenum target;
 	u32 unit;
 	ivec2 size;
 	u8 channels;
@@ -97,6 +98,21 @@ struct Mesh
 };
 template struct custom::Array<Mesh>;
 
+struct Render_Buffer
+{
+	GLuint id;
+};
+template struct custom::Array<Render_Buffer>;
+
+struct Target
+{
+	GLuint id;
+	GLenum target;
+	custom::Array_Fixed<u32, 1> texture_ids;
+	custom::Array_Fixed<Render_Buffer, 1> render_buffers;
+};
+template struct custom::Array<Target>;
+
 struct Data
 {
 	~Data() = default;
@@ -109,13 +125,15 @@ struct Data
 
 	custom::Array<u32> texture_units; // sparse; count indicates the number of GPU bound objects
 	custom::Array<u32> sampler_units; // sparse; count indicates the number of GPU bound objects
-	u32 active_mesh = empty_asset_id;
 	u32 active_program = empty_asset_id;
+	u32 active_mesh    = empty_asset_id;
+	u32 active_target  = empty_asset_id;
 
 	custom::Array<Program> programs; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Texture> textures; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Sampler> samplers; // sparse; count indicates the number of GPU allocated objects
 	custom::Array<Mesh>    meshes;   // sparse; count indicates the number of GPU allocated objects
+	custom::Array<Target>  targets;  // sparse; count indicates the number of GPU allocated objects
 
 	void programs_ensure_capacity(u32 id) {
 		u32 capacity_before = programs.capacity;
@@ -146,6 +164,16 @@ struct Data
 		meshes.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < meshes.capacity; ++i) {
 			meshes.data[i].id = empty_id;
+			meshes.data[i].buffers.count = 0;
+		}
+	}
+
+	void targets_ensure_capacity(u32 id) {
+		u32 capacity_before = targets.capacity;
+		targets.ensure_capacity(id + 1);
+		for (u32 i = capacity_before; i < targets.capacity; ++i) {
+			targets.data[i].id = empty_id;
+			targets.data[i].render_buffers.count = 0;
 		}
 	}
 };
@@ -739,6 +767,24 @@ static GLenum get_texture_data_format(Texture_Type texture_type, u8 channels) {
 	return GL_NONE;
 }
 
+static GLenum get_attachment_format(Texture_Type texture_type, u8 index) {
+	switch (texture_type) {
+		case Texture_Type::Color:
+			return GL_COLOR_ATTACHMENT0 + index;
+
+		case Texture_Type::Depth:
+			return GL_DEPTH_ATTACHMENT;
+
+		case Texture_Type::DStencil:
+			return GL_DEPTH_STENCIL_ATTACHMENT;
+
+		case Texture_Type::Stencil:
+			return GL_STENCIL_ATTACHMENT;
+	}
+	CUSTOM_ASSERT(false, "unknown texture type %d and index %d", texture_type, index);
+	return GL_NONE;
+}
+
 static GLenum get_min_filter(Filter_Mode texture_filter, Filter_Mode mipmap_filter) {
 	switch (mipmap_filter) {
 		case Filter_Mode::None: switch (texture_filter) {
@@ -1090,6 +1136,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	opengl::Texture * resource = new (&ogl.textures.get(asset_id)) opengl::Texture;
 	++ogl.textures.count;
 
+	resource->target       = GL_TEXTURE_2D;
 	resource->unit         = empty_unit;
 	resource->size         = *bc.read<ivec2>();
 	resource->channels     = *bc.read<u8>();
@@ -1101,11 +1148,9 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	Wrap_Mode    wrap_x = *bc.read<Wrap_Mode>();
 	Wrap_Mode    wrap_y = *bc.read<Wrap_Mode>();
 
-	GLenum const target = GL_TEXTURE_2D;
-
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		glCreateTextures(target, 1, &resource->id);
+		glCreateTextures(resource->target, 1, &resource->id);
 		glTextureStorage2D(
 			resource->id, 1,
 			get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
@@ -1114,17 +1159,17 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	}
 	else {
 		glGenTextures(1, &resource->id);
-		glBindTexture(target, resource->id);
+		glBindTexture(resource->target, resource->id);
 		if (ogl.version >= COMPILE_VERSION(4, 2)) {
 			glTexStorage2D(
-				target, 1,
+				resource->target, 1,
 				get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
 				resource->size.x, resource->size.y
 			);
 		}
 		else {
 			glTexImage2D(
-				target, 0,
+				resource->target, 0,
 				get_texture_internal_format(resource->texture_type, resource->data_type, resource->channels),
 				resource->size.x, resource->size.y, 0,
 				get_texture_data_format(resource->texture_type, resource->channels),
@@ -1143,10 +1188,10 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	}
 	else {
 		// glBindTexture(target, resource->id);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
+		glTexParameteri(resource->target, GL_TEXTURE_MIN_FILTER, get_min_filter(min_tex, min_mip));
+		glTexParameteri(resource->target, GL_TEXTURE_MAG_FILTER, get_mag_filter(mag_tex));
+		glTexParameteri(resource->target, GL_TEXTURE_WRAP_S, get_wrap_mode(wrap_x));
+		glTexParameteri(resource->target, GL_TEXTURE_WRAP_T, get_wrap_mode(wrap_y));
 	}
 }
 
@@ -1298,6 +1343,61 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 			}
 		}
 	}
+
+	// glBindVertexArray(0);
+	// for (u16 i = 0; i < resource->buffers.count; ++i) {
+	// 	opengl::Buffer & buffer = resource->buffers[i];
+	// 	GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+	// 	glBindBuffer(target, 0);
+	// }
+}
+
+static void platform_Allocate_Target(Bytecode const & bc) {
+	u32   asset_id = *bc.read<u32>();
+	ogl.targets_ensure_capacity(asset_id);
+	opengl::Target * resource = new (&ogl.targets.get(asset_id)) opengl::Target;
+	++ogl.targets.count;
+
+	resource->target = GL_FRAMEBUFFER;
+
+	CUSTOM_ASSERT (ogl.version >= COMPILE_VERSION(3, 0), "frame buffers are not supported");
+
+	glGenFramebuffers(1, &resource->id);
+
+	// @Todo: correctly attach textures
+	u32 texture_asset_id = 0;
+	opengl::Texture * texture = &ogl.textures.get(texture_asset_id);
+	GLenum t_attachment = get_attachment_format(Texture_Type::Color, 0);
+	GLint mipmap = 0;
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		glNamedFramebufferTexture(resource->id, t_attachment, texture->id, mipmap);
+	}
+	else {
+		// glBindTexture(texture->target, texture->id);
+		if (ogl.version >= COMPILE_VERSION(3, 2)) {
+			glFramebufferTexture(resource->target, t_attachment, texture->id, mipmap);
+		}
+		else {
+			glFramebufferTexture2D(resource->target, t_attachment, texture->target, texture->id, mipmap);
+		}
+	}
+	
+	// @Todo: correctly attach render buffers
+	GLenum internal_format = get_texture_internal_format(Texture_Type::DStencil, Data_Type::u32, 0);
+	GLenum r_attachment = get_attachment_format(Texture_Type::DStencil, 0);
+	ivec2 size = {0, 0};
+	u32 render_buffer_id;
+	glGenRenderbuffers(1, &render_buffer_id);
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		glNamedRenderbufferStorage(render_buffer_id, internal_format, size.x, size.y);
+		glNamedFramebufferRenderbuffer(render_buffer_id, r_attachment, GL_RENDERBUFFER, render_buffer_id);
+	}
+	else {
+		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_id);
+		glRenderbufferStorage(GL_RENDERBUFFER, internal_format, size.x, size.y);
+		glFramebufferRenderbuffer(resource->target, r_attachment, GL_RENDERBUFFER, render_buffer_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
 }
 
 static void platform_Free_Shader(Bytecode const & bc) {
@@ -1357,6 +1457,23 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 	}
 }
 
+static void platform_Free_Target(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+	opengl::Target * resource = &ogl.targets.get(asset_id);
+	glDeleteFramebuffers(1, &resource->id);
+	// @Todo: textures fate?
+	for (u16 i = 0; i < resource->render_buffers.count; ++i) {
+		glDeleteRenderbuffers(1, &resource->render_buffers[i].id);
+	}
+
+	resource->opengl::Target::~Target();
+	--ogl.targets.count;
+	resource->id = empty_id;
+	if (ogl.active_target == asset_id) {
+		ogl.active_target = empty_asset_id;
+	}
+}
+
 static void platform_Use_Shader(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
 	opengl::Program const * resource = &ogl.programs.get(asset_id);
@@ -1388,9 +1505,8 @@ static void platform_Use_Texture(Bytecode const & bc) {
 		glBindTextureUnit(unit, resource->id);
 	}
 	else {
-		GLenum const target = GL_TEXTURE_2D;
 		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(target, resource->id);
+		glBindTexture(resource->target, resource->id);
 	}
 }
 
@@ -1424,6 +1540,15 @@ static void platform_Use_Mesh(Bytecode const & bc) {
 	}
 	// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
 	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
+}
+
+static void platform_Use_Target(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+	opengl::Target const * resource = &ogl.targets.get(asset_id);
+	if (ogl.active_target != asset_id) {
+		ogl.active_target = asset_id;
+		glBindFramebuffer(resource->target, resource->id);
+	}
 }
 
 static void platform_Load_Shader(Bytecode const & bc) {
@@ -1501,10 +1626,9 @@ static void platform_Load_Texture(Bytecode const & bc) {
 		);
 	}
 	else {
-		GLenum const target = GL_TEXTURE_2D;
-		glBindTexture(target, resource->id);
+		glBindTexture(resource->target, resource->id);
 		glTexSubImage2D(
-			target,
+			resource->target,
 			0,
 			offset.x, offset.y, size.x, size.y,
 			get_texture_data_format(texture_type, channels),

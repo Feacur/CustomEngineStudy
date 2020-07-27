@@ -17,7 +17,7 @@
 namespace custom {
 namespace graphics {
 
-template<typename T> static constexpr inline Data_Type get_data_type(void) { return Data_Type::None; }
+template<typename T> constexpr static inline Data_Type get_data_type(void) { return Data_Type::None; }
 #define GDT_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>(void) { return Data_Type::T; }
 	GDT_IMPL(texture_unit); GDT_IMPL(sampler_unit);
 	GDT_IMPL(s8); GDT_IMPL(s16); GDT_IMPL(s32);

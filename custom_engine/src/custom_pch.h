@@ -31,5 +31,6 @@
 // vendor
 #include <glad/glad.h>
 #include <stb_image.h>
+#include <lua.hpp>
 
 #endif
