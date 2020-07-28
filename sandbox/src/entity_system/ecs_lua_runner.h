@@ -1,11 +1,10 @@
 #include "engine/api/internal/entity_system.h"
 
-struct Lua_Script;
+struct lua_State;
 
 namespace sandbox {
 namespace ecs_lua_runner {
 
-void init();
-void process();
+void process(lua_State * L);
 
 }}

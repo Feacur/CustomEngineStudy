@@ -309,6 +309,10 @@ void consume(Bytecode const & bc) {
 
 //
 
+bool is_inited_uniforms() {
+	return ogl.uniform_names.count > 0;
+}
+
 bool is_allocated_shader(u32 id) {
 	if (id >= ogl.programs.capacity) { return false; }
 	return ogl.programs.get(id).id != empty_gl_id;
@@ -337,17 +341,14 @@ bool is_allocated_target(u32 id) {
 //
 
 bool is_uploaded_shader(u32 id) {
-	if (!is_allocated_shader(id)) { return false; }
 	return ogl.programs.get(id).uploaded;
 }
 
 bool is_uploaded_texture(u32 id) {
-	if (!is_allocated_texture(id)) { return false; }
 	return ogl.textures.get(id).uploaded;
 }
 
 bool is_uploaded_mesh(u32 id) {
-	if (!is_allocated_mesh(id)) { return false; }
 	return ogl.meshes.get(id).uploaded;
 }
 

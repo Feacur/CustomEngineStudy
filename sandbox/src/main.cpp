@@ -5,29 +5,33 @@
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 
+#include <lua.hpp>
+
 // studying these:
 // https://github.com/etodd/lasercrabs
 // https://github.com/Marzac/le3d
 
-custom::Entity create_visual(custom::Bytecode * bc, Visual visual_data, Transform transform_data) {
+custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	custom::Entity entity = custom::Entity::create();
 	entity.add_component<Visual>(visual_data);
 	entity.add_component<Transform>(transform_data);
-
-	custom::loader::shader(bc, visual_data.shader);
-	custom::loader::image(bc, visual_data.texture);
-	custom::loader::mesh_obj(bc, visual_data.mesh);
 	return entity;
 }
 
-Camera camera;
-custom::Entity suzanne;
+static Camera camera;
+static lua_State * L;
 
 void init_entity_components(void);
-static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * renderer_bc) {
+static void on_app_init() {
 	init_entity_components();
-	sandbox::ecs_renderer::init(renderer_bc);
-	sandbox::ecs_lua_runner::init();
+
+	L = luaL_newstate();
+	// luaL_openlibs(lua);
+	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
+	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
+	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
+		custom::loader::script(L, asset_id);
+	}
 
 	camera.transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
@@ -39,8 +43,7 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	suzanne = create_visual(
-		loader_bc,
+	create_visual(
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::checkerboard,
@@ -50,7 +53,6 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	);
 
 	create_visual(
-		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::checkerboard,
@@ -60,7 +62,6 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	);
 
 	create_visual(
-		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::checkerboard,
@@ -73,7 +74,6 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity::destroy(entity11);
 	
 	create_visual(
-		loader_bc,
 		{
 			(u32)sandbox::Shader::v3_texture_tint,
 			(u32)sandbox::Texture::proto_blue,
@@ -85,7 +85,7 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
-	script_entity.add_component<Lua_Script>(Lua_Script{"assets/scripts/test.lua", false});
+	script_entity.add_component<Lua_Script>(Lua_Script{"ecs_update", false});
 }
 
 r32 camera_zoom = 1;
@@ -131,25 +131,10 @@ static void on_app_update(r32 dt) {
 		camera.transform.position += quat_rotate_vector(camera.transform.rotation, move_delta) * (move_speed * dt);
 	}
 
-	static bool rotate_suzanne = false;
-	if (custom::application::get_key_transition(custom::Key_Code::Space, true)) {
-		rotate_suzanne = !rotate_suzanne;
-	}
-	if (rotate_suzanne) {
-		// @Note: world-space rotation
-		Transform * suzanne_transform = suzanne.get_component<Transform>().get_safe();
-		suzanne_transform->rotation = normalize(quat_product(
-			quat_from_radians(
-				vec3{0.1f, 0.3f, 0.05f} * dt
-			),
-			suzanne_transform->rotation
-		));
-	}
-
 	// render entities
 	custom::renderer::clear();
 	sandbox::ecs_renderer::process(camera.transform, camera.projection);
-	sandbox::ecs_lua_runner::process();
+	sandbox::ecs_lua_runner::process(L);
 }
 
 int main(int argc, char * argv[]) {

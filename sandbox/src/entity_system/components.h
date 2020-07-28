@@ -2,7 +2,7 @@
 
 struct Lua_Script
 {
-	cstring file_path;
+	cstring function;
 	bool loaded = false;
 };
 

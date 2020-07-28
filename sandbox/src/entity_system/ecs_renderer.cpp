@@ -18,15 +18,11 @@
 namespace sandbox {
 namespace ecs_renderer {
 
-static custom::Bytecode * bc = NULL;
-
-void init(custom::Bytecode * bytecode) {
-	bc = bytecode;
-}
-
 void process(Transform const & camera, mat4 const & projection) {
 	mat4 camera_matrix = to_matrix(camera.position, camera.rotation, camera.scale);
 	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
+
+	custom::loader::uniforms();
 
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
@@ -44,13 +40,17 @@ void process(Transform const & camera, mat4 const & projection) {
 		);
 
 		//
+		custom::loader::shader(visual->shader);
+		custom::loader::image(visual->texture);
+		custom::loader::mesh(visual->mesh);
 
+		//
 		custom::renderer::set_shader(visual->shader);
 		custom::renderer::set_texture(visual->shader, (u32)sandbox::Uniform::texture, visual->texture);
 		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::view_proj, camera_matrix);
 		custom::renderer::set_matrix(visual->shader, (u32)sandbox::Uniform::transform, transform_matrix);
 		custom::renderer::set_mesh(visual->mesh);
-		bc->write(custom::graphics::Instruction::Draw);
+		custom::renderer::draw();
 	}
 }
 

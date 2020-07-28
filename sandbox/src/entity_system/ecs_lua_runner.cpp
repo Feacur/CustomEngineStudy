@@ -14,19 +14,7 @@
 namespace sandbox {
 namespace ecs_lua_runner {
 
-static lua_State * L;
-
-void init() {
-	L = luaL_newstate();
-
-	// luaL_openlibs(L);
-	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
-	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
-
-	custom::loader::script(L, (u32)sandbox::Script::main);
-}
-
-void process() {
+void process(lua_State * L) {
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -37,7 +25,7 @@ void process() {
 
 		//
 
-		if (lua_getglobal(L, "ecs_update") != LUA_TFUNCTION) {
+		if (lua_getglobal(L, lua_script->function) != LUA_TFUNCTION) {
 			CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
 			lua_pop(L, 1);
 		}

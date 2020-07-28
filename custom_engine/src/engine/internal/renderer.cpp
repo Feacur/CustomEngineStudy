@@ -69,6 +69,10 @@ void clear(void) {
 	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
 }
 
+void draw(void) {
+	bc->write(graphics::Instruction::Draw);
+}
+
 }}
 
 //
