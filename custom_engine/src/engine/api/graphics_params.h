@@ -99,12 +99,11 @@ UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
 // @Note: final sampler type is implementation defined; OpenGL takes s32
-typedef struct { u32 data; } texture_unit;
-typedef struct { u32 data; } sampler_unit;
+typedef struct { u32 texture, sampler; } unit_id;
 enum struct Data_Type : u8
 {
 	None,
-	texture_unit, sampler_unit,
+	unit_id,
 	s8, s16, s32,
 	u8, u16, u32,
 	r32, r64,

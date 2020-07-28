@@ -30,13 +30,13 @@ void set_shader(u32 shader) {
 
 void set_texture(u32 shader, u32 uniform, u32 texture) {
 	if (texture == empty_asset_id) { return; }
-	bc->write(custom::graphics::Instruction::Use_Texture);
-	bc->write(texture);
+	bc->write(custom::graphics::Instruction::Use_Unit);
+	bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 
 	bc->write(custom::graphics::Instruction::Load_Uniform);
 	bc->write(shader); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::texture_unit);
-	bc->write((u32)1); bc->write(texture);
+	bc->write(custom::graphics::Data_Type::unit_id);
+	bc->write((u32)1); bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 }
 
 void set_mesh(u32 mesh) {
