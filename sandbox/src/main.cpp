@@ -49,6 +49,26 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 		{{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}}
 	);
 
+	create_visual(
+		loader_bc,
+		{
+			(u32)sandbox::Shader::v3_texture_tint,
+			(u32)sandbox::Texture::checkerboard,
+			(u32)sandbox::Mesh::suzanne,
+		},
+		{{3, 1, 0}, {0, 0, 0, 1}, {1, 2, 1}}
+	);
+
+	create_visual(
+		loader_bc,
+		{
+			(u32)sandbox::Shader::v3_texture_tint,
+			(u32)sandbox::Texture::checkerboard,
+			(u32)sandbox::Mesh::suzanne,
+		},
+		{{-5, 1, 0}, {0, 0, 0, 1}, {2, 1, 2}}
+	);
+
 	custom::Entity::destroy(entity21);
 	custom::Entity::destroy(entity11);
 	

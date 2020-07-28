@@ -8,7 +8,6 @@
 #include "engine/api/platform/file.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/resource.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
 
@@ -38,7 +37,6 @@ template<typename T>
 static void write_data_array(Bytecode * bc, custom::Array<T> const & data);
 
 void mesh_obj(Bytecode * bc, u32 asset_id) {
-	if (has_mesh(asset_id)) { return; }
 	if (asset_id >= asset::mesh::count) { return; }
 	cstring path = asset::mesh::paths[asset_id];
 

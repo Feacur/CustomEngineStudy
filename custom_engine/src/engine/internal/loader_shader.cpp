@@ -7,7 +7,6 @@
 #include "engine/api/platform/file.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/resource.h"
 #include "engine/impl/bytecode.h"
 
 namespace custom {
@@ -27,7 +26,6 @@ void uniforms(Bytecode * bc) {
 }
 
 void shader(Bytecode * bc, u32 asset_id) {
-	if (has_shader(asset_id)) { return; }
 	if (asset_id >= asset::shader::count) { return; }
 	cstring path = asset::shader::paths[asset_id];
 

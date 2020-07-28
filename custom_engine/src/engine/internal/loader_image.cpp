@@ -8,7 +8,6 @@
 #include "engine/api/platform/file.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/resource.h"
 
 #include <stb_image.h>
 
@@ -17,7 +16,7 @@ namespace loader {
 
 static void describe_texture(
 	Bytecode * bc,
-	u32 asset_id, ivec2 size, u8 channels,
+	u32 asset_id, bool is_dynamic, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 );
 
@@ -28,7 +27,6 @@ static void describe_texture_load(
 );
 
 void image(Bytecode * bc, u32 asset_id) {
-	if (has_texture(asset_id)) { return; }
 	if (asset_id >= asset::texture::count) { return; }
 	cstring path = asset::texture::paths[asset_id];
 
@@ -46,7 +44,7 @@ void image(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
@@ -56,8 +54,6 @@ void image(Bytecode * bc, u32 asset_id) {
 }
 
 void imagef(Bytecode * bc, u32 asset_id) {
-	if (has_texture(asset_id)) { return; }
-
 	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -73,7 +69,7 @@ void imagef(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
@@ -83,8 +79,6 @@ void imagef(Bytecode * bc, u32 asset_id) {
 }
 
 void image16(Bytecode * bc, u32 asset_id) {
-	if (has_texture(asset_id)) { return; }
-
 	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -100,7 +94,7 @@ void image16(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, size, (u8)channels, data_type, texture_type);
+	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
 	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
@@ -120,13 +114,14 @@ namespace loader {
 
 static void describe_texture(
 	Bytecode * bc,
-	u32 asset_id, ivec2 size, u8 channels,
+	u32 asset_id, bool is_dynamic, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 ) {	
 	u8 meta_id = asset::texture::meta_ids[asset_id];
 	asset::texture::Meta const & meta = asset::texture::meta_presets[meta_id];
 	bc->write(graphics::Instruction::Allocate_Texture);
 	bc->write(asset_id);
+	bc->write((b8)is_dynamic);
 	bc->write(size);
 	bc->write(channels);
 	bc->write(data_type);
