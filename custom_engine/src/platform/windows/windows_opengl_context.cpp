@@ -91,7 +91,7 @@ static struct {
 } wgl;
 
 // #include "engine/math/bitwise.h"
-static constexpr inline bool bits_are_set(DWORD container, DWORD bits) {
+constexpr static inline bool bits_are_set(DWORD container, DWORD bits) {
 	return (container & bits) == bits;
 }
 

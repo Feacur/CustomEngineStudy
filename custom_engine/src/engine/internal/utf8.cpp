@@ -26,7 +26,7 @@ struct decoding {
 	u8 signature, mask, leading, continuation;
 };
 
-static constexpr decoding const table[] = {
+constexpr static decoding const table[] = {
 	// signature  mask        lead. byte  cont. byte
 	{ 0b11110000, 0b11111000, 0b00000111, 0b00111111, }, // 21 bits = 3 + 6 + 6 + 6
 	{ 0b11100000, 0b11110000, 0b00001111, 0b00111111, }, // 16 bits = 4 + 6 + 6 __0

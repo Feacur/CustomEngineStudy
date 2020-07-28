@@ -1,3 +1,6 @@
+// @Note: utility for automatic registration of GVM instructions:
+//        - #define a INSTRUCTION_IMPL(T) macro
+//        - #include this file
 INSTRUCTION_IMPL(Depth_Read)
 INSTRUCTION_IMPL(Depth_Write)
 INSTRUCTION_IMPL(Depth_Range)
@@ -21,21 +24,24 @@ INSTRUCTION_IMPL(Allocate_Shader)
 INSTRUCTION_IMPL(Allocate_Texture)
 INSTRUCTION_IMPL(Allocate_Sampler)
 INSTRUCTION_IMPL(Allocate_Mesh)
+INSTRUCTION_IMPL(Allocate_Target)
+INSTRUCTION_IMPL(Allocate_Unit)
 //
 INSTRUCTION_IMPL(Free_Shader)
 INSTRUCTION_IMPL(Free_Texture)
 INSTRUCTION_IMPL(Free_Sampler)
 INSTRUCTION_IMPL(Free_Mesh)
+INSTRUCTION_IMPL(Free_Target)
+INSTRUCTION_IMPL(Free_Unit)
 //
 INSTRUCTION_IMPL(Use_Shader)
-INSTRUCTION_IMPL(Use_Texture)
-INSTRUCTION_IMPL(Use_Sampler)
 INSTRUCTION_IMPL(Use_Mesh)
+INSTRUCTION_IMPL(Use_Target)
 //
 INSTRUCTION_IMPL(Load_Shader)
 INSTRUCTION_IMPL(Load_Texture)
 INSTRUCTION_IMPL(Load_Mesh)
-INSTRUCTION_IMPL(Load_Uniform)
+INSTRUCTION_IMPL(Set_Uniform)
 //
 INSTRUCTION_IMPL(Viewport)
 INSTRUCTION_IMPL(Clear)
@@ -43,7 +49,7 @@ INSTRUCTION_IMPL(Draw)
 INSTRUCTION_IMPL(Overlay)
 //
 INSTRUCTION_IMPL(Init_Uniforms)
-INSTRUCTION_IMPL(Suspend_Texture)
-INSTRUCTION_IMPL(Suspend_Sampler)
 INSTRUCTION_IMPL(Message_Pointer)
 INSTRUCTION_IMPL(Message_Inline)
+//
+#undef INSTRUCTION_IMPL

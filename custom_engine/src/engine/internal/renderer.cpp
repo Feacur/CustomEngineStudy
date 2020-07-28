@@ -2,10 +2,9 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/graphics_params.h"
-#include "engine/impl/array.h"
-#include "engine/impl/bytecode.h"
 
 // https://developer.nvidia.com/content/depth-precision-visualized
 // https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
@@ -31,13 +30,13 @@ void set_shader(u32 shader) {
 
 void set_texture(u32 shader, u32 uniform, u32 texture) {
 	if (texture == empty_asset_id) { return; }
-	bc->write(custom::graphics::Instruction::Use_Texture);
-	bc->write(texture);
+	bc->write(custom::graphics::Instruction::Allocate_Unit);
+	bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::texture_unit);
-	bc->write((u32)1); bc->write(texture);
+	bc->write(custom::graphics::Data_Type::unit_id);
+	bc->write((u32)1); bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 }
 
 void set_mesh(u32 mesh) {
@@ -47,14 +46,14 @@ void set_mesh(u32 mesh) {
 }
 
 void set_matrix(u32 shader, u32 uniform, mat4 matrix) {
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat4);
 	bc->write((u32)1); bc->write(matrix);
 }
 
 void set_matrix(u32 shader, u32 uniform, mat3 matrix) {
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat3);
 	bc->write((u32)1); bc->write(matrix);
@@ -68,6 +67,10 @@ void viewport(ivec2 const & position, ivec2 const & size) {
 void clear(void) {
 	bc->write(graphics::Instruction::Clear);
 	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
+}
+
+void draw(void) {
+	bc->write(graphics::Instruction::Draw);
 }
 
 }}

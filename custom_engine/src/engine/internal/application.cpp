@@ -1,13 +1,15 @@
 #include "custom_pch.h"
 
+#include "engine/core/code.h"
+#include "engine/debug/log.h"
 #include "engine/api/platform/system.h"
 #include "engine/api/platform/timer.h"
 #include "engine/api/platform/window.h"
 #include "engine/api/platform/graphics_vm.h"
 #include "engine/api/internal/application.h"
+#include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
-#include "engine/impl/bytecode.h"
 #include "engine/impl/math_linear.h"
 
 #if !defined(CUSTOM_SHIPPING)
@@ -39,8 +41,8 @@ namespace custom {
 namespace application {
 
 static struct {
-	custom::Bytecode loader_gbc;
-	custom::Bytecode renderer_gbc;
+	custom::Bytecode bytecode_loader;
+	custom::Bytecode bytecode_renderer;
 	custom::window::Internal_Data * window;
 
 	ivec2 viewport_size;
@@ -62,8 +64,8 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 static void init(void) {
 	custom::system::init();
 	custom::timer::init();
-	custom::loader::init(&app.loader_gbc);
-	custom::renderer::init(&app.renderer_gbc);
+	custom::loader::init(&app.bytecode_loader);
+	custom::renderer::init(&app.bytecode_renderer);
 
 	// @Todo: init context outside a window environment?
 	app.window = custom::window::create();
@@ -76,7 +78,7 @@ static void init(void) {
 	custom::window::set_viewport_callback(app.window, &update_viewport_safely);
 
 	update_viewport_safely(app.window, size);
-	CALL_SAFELY(app.callbacks.init, &app.loader_gbc, &app.renderer_gbc);
+	CALL_SAFELY(app.callbacks.init);
 }
 
 void run(void) {
@@ -96,13 +98,13 @@ void run(void) {
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 		CALL_SAFELY(app.callbacks.update, dt);
 
-		custom::graphics::consume(app.loader_gbc);
-		custom::graphics::consume(app.renderer_gbc);
+		custom::graphics::consume(app.bytecode_loader);
+		custom::graphics::consume(app.bytecode_renderer);
 		custom::window::update(app.window);
 
 		// clean up after the frame
-		app.loader_gbc.reset();
-		app.renderer_gbc.reset();
+		app.bytecode_loader.reset();
+		app.bytecode_renderer.reset();
 	}
 
 	custom::graphics::shutdown();

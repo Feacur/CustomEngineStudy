@@ -38,7 +38,7 @@ static UINT system_timer_period;
 #endif
 
 // #include "engine/math/scalar.h"
-static constexpr inline u64 mul_div(u64 value, u64 numerator, u64 denominator) {
+constexpr static inline u64 mul_div(u64 value, u64 numerator, u64 denominator) {
 	u64 a = value / denominator;
 	u64 b = value % denominator;
 	return a * numerator + b * numerator / denominator;

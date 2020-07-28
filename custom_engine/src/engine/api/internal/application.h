@@ -20,7 +20,7 @@ ivec2 const & get_mouse_delta(void);
 vec2 const & get_mouse_wheel(void);
 
 // callbacks
-typedef void init_func(Bytecode * loader_bc, Bytecode * renderer_bc);
+typedef void init_func();
 typedef void viewport_func(ivec2);
 typedef void update_func(r32);
 

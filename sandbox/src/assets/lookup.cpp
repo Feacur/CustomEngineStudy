@@ -6,6 +6,15 @@
 namespace custom {
 namespace asset {
 
+namespace script {
+	constexpr u32 const ids_count = (u32)sandbox::Script::count;
+	u32 count = ids_count;
+	cstring paths[ids_count + 1] = {
+		"assets/scripts/main.lua",
+		NULL
+	};
+};
+
 namespace shader {
 	Meta meta_presets[] = {
 		{
@@ -89,6 +98,7 @@ namespace mesh {
 	constexpr u32 const ids_count = (u32)sandbox::Mesh::count;
 	u32 count = ids_count;
 	cstring paths[ids_count + 1] = {
+		"assets/meshes/plane_xz.obj",
 		"assets/meshes/suzanne.obj",
 		"assets/meshes/suzanne_tris.obj",
 		NULL
@@ -96,6 +106,26 @@ namespace mesh {
 	
 	u8 meta_ids[ids_count] = {
 		0,
+		0,
+		0,
+	};
+};
+
+namespace target {
+	Meta meta_presets[] = {
+		{
+			(u32)sandbox::Texture::offscreen,
+			ivec2{0, 0},
+			graphics::Data_Type::u32,
+			graphics::Texture_Type::DStencil
+		},
+	};
+	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
+
+	constexpr u32 const ids_count = (u32)sandbox::Target::count;
+	u32 count = ids_count;
+	
+	u8 meta_ids[ids_count] = {
 		0,
 	};
 };

@@ -30,7 +30,7 @@ static void update_current_mouse(Window * window, POINT const & screen, POINT co
 	};
 }
 
-static constexpr inline ivec2 mouse_input_get_delta(Window * window, LONG x, LONG y) {
+constexpr static inline ivec2 mouse_input_get_delta(Window * window, LONG x, LONG y) {
 	return {
 		x - window->mouse.screen.x,
 		window->mouse.screen.y - y

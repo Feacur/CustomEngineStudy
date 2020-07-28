@@ -18,8 +18,8 @@ u64  get_ticks(void);
 u64  snapshot(void);
 u64  wait_next_frame(u64 duration, u64 precision);
 
-static constexpr u64 const millisecond = 1000;
-static constexpr u64 const microsecond = 1000000;
-static constexpr u64 const nanosecond  = 1000000000;
+constexpr static u64 const millisecond = 1000;
+constexpr static u64 const microsecond = 1000000;
+constexpr static u64 const nanosecond  = 1000000000;
 
 }}
