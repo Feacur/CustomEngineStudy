@@ -108,7 +108,7 @@ namespace loader {
 static void describe_texture(
 	u32 asset_id, bool is_dynamic, ivec2 size, u8 channels,
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
-) {	
+) {
 	u8 meta_id = asset::texture::meta_ids[asset_id];
 	asset::texture::Meta const & meta = asset::texture::meta_presets[meta_id];
 	bc->write(graphics::Instruction::Allocate_Texture);

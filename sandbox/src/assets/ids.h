@@ -38,6 +38,7 @@ enum struct Texture : u32
 	blue_noise,
 	proto_blue,
 	count,
+	offscreen,
 };
 UNDERLYING_TYPE_META(Texture, u32)
 IS_ENUM_META(Texture)
@@ -63,5 +64,13 @@ enum struct Runtime_Mesh : u32
 };
 UNDERLYING_TYPE_META(Runtime_Mesh, u32)
 IS_ENUM_META(Runtime_Mesh)
+
+enum struct Target : u32
+{
+	offscreen,
+	count,
+};
+UNDERLYING_TYPE_META(Target, u32)
+IS_ENUM_META(Target)
 
 }

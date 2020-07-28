@@ -111,4 +111,23 @@ namespace mesh {
 	};
 };
 
+namespace target {
+	Meta meta_presets[] = {
+		{
+			(u32)sandbox::Texture::offscreen,
+			ivec2{0, 0},
+			graphics::Data_Type::u32,
+			graphics::Texture_Type::DStencil
+		},
+	};
+	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
+
+	constexpr u32 const ids_count = (u32)sandbox::Target::count;
+	u32 count = ids_count;
+	
+	u8 meta_ids[ids_count] = {
+		0,
+	};
+};
+
 }}

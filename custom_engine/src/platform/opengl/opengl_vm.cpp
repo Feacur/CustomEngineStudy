@@ -106,6 +106,8 @@ struct Render_Buffer
 	GLuint id = empty_gl_id;
 	GLenum target;
 	ivec2 size;
+	custom::graphics::Data_Type data_type;
+	custom::graphics::Texture_Type texture_type;
 };
 
 struct Target
@@ -1255,6 +1257,11 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 		glTexParameteri(resource->target, GL_TEXTURE_WRAP_S, get_wrap_mode(resource->wrap_x));
 		glTexParameteri(resource->target, GL_TEXTURE_WRAP_T, get_wrap_mode(resource->wrap_y));
 	}
+
+	// @Note: take the state down
+	// if (ogl.version < COMPILE_VERSION(4, 5)) {
+	// 	glBindTexture(resource->target, 0);
+	// }
 }
 
 static void platform_Allocate_Sampler(Bytecode const & bc) {
@@ -1323,6 +1330,8 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		return;
 	}
 	platform_consume_mesh_params(bc, resource);
+
+	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
 
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -1413,17 +1422,34 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		}
 	}
 
+	// @Note: take the state down or account it
 	// glBindVertexArray(0);
-	// for (u16 i = 0; i < resource->buffers.count; ++i) {
-	// 	opengl::Buffer & buffer = resource->buffers[i];
-	// 	GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-	// 	glBindBuffer(target, 0);
-	// }
+	if (ogl.active_mesh == empty_asset_id) {
+		ogl.active_mesh = asset_id;
+	}
 }
 
 static void platform_consume_target_params(Bytecode const & bc, opengl::Target * resource) {
 	new (resource) opengl::Target;
 	resource->target = GL_FRAMEBUFFER;
+
+	u16 textures_count = *bc.read<u16>();
+	u32 const * texture_ids = bc.read<u32>(textures_count);
+	CUSTOM_ASSERT(textures_count <= resource->texture_ids.capacity, "too many textures");
+	for (u16 i = 0; i < textures_count; ++i) {
+		resource->texture_ids.push(texture_ids[i]);
+	}
+
+	u16 buffers_count = *bc.read<u16>();
+	CUSTOM_ASSERT(buffers_count <= resource->buffers.capacity, "too many buffers");
+	for (u16 i = 0; i < buffers_count; ++i) {
+		resource->buffers.push();
+		opengl::Render_Buffer * buffer = new (&resource->buffers[i]) opengl::Render_Buffer;
+		buffer->target       = GL_RENDERBUFFER;
+		buffer->size         = *bc.read<ivec2>();
+		buffer->data_type    = *bc.read<Data_Type>();
+		buffer->texture_type = *bc.read<Texture_Type>();
+	}
 }
 
 static void platform_Allocate_Target(Bytecode const & bc) {
@@ -1442,40 +1468,47 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 
 	glGenFramebuffers(1, &resource->id);
 
-	// @Todo: correctly attach textures
-	u32 texture_asset_id = 0;
-	opengl::Texture * texture = &ogl.textures.get(texture_asset_id);
-	GLenum t_attachment = get_attachment_format(Texture_Type::Color, 0);
-	GLint mipmap = 0;
-	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		glNamedFramebufferTexture(resource->id, t_attachment, texture->id, mipmap);
-	}
-	else {
-		glBindFramebuffer(resource->target, resource->id);
-		if (ogl.version >= COMPILE_VERSION(3, 2)) {
-			glFramebufferTexture(resource->target, t_attachment, texture->id, mipmap);
+	for (u16 i = 0; i < resource->texture_ids.count; ++i) {
+		u32 texture_id = resource->texture_ids[i];
+		opengl::Texture * texture = &ogl.textures.get(texture_id);
+		CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
+		GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+		GLint mipmap = 0; // @Todo: process correctly
+		if (ogl.version >= COMPILE_VERSION(4, 5)) {
+			glNamedFramebufferTexture(resource->id, attachment, texture->id, mipmap);
 		}
 		else {
-			glFramebufferTexture2D(resource->target, t_attachment, texture->target, texture->id, mipmap);
+			glBindFramebuffer(resource->target, resource->id);
+			if (ogl.version >= COMPILE_VERSION(3, 2)) {
+				glFramebufferTexture(resource->target, attachment, texture->id, mipmap);
+			}
+			else {
+				glFramebufferTexture2D(resource->target, attachment, texture->target, texture->id, mipmap);
+			}
 		}
 	}
-	
-	// @Todo: correctly attach render buffers
-	GLenum internal_format = get_texture_internal_format(Texture_Type::DStencil, Data_Type::u32, 0);
-	GLenum r_attachment = get_attachment_format(Texture_Type::DStencil, 0);
-	ivec2 size = {0, 0};
-	u32 render_buffer_id;
-	glGenRenderbuffers(1, &render_buffer_id);
-	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		glNamedRenderbufferStorage(render_buffer_id, internal_format, size.x, size.y);
-		glNamedFramebufferRenderbuffer(render_buffer_id, r_attachment, GL_RENDERBUFFER, render_buffer_id);
+
+	for (u16 i = 0; i < resource->buffers.count; ++i) {
+		opengl::Render_Buffer * buffer = &resource->buffers[i];
+		GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
+		GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
+		glGenRenderbuffers(1, &buffer->id);
+		if (ogl.version >= COMPILE_VERSION(4, 5)) {
+			glNamedRenderbufferStorage(buffer->id, internal_format, buffer->size.x, buffer->size.y);
+			glNamedFramebufferRenderbuffer(buffer->id, attachment, buffer->target, buffer->id);
+		}
+		else {
+			// glBindFramebuffer(resource->target, resource->id);
+			glBindRenderbuffer(buffer->target, buffer->id);
+			glRenderbufferStorage(buffer->target, internal_format, buffer->size.x, buffer->size.y);
+			glFramebufferRenderbuffer(resource->target, attachment, buffer->target, buffer->id);
+		}
 	}
-	else {
-		// glBindFramebuffer(resource->target, resource->id);
-		glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_id);
-		glRenderbufferStorage(GL_RENDERBUFFER, internal_format, size.x, size.y);
-		glFramebufferRenderbuffer(resource->target, r_attachment, GL_RENDERBUFFER, render_buffer_id);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// @Note: take the state down or account it
+	// glBindFramebuffer(resource->target, 0);
+	if (ogl.active_target == empty_asset_id) {
+		ogl.active_target = asset_id;
 	}
 }
 
@@ -1757,6 +1790,11 @@ static void platform_Load_Texture(Bytecode const & bc) {
 			data
 		);
 	}
+
+	// @Note: take the state down
+	// if (ogl.version < COMPILE_VERSION(4, 5)) {
+	// 	glBindTexture(resource->target, 0);
+	// }
 }
 
 static void platform_Load_Mesh(Bytecode const & bc) {
@@ -1794,7 +1832,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_mesh != asset_id) {
+		if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_asset_id) {
 			glBindVertexArray(0);
 			CUSTOM_WARNING("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
 		}
@@ -1830,6 +1868,14 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 	}
 	resource->uploaded = true;
+
+	// @Note: take the state down or account it
+	if (ogl.version < COMPILE_VERSION(4, 5)) {
+		// glBindVertexArray(0);
+		if (ogl.active_mesh == empty_asset_id) {
+			ogl.active_mesh = asset_id;
+		}
+	}
 }
 
 static void platform_Load_Uniform(Bytecode const & bc) {
@@ -1885,7 +1931,7 @@ static void platform_Load_Uniform(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_program != asset_id) {
+		if (ogl.active_program != asset_id && ogl.active_program != empty_asset_id) {
 			glUseProgram(resource->id);
 			CUSTOM_WARNING("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
 		}

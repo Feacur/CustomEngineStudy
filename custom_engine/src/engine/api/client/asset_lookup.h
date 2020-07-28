@@ -1,4 +1,5 @@
 #pragma once
+#include "engine/core/math_types.h"
 #include "engine/api/graphics_params.h"
 
 namespace custom {
@@ -52,6 +53,21 @@ namespace mesh {
 
 	extern u32 count;
 	extern cstring paths[];
+	extern u8 meta_ids[];
+};
+
+namespace target {
+	struct Meta
+	{
+		u32 texture_id;
+		ivec2 size;
+		graphics::Data_Type data_type;
+		graphics::Texture_Type texture_type;
+	};
+	extern u32 meta_presets_count;
+	extern Meta meta_presets[];
+
+	extern u32 count;
 	extern u8 meta_ids[];
 };
 
