@@ -1257,11 +1257,6 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 		glTexParameteri(resource->target, GL_TEXTURE_WRAP_S, get_wrap_mode(resource->wrap_x));
 		glTexParameteri(resource->target, GL_TEXTURE_WRAP_T, get_wrap_mode(resource->wrap_y));
 	}
-
-	// @Note: take the state down
-	// if (ogl.version < COMPILE_VERSION(4, 5)) {
-	// 	glBindTexture(resource->target, 0);
-	// }
 }
 
 static void platform_Allocate_Sampler(Bytecode const & bc) {
@@ -1332,6 +1327,11 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	platform_consume_mesh_params(bc, resource);
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
+
+	if (ogl.active_mesh != empty_asset_id && ogl.active_mesh != asset_id) {
+		ogl.active_mesh = empty_asset_id;
+		CUSTOM_WARNING("OGL: disabling active mesh %d for allocation of mesh %d", ogl.active_mesh, asset_id);
+	}
 
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -1421,12 +1421,6 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 			}
 		}
 	}
-
-	// @Note: take the state down or account it
-	// glBindVertexArray(0);
-	if (ogl.active_mesh == empty_asset_id) {
-		ogl.active_mesh = asset_id;
-	}
 }
 
 static void platform_consume_target_params(Bytecode const & bc, opengl::Target * resource) {
@@ -1468,47 +1462,72 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 
 	glGenFramebuffers(1, &resource->id);
 
-	for (u16 i = 0; i < resource->texture_ids.count; ++i) {
-		u32 texture_id = resource->texture_ids[i];
-		opengl::Texture * texture = &ogl.textures.get(texture_id);
-		CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
-		GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
-		GLint mipmap = 0; // @Todo: process correctly
-		if (ogl.version >= COMPILE_VERSION(4, 5)) {
+	// @Todo: process mipmap correctly,
+	//        process version correctly
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		for (u16 i = 0; i < resource->texture_ids.count; ++i) {
+			u32 texture_id = resource->texture_ids[i];
+			opengl::Texture * texture = &ogl.textures.get(texture_id);
+			CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
+			GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+			GLint mipmap = 0; 
 			glNamedFramebufferTexture(resource->id, attachment, texture->id, mipmap);
 		}
-		else {
-			glBindFramebuffer(resource->target, resource->id);
-			if (ogl.version >= COMPILE_VERSION(3, 2)) {
+	}
+	else {
+		if (ogl.active_target != empty_asset_id && ogl.active_target != asset_id) {
+			ogl.active_target = empty_asset_id;
+			glBindVertexArray(0);
+			CUSTOM_WARNING("OGL: disabling active target %d for allocation of target %d", ogl.active_target, asset_id);
+		}
+		glBindFramebuffer(resource->target, resource->id);
+		if (ogl.version >= COMPILE_VERSION(3, 2)) {
+			for (u16 i = 0; i < resource->texture_ids.count; ++i) {
+				u32 texture_id = resource->texture_ids[i];
+				opengl::Texture * texture = &ogl.textures.get(texture_id);
+				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
+				GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+				GLint mipmap = 0;
 				glFramebufferTexture(resource->target, attachment, texture->id, mipmap);
 			}
-			else {
+		}
+		else {
+			for (u16 i = 0; i < resource->texture_ids.count; ++i) {
+				u32 texture_id = resource->texture_ids[i];
+				opengl::Texture * texture = &ogl.textures.get(texture_id);
+				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
+				GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+				GLint mipmap = 0;
 				glFramebufferTexture2D(resource->target, attachment, texture->target, texture->id, mipmap);
 			}
 		}
 	}
 
+	//
 	for (u16 i = 0; i < resource->buffers.count; ++i) {
 		opengl::Render_Buffer * buffer = &resource->buffers[i];
-		GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
-		GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
 		glGenRenderbuffers(1, &buffer->id);
-		if (ogl.version >= COMPILE_VERSION(4, 5)) {
+	}
+
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		for (u16 i = 0; i < resource->buffers.count; ++i) {
+			opengl::Render_Buffer * buffer = &resource->buffers[i];
+			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
+			GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
 			glNamedRenderbufferStorage(buffer->id, internal_format, buffer->size.x, buffer->size.y);
 			glNamedFramebufferRenderbuffer(buffer->id, attachment, buffer->target, buffer->id);
 		}
-		else {
-			// glBindFramebuffer(resource->target, resource->id);
+	}
+	else {
+		// glBindFramebuffer(resource->target, resource->id);
+		for (u16 i = 0; i < resource->buffers.count; ++i) {
+			opengl::Render_Buffer * buffer = &resource->buffers[i];
+			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
+			GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
 			glBindRenderbuffer(buffer->target, buffer->id);
 			glRenderbufferStorage(buffer->target, internal_format, buffer->size.x, buffer->size.y);
 			glFramebufferRenderbuffer(resource->target, attachment, buffer->target, buffer->id);
 		}
-	}
-
-	// @Note: take the state down or account it
-	// glBindFramebuffer(resource->target, 0);
-	if (ogl.active_target == empty_asset_id) {
-		ogl.active_target = asset_id;
 	}
 }
 
@@ -1790,11 +1809,6 @@ static void platform_Load_Texture(Bytecode const & bc) {
 			data
 		);
 	}
-
-	// @Note: take the state down
-	// if (ogl.version < COMPILE_VERSION(4, 5)) {
-	// 	glBindTexture(resource->target, 0);
-	// }
 }
 
 static void platform_Load_Mesh(Bytecode const & bc) {
@@ -1832,9 +1846,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_asset_id) {
+		if (ogl.active_mesh != empty_asset_id && ogl.active_mesh != asset_id) {
+			ogl.active_mesh = empty_asset_id;
 			glBindVertexArray(0);
-			CUSTOM_WARNING("OpenGL warning: disabling mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
+			CUSTOM_WARNING("OGL: disabling active mesh %d for loading of mesh %d", ogl.active_mesh, asset_id);
 		}
 		for (u16 i = 0; i < buffers_count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
@@ -1861,24 +1876,11 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 				in_buffer.data
 			);
 		}
-		if (ogl.active_mesh != asset_id && ogl.active_mesh != empty_asset_id) {
-			opengl::Mesh * active_mesh = &ogl.meshes.get(asset_id);
-			glBindVertexArray(active_mesh->id);
-			CUSTOM_WARNING("OpenGL warning: enabling mesh %d after loading mesh %d", ogl.active_mesh, asset_id);
-		}
 	}
 	resource->uploaded = true;
-
-	// @Note: take the state down or account it
-	if (ogl.version < COMPILE_VERSION(4, 5)) {
-		// glBindVertexArray(0);
-		if (ogl.active_mesh == empty_asset_id) {
-			ogl.active_mesh = asset_id;
-		}
-	}
 }
 
-static void platform_Load_Uniform(Bytecode const & bc) {
+static void platform_Set_Uniform(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
 	opengl::Program const * resource = &ogl.programs.get(asset_id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "program doesn't exist");
@@ -1931,9 +1933,9 @@ static void platform_Load_Uniform(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_program != asset_id && ogl.active_program != empty_asset_id) {
+		if (ogl.active_program != empty_asset_id && ogl.active_program != asset_id) {
 			glUseProgram(resource->id);
-			CUSTOM_WARNING("OpenGL warning: switching to program %d for loading of uniform %d", asset_id, uniform_id);
+			CUSTOM_WARNING("OGL: switching from active program %d for setting uniforms of program %d", ogl.active_program, asset_id);
 		}
 		switch (uniform.type) {
 			case Data_Type::unit_id: {
@@ -1966,10 +1968,10 @@ static void platform_Load_Uniform(Bytecode const & bc) {
 			case Data_Type::mat3: glUniformMatrix3fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 			case Data_Type::mat4: glUniformMatrix4fv(field->location, uniform.count, GL_FALSE, (r32 *)uniform.data); break;
 		}
-		if (ogl.active_program != asset_id && ogl.active_program != empty_asset_id) {
+		if (ogl.active_program != empty_asset_id && ogl.active_program != asset_id) {
 			opengl::Program const * active_program = &ogl.programs.get(ogl.active_program);
 			glUseProgram(active_program->id);
-			CUSTOM_WARNING("OpenGL warning: switching to program %d after loading uniform %d", ogl.active_program, uniform_id);
+			CUSTOM_WARNING("OGL: switching to active program %d after setting uniforms of program %d", ogl.active_program, asset_id);
 		}
 	}
 }

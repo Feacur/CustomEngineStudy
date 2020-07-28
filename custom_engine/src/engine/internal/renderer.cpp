@@ -33,7 +33,7 @@ void set_texture(u32 shader, u32 uniform, u32 texture) {
 	bc->write(custom::graphics::Instruction::Use_Unit);
 	bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::unit_id);
 	bc->write((u32)1); bc->write(custom::graphics::unit_id{texture, empty_asset_id});
@@ -46,14 +46,14 @@ void set_mesh(u32 mesh) {
 }
 
 void set_matrix(u32 shader, u32 uniform, mat4 matrix) {
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat4);
 	bc->write((u32)1); bc->write(matrix);
 }
 
 void set_matrix(u32 shader, u32 uniform, mat3 matrix) {
-	bc->write(custom::graphics::Instruction::Load_Uniform);
+	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat3);
 	bc->write((u32)1); bc->write(matrix);
