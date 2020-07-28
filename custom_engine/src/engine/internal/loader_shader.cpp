@@ -5,6 +5,7 @@
 #include "engine/core/math_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
+#include "engine/api/platform/graphics_resource.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/bytecode.h"
@@ -35,13 +36,17 @@ void shader(Bytecode * bc, u32 asset_id) {
 	u8 meta_id = asset::shader::meta_ids[asset_id];
 	asset::shader::Meta const & meta = asset::shader::meta_presets[meta_id];
 
-	bc->write(graphics::Instruction::Allocate_Shader);
-	bc->write(asset_id);
+	if (!graphics::is_allocated_shader(asset_id)) {
+		bc->write(graphics::Instruction::Allocate_Shader);
+		bc->write(asset_id);
+	}
 	
-	bc->write(graphics::Instruction::Load_Shader);
-	bc->write(asset_id);
-	bc->write_sized_array(file.data, file.count);
-	bc->write(meta.parts);
+	if (!graphics::is_uploaded_shader(asset_id)) {
+		bc->write(graphics::Instruction::Load_Shader);
+		bc->write(asset_id);
+		bc->write_sized_array(file.data, file.count);
+		bc->write(meta.parts);
+	}
 }
 
 }}

@@ -6,6 +6,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/platform/file.h"
+#include "engine/api/platform/graphics_resource.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
 
@@ -43,12 +44,16 @@ void image(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Data_Type const data_type = graphics::Data_Type::u8;
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	if (!graphics::is_allocated_texture(asset_id)) {
+		// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+		describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	}
 
-	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
+	if (!graphics::is_uploaded_texture(asset_id)) {
+		// @Note: upload actual texture data; might stream it later
+		describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
+		bc->write(data, size.x * size.y * channels);
+	}
 
 	stbi_image_free(data);
 }
@@ -68,12 +73,16 @@ void imagef(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Data_Type const data_type = graphics::Data_Type::r32;
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	if (!graphics::is_allocated_texture(asset_id)) {
+		// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+		describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	}
 
-	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
+	if (!graphics::is_uploaded_texture(asset_id)) {
+		// @Note: upload actual texture data; might stream it later
+		describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
+		bc->write(data, size.x * size.y * channels);
+	}
 
 	stbi_image_free(data);
 }
@@ -93,12 +102,16 @@ void image16(Bytecode * bc, u32 asset_id) {
 	constexpr graphics::Data_Type const data_type = graphics::Data_Type::u16;
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	if (!graphics::is_allocated_texture(asset_id)) {
+		// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+		describe_texture(bc, asset_id, false, size, (u8)channels, data_type, texture_type);
+	}
 
-	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
+	if (!graphics::is_uploaded_texture(asset_id)) {
+		// @Note: upload actual texture data; might stream it later
+		describe_texture_load(bc, asset_id, {0, 0}, size, (u8)channels, data_type, texture_type);
+		bc->write(data, size.x * size.y * channels);
+	}
 
 	stbi_image_free(data);
 }

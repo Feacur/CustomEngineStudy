@@ -2,6 +2,7 @@
 
 #include "engine/core/math_types.h"
 #include "engine/api/platform/graphics_vm.h"
+#include "engine/api/platform/graphics_resource.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
@@ -306,6 +307,50 @@ void consume(Bytecode const & bc) {
 	}
 }
 
+//
+
+bool is_allocated_shader(u32 id) {
+	if (id >= ogl.programs.capacity) { return false; }
+	return ogl.programs.get(id).id != empty_gl_id;
+}
+
+bool is_allocated_texture(u32 id) {
+	if (id >= ogl.textures.capacity) { return false; }
+	return ogl.textures.get(id).id != empty_gl_id;
+}
+
+bool is_allocated_sampler(u32 id) {
+	if (id >= ogl.samplers.capacity) { return false; }
+	return ogl.samplers.get(id).id != empty_gl_id;
+}
+
+bool is_allocated_mesh(u32 id) {
+	if (id >= ogl.meshes.capacity) { return false; }
+	return ogl.meshes.get(id).id != empty_gl_id;
+}
+
+bool is_allocated_target(u32 id) {
+	if (id >= ogl.targets.capacity) { return false; }
+	return ogl.targets.get(id).id != empty_gl_id;
+}
+
+//
+
+bool is_uploaded_shader(u32 id) {
+	if (!is_allocated_shader(id)) { return false; }
+	return ogl.programs.get(id).uploaded;
+}
+
+bool is_uploaded_texture(u32 id) {
+	if (!is_allocated_texture(id)) { return false; }
+	return ogl.textures.get(id).uploaded;
+}
+
+bool is_uploaded_mesh(u32 id) {
+	if (!is_allocated_mesh(id)) { return false; }
+	return ogl.meshes.get(id).uploaded;
+}
+
 }}
 
 //
@@ -465,6 +510,8 @@ static bool verify_shader(GLuint id, GLenum parameter)
 		glGetShaderInfoLog(id, max_length, &max_length, text.data);
 		CUSTOM_TRACE("shader status:\n%s", text.data);
 	}
+	
+	// platform_print_shader_source(id);
 
 	return false;
 }
@@ -540,8 +587,8 @@ static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, 
 static bool platform_link_program(GLuint program_id, GL_String source, custom::graphics::Shader_Part parts)
 {
 	u8 const props_cap = 4;
-	static Shader_Props props[props_cap];
-	static GLuint       shaders[props_cap];
+	Shader_Props props[props_cap];
+	GLuint       shaders[props_cap];
 	u8 props_count = fill_props(parts, props, props_cap);
 
 	// Compile shaders
@@ -557,7 +604,6 @@ static bool platform_link_program(GLuint program_id, GL_String source, custom::g
 	bool is_compiled = true;
 	for (u8 i = 0; i < props_count; ++i) {
 		bool isOk = verify_shader(shaders[i], GL_COMPILE_STATUS);
-		// if (!isOk) { platform_print_shader_source(shaders[i]); }
 		is_compiled = is_compiled && isOk;
 	}
 
@@ -1139,7 +1185,7 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 static void platform_consume_texture_params(Bytecode const & bc, opengl::Texture * resource) {
 	new (resource) opengl::Texture;
 	resource->target       = GL_TEXTURE_2D;
-	resource->is_dynamic    = *bc.read<b8>();
+	resource->is_dynamic   = *bc.read<b8>();
 	resource->size         = *bc.read<ivec2>();
 	resource->channels     = *bc.read<u8>();
 	resource->data_type    = *bc.read<Data_Type>();
@@ -1157,7 +1203,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	opengl::Texture * resource = &ogl.textures.get(asset_id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_WARNING("texture %d already exists", asset_id);
-		static opengl::Texture default_texture;
+		opengl::Texture default_texture;
 		platform_consume_texture_params(bc, &default_texture);
 		return;
 	}
@@ -1271,7 +1317,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	opengl::Mesh * resource = &ogl.meshes.get(asset_id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_WARNING("mesh %d already exists", asset_id);
-		static opengl::Mesh default_resource;
+		opengl::Mesh default_resource;
 		platform_consume_mesh_params(bc, &default_resource);
 		return;
 	}
@@ -1385,7 +1431,7 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	opengl::Target * resource = &ogl.targets.get(asset_id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_WARNING("target %d already exists", asset_id);
-		static opengl::Target default_resource;
+		opengl::Target default_resource;
 		platform_consume_target_params(bc, &default_resource);
 		return;
 	}

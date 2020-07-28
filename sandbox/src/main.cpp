@@ -56,7 +56,7 @@ static void on_app_init(custom::Bytecode * loader_bc, custom::Bytecode * rendere
 			(u32)sandbox::Texture::checkerboard,
 			(u32)sandbox::Mesh::suzanne,
 		},
-		{{3, 1, 0}, {0, 0, 0, 1}, {1, 2, 1}}
+		{{3, 2, 0}, {0, 0, 0, 1}, {1, 2, 1}}
 	);
 
 	create_visual(

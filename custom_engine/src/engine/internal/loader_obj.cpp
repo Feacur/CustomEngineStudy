@@ -6,6 +6,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/platform/file.h"
+#include "engine/api/platform/graphics_resource.h"
 #include "engine/api/client/asset_lookup.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
@@ -51,21 +52,25 @@ void mesh_obj(Bytecode * bc, u32 asset_id) {
 	u8 meta_id = asset::mesh::meta_ids[asset_id];
 	asset::mesh::Meta const & meta = asset::mesh::meta_presets[meta_id];
 
-	bc->write(graphics::Instruction::Allocate_Mesh);
-	bc->write(asset_id);
-	bc->write((u8)2);
-	bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
-	bc->write(graphics::Data_Type::r32); bc->write(vertices.count); bc->write(vertices.count);
-	bc->write_sized_array(vertex_attributes);
-	bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
-	bc->write(graphics::Data_Type::u32); bc->write(indices.count); bc->write(indices.count);
-	bc->write((u32)0);
+	if (!graphics::is_allocated_mesh(asset_id)) {
+		bc->write(graphics::Instruction::Allocate_Mesh);
+		bc->write(asset_id);
+		bc->write((u8)2);
+		bc->write((b8)false); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+		bc->write(graphics::Data_Type::r32); bc->write(vertices.count); bc->write(vertices.count);
+		bc->write_sized_array(vertex_attributes);
+		bc->write((b8)true); bc->write(graphics::Mesh_Frequency::Static); bc->write(graphics::Mesh_Access::Draw);
+		bc->write(graphics::Data_Type::u32); bc->write(indices.count); bc->write(indices.count);
+		bc->write((u32)0);
+	}
 
-	bc->write(graphics::Instruction::Load_Mesh);
-	bc->write(asset_id);
-	bc->write((u8)2);
-	bc->write((u32)0); write_data_array(bc, vertices);
-	bc->write((u32)0); write_data_array(bc, indices);
+	if (!graphics::is_uploaded_mesh(asset_id)) {
+		bc->write(graphics::Instruction::Load_Mesh);
+		bc->write(asset_id);
+		bc->write((u8)2);
+		bc->write((u32)0); write_data_array(bc, vertices);
+		bc->write((u32)0); write_data_array(bc, indices);
+	}
 }
 
 }}
