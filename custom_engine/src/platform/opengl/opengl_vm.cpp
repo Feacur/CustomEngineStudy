@@ -30,6 +30,7 @@
 // @Todo: improve duplication protection:
 //        - 'id' check for Allocate_###
 //        - 'uploaded' state check for Load_###
+//        - provide default mesh, texture, program
 
 constexpr u32 const empty_gl_id = 0;
 constexpr u32 const empty_unit = UINT32_MAX;
@@ -50,6 +51,13 @@ struct Program
 	bool uploaded = false;
 	// custom::Array_Fixed<Field, 4> attributes;
 	custom::Array_Fixed<Field, 10> uniforms;
+
+	~Program() {
+		id = empty_gl_id;
+		uploaded = false;
+		// attributes.count = 0;
+		uniforms.count = 0;
+	}
 };
 template struct custom::Array<Program>;
 
@@ -65,6 +73,11 @@ struct Texture
 	custom::graphics::Texture_Type texture_type;
 	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	custom::graphics::Wrap_Mode wrap_x, wrap_y;
+
+	~Texture() {
+		id = empty_gl_id;
+		uploaded = false;
+	}
 };
 template struct custom::Array<Texture>;
 
@@ -73,6 +86,10 @@ struct Sampler
 	GLuint id = empty_gl_id;
 	custom::graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	custom::graphics::Wrap_Mode wrap_x, wrap_y;
+
+	~Sampler() {
+		id = empty_gl_id;
+	}
 };
 template struct custom::Array<Sampler>;
 
@@ -90,6 +107,11 @@ struct Buffer
 	custom::graphics::Data_Type type;
 	u32 capacity, count;
 	custom::Array_Fixed<Attribute, 4> attributes;
+
+	~Buffer() {
+		id = empty_gl_id;
+		attributes.count = 0;
+	}
 };
 
 struct Mesh
@@ -98,6 +120,12 @@ struct Mesh
 	bool uploaded = false;
 	custom::Array_Fixed<Buffer, 2> buffers;
 	u8 index_buffer;
+
+	~Mesh() {
+		id = empty_gl_id;
+		uploaded = false;
+		buffers.count = 0;
+	}
 };
 template struct custom::Array<Mesh>;
 
@@ -108,6 +136,10 @@ struct Render_Buffer
 	ivec2 size;
 	custom::graphics::Data_Type data_type;
 	custom::graphics::Texture_Type texture_type;
+
+	~Render_Buffer() {
+		id = empty_gl_id;
+	}
 };
 
 struct Target
@@ -116,6 +148,12 @@ struct Target
 	GLenum target;
 	custom::Array_Fixed<u32, 2> texture_ids;
 	custom::Array_Fixed<Render_Buffer, 1> buffers;
+
+	~Target() {
+		id = empty_gl_id;
+		texture_ids.count = 0;
+		buffers.count = 0;
+	}
 };
 template struct custom::Array<Target>;
 
@@ -144,8 +182,7 @@ struct Data
 		u32 capacity_before = programs.capacity;
 		programs.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < programs.capacity; ++i) {
-			programs.data[i].id = empty_gl_id;
-			programs.data[i].uploaded = false;
+			(programs.data + i)->~Program();
 		}
 	}
 
@@ -153,8 +190,7 @@ struct Data
 		u32 capacity_before = textures.capacity;
 		textures.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < textures.capacity; ++i) {
-			textures.data[i].id = empty_gl_id;
-			textures.data[i].uploaded = false;
+			(textures.data + i)->~Texture();
 		}
 	}
 
@@ -162,7 +198,7 @@ struct Data
 		u32 capacity_before = samplers.capacity;
 		samplers.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < samplers.capacity; ++i) {
-			samplers.data[i].id = empty_gl_id;
+			(samplers.data + i)->~Sampler();
 		}
 	}
 
@@ -170,9 +206,7 @@ struct Data
 		u32 capacity_before = meshes.capacity;
 		meshes.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < meshes.capacity; ++i) {
-			meshes.data[i].id = empty_gl_id;
-			meshes.data[i].uploaded = false;
-			meshes.data[i].buffers.count = 0;
+			(meshes.data + i)->~Mesh();
 		}
 	}
 
@@ -180,9 +214,7 @@ struct Data
 		u32 capacity_before = targets.capacity;
 		targets.ensure_capacity(id + 1);
 		for (u32 i = capacity_before; i < targets.capacity; ++i) {
-			targets.data[i].id = empty_gl_id;
-			targets.data[i].texture_ids.count = 0;
-			targets.data[i].buffers.count = 0;
+			(targets.data + i)->~Target();
 		}
 	}
 };
@@ -238,7 +270,7 @@ static u32 find_empty_unit(u32 default_unit) {
 // API implementation
 //
 
-struct Shader_Field
+struct Program_Field
 {
 	GLchar name[32];
 	GLsizei name_count;
@@ -655,7 +687,7 @@ static bool platform_link_program(GLuint program_id, GL_String source, custom::g
 // 	return GL_NONE;
 // }
 
-// static void platform_get_active_attribute(GLuint id, GLuint index, Shader_Field & buffer)
+// static void platform_get_active_attribute(GLuint id, GLuint index, Program_Field & buffer)
 // {
 // 	glGetActiveAttrib(
 // 		id, index,
@@ -665,7 +697,7 @@ static bool platform_link_program(GLuint program_id, GL_String source, custom::g
 // 	buffer.location = glGetAttribLocation(id, buffer.name);
 // }
 
-static void platform_get_active_uniform(GLuint id, GLuint index, Shader_Field & buffer)
+static void platform_get_active_uniform(GLuint id, GLuint index, Program_Field & buffer)
 {
 	glGetActiveUniform(
 		id, index,
@@ -1537,7 +1569,6 @@ static void platform_Free_Shader(Bytecode const & bc) {
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 	glDeleteProgram(resource->id);
 	resource->opengl::Program::~Program();
-	resource->id = empty_gl_id;
 	if (ogl.active_program == asset_id) {
 		ogl.active_program = empty_asset_id;
 	}
@@ -1568,7 +1599,6 @@ static void platform_Free_Texture(Bytecode const & bc) {
 	}
 
 	resource->opengl::Texture::~Texture();
-	resource->id = empty_gl_id;
 }
 
 static void platform_Free_Sampler(Bytecode const & bc) {
@@ -1586,7 +1616,6 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 	}
 
 	resource->opengl::Sampler::~Sampler();
-	resource->id = empty_gl_id;
 }
 
 static void platform_Free_Mesh(Bytecode const & bc) {
@@ -1598,7 +1627,6 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 	}
 	glDeleteVertexArrays(1, &resource->id);
 	resource->opengl::Mesh::~Mesh();
-	resource->id = empty_gl_id;
 	if (ogl.active_mesh == asset_id) {
 		ogl.active_mesh = empty_asset_id;
 	}
@@ -1617,7 +1645,6 @@ static void platform_Free_Target(Bytecode const & bc) {
 	}
 	glDeleteFramebuffers(1, &resource->id);
 	resource->opengl::Target::~Target();
-	resource->id = empty_gl_id;
 	if (ogl.active_target == asset_id) {
 		ogl.active_target = empty_asset_id;
 	}
@@ -1743,7 +1770,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	platform_link_program(resource->id, {(GLint)source.count, source.data}, parts);
 
 	// CUSTOM_TRACE("program %d info:", asset_id);
-	Shader_Field field_buffer;
+	Program_Field field_buffer;
 
 	// GLint attributes_capacity;
 	// glGetProgramiv(resource->id, GL_ACTIVE_ATTRIBUTES, &attributes_capacity);
@@ -2051,7 +2078,7 @@ static void platform_Overlay(Bytecode const & bc) {
 //
 
 static void platform_Init_Uniforms(Bytecode const & bc) {
-	u32 const name_capacity = C_ARRAY_LENGTH(Shader_Field::name);
+	u32 const name_capacity = C_ARRAY_LENGTH(Program_Field::name);
 	u32 count = *bc.read<u32>();
 	ogl.uniform_names.set_capacity(count * name_capacity); ogl.uniform_names.count = 0;
 	ogl.uniform_names_lengths.set_capacity(count); ogl.uniform_names_lengths.count = 0;
