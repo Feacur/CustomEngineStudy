@@ -1563,6 +1563,47 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	}
 }
 
+static void platform_Allocate_Unit(Bytecode const & bc) {
+	custom::graphics::unit_id asset_id = *bc.read<custom::graphics::unit_id>();
+	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to use a unit");
+
+	u32 existing_unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
+	if (existing_unit != empty_unit) { return; }
+
+	CUSTOM_ASSERT(asset_id.sampler == empty_asset_id || ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
+
+	if (!graphics::is_allocated_texture(asset_id.texture)) {
+		CUSTOM_WARNING("skipping unit (%d : %d): texture is not allocated", asset_id.texture, asset_id.sampler);
+		return;
+	}
+
+	if (asset_id.sampler != empty_asset_id && !graphics::is_allocated_sampler(asset_id.sampler)) {
+		CUSTOM_WARNING("skipping unit (%d : %d): sampler is not allocated", asset_id.texture, asset_id.sampler);
+		return;
+	}
+
+	// @Todo: rebind to an occupied one?
+	u32 unit = find_empty_unit(empty_unit);
+	CUSTOM_ASSERT(unit != empty_unit, "no available texture units");
+	custom::graphics::unit_id & unit_id = ogl.unit_ids.get(unit);
+
+	unit_id.texture = asset_id.texture;
+	opengl::Texture * texture = &ogl.textures.get(asset_id.texture);
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		glBindTextureUnit(unit, texture->id);
+	}
+	else {
+		glActiveTexture(GL_TEXTURE0 + unit);
+		glBindTexture(texture->target, texture->id);
+	}
+
+	if (asset_id.sampler != empty_asset_id) {
+		opengl::Sampler * sampler = &ogl.samplers.get(asset_id.sampler);
+		unit_id.sampler = asset_id.sampler;
+		glBindSampler(unit, sampler->id);
+	}
+}
+
 static void platform_Free_Shader(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
 	opengl::Program * resource = &ogl.programs.get(asset_id);
@@ -1650,86 +1691,7 @@ static void platform_Free_Target(Bytecode const & bc) {
 	}
 }
 
-static void platform_Use_Shader(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	if (!graphics::is_allocated_shader(asset_id)) {
-		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
-		return;
-	}
-	opengl::Program const * resource = &ogl.programs.get(asset_id);
-	if (ogl.active_program != asset_id) {
-		ogl.active_program = asset_id;
-		glUseProgram(resource->id);
-	}
-}
-
-static void platform_Use_Unit(Bytecode const & bc) {
-	custom::graphics::unit_id asset_id = *bc.read<custom::graphics::unit_id>();
-	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to use a unit");
-
-	u32 existing_unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
-	if (existing_unit != empty_unit) { return; }
-
-	CUSTOM_ASSERT(asset_id.sampler == empty_asset_id || ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
-
-	if (!graphics::is_allocated_texture(asset_id.texture)) {
-		CUSTOM_WARNING("skipping unit (%d : %d): texture is not allocated", asset_id.texture, asset_id.sampler);
-		return;
-	}
-
-	if (asset_id.sampler != empty_asset_id && !graphics::is_allocated_sampler(asset_id.sampler)) {
-		CUSTOM_WARNING("skipping unit (%d : %d): sampler is not allocated", asset_id.texture, asset_id.sampler);
-		return;
-	}
-
-	// @Todo: rebind to an occupied one?
-	u32 unit = find_empty_unit(empty_unit);
-	CUSTOM_ASSERT(unit != empty_unit, "no available texture units");
-	custom::graphics::unit_id & unit_id = ogl.unit_ids.get(unit);
-
-	unit_id.texture = asset_id.texture;
-	opengl::Texture * texture = &ogl.textures.get(asset_id.texture);
-	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		glBindTextureUnit(unit, texture->id);
-	}
-	else {
-		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(texture->target, texture->id);
-	}
-
-	if (asset_id.sampler != empty_asset_id) {
-		opengl::Sampler * sampler = &ogl.samplers.get(asset_id.sampler);
-		unit_id.sampler = asset_id.sampler;
-		glBindSampler(unit, sampler->id);
-	}
-}
-
-static void platform_Use_Mesh(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	if (!graphics::is_allocated_mesh(asset_id)) {
-		CUSTOM_WARNING("skipping mesh %d: it is not allocated", asset_id);
-		return;
-	}
-	opengl::Mesh const * resource = &ogl.meshes.get(asset_id);
-	if (ogl.active_mesh != asset_id) {
-		ogl.active_mesh = asset_id;
-		glBindVertexArray(resource->id);
-	}
-	// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
-}
-
-static void platform_Use_Target(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	opengl::Target const * resource = &ogl.targets.get(asset_id);
-	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
-	if (ogl.active_target != asset_id) {
-		ogl.active_target = asset_id;
-		glBindFramebuffer(resource->target, resource->id);
-	}
-}
-
-static void platform_Suspend_Unit(Bytecode const & bc) {
+static void platform_Free_Unit(Bytecode const & bc) {
 	custom::graphics::unit_id asset_id = *bc.read<custom::graphics::unit_id>();
 	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to suspend a unit");
 
@@ -1754,6 +1716,62 @@ static void platform_Suspend_Unit(Bytecode const & bc) {
 		unit_id.sampler = empty_asset_id;
 		glBindSampler(unit, 0);
 	}
+}
+
+static void platform_Use_Shader(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+	if (ogl.active_program != asset_id) {
+		ogl.active_program = asset_id;
+	}
+
+	if (asset_id == empty_asset_id) {
+		glUseProgram(0);
+		return;
+	}
+
+	if (!graphics::is_allocated_shader(asset_id)) {
+		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
+		return;
+	}
+	opengl::Program const * resource = &ogl.programs.get(asset_id);
+	glUseProgram(resource->id);
+}
+
+static void platform_Use_Mesh(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+	if (ogl.active_mesh != asset_id) {
+		ogl.active_mesh = asset_id;
+	}
+
+	if (asset_id == empty_asset_id) {
+		glBindVertexArray(0);
+		return;
+	}
+
+	if (!graphics::is_allocated_mesh(asset_id)) {
+		CUSTOM_WARNING("skipping mesh %d: it is not allocated", asset_id);
+		return;
+	}
+	opengl::Mesh const * resource = &ogl.meshes.get(asset_id);
+	glBindVertexArray(resource->id);
+	// opengl::Buffer const & indices = resource->buffers[resource->index_buffer];
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices.id);
+}
+
+static void platform_Use_Target(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+	if (ogl.active_target != asset_id) {
+		ogl.active_target = asset_id;
+	}
+
+	if (asset_id == empty_asset_id) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		return;
+	}
+
+	opengl::Target const * resource = &ogl.targets.get(asset_id);
+	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
+	glBindFramebuffer(resource->target, resource->id);
 }
 
 static void platform_Load_Shader(Bytecode const & bc) {

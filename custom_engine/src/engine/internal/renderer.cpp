@@ -30,7 +30,7 @@ void set_shader(u32 shader) {
 
 void set_texture(u32 shader, u32 uniform, u32 texture) {
 	if (texture == empty_asset_id) { return; }
-	bc->write(custom::graphics::Instruction::Use_Unit);
+	bc->write(custom::graphics::Instruction::Allocate_Unit);
 	bc->write(custom::graphics::unit_id{texture, empty_asset_id});
 
 	bc->write(custom::graphics::Instruction::Set_Uniform);
