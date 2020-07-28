@@ -22,10 +22,10 @@ void image(u32 asset_id) {
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	stbi_set_flip_vertically_on_load(1);
 
 	ivec2 size;
 	s32 channels;
+	stbi_set_flip_vertically_on_load(1);
 	stbi_uc * data = stbi_load_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
@@ -49,10 +49,9 @@ void imagef(u32 asset_id) {
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	stbi_set_flip_vertically_on_load(1);
-
 	ivec2 size;
 	s32 channels;
+	stbi_set_flip_vertically_on_load(1);
 	float * data = stbi_loadf_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
@@ -76,10 +75,9 @@ void image16(u32 asset_id) {
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	stbi_set_flip_vertically_on_load(1);
-
 	ivec2 size;
 	s32 channels;
+	stbi_set_flip_vertically_on_load(1);
 	stbi_us * data = stbi_load_16_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
 	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
 
