@@ -18,6 +18,7 @@ custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	return entity;
 }
 
+static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
@@ -33,7 +34,7 @@ static void on_app_init() {
 		custom::loader::script(L, asset_id);
 	}
 
-	camera.transform = {
+	camera_transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
 	};
 
@@ -85,7 +86,7 @@ static void on_app_init() {
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
-	script_entity.add_component<Lua_Script>(Lua_Script{"ecs_update", false});
+	script_entity.add_component<Lua_Script>(Lua_Script{"ecs_update"});
 }
 
 r32 camera_zoom = 1;
@@ -121,19 +122,19 @@ static void on_app_update(r32 dt) {
 		#undef GET_DIR_IMPL
 
 		// @Note: object-space rotation
-		camera.transform.rotation = normalize(quat_product(
-			camera.transform.rotation,
+		camera_transform.rotation = normalize(quat_product(
+			camera_transform.rotation,
 			quat_from_radians(
 				vec3{-(r32)mouse_delta.y, (r32)mouse_delta.x, 0} * (0.3f * dt)
 			)
 		));
 
-		camera.transform.position += quat_rotate_vector(camera.transform.rotation, move_delta) * (move_speed * dt);
+		camera_transform.position += quat_rotate_vector(camera_transform.rotation, move_delta) * (move_speed * dt);
 	}
 
 	// render entities
 	custom::renderer::clear();
-	sandbox::ecs_renderer::process(camera.transform, camera.projection);
+	sandbox::ecs_renderer::process(camera_transform, camera.projection);
 	sandbox::ecs_lua_runner::process(L);
 }
 

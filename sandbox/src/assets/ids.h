@@ -47,7 +47,6 @@ enum struct Mesh : u32
 {
 	plane_xz,
 	suzanne,
-	suzanne_tris,
 	count,
 };
 UNDERLYING_TYPE_META(Mesh, u32)

@@ -96,6 +96,7 @@ void init_context(Internal_Data * data)
 }
 
 void update(Internal_Data * data) {
+	// @Todo: split into input consumption and buffer output?
 	keyboard_update(data);
 	mouse_update(data);
 	context::swap_buffers(data->graphics_context);
