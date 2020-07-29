@@ -14,7 +14,20 @@
 namespace sandbox {
 namespace ecs_lua_runner {
 
-void process(lua_State * L) {
+void lua_function(lua_State * L, cstring name) {
+	if (lua_getglobal(L, name) != LUA_TFUNCTION) {
+		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return;
+	}
+	if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return;
+	}
+}
+
+void update(lua_State * L) {
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -22,17 +35,8 @@ void process(lua_State * L) {
 
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
-
-		//
-
-		if (lua_getglobal(L, lua_script->function) != LUA_TFUNCTION) {
-			CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
-		else if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-			CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
+		if (!lua_script->function) { continue; }
+		lua_function(L, lua_script->function);
 	}
 }
 

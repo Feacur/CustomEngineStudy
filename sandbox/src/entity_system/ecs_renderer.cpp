@@ -18,7 +18,7 @@
 namespace sandbox {
 namespace ecs_renderer {
 
-void process(Transform const & camera_transform, mat4 const & projection) {
+void update(Transform const & camera_transform, mat4 const & projection) {
 	mat4 camera_matrix = to_matrix(camera_transform.position, camera_transform.rotation, camera_transform.scale);
 	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
 

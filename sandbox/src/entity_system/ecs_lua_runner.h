@@ -5,6 +5,7 @@ struct lua_State;
 namespace sandbox {
 namespace ecs_lua_runner {
 
-void process(lua_State * L);
+void lua_function(lua_State * L, cstring name);
+void update(lua_State * L);
 
 }}

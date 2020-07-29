@@ -86,7 +86,9 @@ static void on_app_init() {
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
-	script_entity.add_component<Lua_Script>(Lua_Script{"ecs_update"});
+	script_entity.add_component<Lua_Script>(Lua_Script{"some_component_update"});
+
+	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
 
 r32 camera_zoom = 1;
@@ -134,8 +136,9 @@ static void on_app_update(r32 dt) {
 
 	// render entities
 	custom::renderer::clear();
-	sandbox::ecs_renderer::process(camera_transform, camera.projection);
-	sandbox::ecs_lua_runner::process(L);
+	sandbox::ecs_renderer::update(camera_transform, camera.projection);
+	sandbox::ecs_lua_runner::lua_function(L, "global_update");
+	sandbox::ecs_lua_runner::update(L);
 }
 
 int main(int argc, char * argv[]) {
