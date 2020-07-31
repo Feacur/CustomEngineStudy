@@ -97,7 +97,7 @@ static void update_camera_projection(void) {
 	r32 const near = 0.1f; r32 const far  = 20.0f;
 	r32 const scale_x = camera_zoom / tangent((pi / 2) / 2);
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
-	camera.projection = mat_persp01({scale_x, scale_x * aspect}, 0.1f, 20.0f);
+	camera.projection = mat_persp01({scale_x, scale_x * aspect}, near, far);
 }
 
 static void on_app_viewport(ivec2 size) {

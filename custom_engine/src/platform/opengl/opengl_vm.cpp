@@ -740,7 +740,7 @@ static GLenum get_clip_origin(Clip_Origin value) {
 
 static GLenum get_clip_depth(Clip_Depth value) {
 	switch (value) {
-		case Clip_Depth::NegOne_One: return GL_NEGATIVE_ONE_TO_ONE;
+		case Clip_Depth::Neg_One: return GL_NEGATIVE_ONE_TO_ONE;
 		case Clip_Depth::Zero_One: return GL_ZERO_TO_ONE;
 	}
 	CUSTOM_ASSERT(false, "unknown clip depth %d", value);
@@ -1159,7 +1159,6 @@ static void platform_Clip_Control(Bytecode const & bc) {
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glClipControl(get_clip_origin(origin), get_clip_depth(depth));
-		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	}
 	else {
 		CUSTOM_WARNING("no clip control");

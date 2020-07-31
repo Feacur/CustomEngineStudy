@@ -32,7 +32,7 @@ const float FarClipValue  = 1;
 layout(location = 0) in vec3 a_Position;
 #endif
 
-uniform vec2 u_ScreenSize;
+uniform ivec2 u_Resolution;
 
 out vec2 v_ScreenPos;
 

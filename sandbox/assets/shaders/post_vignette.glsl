@@ -24,7 +24,7 @@ layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec2 a_TexCoord;
 #endif
 
-uniform vec2 u_ScreenSize;
+uniform ivec2 u_Resolution;
 uniform sampler2D u_Texture;
 
 out vec2 v_TexCoord;
@@ -42,7 +42,7 @@ void main()
 	// map texture pixel-to-pixel with the framebuffer, assuming wrap-repeat mode
 	v_TexCoord *= textureSize(u_Texture, 0);
 	// compensate aspect ratio
-	v_TexCoord.x *= u_ScreenSize.x / u_ScreenSize.y;
+	v_TexCoord.x *= u_Resolution.x / u_Resolution.y;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, NearClipValue, 1);
 	// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
@@ -56,7 +56,7 @@ void main()
 	// map texture pixel-to-pixel with the framebuffer, assuming wrap-repeat mode
 	v_TexCoord = a_TexCoord * textureSize(u_Texture, 0);
 	// compensate aspect ratio, assuming a_TexCoord is x[0..1]:y[0..1]
-	v_TexCoord.x *= u_ScreenSize.x / u_ScreenSize.y;
+	v_TexCoord.x *= u_Resolution.x / u_Resolution.y;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, -1, 1);
 	// https://www.khronos.org/opengl/wiki/Vertex_Processing

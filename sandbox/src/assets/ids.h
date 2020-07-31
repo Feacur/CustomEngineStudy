@@ -22,11 +22,12 @@ IS_ENUM_META(Shader)
 
 enum struct Uniform : u32
 {
+	resolution,
 	view_proj,
 	transform,
 	texture,
 	color,
-	depth,
+	z,
 	count,
 };
 UNDERLYING_TYPE_META(Uniform, u32)

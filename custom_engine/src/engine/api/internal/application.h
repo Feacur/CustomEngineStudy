@@ -10,6 +10,9 @@ namespace application {
 
 void run(void);
 
+// data
+ivec2 const & get_viewport_size(void);
+
 // input
 bool get_key(Key_Code key);
 bool get_mouse_key(Mouse_Code key);

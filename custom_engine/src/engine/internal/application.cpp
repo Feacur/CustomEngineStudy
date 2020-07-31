@@ -111,6 +111,11 @@ void run(void) {
 	custom::window::destroy(app.window);
 }
 
+// data
+ivec2 const & get_viewport_size(void) {
+	return app.viewport_size;
+}
+
 // input
 bool get_key(Key_Code key) {
 	return custom::window::get_key(app.window, key);
