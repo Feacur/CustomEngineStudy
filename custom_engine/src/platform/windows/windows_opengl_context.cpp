@@ -12,6 +12,7 @@
 #endif
 
 #include "wgl_tiny.h"
+#include "platform/opengl/extensions_loader.h"
 
 #define ALLOCATE_ARRAY(name, type, count) type * name = (type *)malloc(count * sizeof(type))
 
@@ -48,7 +49,7 @@
 static struct {
 	HINSTANCE instance;
 
-	// OGL functions
+	// WGL functions
 	CreateContext_func     * CreateContext;
 	DeleteContext_func     * DeleteContext;
 	GetProcAddress_func    * GetProcAddress;
@@ -106,7 +107,7 @@ constexpr static inline bool bits_are_set(DWORD container, DWORD bits) {
 // API implementation
 //
 
-static void * wgl_get_proc_address(cstring name);
+static void * load_ogl_function(cstring name);
 static void platform_init_wgl(void);
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc);
 static bool platform_swap_interval(HDC hdc, s32);
@@ -150,11 +151,13 @@ Internal_Data * create(window::Internal_Data * window) {
 	data->hrc = platform_create_context(data->hdc, NULL);
 
 	// https://docs.microsoft.com/ru-ru/windows/win32/api/wingdi/nf-wingdi-wglgetprocaddress
-	int glad_status = gladLoadGLLoader((GLADloadproc)wgl_get_proc_address);
+	int glad_status = gladLoadGLLoader(load_ogl_function);
 	// @Note: actually logs some errors, but still works? even for GLFW?!
 	//        seems like OpenGL 4.6 reports something for unknown reasons
 	LOG_LAST_ERROR();
 	CUSTOM_ASSERT(glad_status, "failed to initialize glad");
+
+	opengl::load_extensions(load_ogl_function);
 
 	CUSTOM_TRACE(
 		"OpenGL info:"
@@ -215,7 +218,7 @@ void swap_buffers(Internal_Data * data)
 // platform implementation
 //
 
-static void * wgl_get_proc_address(cstring name) {
+static void * load_ogl_function(cstring name) {
 	if (!name) { return NULL; }
 	void * address = wgl.GetProcAddress(name);
 	if (!address) {
@@ -225,91 +228,64 @@ static void * wgl_get_proc_address(cstring name) {
 	return address;
 }
 
-static cstring wgl_get_extensions_string(HDC hdc) {
-	if (wgl.GetExtensionsStringARB) {
-		return wgl.GetExtensionsStringARB(hdc);
-	}
-	if (wgl.GetExtensionsStringEXT) {
-		return wgl.GetExtensionsStringEXT();
-	}
-	return NULL;
-}
-
-static bool contains_full_word(cstring container, cstring value) {
-	CUSTOM_ASSERT(value, "value is nullptr");
-	CUSTOM_ASSERT(*value != '\0', "value is empty");
-	CUSTOM_ASSERT(!strchr(value, ' '), "value contains spaces: '%s'", value);
-
-	cstring start = container;
-	while (true)
-	{
-		cstring where = strstr(start, value);
-		if (!where) { return false; }
-
-		cstring terminator = where + strlen(value);
-		if (where == start || *(where - 1) == ' ') {
-			if (*terminator == ' ' || *terminator == '\0')
-				break;
-		}
-
-		start = terminator;
-	}
-
-	return true;
-}
-
-#define LOAD_OPENGL_FUNCTION(name, required) {\
+#define LOAD_FUNCTION(name, required) {\
 	wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);\
 	CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME);\
 }\
 
-static void load_opengl_functions(void) {
-	LOAD_OPENGL_FUNCTION(CreateContext,  true);
-	LOAD_OPENGL_FUNCTION(DeleteContext,  true);
-	LOAD_OPENGL_FUNCTION(GetProcAddress, true);
-	LOAD_OPENGL_FUNCTION(MakeCurrent,    true);
-	LOAD_OPENGL_FUNCTION(ShareLists,     true);
-	// LOAD_OPENGL_FUNCTION(GetCurrentDC,   true);
-	// LOAD_OPENGL_FUNCTION(GetCurrentContext, true);
+static void load_wgl_simple_functions(void) {
+	LOAD_FUNCTION(CreateContext,  true);
+	LOAD_FUNCTION(DeleteContext,  true);
+	LOAD_FUNCTION(GetProcAddress, true);
+	LOAD_FUNCTION(MakeCurrent,    true);
+	LOAD_FUNCTION(ShareLists,     true);
+	// LOAD_FUNCTION(GetCurrentDC,   true);
+	// LOAD_FUNCTION(GetCurrentContext, true);
 }
-#undef LOAD_OPENGL_FUNCTION
+#undef LOAD_FUNCTION
 
-#define LOAD_EXTENSION_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
-static void load_extension_functions(void) {
+#define LOAD_FUNCTION(name) wgl.name = (name##_func *)wgl.GetProcAddress("wgl" #name)
+static void load_wgl_extension_functions(void) {
 	// EXT functions
-	LOAD_EXTENSION_FUNCTION(GetExtensionsStringEXT);
-	LOAD_EXTENSION_FUNCTION(SwapIntervalEXT);
-	// LOAD_EXTENSION_FUNCTION(GetSwapIntervalEXT);
+	LOAD_FUNCTION(GetExtensionsStringEXT);
+	LOAD_FUNCTION(SwapIntervalEXT);
+	// LOAD_FUNCTION(GetSwapIntervalEXT);
 	// ARB extensions
-	LOAD_EXTENSION_FUNCTION(GetExtensionsStringARB);
-	LOAD_EXTENSION_FUNCTION(CreateContextAttribsARB);
-	LOAD_EXTENSION_FUNCTION(GetPixelFormatAttribivARB);
-	// LOAD_EXTENSION_FUNCTION(ChoosePixelFormatARB);
+	LOAD_FUNCTION(GetExtensionsStringARB);
+	LOAD_FUNCTION(CreateContextAttribsARB);
+	LOAD_FUNCTION(GetPixelFormatAttribivARB);
+	// LOAD_FUNCTION(ChoosePixelFormatARB);
 }
-#undef LOAD_EXTENSION_FUNCTION
+#undef LOAD_FUNCTION
 
-#define CHECK_EXTENSION(name) wgl.name = contains_full_word(extensions_string, "WGL_" #name)
-static void check_extension(HDC hdc) {
-	cstring extensions_string = wgl_get_extensions_string(hdc);
-	if (!extensions_string) {
-		CUSTOM_ASSERT(false, "failed to load extensions string");
-		return;
+#define CHECK_EXTENSION(name) wgl.name = opengl::contains_full_word(extensions_string, "WGL_" #name)
+static void load_extension_flags(HDC hdc) {
+	if (wgl.GetExtensionsStringEXT) {
+		cstring extensions_string = wgl.GetExtensionsStringEXT();
+		CHECK_EXTENSION(EXT_framebuffer_sRGB);
+		CHECK_EXTENSION(EXT_create_context_es2_profile);
+		CHECK_EXTENSION(EXT_swap_control);
+		CHECK_EXTENSION(EXT_swap_control_tear);
+		CHECK_EXTENSION(EXT_colorspace);
 	}
-	// EXT extensions
-	CHECK_EXTENSION(EXT_framebuffer_sRGB);
-	CHECK_EXTENSION(EXT_create_context_es2_profile);
-	CHECK_EXTENSION(EXT_swap_control);
-	CHECK_EXTENSION(EXT_swap_control_tear);
-	CHECK_EXTENSION(EXT_colorspace);
-	// ARB extensions
-	CHECK_EXTENSION(ARB_multisample);
-	CHECK_EXTENSION(ARB_framebuffer_sRGB);
-	CHECK_EXTENSION(ARB_create_context_robustness);
-	CHECK_EXTENSION(ARB_create_context_no_error);
-	CHECK_EXTENSION(ARB_pixel_format);
-	CHECK_EXTENSION(ARB_context_flush_control);
-	CHECK_EXTENSION(ARB_create_context);
-	CHECK_EXTENSION(ARB_create_context_profile);
+	else {
+		CUSTOM_WARNING("failed to load EXT extensions string");
+	}
+
+	if (wgl.GetExtensionsStringARB) {
+		cstring extensions_string = wgl.GetExtensionsStringARB(hdc);
+		CHECK_EXTENSION(ARB_multisample);
+		CHECK_EXTENSION(ARB_framebuffer_sRGB);
+		CHECK_EXTENSION(ARB_create_context_robustness);
+		CHECK_EXTENSION(ARB_create_context_no_error);
+		CHECK_EXTENSION(ARB_pixel_format);
+		CHECK_EXTENSION(ARB_context_flush_control);
+		CHECK_EXTENSION(ARB_create_context);
+		CHECK_EXTENSION(ARB_create_context_profile);
+	}
+	else {
+		CUSTOM_WARNING("failed to load ARB extensions string");
+	}
 }
 #undef CHECK_EXTENSION
 
@@ -343,12 +319,12 @@ static void load_extensions(HDC hdc) {
 		return;
 	}
 
-	if (!wgl.MakeCurrent(hdc, hrc)) {
-		CUSTOM_ASSERT(false, "failed to make rendering context the current one");
+	if (wgl.MakeCurrent(hdc, hrc)) {
+		load_wgl_extension_functions();
+		load_extension_flags(hdc);
 	}
 	else {
-		load_extension_functions();
-		check_extension(hdc);
+		CUSTOM_ASSERT(false, "failed to make rendering context the current one");
 	} LOG_LAST_ERROR();
 
 	wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
@@ -792,7 +768,7 @@ static void platform_init_wgl(void) {
 	}
 
 	wgl.instance = opengl_handle;
-	load_opengl_functions();
+	load_wgl_simple_functions();
 
 	// @Note: should a dummy window class be created here, too?
 
