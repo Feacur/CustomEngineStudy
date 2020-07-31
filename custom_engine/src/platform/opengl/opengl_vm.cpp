@@ -283,6 +283,8 @@ namespace custom {
 namespace graphics {
 
 void init(void) {
+	new (&ogl) opengl::Data;
+
 	GLint version_major;
 	GLint version_minor;
 	glGetIntegerv(GL_MAJOR_VERSION, &version_major);
@@ -458,7 +460,7 @@ static void opengl_message_callback(
 
 static void PLATFORM_INIT_DEBUG()
 {
-	if (ogl.version >= COMPILE_VERSION(4, 3)) {
+	if (glDebugMessageCallback && glDebugMessageControl) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(opengl_message_callback, nullptr);
@@ -1157,7 +1159,7 @@ static void platform_Clip_Control(Bytecode const & bc) {
 	Clip_Origin origin = *bc.read<Clip_Origin>();
 	Clip_Depth depth = *bc.read<Clip_Depth>();
 
-	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+	if (glClipControl) {
 		glClipControl(get_clip_origin(origin), get_clip_depth(depth));
 	}
 	else {
@@ -1365,6 +1367,10 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	}
 
 	// -- allocate memory --
+	glGenVertexArrays(1, &resource->id);
+	glBindVertexArray(resource->id);
+
+	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
@@ -1375,6 +1381,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 				buffer.capacity * get_type_size(buffer.type),
 				NULL, usage
 			);
+			if (buffer.is_index) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.id); }
 		}
 	}
 	else {
@@ -1393,15 +1400,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	}
 
 	// -- chart memory --
-	glGenVertexArrays(1, &resource->id);
-	glBindVertexArray(resource->id);
-	for (u16 i = 0; i < resource->buffers.count; ++i) {
-		opengl::Buffer & buffer = resource->buffers[i];
-		GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-		glBindBuffer(target, buffer.id);
-	}
-
-	if (ogl.version >= COMPILE_VERSION(4, 3)) {
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			u16 element_size = get_type_size(buffer.type);
@@ -1413,15 +1412,41 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 				stride += attr.count * element_size;
 			}
 
-			glBindVertexBuffer(i, buffer.id, 0, stride); // glVertexArrayVertexBuffer(resource->id, ...);
+			glVertexArrayVertexBuffer(resource->id, i, buffer.id, 0, stride);
 			GLuint attrib_offset = 0;
 			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
 				opengl::Attribute & attr = buffer.attributes[attr_i];
-				glEnableVertexAttribArray(attr_i); // glEnableVertexArrayAttrib(resource->id, ...);
-				glVertexAttribFormat( // glVertexArrayAttribFormat(resource->id, ...);
+				glEnableVertexArrayAttrib(resource->id, attr_i);
+				glVertexArrayAttribFormat(
+					resource->id,
 					attr_i, attr.count, element_type, false, attrib_offset
 				);
-				glVertexAttribBinding(attr_i, i); // glVertexArrayAttribBinding(resource->id, ...);
+				glVertexArrayAttribBinding(resource->id, attr_i, i);
+				attrib_offset += attr.count * element_size;
+			}
+		}
+	}
+	else if (ogl.version >= COMPILE_VERSION(4, 3)) {
+		for (u16 i = 0; i < resource->buffers.count; ++i) {
+			opengl::Buffer & buffer = resource->buffers[i];
+			u16 element_size = get_type_size(buffer.type);
+			GLenum element_type = get_data_type(buffer.type);
+
+			GLsizei stride = 0;
+			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+				opengl::Attribute & attr = buffer.attributes[attr_i];
+				stride += attr.count * element_size;
+			}
+
+			glBindVertexBuffer(i, buffer.id, 0, stride);
+			GLuint attrib_offset = 0;
+			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
+				opengl::Attribute & attr = buffer.attributes[attr_i];
+				glEnableVertexAttribArray(attr_i);
+				glVertexAttribFormat(
+					attr_i, attr.count, element_type, false, attrib_offset
+				);
+				glVertexAttribBinding(attr_i, i);
 				attrib_offset += attr.count * element_size;
 			}
 		}
