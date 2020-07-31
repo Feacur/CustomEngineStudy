@@ -6,8 +6,10 @@
 #include "engine/api/internal/renderer.h"
 #include "engine/api/graphics_params.h"
 
+// http://www.reedbeta.com/blog/depth-precision-visualized/
 // https://developer.nvidia.com/content/depth-precision-visualized
 // https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
+// http://dev.theomader.com/depth-precision/
 // https://outerra.blogspot.com/2012/11/maximizing-depth-buffer-range-and.html
 #define REVERSED_Z
 
