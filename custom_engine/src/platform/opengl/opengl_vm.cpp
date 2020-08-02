@@ -34,6 +34,12 @@
 //        - 'uploaded' state check for Load_###
 //        - provide default mesh, texture, program
 
+// @Todo:
+//        - finilize and test render textures
+//        - check for missing Direct State Access?
+//        - implement Separate Shader Objects?
+//        - implement Texture Views?
+
 constexpr u32 const empty_gl_id = 0;
 constexpr u32 const empty_unit = UINT32_MAX;
 
@@ -343,7 +349,14 @@ void consume(Bytecode const & bc) {
 		switch (instruction)
 		{
 			case Instruction::None: CUSTOM_ASSERT(false, "null instruction encountered"); break;
-			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
+			#define INSTRUCTION_IMPL(T)\
+				case Instruction::T:\
+					/*glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, #T);*/\
+					/*glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, #T);*/\
+					platform_##T(bc);\
+					/*glPopDebugGroup();*/\
+					break;\
+
 			#include "engine/api/instructions_registry_impl.h"
 			case Instruction::Last: CUSTOM_ASSERT(false, "non-instruction encountered"); break;
 			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
@@ -469,11 +482,13 @@ static void opengl_message_callback(
 
 static void PLATFORM_INIT_DEBUG()
 {
-	if (glDebugMessageCallback && glDebugMessageControl) {
+	if (glDebugMessageCallback) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(opengl_message_callback, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		glDebugMessageCallback(opengl_message_callback, NULL);
+		if (glDebugMessageControl) {
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		}
 		CUSTOM_TRACE("enabled OpenGL debug");
 	}
 	else {
@@ -2260,7 +2275,7 @@ static void platform_Draw(Bytecode const & bc) {
 
 	opengl::Buffer const & indices = mesh->buffers[mesh->index_buffer];
 	GLenum data_type = get_data_type(indices.type);
-	glDrawElements(GL_TRIANGLES, indices.count, data_type, nullptr);
+	glDrawElements(GL_TRIANGLES, indices.count, data_type, NULL);
 }
 
 static void platform_Overlay(Bytecode const & bc) {

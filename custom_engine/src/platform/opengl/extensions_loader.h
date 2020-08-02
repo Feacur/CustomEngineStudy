@@ -10,7 +10,7 @@
 namespace opengl {
 
 static bool contains_full_word(cstring container, cstring value) {
-	CUSTOM_ASSERT(value, "value is nullptr");
+	CUSTOM_ASSERT(value, "value is NULL");
 	CUSTOM_ASSERT(*value != '\0', "value is empty");
 	CUSTOM_ASSERT(!strchr(value, ' '), "value contains spaces: '%s'", value);
 
