@@ -24,6 +24,8 @@
 #define COMPILE_VERSION(major, minor) (major * 10 + minor)
 
 // https://www.khronos.org/registry/OpenGL/index_gl.php
+// https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/OpenGL%204.x%20and%20Beyond.pdf
+// https://www.khronos.org/assets/uploads/developers/library/2014-siggraph-bof/OpenGL-Ecosystem-BOF_Aug14.pdf
 
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
@@ -129,6 +131,12 @@ struct Mesh
 };
 template struct custom::Array<Mesh>;
 
+struct Render_Texture
+{
+	u32 asset_id = empty_asset_id;
+	u8 index = 0;
+};
+
 struct Render_Buffer
 {
 	GLuint id = empty_gl_id;
@@ -136,6 +144,7 @@ struct Render_Buffer
 	ivec2 size;
 	custom::graphics::Data_Type data_type;
 	custom::graphics::Texture_Type texture_type;
+	u8 index = 0;
 
 	~Render_Buffer() {
 		id = empty_gl_id;
@@ -146,12 +155,12 @@ struct Target
 {
 	GLuint id = empty_gl_id;
 	GLenum target;
-	custom::Array_Fixed<u32, 2> texture_ids;
+	custom::Array_Fixed<Render_Texture, 2> textures;
 	custom::Array_Fixed<Render_Buffer, 1> buffers;
 
 	~Target() {
 		id = empty_gl_id;
-		texture_ids.count = 0;
+		textures.count = 0;
 		buffers.count = 0;
 	}
 };
@@ -1167,6 +1176,11 @@ static void platform_Clip_Control(Bytecode const & bc) {
 	}
 }
 
+static void platform_Stencil_Clear(Bytecode const & bc) {
+	s32 value = *bc.read<s32>();
+	glClearStencil(value);
+}
+
 static void platform_Stencil_Read(Bytecode const & bc) {
 	b8 value = *bc.read<b8>();
 	if (value) {
@@ -1207,11 +1221,11 @@ static void platform_Stencil_Mask(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Shader(Bytecode const & bc) {
-	u32     asset_id = *bc.read<u32>();
+	u32 asset_id = *bc.read<u32>();
 	ogl.programs_ensure_capacity(asset_id);
 	opengl::Program * resource = &ogl.programs.get(asset_id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_WARNING("shader %d already exists", asset_id);
+		CUSTOM_TRACE("shader %d already exists", asset_id);
 		return;
 	}
 	new (resource) opengl::Program;
@@ -1234,11 +1248,11 @@ static void platform_consume_texture_params(Bytecode const & bc, opengl::Texture
 }
 
 static void platform_Allocate_Texture(Bytecode const & bc) {
-	u32   asset_id = *bc.read<u32>();
+	u32 asset_id = *bc.read<u32>();
 	ogl.textures_ensure_capacity(asset_id);
 	opengl::Texture * resource = &ogl.textures.get(asset_id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_WARNING("texture %d already exists", asset_id);
+		CUSTOM_TRACE("texture %d already exists", asset_id);
 		opengl::Texture default_texture;
 		platform_consume_texture_params(bc, &default_texture);
 		return;
@@ -1293,10 +1307,10 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Sampler(Bytecode const & bc) {
-	u32   asset_id = *bc.read<u32>();
+	u32 asset_id = *bc.read<u32>();
 	ogl.samplers_ensure_capacity(asset_id);
 	opengl::Sampler * resource = &ogl.samplers.get(asset_id);
-	if (resource->id != empty_gl_id) { CUSTOM_WARNING("sampler %d already exists", asset_id); return; }
+	if (resource->id != empty_gl_id) { CUSTOM_TRACE("sampler %d already exists", asset_id); return; }
 	new (resource) opengl::Sampler;
 
 	resource->min_tex = *bc.read<Filter_Mode>();
@@ -1352,7 +1366,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	ogl.meshes_ensure_capacity(asset_id);
 	opengl::Mesh * resource = &ogl.meshes.get(asset_id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_WARNING("mesh %d already exists", asset_id);
+		CUSTOM_TRACE("mesh %d already exists", asset_id);
 		opengl::Mesh default_resource;
 		platform_consume_mesh_params(bc, &default_resource);
 		return;
@@ -1490,11 +1504,23 @@ static void platform_consume_target_params(Bytecode const & bc, opengl::Target *
 	new (resource) opengl::Target;
 	resource->target = GL_FRAMEBUFFER;
 
+	u8 next_index = 0;
+
 	u16 textures_count = *bc.read<u16>();
 	u32 const * texture_ids = bc.read<u32>(textures_count);
-	CUSTOM_ASSERT(textures_count <= resource->texture_ids.capacity, "too many textures");
+	CUSTOM_ASSERT(textures_count <= resource->textures.capacity, "too many textures");
 	for (u16 i = 0; i < textures_count; ++i) {
-		resource->texture_ids.push(texture_ids[i]);
+		u32 texture_id = texture_ids[i];
+		opengl::Texture const * texture = &ogl.textures.get(texture_id);
+		CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
+
+		resource->textures.push();
+		opengl::Render_Texture * render_texture = new (&resource->textures[i]) opengl::Render_Texture;
+		render_texture->asset_id = GL_RENDERBUFFER;
+
+		bool is_color = texture->texture_type == Texture_Type::Color;
+		render_texture->index = is_color ? next_index : 0;
+		if (is_color) { ++next_index; }
 	}
 
 	u16 buffers_count = *bc.read<u16>();
@@ -1506,15 +1532,19 @@ static void platform_consume_target_params(Bytecode const & bc, opengl::Target *
 		buffer->size         = *bc.read<ivec2>();
 		buffer->data_type    = *bc.read<Data_Type>();
 		buffer->texture_type = *bc.read<Texture_Type>();
+
+		bool is_color = buffer->texture_type == Texture_Type::Color;
+		buffer->index = is_color ? next_index : 0;
+		if (is_color) { ++next_index; }
 	}
 }
 
 static void platform_Allocate_Target(Bytecode const & bc) {
-	u32   asset_id = *bc.read<u32>();
+	u32 asset_id = *bc.read<u32>();
 	ogl.targets_ensure_capacity(asset_id);
 	opengl::Target * resource = &ogl.targets.get(asset_id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_WARNING("target %d already exists", asset_id);
+		CUSTOM_TRACE("target %d already exists", asset_id);
 		opengl::Target default_resource;
 		platform_consume_target_params(bc, &default_resource);
 		return;
@@ -1528,11 +1558,11 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	// @Todo: process mipmap correctly,
 	//        process version correctly
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		for (u16 i = 0; i < resource->texture_ids.count; ++i) {
-			u32 texture_id = resource->texture_ids[i];
-			opengl::Texture * texture = &ogl.textures.get(texture_id);
+		for (u16 i = 0; i < resource->textures.count; ++i) {
+			opengl::Render_Texture const * render_texture = &resource->textures[i];
+			opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
 			CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
-			GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+			GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 			GLint mipmap = 0; 
 			glNamedFramebufferTexture(resource->id, attachment, texture->id, mipmap);
 		}
@@ -1540,30 +1570,30 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	else {
 		if (ogl.active_target != empty_asset_id && ogl.active_target != asset_id) {
 			ogl.active_target = empty_asset_id;
-			glBindVertexArray(0);
 			CUSTOM_WARNING("OGL: disabling active target %d for allocation of target %d", ogl.active_target, asset_id);
 		}
 		glBindFramebuffer(resource->target, resource->id);
 		if (ogl.version >= COMPILE_VERSION(3, 2)) {
-			for (u16 i = 0; i < resource->texture_ids.count; ++i) {
-				u32 texture_id = resource->texture_ids[i];
-				opengl::Texture * texture = &ogl.textures.get(texture_id);
+			for (u16 i = 0; i < resource->textures.count; ++i) {
+				opengl::Render_Texture const * render_texture = &resource->textures[i];
+				opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
 				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
-				GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+				GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 				GLint mipmap = 0;
 				glFramebufferTexture(resource->target, attachment, texture->id, mipmap);
 			}
 		}
 		else {
-			for (u16 i = 0; i < resource->texture_ids.count; ++i) {
-				u32 texture_id = resource->texture_ids[i];
-				opengl::Texture * texture = &ogl.textures.get(texture_id);
+			for (u16 i = 0; i < resource->textures.count; ++i) {
+				opengl::Render_Texture const * render_texture = &resource->textures[i];
+				opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
 				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
-				GLenum attachment = get_attachment_format(texture->texture_type, (u8)i);
+				GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 				GLint mipmap = 0;
 				glFramebufferTexture2D(resource->target, attachment, texture->target, texture->id, mipmap);
 			}
 		}
+		glBindFramebuffer(resource->target, 0);
 	}
 
 	//
@@ -1574,9 +1604,9 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Render_Buffer * buffer = &resource->buffers[i];
+			opengl::Render_Buffer const * buffer = &resource->buffers[i];
 			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
-			GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
+			GLenum attachment = get_attachment_format(buffer->texture_type, buffer->index);
 			glNamedRenderbufferStorage(buffer->id, internal_format, buffer->size.x, buffer->size.y);
 			glNamedFramebufferRenderbuffer(buffer->id, attachment, buffer->target, buffer->id);
 		}
@@ -1584,13 +1614,14 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	else {
 		// glBindFramebuffer(resource->target, resource->id);
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Render_Buffer * buffer = &resource->buffers[i];
+			opengl::Render_Buffer const * buffer = &resource->buffers[i];
 			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
-			GLenum attachment = get_attachment_format(buffer->texture_type, (u8)i);
+			GLenum attachment = get_attachment_format(buffer->texture_type, buffer->index);
 			glBindRenderbuffer(buffer->target, buffer->id);
 			glRenderbufferStorage(buffer->target, internal_format, buffer->size.x, buffer->size.y);
 			glFramebufferRenderbuffer(resource->target, attachment, buffer->target, buffer->id);
 		}
+		// glBindFramebuffer(resource->target, 0);
 	}
 }
 
@@ -2089,6 +2120,135 @@ static void platform_Clear(Bytecode const & bc) {
 		gl_clear_flags |= GL_STENCIL_BUFFER_BIT;
 	}
 	glClear(gl_clear_flags);
+}
+
+struct Clear_Target_Data {
+	Texture_Type texture_type;
+	Data_Type data_type;
+	u8 index;
+	union {
+		u8 bdata;
+		struct { r32 depth; s32 stencil; };
+		vec4  rdata;
+		ivec4 idata;
+		uvec4 udata;
+	};
+};
+
+static void platform_consume_clear_target_params(Bytecode const & bc, Array_Fixed<Clear_Target_Data, 2> & data) {
+	u8 count = *bc.read<u8>();
+	// data.set_capacity(count);
+	CUSTOM_ASSERT(count <= data.capacity, "too many buffers");
+	for (u8 i = 0; i < count; ++i) {
+		data.push();
+		Clear_Target_Data * datum = new (&data[i]) Clear_Target_Data;
+
+		datum->texture_type = *bc.read<Texture_Type>();
+		switch (datum->texture_type) {
+			case Texture_Type::Color: {
+				datum->index     = *bc.read<u8>();
+				datum->data_type = *bc.read<Data_Type>();
+				cmemory value = read_data(bc, datum->data_type, 1);
+				memcpy(&datum->bdata, value, get_type_size(datum->data_type));
+			} break;
+
+			case Texture_Type::Depth: {
+				datum->depth = *bc.read<r32>();
+			} break;
+
+			case Texture_Type::DStencil: {
+				datum->depth   = *bc.read<r32>();
+				datum->stencil = *bc.read<s32>();
+			} break;
+
+			case Texture_Type::Stencil: {
+				datum->stencil = *bc.read<s32>();
+			} break;
+		}
+	}
+}
+
+static void platform_Clear_Target(Bytecode const & bc) {
+	u32 asset_id = *bc.read<u32>();
+
+	Array_Fixed<Clear_Target_Data, 2> data;
+	platform_consume_clear_target_params(bc, data);
+
+	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "frame buffers are not supported");
+
+	opengl::Target const * resource = &ogl.targets.get(asset_id);
+	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
+
+	if (ogl.version >= COMPILE_VERSION(4, 5)) {
+		for (u16 i = 0; i < data.count; ++i) {
+			Clear_Target_Data const * datum = &data[i];
+			switch (datum->texture_type) {
+				case Texture_Type::Color: {
+					switch (datum->data_type) {
+						case Data_Type::s32: {
+							glClearNamedFramebufferiv(resource->id, GL_COLOR, datum->index, datum->idata.data);
+						} break;
+						case Data_Type::u32: {
+							glClearNamedFramebufferuiv(resource->id, GL_COLOR, datum->index, datum->udata.data);
+						} break;
+						case Data_Type::r32: {
+							glClearNamedFramebufferfv(resource->id, GL_COLOR, datum->index, datum->rdata.data);
+						} break;
+					}
+				} break;
+
+				case Texture_Type::Depth: {
+					glClearNamedFramebufferfv(resource->id, GL_DEPTH, 0, &datum->depth);
+				} break;
+
+				case Texture_Type::DStencil: {
+					glClearNamedFramebufferfi(resource->id, GL_DEPTH_STENCIL, 0, datum->depth, datum->stencil);
+				} break;
+
+				case Texture_Type::Stencil: {
+					glClearNamedFramebufferiv(resource->id, GL_STENCIL, 0, &datum->stencil);
+				} break;
+			}
+		}
+	}
+	else {
+		if (ogl.active_target != asset_id) {
+			ogl.active_target = empty_asset_id;
+			CUSTOM_WARNING("OGL: disabling active target %d for clearing of target %d", ogl.active_target, asset_id);
+		}
+		glBindFramebuffer(resource->target, resource->id);
+		for (u16 i = 0; i < data.count; ++i) {
+			Clear_Target_Data const * datum = &data[i];
+			switch (datum->texture_type) {
+				case Texture_Type::Color: {
+					switch (datum->data_type) {
+						case Data_Type::s32: {
+							glClearBufferiv(GL_COLOR, datum->index, datum->idata.data);
+						} break;
+						case Data_Type::u32: {
+							glClearBufferuiv(GL_COLOR, datum->index, datum->udata.data);
+						} break;
+						case Data_Type::r32: {
+							glClearBufferfv(GL_COLOR, datum->index, datum->rdata.data);
+						} break;
+					}
+				} break;
+
+				case Texture_Type::Depth: {
+					glClearBufferfv(GL_DEPTH, 0, &datum->depth);
+				} break;
+
+				case Texture_Type::DStencil: {
+					glClearBufferfi(GL_DEPTH_STENCIL, 0, datum->depth, datum->stencil);
+				} break;
+
+				case Texture_Type::Stencil: {
+					glClearBufferiv(GL_STENCIL, 0, &datum->stencil);
+				} break;
+			}
+		}
+		glBindFramebuffer(resource->target, 0);
+	}
 }
 
 static void platform_Draw(Bytecode const & bc) {

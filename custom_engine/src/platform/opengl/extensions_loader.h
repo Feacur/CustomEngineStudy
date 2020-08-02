@@ -3,6 +3,10 @@
 #include "engine/debug/log.h"
 #include "engine/impl/array.h"
 
+// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_clip_control.txt
+// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_direct_state_access.txt
+// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_debug_output.txt
+
 namespace opengl {
 
 static bool contains_full_word(cstring container, cstring value) {
@@ -59,6 +63,8 @@ void load_extensions(load_func * load) {
 
 	CHECK_EXTENSION(ARB_clip_control);
 	LOAD_EXTENSION(glClipControl, ARB_clip_control);
+
+	// CHECK_EXTENSION(ARB_direct_state_access);
 
 	#if !defined(CUSTOM_SHIPPING)
 	CHECK_EXTENSION(ARB_debug_output);

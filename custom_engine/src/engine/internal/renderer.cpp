@@ -77,6 +77,7 @@ void viewport(ivec2 const & position, ivec2 const & size) {
 void clear(void) {
 	bc->write(graphics::Instruction::Clear);
 	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
+	// bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth | graphics::Clear_Flags::Stencil);
 }
 
 void draw(void) {
@@ -121,6 +122,9 @@ static void init_defaults(void) {
 
 	bc->write(graphics::Instruction::Color_Clear);
 	bc->write(vec4{0, 0, 0, 0});
+
+	bc->write(graphics::Instruction::Stencil_Clear);
+	bc->write(0);
 
 	bc->write(graphics::Instruction::Blend_Mode);
 	bc->write(graphics::Blend_Mode::Alpha);
