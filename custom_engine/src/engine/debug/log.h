@@ -23,6 +23,7 @@
 	#define ANSI_BKG_GRY ANSI_ESC "[48;5;8m"
 	#define ANSI_BKG_MGT ANSI_ESC "[48;5;13m"
 	#define ANSI_BKG_CYN ANSI_ESC "[48;5;14m"
+	#define ANSI_BKG_ORG ANSI_ESC "[48;5;202m"
 
 	#define ANSI_TXT_RED ANSI_ESC "[38;5;1m"
 	#define ANSI_TXT_GRN ANSI_ESC "[38;5;2m"
@@ -30,6 +31,7 @@
 	#define ANSI_TXT_GRY ANSI_ESC "[38;5;8m"
 	#define ANSI_TXT_MGT ANSI_ESC "[38;5;13m"
 	#define ANSI_TXT_CYN ANSI_ESC "[38;5;14m"
+	#define ANSI_TXT_ORG ANSI_ESC "[38;5;202m"
 #else
 	#define ANSI_ESC
 	#define ANSI_CLR

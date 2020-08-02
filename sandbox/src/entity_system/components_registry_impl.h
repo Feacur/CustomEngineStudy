@@ -4,6 +4,7 @@
 COMPONENT_IMPL(Lua_Script)
 COMPONENT_IMPL(Visual)
 COMPONENT_IMPL(Transform)
+// COMPONENT_IMPL(Hierarchy)
 // COMPONENT_IMPL(Camera)
 // COMPONENT_IMPL(Transform2d)
 // COMPONENT_IMPL(Camera2d)

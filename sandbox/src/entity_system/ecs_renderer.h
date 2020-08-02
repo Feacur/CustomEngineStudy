@@ -6,6 +6,6 @@ struct Transform;
 namespace sandbox {
 namespace ecs_renderer {
 
-void process(Transform const & camera, mat4 const & projection);
+void update(Transform const & camera_transform, mat4 const & projection);
 
 }}

@@ -41,11 +41,12 @@ namespace uniform {
 	constexpr u32 const ids_count = (u32)sandbox::Uniform::count;
 	u32 count = ids_count;
 	cstring names[ids_count + 1] = {
+		"u_Resolution",
 		"u_ViewProjection",
 		"u_Transform",
 		"u_Texture",
 		"u_Color",
-		"u_Depth",
+		"u_Z",
 		NULL
 	};
 };
@@ -100,12 +101,10 @@ namespace mesh {
 	cstring paths[ids_count + 1] = {
 		"assets/meshes/plane_xz.obj",
 		"assets/meshes/suzanne.obj",
-		"assets/meshes/suzanne_tris.obj",
 		NULL
 	};
 	
 	u8 meta_ids[ids_count] = {
-		0,
 		0,
 		0,
 	};

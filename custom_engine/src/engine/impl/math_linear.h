@@ -1194,16 +1194,15 @@ projection matrices
 * http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
 * http://learnwebgl.brown37.net/08_projections/projections_ortho.html
 * http://learnwebgl.brown37.net/08_projections/projections_perspective.html
-* https://developer.nvidia.com/content/depth-precision-visualized
 
 Aim is to scale some world-space coordinates into a box of:
 - ([-1..1], [-1..1], -[near clipping plane, 1]) - as a general case;
 - ([-1..1], [-1..1], -[ 0, 1]) - DirectX, OpenGL _with clip control_ (>= 4.5)
-- ([-1..1], [-1..1], -[-1, 1]) - OpenGL _without clip control_ (< 4.5); *technically*
+- ([-1..1], [-1..1], -[-1, 1]) - OpenGL _without clip control_ (< 4.5)
+- ... *technically* it can be ignored, although it loses you a half of the depth range in the NDC (?)
 
 ^^^^ actually coordinates could be scaled whatever way required; it's just the fact
-     that everything ouside this clipping box will be discarded, at least only this volume
-     will be projected onto the screen inside its bounds
+     that everything ouside this clipping box will be discarded;
 
 XY scale is usually represented by:
 - 1 / tangent(vield of view radians / 2): a bisected angle scales each of the halves of X and Y planes respectively
@@ -1217,23 +1216,17 @@ Orthograhic projection:
 - offset in case of assymetry
 - any other optional distortion
 
-> Z [0 .. 1]
-  NCP = a + b * Min = 0
-  FCP = a + b * Max = 1
-  ---> b = 1 / (Max - Min)    ---> scale
-  ---> a = -Min / (Max - Min) ---> offset
-
-> Z [-1 .. 1]
-  NCP = a / Min + b = -1
-  FCP = a / Max + b =  1
-  ---> b = 2 / (Max - Min)             ---> scale
-  ---> a = -(Max + Min) / (Max - Min)  ---> offset
+> Z [NCP .. 1]
+  a + Min * b = NCP
+  a + Max * b = 1
+  ---> b = (1 - NCP) / (Max - Min)         ---> scale
+  ---> a = (Max * NCP - Min) / (Max - Min) ---> offset
 
 > XY
-  s1 + s2 * Min = -1
-  s1 + s2 * Max =  1
-  ---> s2 = 2 / (Max - Min)            ---> scale
-  ---> s1 = -(Min + Max) / (Max - Min) ---> offset
+  a + b * Min = -1
+  a + b * Max =  1
+  ---> b = 2 / (Max - Min)            ---> scale
+  ---> a = -(Min + Max) / (Max - Min) ---> offset
 
 Perspective projection:
 - XYZ' = (a + b * XYZ) / Z
@@ -1242,48 +1235,57 @@ Perspective projection:
 - offset in case of assymetry
 - any other optional distortion
 
-> Z [0 .. 1]
-  NCP = a / Min + b = 0
-  FCP = a / Max + b = 1
-  ---> b = Max / (Max - Min)        ---> scale
-  ---> a = -Min * Max / (Max - Min) ---> offset
-
-> Z [-1 .. 1]
-  NCP = a / Min + b = -1
-  FCP = a / Max + b =  1
-  ---> b = (Min + Max) / (Max - Min) ---> scale
-  ---> a = -Min * Max / (Max - Min)  ---> offset
+> Z [NCP .. 1]
+  a / Min + b = NCP
+  a / Max + b = 1
+  ---> b = (Max - NCP * Min) / (Max - Min)     ---> scale
+  ---> a = (NCP - 1) * Min * Max / (Max - Min) ---> offset
 
 > XY [-1 .. 1]
-  s1 + s2 * Min = -Z
-  s1 + s2 * Max =  Z
-  ---> s2 = 2 * Z / (Max - Min)            ---> scale
-  ---> s1 = -(Min + Max) * Z / (Max - Min) ---> offset
+  a + b * Min = -Z
+  a + b * Max =  Z
+  ---> b = 2 * Z / (Max - Min)            ---> scale
+  ---> a = -(Min + Max) * Z / (Max - Min) ---> offset
 
 */
 
-constexpr inline mat4 mat_persp01(vec2 scale, r32 near, r32 far) {
-	r32 const z_scale = far / (far - near);
+constexpr inline mat4 mat_persp(vec2 scale, r32 near, r32 far) {
+	constexpr float const NCP = 0;
+	float const reverse_depth = 1 / (far - near);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = z_scale;
+	result[2][2] = (far - NCP * near) * reverse_depth;
 	result[2][3] = 1; // W += 1 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = -z_scale * near;
+	result[3][2] = (NCP - 1) * near * far * reverse_depth;
 	result[3][3] = 0; // W += 0 * vec4.w
 	return result;
 }
 
-constexpr inline mat4 mat_ortho01(vec2 scale, r32 near, r32 far) {
-	r32 const z_scale = 1 / (far - near);
+constexpr inline mat4 mat_persp_inf(vec2 scale, r32 near) {
+	constexpr float const NCP = 0;
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = z_scale;
+	result[2][2] = 1;
+	result[2][3] = 1; // W += 1 * vec4.z
+	// result[3].xy = offset;
+	result[3][2] = (NCP - 1) * near;
+	result[3][3] = 0; // W += 0 * vec4.w
+	return result;
+}
+
+constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
+	constexpr float const NCP = 0;
+	float const reverse_depth = 1 / (far - near);
+	mat4 result = {};
+	result[0][0] = scale.x;
+	result[1][1] = scale.y;
+	result[2][2] = (1 - NCP) * reverse_depth;
 	result[2][3] = 0; // W += 0 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = -z_scale * near;
+	result[3][2] = (far * NCP - near) * reverse_depth;
 	result[3][3] = 1; // W += 1 * vec4.w
 	return result;
 }

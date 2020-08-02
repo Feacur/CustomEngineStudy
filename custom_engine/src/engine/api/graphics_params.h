@@ -174,7 +174,7 @@ IS_ENUM_META(Clip_Origin)
 
 enum struct Clip_Depth : u8
 {
-	NegOne_One,
+	Neg_One,
 	Zero_One,
 };
 UNDERLYING_TYPE_META(Clip_Depth, u8)

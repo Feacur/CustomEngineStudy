@@ -59,6 +59,8 @@
 			// c, c++
 			"ms-vscode.cpptools",
 			"vadimcn.vscode-lldb",
+			// glsl
+			"slevesque.shader",
 		]
 	}
 }

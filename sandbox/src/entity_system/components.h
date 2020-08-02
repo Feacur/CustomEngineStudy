@@ -1,9 +1,9 @@
 #include "engine/core/math_types.h"
+#include "engine/api/internal/entity_system.h"
 
 struct Lua_Script
 {
 	cstring function;
-	bool loaded = false;
 };
 
 struct Visual
@@ -22,9 +22,13 @@ struct Transform
 
 struct Camera
 {
-	Transform transform;
 	mat4 projection;
 };
+
+// struct Hierarchy : public custom::Ref
+// {
+// 	// @Note: another entity reference
+// };
 
 // struct Transform2d
 // {
@@ -35,6 +39,5 @@ struct Camera
 
 // struct Camera2d
 // {
-// 	Transform2d transform;
 // 	mat3 projection;
 // };
