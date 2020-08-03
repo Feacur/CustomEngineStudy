@@ -5,6 +5,9 @@ namespace custom {
 
 struct Bytecode
 {
+	// @Todo: figure out alignment issues; concerning 'realloc' especially
+	//        - replace with Array<u64> or Array<size_t>?
+	//        - actually verify and profile benefits
 	Array<u8> buffer;
 	mutable u32 offset;
 
