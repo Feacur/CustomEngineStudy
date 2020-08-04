@@ -1,4 +1,5 @@
 #include "custom_pch.h"
+#include "engine/impl/math_linear.h"
 
 #include <lua.hpp>
 

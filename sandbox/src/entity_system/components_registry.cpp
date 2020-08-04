@@ -16,7 +16,7 @@
 #include "components_registry_impl.h"
 
 void init_entity_components(void) {
-// @Note: initialize runtime components' data:
+	// @Note: initialize runtime components' data:
 	u32 component_types_count = 0;
 	#define COMPONENT_IMPL(T) custom::Component_Registry<T>::offset = component_types_count++;
 	#include "components_registry_impl.h"
