@@ -35,4 +35,4 @@ project "sandbox"
 		("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
 	}
 
-	filter {}
+	-- filter {}

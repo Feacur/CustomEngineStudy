@@ -12,8 +12,11 @@ project "glad"
 			"4005", -- 'identifier' : macro redefinition (suppress) -- might ignore it as well, though
 		}
 
-	symbols "Off"
-	optimize "On"
+	filter "configurations:not DebugLibs"
+		symbols "Off"
+		optimize "On"
+
+	filter {}
 	
 	glad_to_root = path.getrelative(os.getcwd(), root_directory)
 	targetdir (glad_to_root .. "/" .. target_location .. "/vendor/%{prj.name}")
