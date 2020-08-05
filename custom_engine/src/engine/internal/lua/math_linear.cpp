@@ -15,15 +15,18 @@ static luaL_Reg const vec3_mt[] = {
 	{NULL, NULL},
 };
 
-namespace custom {
-namespace lua_math_linear {
+static luaL_Reg const math_lib[] = {
+	{NULL, NULL},
+};
 
-void init(lua_State * L) {
+int luaopen_custom_math(lua_State * L) {
+	luaL_newlib(L, math_lib);
+
 	if (luaL_newmetatable(L, "vec3")) {
 		luaL_setfuncs(L, vec3_mt, 0);
 		lua_setfield(L, -1, "__index");
 	}
 	else { lua_pop(L, 1); }
-}
 
-}}
+	return 0;
+}
