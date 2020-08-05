@@ -22,7 +22,7 @@ Ref Gen_Pool::create(void) {
 	}
 	else {
 		id = gens.count;
-		gens.push();
+		gens.push(0);
 	}
 	return { id, gens.get(id) };
 }

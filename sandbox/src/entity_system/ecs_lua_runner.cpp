@@ -20,7 +20,26 @@ void lua_function(lua_State * L, cstring name) {
 		lua_pop(L, 1);
 		return;
 	}
+
 	if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return;
+	}
+}
+
+static void lua_function(lua_State * L, cstring name, custom::Entity const & entity) {
+	if (lua_getglobal(L, name) != LUA_TFUNCTION) {
+		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return;
+	}
+
+	custom::Entity * e = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 1);
+	*e = entity;
+	luaL_setmetatable(L, "Entity");
+
+	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
 		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
 		lua_pop(L, 1);
 		return;
@@ -36,7 +55,7 @@ void update(lua_State * L) {
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
 		if (!lua_script->function) { continue; }
-		lua_function(L, lua_script->function);
+		lua_function(L, lua_script->function, entity);
 	}
 }
 

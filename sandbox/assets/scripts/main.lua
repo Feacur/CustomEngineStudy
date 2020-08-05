@@ -13,5 +13,6 @@ function global_update()
 	end
 end
 
-function some_component_update()
+function some_component_update(entity)
+	-- print(lua_tag .. string.format("some_component_update %s", entity))
 end
