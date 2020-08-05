@@ -56,6 +56,7 @@ void Entity::destroy(Entity const & entity) {
 
 	u32 entity_offset = entity.id * Entity::component_destructors.count;
 	for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
+		if (entity_offset + i >= Entity::components.capacity) { continue; }
 		Ref const & ref = Entity::components.get(entity_offset + i);
 		(*Entity::component_destructors[i])(ref);
 	}

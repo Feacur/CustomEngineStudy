@@ -48,33 +48,6 @@ static void on_app_init() {
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}}
-	);
-
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{3, 2, 0}, {0, 0, 0, 1}, {1, 2, 1}}
-	);
-
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{-5, 1, 0}, {0, 0, 0, 1}, {2, 1, 2}}
-	);
-
 	custom::Entity::destroy(entity21);
 	custom::Entity::destroy(entity11);
 	

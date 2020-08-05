@@ -2,7 +2,12 @@ local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
 function global_init()
 	print(lua_tag .. "global_init")
+
 	local lua_entity = Entity.create()
+	local lua_transform = lua_entity:add_component(Component_Type.Transform)
+	local lua_visual = lua_entity:add_component(Component_Type.Visual)
+	lua_transform:set()
+	lua_visual:set()
 end
 
 local counter = 0

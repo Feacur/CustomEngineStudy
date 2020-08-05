@@ -26,8 +26,12 @@ static int entity_add_component(lua_State * L) {
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
-	entity->add_component(type);
-	return 0;
+	custom::Ref const & component_ref = entity->add_component(type);
+	
+	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
+	luaL_setmetatable(L, custom::component::names[type]);
+	*udata = component_ref;
+	return 1;
 }
 
 static int entity_rem_component(lua_State * L) {
@@ -35,6 +39,7 @@ static int entity_rem_component(lua_State * L) {
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
 	entity->rem_component(type);
+
 	return 0;
 }
 
@@ -42,6 +47,7 @@ static int entity_has_component(lua_State * L) {
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
+
 	lua_pushboolean(L, entity->has_component(type));
 	return 1;
 }
@@ -51,8 +57,10 @@ static int entity_get_component(lua_State * L) {
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
 	custom::Ref component_ref = entity->get_component(type);
+
 	bool has_component = (*custom::Entity::component_containers[type])(component_ref);
 	if (!has_component) { lua_pushnil(L); return 1; }
+
 	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
 	luaL_setmetatable(L, custom::component::names[type]);
 	*udata = component_ref;
@@ -71,10 +79,15 @@ static luaL_Reg const entity_mt[] = {
 };
 
 static int entity_create(lua_State * L) {
-	return 0;
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = custom::Entity::create();
+	return 1;
 }
 
 static int entity_destroy(lua_State * L) {
+	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity::destroy(*entity);
 	return 0;
 }
 
@@ -88,12 +101,15 @@ namespace custom {
 namespace lua_entity_system {
 
 void init(lua_State * L) {
-	// luaL_newlib(L, entity_lib);
 	if (luaL_newmetatable(L, "Entity")) {
 		luaL_setfuncs(L, entity_mt, 0);
 		lua_setfield(L, -1, "__index");
 	}
 	else { lua_pop(L, 1); }
+	
+	luaL_getmetatable(L, "Entity");
+	luaL_newlib(L, entity_lib);
+	lua_setglobal(L, "Entity");
 
 	lua_createtable(L, 0, custom::component::count);
 	for (u32 i = 0; i < custom::component::count; ++i) {
