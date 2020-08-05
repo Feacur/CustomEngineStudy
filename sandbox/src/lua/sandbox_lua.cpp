@@ -82,15 +82,19 @@ static luaL_Reg const Visual_mt[] = {
 	{NULL, NULL},
 };
 
+namespace custom {
+namespace lua_client {
+
+void init_entity(lua_State * L) {
+	luaL_setfuncs(L, entity_mt, 0);
+}
+
+}}
+
 namespace sandbox {
 namespace lua {
 
 void init(lua_State * L) {
-	if (luaL_getmetatable(L, "Entity") != LUA_TNIL) {
-		luaL_setfuncs(L, entity_mt, 0);
-	}
-	lua_pop(L, 1);
-
 	#define COMPONENT_IMPL(T)\
 		if (luaL_newmetatable(L, #T)) {\
 			luaL_setfuncs(L, T##_mt, 0);\

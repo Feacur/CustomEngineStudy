@@ -6,7 +6,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/graphics_resource.h"
-#include "engine/api/client/asset_lookup.h"
+#include "engine/api/client/assets_lookup.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"

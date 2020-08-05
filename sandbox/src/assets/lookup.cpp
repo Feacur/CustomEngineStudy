@@ -1,4 +1,4 @@
-#include "engine/api/client/asset_lookup.h"
+#include "engine/api/asset_structs.h"
 #include "engine/core/code.h"
 
 #include "ids.h"

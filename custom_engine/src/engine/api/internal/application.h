@@ -1,3 +1,4 @@
+#pragma once
 #include "engine/core/math_types.h"
 #include "engine/core/key_codes.h"
 

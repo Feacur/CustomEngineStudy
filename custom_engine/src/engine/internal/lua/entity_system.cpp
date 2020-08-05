@@ -3,6 +3,7 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/entity_system.h"
+#include "engine/api/client/lua.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -33,6 +34,7 @@ namespace lua_entity_system {
 void init(lua_State * L) {
 	if (luaL_newmetatable(L, "Entity")) {
 		luaL_setfuncs(L, entity_mt, 0);
+		lua_client::init_entity(L);
 		lua_setfield(L, -1, "__index");
 	}
 	else { lua_pop(L, 1); }
