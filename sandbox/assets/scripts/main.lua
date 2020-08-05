@@ -2,7 +2,7 @@ local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
 function global_init()
 	print(lua_tag .. "global_init")
-	-- local lua_entity = Entity.create()
+	local lua_entity = Entity.create()
 end
 
 local counter = 0
@@ -20,7 +20,7 @@ function some_component_update(entity)
 	-- 	return
 	-- end
 	-- print(lua_tag .. string.format("entity is %s", entity))
-	local transform = entity:get_Transform()
+	local transform = entity:get_component(Component_Type.Transform)
 	-- if (transform ~= nil) then
 	-- 	print(lua_tag .. string.format("position is %s", transform:get_position()))
 	-- else

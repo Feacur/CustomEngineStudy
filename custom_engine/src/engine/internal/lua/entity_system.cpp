@@ -22,7 +22,6 @@ static int entity_eq(lua_State * L) {
 	return 1;
 }
 
-
 static int entity_add_component(lua_State * L) {
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
@@ -92,10 +91,16 @@ void init(lua_State * L) {
 	// luaL_newlib(L, entity_lib);
 	if (luaL_newmetatable(L, "Entity")) {
 		luaL_setfuncs(L, entity_mt, 0);
-		lua_client::init_entity(L);
 		lua_setfield(L, -1, "__index");
 	}
 	else { lua_pop(L, 1); }
+
+	lua_createtable(L, 0, custom::component::count);
+	for (u32 i = 0; i < custom::component::count; ++i) {
+		lua_pushinteger(L, i);
+		lua_setfield(L, -2, custom::component::names[i]);
+	}
+	lua_setglobal(L, "Component_Type");
 
 	lua_client::init_components(L);
 }
