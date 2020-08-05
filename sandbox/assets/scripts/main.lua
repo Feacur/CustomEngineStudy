@@ -2,6 +2,7 @@ local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
 function global_init()
 	print(lua_tag .. "global_init")
+	-- local lua_entity = Entity.create()
 end
 
 local counter = 0

@@ -32,12 +32,20 @@ void Ref_Pool<T>::destroy(Ref const & ref) {
 	if (ref.id == instances.count - 1) { instances.pop(); }
 }
 
-template<typename T> VOID_REF_FUNC(ref_pool_destruct) {
+template<typename T> VOID_VOID_FUNC(ref_pool_create) {
+	RefT<T>::pool.create();
+}
+
+template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
+	return RefT<T>::pool.contains(ref);
+}
+
+template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
 	if (RefT<T>::pool.contains(ref)) { RefT<T>::pool.destroy(ref); }
 }
 
 //
-// entity
+// entity components
 //
 
 template<typename T, typename... Args>
@@ -57,7 +65,6 @@ RefT<T> Entity::add_component(Args... args) {
 
 	CUSTOM_ASSERT(!RefT<T>::pool.contains(ref), "component already exist");
 	ref = RefT<T>::pool.create(args...);
-	++Entity::components.count;
 
 	return {ref.id, ref.gen};
 }
@@ -72,7 +79,6 @@ void Entity::rem_component(void) {
 	Ref const & ref = Entity::components.get(component_index);
 
 	RefT<T>::pool.destroy(ref);
-	--Entity::components.count;
 }
 
 template<typename T>

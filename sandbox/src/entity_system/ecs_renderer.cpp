@@ -9,7 +9,7 @@
 #include "engine/impl/math_linear.h"
 
 #include "../assets/ids.h"
-#include "components.h"
+#include "../components/types.h"
 
 // @Note: thoughts on factoring code for a renderer
 //        - batch together materials/objects with the same shaders

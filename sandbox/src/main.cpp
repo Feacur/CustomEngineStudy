@@ -1,7 +1,7 @@
 #include "custom_engine.h"
 
 #include "assets/ids.h"
-#include "entity_system/components.h"
+#include "components/types.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 

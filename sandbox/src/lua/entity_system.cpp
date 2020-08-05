@@ -1,7 +1,7 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/entity_system.h"
-#include "../entity_system/components.h"
+#include "../components/types.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -40,7 +40,7 @@ static int entity_get_component_##T(lua_State * L) {\
 	return 1;\
 }\
 
-#include "../entity_system/components_registry_impl.h"
+#include "../components/registry_impl.h"
 
 #define COMPONENT_IMPL(T)\
 	{"add_" #T, entity_add_component_##T},\
@@ -49,7 +49,7 @@ static int entity_get_component_##T(lua_State * L) {\
 	{"get_" #T, entity_get_component_##T},\
 
 static luaL_Reg const entity_mt[] = {
-	#include "../entity_system/components_registry_impl.h"
+	#include "../components/registry_impl.h"
 	{NULL, NULL},
 };
 
@@ -110,7 +110,7 @@ void init_components(lua_State * L) {
 		}\
 		else { lua_pop(L, 1); }\
 
-	#include "../entity_system/components_registry_impl.h"
+	#include "../components/registry_impl.h"
 }
 
 }}
