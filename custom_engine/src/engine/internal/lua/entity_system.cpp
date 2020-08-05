@@ -38,6 +38,8 @@ void init(lua_State * L) {
 		lua_setfield(L, -1, "__index");
 	}
 	else { lua_pop(L, 1); }
+
+	lua_client::init_components(L);
 }
 
 }}

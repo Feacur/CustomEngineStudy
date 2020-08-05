@@ -6,6 +6,10 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
+//
+// entity interface
+//
+
 #define COMPONENT_IMPL(T)\
 static int entity_add_component_##T(lua_State * L) {\
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");\
@@ -49,6 +53,19 @@ static luaL_Reg const entity_mt[] = {
 	{NULL, NULL},
 };
 
+namespace custom {
+namespace lua_client {
+
+void init_entity(lua_State * L) {
+	luaL_setfuncs(L, entity_mt, 0);
+}
+
+}}
+
+//
+// components interface
+//
+
 static luaL_Reg const Lua_Script_mt[] = {
 	{"__index", NULL}, /* place holder */
 	{NULL, NULL},
@@ -85,16 +102,7 @@ static luaL_Reg const Visual_mt[] = {
 namespace custom {
 namespace lua_client {
 
-void init_entity(lua_State * L) {
-	luaL_setfuncs(L, entity_mt, 0);
-}
-
-}}
-
-namespace sandbox {
-namespace lua {
-
-void init(lua_State * L) {
+void init_components(lua_State * L) {
 	#define COMPONENT_IMPL(T)\
 		if (luaL_newmetatable(L, #T)) {\
 			luaL_setfuncs(L, T##_mt, 0);\

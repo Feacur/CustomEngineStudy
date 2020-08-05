@@ -4,7 +4,6 @@
 #include "entity_system/components.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
-#include "lua/sandbox_lua.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -34,8 +33,6 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 	custom::lua_math_linear::init(L);
 	custom::lua_entity_system::init(L);
-	sandbox::lua::init(L);
-
 
 	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
 		custom::loader::script(L, asset_id);
