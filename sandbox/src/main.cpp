@@ -14,8 +14,8 @@
 
 custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	custom::Entity entity = custom::Entity::create();
-	entity.add_component<Visual>(visual_data);
-	entity.add_component<Transform>(transform_data);
+	(*entity.add_component<Visual>().get_fast()) = visual_data;
+	(*entity.add_component<Transform>().get_fast()) = transform_data;
 	return entity;
 }
 
@@ -90,8 +90,8 @@ static void on_app_init() {
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
-	script_entity.add_component<Transform>(Transform{{1, 2, 3}, {0, 0, 0, 1}, {3, 2, 1}});
-	script_entity.add_component<Lua_Script>(Lua_Script{"some_component_update"});
+	(*script_entity.add_component<Transform>().get_fast()) = {{1,2,3},{0,0,0,1},{3,2,1}};
+	(*script_entity.add_component<Lua_Script>().get_fast()) = {"some_component_update"};
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }

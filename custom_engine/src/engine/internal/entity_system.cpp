@@ -5,12 +5,12 @@
 namespace custom {
 
 // @Note: instantiate static data
-Gen_Pool                Entity::generations;
-Array<Entity>           Entity::instances;
-Array<void_void_func *> Entity::component_constructors;
-Array<bool_ref_func *>  Entity::component_containers;
-Array<void_ref_func *>  Entity::component_destructors;
-Array<Ref>              Entity::components;
+Gen_Pool               Entity::generations;
+Array<Entity>          Entity::instances;
+Array<ref_void_func *> Entity::component_constructors;
+Array<bool_ref_func *> Entity::component_containers;
+Array<void_ref_func *> Entity::component_destructors;
+Array<Ref>             Entity::components;
 
 //
 // pool
@@ -95,7 +95,7 @@ Ref Entity::add_component(u32 type) {
 	Ref & ref = Entity::components.get(component_index);
 
 	CUSTOM_ASSERT(!(*Entity::component_containers[type])(ref), "component already exist");
-	(*Entity::component_constructors[type])();
+	ref = (*Entity::component_constructors[type])();
 
 	return {ref.id, ref.gen};
 }

@@ -32,8 +32,8 @@ struct RefT : public Ref
 // pool
 //
 
-#define VOID_VOID_FUNC(ROUTINE_NAME) void ROUTINE_NAME(void)
-typedef VOID_VOID_FUNC(void_void_func);
+#define REF_VOID_FUNC(ROUTINE_NAME) Ref ROUTINE_NAME(void)
+typedef REF_VOID_FUNC(ref_void_func);
 
 #define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & ref)
 typedef VOID_REF_FUNC(void_ref_func);
@@ -82,7 +82,7 @@ struct Ref_Pool
 // entity
 //
 
-template<typename T> struct Component_Registry { static u32 offset; };
+template<typename T> struct Component_Registry { static u32 type; };
 
 struct Entity : public Ref
 {
@@ -96,9 +96,9 @@ struct Entity : public Ref
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
-	static Array<void_void_func *> component_constructors;
-	static Array<bool_ref_func *>  component_containers;
-	static Array<void_ref_func *>  component_destructors;
+	static Array<ref_void_func *> component_constructors;
+	static Array<bool_ref_func *> component_containers;
+	static Array<void_ref_func *> component_destructors;
 	static Array<Ref> components; // sparse
 
 	Ref  add_component(u32 type);
@@ -106,7 +106,7 @@ struct Entity : public Ref
 	bool has_component(u32 type) const;
 	Ref  get_component(u32 type) const;
 
-	template<typename T, typename... Args> RefT<T> add_component(Args... args);
+	template<typename T> RefT<T> add_component(void);
 	template<typename T> void    rem_component(void);
 	template<typename T> bool    has_component(void) const;
 	template<typename T> RefT<T> get_component(void) const;
