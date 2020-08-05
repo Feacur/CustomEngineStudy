@@ -18,6 +18,7 @@ template<typename T>
 struct RefT : public Ref
 {
 	static Ref_Pool<T> pool;
+	inline bool exists(void) { return pool.contains(*this); }
 	inline T * get_fast(void) { return pool.get_fast(*this); }
 	inline T * get_safe(void) { return pool.get_safe(*this); }
 };

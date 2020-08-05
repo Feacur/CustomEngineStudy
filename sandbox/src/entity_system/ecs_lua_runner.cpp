@@ -35,9 +35,9 @@ static void lua_function(lua_State * L, cstring name, custom::Entity const & ent
 		return;
 	}
 
-	custom::Entity * e = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 1);
-	*e = entity;
+	custom::Entity * e = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
+	*e = entity;
 
 	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
 		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));

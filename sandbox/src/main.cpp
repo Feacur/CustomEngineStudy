@@ -4,9 +4,10 @@
 #include "entity_system/components.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
-#include "lua/lua.h"
+#include "lua/sandbox_lua.h"
 
 #include <lua.hpp>
+// #include <lstate.h>
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -92,6 +93,7 @@ static void on_app_init() {
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
+	script_entity.add_component<Transform>(Transform{{1, 2, 3}, {0, 0, 0, 1}, {3, 2, 1}});
 	script_entity.add_component<Lua_Script>(Lua_Script{"some_component_update"});
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
