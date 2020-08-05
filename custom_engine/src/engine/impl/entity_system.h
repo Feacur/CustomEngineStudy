@@ -63,7 +63,7 @@ RefT<T> Entity::add_component(Args... args) {
 }
 
 template<typename T>
-void Entity::remove_component(void) {
+void Entity::rem_component(void) {
 	// @Change: ignore, but warn, if component doesn't exist?
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 

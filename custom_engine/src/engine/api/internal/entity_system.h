@@ -12,6 +12,11 @@ struct Ref
 	u32 id, gen;
 };
 
+inline bool operator==(Ref const & a, Ref const & b) {
+	return a.id  == b.id
+	    && a.gen == b.gen;
+}
+
 template<typename T> struct Ref_Pool;
 
 template<typename T>
@@ -89,7 +94,7 @@ struct Entity : public Ref
 	static Array<Ref> components; // sparse; count indicates number of active components
 
 	template<typename T, typename... Args> RefT<T> add_component(Args... args);
-	template<typename T> void remove_component(void);
+	template<typename T> void rem_component(void);
 	template<typename T> bool has_component(void) const;
 	template<typename T> RefT<T> get_component(void) const;
 };

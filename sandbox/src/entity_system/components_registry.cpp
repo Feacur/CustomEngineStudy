@@ -9,7 +9,7 @@
 	u32 custom::Component_Registry<T>::offset;\
 	template custom::RefT<T> custom::Entity::add_component<T>(void);\
 	template custom::RefT<T> custom::Entity::add_component<T, T const &>(T const & data);\
-	template void custom::Entity::remove_component<T>(void);\
+	template void custom::Entity::rem_component<T>(void);\
 	template custom::RefT<T> custom::Entity::get_component<T>(void) const;\
 	template bool custom::Entity::has_component<T>(void) const;\
 

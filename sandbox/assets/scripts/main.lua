@@ -14,7 +14,11 @@ function global_update()
 end
 
 function some_component_update(entity)
-	-- print(lua_tag .. string.format("some_component_update %s", entity))
+	-- if (entity == nil) then
+	-- 	print(lua_tag .. "entity is nil")
+	-- 	return
+	-- end
+	-- print(lua_tag .. string.format("entity is %s", entity))
 	local transform = entity:get_Transform()
 	-- if (transform ~= nil) then
 	-- 	print(lua_tag .. string.format("position is %s", transform:get_position()))
