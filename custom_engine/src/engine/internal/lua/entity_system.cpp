@@ -117,9 +117,10 @@ void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
 	custom::lua_client::init_components(L);
 	for (u32 i = 0; i < custom::component::count; ++i) {
-		luaL_getmetatable(L, custom::component::names[i]);
+		lua_getglobal(L, custom::component::names[i]);
 		lua_pushinteger(L, i);
 		lua_setfield(L, -2, "type");
+		lua_pop(L, 1);
 	}
 }
 

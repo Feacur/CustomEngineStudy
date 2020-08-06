@@ -3,7 +3,6 @@
 #define LUA_META_IMPL(T)\
 	if (luaL_newmetatable(L, #T)) {\
 		luaL_setfuncs(L, T##_meta, 0);\
-		lua_pushvalue(L, -1);\
 		\
 		luaL_newlib(L, T##_methods);\
 		lua_setfield(L, -2, "__index");\
