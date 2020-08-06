@@ -2,8 +2,6 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/impl/array.h"
 
-#include <new>
-
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
 // @Note: relies on the fact, that Array<T> is zero-initialized by default
@@ -18,11 +16,9 @@ namespace custom {
 //
 
 template<typename T>
-template<typename... Args>
-RefT<T> Ref_Pool<T>::create(Args... args) {
+RefT<T> Ref_Pool<T>::create(void) {
 	if (generations.gaps.count == 0) { instances.push(); }
 	Ref ref = generations.create();
-	new (&instances.data[ref.id]) T (args...);
 	return {ref.id, ref.gen};
 }
 

@@ -55,8 +55,8 @@ void Entity::destroy(Entity const & entity) {
 	CUSTOM_ASSERT(entity.exists(), "entity doesn't exist");
 
 	u32 entity_offset = entity.id * Entity::component_destructors.count;
+	if (entity_offset >= Entity::components.capacity) { return; }
 	for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
-		if (entity_offset + i >= Entity::components.capacity) { continue; }
 		Ref const & ref = Entity::components.get(entity_offset + i);
 		(*Entity::component_destructors[i])(ref);
 	}
@@ -87,12 +87,12 @@ Ref Entity::add_component(u32 type) {
 
 	// entity_components_ensure_capacity
 	u32 capacity_before = Entity::components.capacity;
-	Entity::components.ensure_capacity((id + 1) * Entity::component_destructors.count);
+	Entity::components.ensure_capacity((id + 1) * Entity::component_constructors.count);
 	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
 		Entity::components.data[i] = {UINT32_MAX, UINT32_MAX};
 	}
 
-	u32 component_index = id * Entity::component_destructors.count + type;
+	u32 component_index = id * Entity::component_constructors.count + type;
 	Ref & ref = Entity::components.get(component_index);
 
 	CUSTOM_ASSERT(!(*Entity::component_containers[type])(ref), "component already exist");
@@ -115,7 +115,7 @@ void Entity::rem_component(u32 type) {
 bool Entity::has_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = id * Entity::component_destructors.count + type;
+	u32 component_index = id * Entity::component_containers.count + type;
 	if (component_index >= Entity::components.capacity) { return false; }
 	Ref const & ref = Entity::components.get(component_index);
 
@@ -125,7 +125,7 @@ bool Entity::has_component(u32 type) const {
 Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = id * Entity::component_destructors.count + type;
+	u32 component_index = id * Entity::component_containers.count + type;
 	if (component_index >= Entity::components.capacity) { return {UINT32_MAX, 0}; }
 	Ref const & ref = Entity::components.get(component_index);
 

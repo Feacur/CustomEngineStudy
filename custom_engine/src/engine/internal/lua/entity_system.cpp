@@ -2,6 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/lua.h"
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/client/components_lookup.h"
 #include "engine/api/client/lua.h"
@@ -113,17 +114,7 @@ namespace custom {
 namespace lua {
 
 void init_entity_system(lua_State * L) {
-	if (luaL_newmetatable(L, "Entity")) {
-		luaL_setfuncs(L, Entity_meta, 0);
-
-		lua_pushvalue(L, -1);
-		luaL_newlib(L, Entity_methods);
-		lua_setfield(L, -2, "__index");
-
-		luaL_setfuncs(L, Entity_lib, 0);
-		lua_setglobal(L, "Entity");
-	}
-	else { lua_pop(L, 1); }
+	LUA_META_IMPL(Entity)
 
 	lua_createtable(L, 0, custom::component::count);
 	for (u32 i = 0; i < custom::component::count; ++i) {

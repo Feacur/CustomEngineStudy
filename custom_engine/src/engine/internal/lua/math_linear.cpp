@@ -2,6 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/lua.h"
 #include "engine/impl/math_linear.h"
 
 #include <lua.hpp>
@@ -48,17 +49,7 @@ namespace custom {
 namespace lua {
 
 void init_math_linear(lua_State * L) {
-	if (luaL_newmetatable(L, "vec3")) {
-		luaL_setfuncs(L, vec3_meta, 0);
-
-		lua_pushvalue(L, -1);
-		luaL_newlib(L, vec3_methods);
-		lua_setfield(L, -1, "__index");
-
-		luaL_setfuncs(L, vec3_lib, 0);
-		lua_setglobal(L, "vec3");
-	}
-	else { lua_pop(L, 1); }
+	LUA_META_IMPL(vec3)
 }
 
 }}

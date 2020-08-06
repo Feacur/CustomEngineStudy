@@ -1,5 +1,6 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/lua.h"
 #include "engine/api/internal/entity_system.h"
 #include "../components/types.h"
 
@@ -91,19 +92,7 @@ namespace custom {
 namespace lua_client {
 
 void init_components(lua_State * L) {
-	#define COMPONENT_IMPL(T)\
-		if (luaL_newmetatable(L, #T)) {\
-			luaL_setfuncs(L, T##_meta, 0);\
-			lua_pushvalue(L, -1);\
-			\
-			luaL_newlib(L, T##_methods);\
-			lua_setfield(L, -2, "__index");\
-			\
-			luaL_setfuncs(L, T##_lib, 0);\
-			lua_setglobal(L, #T);\
-		}\
-		else { lua_pop(L, 1); }\
-
+	#define COMPONENT_IMPL(T) LUA_META_IMPL(T)
 	#include "../components/registry_impl.h"
 }
 
