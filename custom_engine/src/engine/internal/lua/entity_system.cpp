@@ -115,15 +115,12 @@ namespace lua {
 
 void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
-
-	lua_createtable(L, 0, custom::component::count);
-	for (u32 i = 0; i < custom::component::count; ++i) {
-		lua_pushinteger(L, i);
-		lua_setfield(L, -2, custom::component::names[i]);
-	}
-	lua_setglobal(L, "Component_Type");
-
 	custom::lua_client::init_components(L);
+	for (u32 i = 0; i < custom::component::count; ++i) {
+		luaL_getmetatable(L, custom::component::names[i]);
+		lua_pushinteger(L, i);
+		lua_setfield(L, -2, "type");
+	}
 }
 
 }}
