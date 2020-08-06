@@ -31,7 +31,7 @@ static UINT system_timer_period;
 #endif
 
 #if !defined(CUSTOM_SHIPPING)
-	extern void log_last_error(cstring source);
+	void log_last_error(cstring source);
 	#define LOG_LAST_ERROR() log_last_error(CUSTOM_FILE_AND_LINE)
 #else
 	#define LOG_LAST_ERROR() (void)0

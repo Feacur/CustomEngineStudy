@@ -5,19 +5,24 @@
 #include "engine/api/rendering_settings.h"
 
 namespace custom {
-
 namespace system {
 	bool should_close;
-}
+}}
+
+namespace custom {
 namespace timer {
 	u64 ticks_per_second;
 	u64 frame_start_ticks;
+}}
+
+namespace custom {
+	Context_Settings context_settings;
+	Pixel_Format pixel_format_hint;
 }
 
-Context_Settings context_settings;
-Pixel_Format pixel_format_hint;
-
+namespace custom {
 namespace globals {
+
 void init(void) {
 	// context_settings
 	context_settings = {};
@@ -34,6 +39,5 @@ void init(void) {
 	pixel_format_hint.stencil_bits = 8;
 	pixel_format_hint.doublebuffer = true;
 }
-}
 
-}
+}}

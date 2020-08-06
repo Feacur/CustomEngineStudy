@@ -49,5 +49,19 @@
                 "cwd": ".."
             },
         },
+        {
+            "label": "Build DebugLibs",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy_v2.sln",
+                "x64", "x64", "DebugLibs",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
     ]
 }

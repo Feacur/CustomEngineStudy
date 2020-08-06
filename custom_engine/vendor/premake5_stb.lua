@@ -7,8 +7,11 @@ project "stb"
 	warnings "Default"
 	removeflags { "FatalWarnings" }
 
-	symbols "Off"
-	optimize "On"
+	filter "configurations:not DebugLibs"
+		symbols "Off"
+		optimize "On"
+
+	filter {}
 	
 	stb_to_root = path.getrelative(os.getcwd(), root_directory)
 	targetdir (stb_to_root .. "/" .. target_location .. "/vendor/%{prj.name}")

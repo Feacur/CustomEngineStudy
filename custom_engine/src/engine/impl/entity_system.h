@@ -32,68 +32,41 @@ void Ref_Pool<T>::destroy(Ref const & ref) {
 	if (ref.id == instances.count - 1) { instances.pop(); }
 }
 
-template<typename T> VOID_REF_FUNC(ref_pool_destruct) {
+template<typename T> REF_VOID_FUNC(ref_pool_create) {
+	return RefT<T>::pool.create();
+}
+
+template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
+	return RefT<T>::pool.contains(ref);
+}
+
+template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
 	if (RefT<T>::pool.contains(ref)) { RefT<T>::pool.destroy(ref); }
 }
 
 //
-// entity
+// entity components
 //
 
-template<typename T, typename... Args>
-RefT<T> Entity::add_component(Args... args) {
-	// @Change: ignore, but warn, if component exists?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
-
-	// entity_components_ensure_capacity
-	u32 capacity_before = Entity::components.capacity;
-	Entity::components.ensure_capacity((id + 1) * Entity::component_destructors.count);
-	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
-		Entity::components.data[i] = {UINT32_MAX, UINT32_MAX};
-	}
-
-	u32 component_index = id * Entity::component_destructors.count + Component_Registry<T>::offset;
-	Ref & ref = Entity::components.get(component_index);
-
-	CUSTOM_ASSERT(!RefT<T>::pool.contains(ref), "component already exist");
-	ref = RefT<T>::pool.create(args...);
-	++Entity::components.count;
-
+template<typename T>
+RefT<T> Entity::add_component(void) {
+	Ref const & ref = add_component(Component_Registry<T>::type);
 	return {ref.id, ref.gen};
 }
 
 template<typename T>
-void Entity::remove_component(void) {
-	// @Change: ignore, but warn, if component doesn't exist?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
-
-	u32 component_index = id * Entity::component_destructors.count + Component_Registry<T>::offset;
-	CUSTOM_ASSERT(component_index < Entity::components.capacity, "component doesn't exist");
-	Ref const & ref = Entity::components.get(component_index);
-
-	RefT<T>::pool.destroy(ref);
-	--Entity::components.count;
+void Entity::rem_component(void) {
+	rem_component(Component_Registry<T>::type);
 }
 
 template<typename T>
 bool Entity::has_component(void) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
-
-	u32 component_index = id * Entity::component_destructors.count + Component_Registry<T>::offset;
-	if (component_index >= Entity::components.capacity) { return false; }
-	Ref const & ref = Entity::components.get(component_index);
-
-	return RefT<T>::pool.contains(ref);
+	return has_component(Component_Registry<T>::type);
 }
 
 template<typename T>
 RefT<T> Entity::get_component(void) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
-
-	u32 component_index = id * Entity::component_destructors.count + Component_Registry<T>::offset;
-	if (component_index >= Entity::components.capacity) { return {UINT32_MAX, 0}; }
-	Ref const & ref = Entity::components.get(component_index);
-
+	Ref const & ref = get_component(Component_Registry<T>::type);
 	return {ref.id, ref.gen};
 }
 

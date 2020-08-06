@@ -22,6 +22,7 @@ workspace "CustomEngineStudy_v2"
 	rtti "Off"
 
 	configurations {
+		"DebugLibs",
 		"Debug",
 		"Development",
 		"Shipping",
@@ -68,6 +69,13 @@ workspace "CustomEngineStudy_v2"
 
 	filter "kind:ConsoleApp or WindowedApp"
 		defines "CUSTOM_APPLICATION"
+
+	filter "configurations:DebugLibs"
+		defines "CUSTOM_DEBUG_LIBS"
+		staticruntime "Off"
+		runtime "Debug"
+		symbols "Full" -- On, Full
+		optimize "Off" -- Off, Debug
 
 	filter "configurations:Debug"
 		defines "CUSTOM_DEBUG"

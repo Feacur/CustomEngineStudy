@@ -12,12 +12,18 @@ struct Ref
 	u32 id, gen;
 };
 
+inline bool operator==(Ref const & a, Ref const & b) {
+	return a.id  == b.id
+	    && a.gen == b.gen;
+}
+
 template<typename T> struct Ref_Pool;
 
 template<typename T>
 struct RefT : public Ref
 {
 	static Ref_Pool<T> pool;
+	inline bool exists(void) { return pool.contains(*this); }
 	inline T * get_fast(void) { return pool.get_fast(*this); }
 	inline T * get_safe(void) { return pool.get_safe(*this); }
 };
@@ -26,8 +32,14 @@ struct RefT : public Ref
 // pool
 //
 
+#define REF_VOID_FUNC(ROUTINE_NAME) Ref ROUTINE_NAME(void)
+typedef REF_VOID_FUNC(ref_void_func);
+
 #define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & ref)
 typedef VOID_REF_FUNC(void_ref_func);
+
+#define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
+typedef BOOL_REF_FUNC(bool_ref_func);
 
 // @Todo: factor out sparse array functionality?
 // @GEAB: replace `gaps` with a `next_free` pointer
@@ -70,7 +82,7 @@ struct Ref_Pool
 // entity
 //
 
-template<typename T> struct Component_Registry { static u32 offset; };
+template<typename T> struct Component_Registry { static u32 type; };
 
 struct Entity : public Ref
 {
@@ -84,12 +96,19 @@ struct Entity : public Ref
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
-	static Array<void_ref_func *> component_destructors; // count indicates the number of component types
-	static Array<Ref> components; // sparse; count indicates number of active components
+	static Array<ref_void_func *> component_constructors;
+	static Array<bool_ref_func *> component_containers;
+	static Array<void_ref_func *> component_destructors;
+	static Array<Ref> components; // sparse
 
-	template<typename T, typename... Args> RefT<T> add_component(Args... args);
-	template<typename T> void remove_component(void);
-	template<typename T> bool has_component(void) const;
+	Ref  add_component(u32 type);
+	void rem_component(u32 type);
+	bool has_component(u32 type) const;
+	Ref  get_component(u32 type) const;
+
+	template<typename T> RefT<T> add_component(void);
+	template<typename T> void    rem_component(void);
+	template<typename T> bool    has_component(void) const;
 	template<typename T> RefT<T> get_component(void) const;
 };
 

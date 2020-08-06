@@ -7,6 +7,8 @@ namespace custom {
 // @Note: instantiate static data
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
+Array<ref_void_func *> Entity::component_constructors;
+Array<bool_ref_func *> Entity::component_containers;
 Array<void_ref_func *> Entity::component_destructors;
 Array<Ref>             Entity::components;
 
@@ -22,7 +24,7 @@ Ref Gen_Pool::create(void) {
 	}
 	else {
 		id = gens.count;
-		gens.push();
+		gens.push(0);
 	}
 	return { id, gens.get(id) };
 }
@@ -40,7 +42,7 @@ void Gen_Pool::destroy(Ref const & ref) {
 }
 
 //
-//
+// entity
 //
 
 Entity Entity::create(void) {
@@ -54,6 +56,7 @@ void Entity::destroy(Entity const & entity) {
 
 	u32 entity_offset = entity.id * Entity::component_destructors.count;
 	for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
+		if (entity_offset + i >= Entity::components.capacity) { continue; }
 		Ref const & ref = Entity::components.get(entity_offset + i);
 		(*Entity::component_destructors[i])(ref);
 	}
@@ -72,6 +75,61 @@ void Entity::destroy(Entity const & entity) {
 	else {
 		CUSTOM_WARNING("entity instance doesn't exist");
 	}
+}
+
+//
+// entity components
+//
+
+Ref Entity::add_component(u32 type) {
+	// @Change: ignore, but warn, if component exists?
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	// entity_components_ensure_capacity
+	u32 capacity_before = Entity::components.capacity;
+	Entity::components.ensure_capacity((id + 1) * Entity::component_destructors.count);
+	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
+		Entity::components.data[i] = {UINT32_MAX, UINT32_MAX};
+	}
+
+	u32 component_index = id * Entity::component_destructors.count + type;
+	Ref & ref = Entity::components.get(component_index);
+
+	CUSTOM_ASSERT(!(*Entity::component_containers[type])(ref), "component already exist");
+	ref = (*Entity::component_constructors[type])();
+
+	return {ref.id, ref.gen};
+}
+
+void Entity::rem_component(u32 type) {
+	// @Change: ignore, but warn, if component doesn't exist?
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = id * Entity::component_destructors.count + type;
+	CUSTOM_ASSERT(component_index < Entity::components.capacity, "component doesn't exist");
+	Ref const & ref = Entity::components.get(component_index);
+
+	(*Entity::component_destructors[type])(ref);
+}
+
+bool Entity::has_component(u32 type) const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = id * Entity::component_destructors.count + type;
+	if (component_index >= Entity::components.capacity) { return false; }
+	Ref const & ref = Entity::components.get(component_index);
+
+	return (*Entity::component_containers[type])(ref);
+}
+
+Ref Entity::get_component(u32 type) const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = id * Entity::component_destructors.count + type;
+	if (component_index >= Entity::components.capacity) { return {UINT32_MAX, 0}; }
+	Ref const & ref = Entity::components.get(component_index);
+
+	return {ref.id, ref.gen};
 }
 
 }

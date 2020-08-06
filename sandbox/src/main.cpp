@@ -1,11 +1,12 @@
 #include "custom_engine.h"
 
 #include "assets/ids.h"
-#include "entity_system/components.h"
+#include "components/types.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 
 #include <lua.hpp>
+// #include <lstate.h>
 
 // studying these:
 // https://github.com/etodd/lasercrabs
@@ -13,8 +14,8 @@
 
 custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	custom::Entity entity = custom::Entity::create();
-	entity.add_component<Visual>(visual_data);
-	entity.add_component<Transform>(transform_data);
+	(*entity.add_component<Visual>().get_fast()) = visual_data;
+	(*entity.add_component<Transform>().get_fast()) = transform_data;
 	return entity;
 }
 
@@ -30,6 +31,9 @@ static void on_app_init() {
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
+	custom::lua::init_math_linear(L);
+	custom::lua::init_entity_system(L);
+
 	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
 		custom::loader::script(L, asset_id);
 	}
@@ -43,33 +47,6 @@ static void on_app_init() {
 	custom::Entity entity11 = custom::Entity::create();
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
-
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{0, 1, 0}, {0, 0, 0, 1}, {1, 1, 1}}
-	);
-
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{3, 2, 0}, {0, 0, 0, 1}, {1, 2, 1}}
-	);
-
-	create_visual(
-		{
-			(u32)sandbox::Shader::v3_texture_tint,
-			(u32)sandbox::Texture::checkerboard,
-			(u32)sandbox::Mesh::suzanne,
-		},
-		{{-5, 1, 0}, {0, 0, 0, 1}, {2, 1, 2}}
-	);
 
 	custom::Entity::destroy(entity21);
 	custom::Entity::destroy(entity11);
@@ -86,7 +63,8 @@ static void on_app_init() {
 	custom::Entity::destroy(entity31);
 	
 	custom::Entity script_entity = custom::Entity::create();
-	script_entity.add_component<Lua_Script>(Lua_Script{"some_component_update"});
+	(*script_entity.add_component<Transform>().get_fast()) = {{1,2,3},{0,0,0,1},{3,2,1}};
+	(*script_entity.add_component<Lua_Script>().get_fast()) = {"some_component_update"};
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
