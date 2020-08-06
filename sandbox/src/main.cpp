@@ -31,8 +31,8 @@ static void on_app_init() {
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
-	luaL_requiref(L, LUA_CUSTOM_MATH_LIBNAME, luaopen_custom_math, 1); lua_pop(L, 1);
-	luaL_requiref(L, LUA_CUSTOM_ENTITY_LIBNAME, luaopen_custom_entity, 1); lua_pop(L, 1);
+	custom::lua::init_math_linear(L);
+	custom::lua::init_entity_system(L);
 
 	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
 		custom::loader::script(L, asset_id);

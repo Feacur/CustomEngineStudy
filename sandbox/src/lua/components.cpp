@@ -6,12 +6,21 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
-static luaL_Reg const Lua_Script_mt[] = {
+static luaL_Reg const Lua_Script_meta[] = {
 	{"__index", NULL}, /* place holder */
 	{NULL, NULL},
 };
 
+static luaL_Reg const Lua_Script_methods[] = {
+	{NULL, NULL},
+};
+
+static luaL_Reg const Lua_Script_lib[] = {
+	{NULL, NULL},
+};
+
 static int transform_get_position(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	custom::RefT<Transform> * component_ref = (custom::RefT<Transform> *)luaL_checkudata(L, 1, "Transform");
 	if (!component_ref->exists()) { lua_pushnil(L); return 1; }
 	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
@@ -21,6 +30,7 @@ static int transform_get_position(lua_State * L) {
 }
 
 static int transform_set(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	custom::RefT<Transform> * component_ref = (custom::RefT<Transform> *)luaL_checkudata(L, 1, "Transform");
 	if (!component_ref->exists()) { lua_pushnil(L); return 1; }
 
@@ -30,10 +40,18 @@ static int transform_set(lua_State * L) {
 	return 0;
 }
 
-static luaL_Reg const Transform_mt[] = {
+static luaL_Reg const Transform_meta[] = {
 	{"__index", NULL}, /* place holder */
+	{NULL, NULL},
+};
+
+static luaL_Reg const Transform_methods[] = {
 	{"get_position", transform_get_position},
 	{"set", transform_set},
+	{NULL, NULL},
+};
+
+static luaL_Reg const Transform_lib[] = {
 	{NULL, NULL},
 };
 
@@ -54,10 +72,18 @@ static int visual_set(lua_State * L) {
 	return 0;
 }
 
-static luaL_Reg const Visual_mt[] = {
+static luaL_Reg const Visual_meta[] = {
 	{"__index", NULL}, /* place holder */
+	{NULL, NULL},
+};
+
+static luaL_Reg const Visual_methods[] = {
 	{"get_shader", visual_get_shader},
 	{"set", visual_set},
+	{NULL, NULL},
+};
+
+static luaL_Reg const Visual_lib[] = {
 	{NULL, NULL},
 };
 
@@ -67,8 +93,14 @@ namespace lua_client {
 void init_components(lua_State * L) {
 	#define COMPONENT_IMPL(T)\
 		if (luaL_newmetatable(L, #T)) {\
-			luaL_setfuncs(L, T##_mt, 0);\
-			lua_setfield(L, -1, "__index");\
+			luaL_setfuncs(L, T##_meta, 0);\
+			lua_pushvalue(L, -1);\
+			\
+			luaL_newlib(L, T##_methods);\
+			lua_setfield(L, -2, "__index");\
+			\
+			luaL_setfuncs(L, T##_lib, 0);\
+			lua_setglobal(L, #T);\
 		}\
 		else { lua_pop(L, 1); }\
 

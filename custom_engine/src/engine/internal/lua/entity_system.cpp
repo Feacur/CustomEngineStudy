@@ -10,19 +10,29 @@
 // #include <lstate.h>
 
 static int entity_tostring(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	lua_pushfstring(L, "(e %d:%d)", entity->id, entity->gen);
 	return 1;
 }
 
 static int entity_eq(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	custom::Entity * entity1 = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	custom::Entity * entity2 = (custom::Entity *)luaL_testudata(L, 2, "Entity");
 	lua_pushboolean(L, entity2 ? ((entity1 == entity2) || (*entity1 == *entity2)) : !entity1->exists());
 	return 1;
 }
 
+static luaL_Reg const Entity_meta[] = {
+	{"__index", NULL}, /* place holder */
+	{"__tostring", entity_tostring},
+	{"__eq", entity_eq},
+	{NULL, NULL},
+};
+
 static int entity_add_component(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
@@ -35,6 +45,7 @@ static int entity_add_component(lua_State * L) {
 }
 
 static int entity_rem_component(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
@@ -44,6 +55,7 @@ static int entity_rem_component(lua_State * L) {
 }
 
 static int entity_has_component(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
@@ -53,6 +65,7 @@ static int entity_has_component(lua_State * L) {
 }
 
 static int entity_get_component(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
 	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
@@ -67,10 +80,7 @@ static int entity_get_component(lua_State * L) {
 	return 1;
 }
 
-static luaL_Reg const entity_mt[] = {
-	{"__index", NULL}, /* place holder */
-	{"__tostring", entity_tostring},
-	{"__eq", entity_eq},
+static luaL_Reg const Entity_methods[] = {
 	{"add_component", entity_add_component},
 	{"rem_component", entity_rem_component},
 	{"has_component", entity_has_component},
@@ -79,6 +89,7 @@ static luaL_Reg const entity_mt[] = {
 };
 
 static int entity_create(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
 	*udata = custom::Entity::create();
@@ -86,23 +97,31 @@ static int entity_create(lua_State * L) {
 }
 
 static int entity_destroy(lua_State * L) {
+	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	custom::Entity::destroy(*entity);
 	return 0;
 }
 
-static luaL_Reg const entity_lib[] = {
+static luaL_Reg const Entity_lib[] = {
 	{"create", entity_create},
 	{"destroy", entity_destroy},
 	{NULL, NULL},
 };
 
-int luaopen_custom_entity(lua_State * L) {
-	luaL_newlib(L, entity_lib);
+namespace custom {
+namespace lua {
 
+void init_entity_system(lua_State * L) {
 	if (luaL_newmetatable(L, "Entity")) {
-		luaL_setfuncs(L, entity_mt, 0);
-		lua_setfield(L, -1, "__index");
+		luaL_setfuncs(L, Entity_meta, 0);
+
+		lua_pushvalue(L, -1);
+		luaL_newlib(L, Entity_methods);
+		lua_setfield(L, -2, "__index");
+
+		luaL_setfuncs(L, Entity_lib, 0);
+		lua_setglobal(L, "Entity");
 	}
 	else { lua_pop(L, 1); }
 
@@ -111,12 +130,9 @@ int luaopen_custom_entity(lua_State * L) {
 		lua_pushinteger(L, i);
 		lua_setfield(L, -2, custom::component::names[i]);
 	}
-	lua_setfield(L, -2, "component");
+	lua_setglobal(L, "Component_Type");
 
 	custom::lua_client::init_components(L);
-
-	return 1;
 }
 
-void init(lua_State * L) {
-}
+}}
