@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+    },
+    "tasks": [
+        {
+            "label": "Build Shipping",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Shipping",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Build Development",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Development",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Build Debug",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Debug",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Build DebugLibs",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "DebugLibs",
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+    ]
+}
