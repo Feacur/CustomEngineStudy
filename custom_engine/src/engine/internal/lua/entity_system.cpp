@@ -10,6 +10,24 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
+static int entity_index(lua_State * L) {
+	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
+
+	lua_pushvalue(L, 2);
+	int type = lua_rawget(L, -2);
+	lua_remove(L, -2);
+	if (type != LUA_TNIL) { return 1; }
+	// lua_pop(L, 1);
+
+	custom::Entity * entity = (custom::Entity *)lua_touserdata(L, 1);
+	if (!entity->exists()) { lua_pushnil(L); return 1; }
+
+	// cstring id = lua_tostring(L, 2);
+
+	// lua_pushnil(L);
+	return 1;
+}
+
 static int entity_tostring(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
@@ -24,13 +42,6 @@ static int entity_eq(lua_State * L) {
 	lua_pushboolean(L, entity2 ? ((entity1 == entity2) || (*entity1 == *entity2)) : !entity1->exists());
 	return 1;
 }
-
-static luaL_Reg const Entity_meta[] = {
-	{"__index", NULL}, /* place holder */
-	{"__tostring", entity_tostring},
-	{"__eq", entity_eq},
-	{NULL, NULL},
-};
 
 static int entity_add_component(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
@@ -77,17 +88,10 @@ static int entity_get_component(lua_State * L) {
 
 	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
 	luaL_setmetatable(L, custom::component::names[type]);
+	
 	*udata = component_ref;
 	return 1;
 }
-
-static luaL_Reg const Entity_methods[] = {
-	{"add_component", entity_add_component},
-	{"rem_component", entity_rem_component},
-	{"has_component", entity_has_component},
-	{"get_component", entity_get_component},
-	{NULL, NULL},
-};
 
 static int entity_create(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
@@ -104,9 +108,19 @@ static int entity_destroy(lua_State * L) {
 	return 0;
 }
 
-static luaL_Reg const Entity_lib[] = {
+static luaL_Reg const Entity_meta[] = {
+	{"__index", entity_index},
+	{"__tostring", entity_tostring},
+	{"__eq", entity_eq},
+	// instance:###
+	{"add_component", entity_add_component},
+	{"rem_component", entity_rem_component},
+	{"has_component", entity_has_component},
+	{"get_component", entity_get_component},
+	// Type.###
 	{"create", entity_create},
 	{"destroy", entity_destroy},
+	//
 	{NULL, NULL},
 };
 

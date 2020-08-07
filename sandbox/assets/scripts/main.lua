@@ -27,7 +27,7 @@ function some_component_update(entity)
 	-- print(lua_tag .. string.format("entity is %s", entity))
 	local transform = entity:get_component(Transform.type)
 	-- if (transform ~= nil) then
-	-- 	local position = transform:get_position();
+	-- 	local position = transform.position
 	-- 	print(lua_tag .. string.format("position is %s, dot is %f", position, vec3.dot(position, position)))
 	-- else
 	-- 	print(lua_tag .. "transform is nil")
