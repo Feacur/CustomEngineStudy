@@ -1,17 +1,34 @@
 local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
+local function create_visual(tp, tr, ts, vs, vt, vm)
+	local entity = Entity.create()
+	local transform = entity:add_component(Transform.type)
+	local visual = entity:add_component(Visual.type)
+	transform.position = tp
+	transform.rotation = tr
+	transform.scale = ts
+	visual.shader = vs;
+	visual.texture = vt;
+	visual.mesh = vm;
+end
+
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local lua_entity = Entity.create()
-	local lua_transform = lua_entity:add_component(Transform.type)
-	local lua_visual = lua_entity:add_component(Visual.type)
-	lua_transform.position = vec3.new(0, 1, 0)
-	lua_transform.rotation = vec4.new(0, 0, 0, 1)
-	lua_transform.scale = vec3.new(1, 1, 1)
-	lua_visual.shader = 1;
-	lua_visual.texture = 0;
-	lua_visual.mesh = 1;
+	create_visual(
+		vec3.new(-4, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(2, 1, 2),
+		1, 0, 1
+	)
+
+	create_visual(
+		vec3.new(0, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 1, 1),
+		1, 0, 1
+	)
+
+	create_visual(
+		vec3.new(4, 2, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 2, 1),
+		1, 0, 1
+	)
 end
 
 local counter = 0
