@@ -69,7 +69,7 @@ struct Ref_Pool
 	Array<T> instances; // sparse; count indicates the last active object
 
 	// API
-	template<typename... Args> RefT<T> create(Args... args);
+	RefT<T> create(void);
 	void destroy(Ref const & ref);
 	inline bool contains(Ref const & ref) { return generations.contains(ref); };
 

@@ -22,6 +22,8 @@ void init_entity_components(void) {
 	#include "../components/registry_impl.h"
 
 	custom::component::count = component_types_count;
+	custom::Entity::component_constructors.set_capacity(component_types_count);
+	custom::Entity::component_containers.set_capacity(component_types_count);
 	custom::Entity::component_destructors.set_capacity(component_types_count);
 	#define COMPONENT_IMPL(T)\
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\

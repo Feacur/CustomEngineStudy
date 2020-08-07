@@ -70,11 +70,11 @@
 #endif
 
 #if defined(LOG_MESSAGE_ENABLED)
-	#define CUSTOM_MESSAGE(...)  do { printf(__VA_ARGS__); } while(0)
-	#define CUSTOM_TRACE(...)    do { CUSTOM_MESSAGE(ANSI_TXT_GRY "[trc]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
-	#define CUSTOM_WARNING(...)  do { CUSTOM_MESSAGE(ANSI_TXT_YLW "[wrn]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
-	#define CUSTOM_ERROR(...)    do { CUSTOM_MESSAGE(ANSI_TXT_RED "[err]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
-	#define CUSTOM_CRITICAL(...) do { CUSTOM_MESSAGE(ANSI_BKG_RED "[crt]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while(0)
+	#define CUSTOM_MESSAGE(...)  do { printf(__VA_ARGS__); } while (0)
+	#define CUSTOM_TRACE(...)    do { CUSTOM_MESSAGE(ANSI_TXT_GRY "[trc]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while (0)
+	#define CUSTOM_WARNING(...)  do { CUSTOM_MESSAGE(ANSI_TXT_YLW "[wrn]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while (0)
+	#define CUSTOM_ERROR(...)    do { CUSTOM_MESSAGE(ANSI_TXT_RED "[err]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while (0)
+	#define CUSTOM_CRITICAL(...) do { CUSTOM_MESSAGE(ANSI_BKG_RED "[crt]" ANSI_CLR " "); CUSTOM_MESSAGE(__VA_ARGS__); CUSTOM_MESSAGE("\n"); } while (0)
 #else
 	#define CUSTOM_MESSAGE(...)  (void)0
 	#define CUSTOM_TRACE(...)    (void)0
