@@ -6,8 +6,12 @@ function global_init()
 	local lua_entity = Entity.create()
 	local lua_transform = lua_entity:add_component(Transform.type)
 	local lua_visual = lua_entity:add_component(Visual.type)
-	lua_transform:set()
-	lua_visual:set()
+	lua_transform.position = vec3.new(0, 1, 0)
+	lua_transform.rotation = vec4.new(0, 0, 0, 1)
+	lua_transform.scale = vec3.new(1, 1, 1)
+	lua_visual.shader = 1;
+	lua_visual.texture = 0;
+	lua_visual.mesh = 1;
 end
 
 local counter = 0

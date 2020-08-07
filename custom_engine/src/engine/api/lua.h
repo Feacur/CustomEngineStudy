@@ -1,5 +1,16 @@
 #pragma once
 
+#if !defined(CUSTOM_SHIPPING)
+#define LUA_INDEX_ASSERT() do {\
+	lua_getfield(L, 1, "__name");\
+	CUSTOM_ASSERT(false, "%s '%s' doesn't contain '%s'", luaL_typename(L, 1), lua_tostring(L, -1), id);\
+	lua_pop(L, 1);\
+} while (0)\
+
+#else
+	#define LUA_INDEX_ASSERT() (void)0
+#endif
+
 #define LUA_META_IMPL(T)\
 	if (luaL_newmetatable(L, #T)) {\
 		luaL_setfuncs(L, T##_meta, 0);\

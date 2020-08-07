@@ -10,7 +10,7 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
-static int entity_index(lua_State * L) {
+static int Entity_index(lua_State * L) {
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
 
 	lua_pushvalue(L, 2);
@@ -19,36 +19,50 @@ static int entity_index(lua_State * L) {
 	if (type != LUA_TNIL) { return 1; }
 	// lua_pop(L, 1);
 
-	custom::Entity * entity = (custom::Entity *)lua_touserdata(L, 1);
-	if (!entity->exists()) { lua_pushnil(L); return 1; }
+	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	if (!object->exists()) { lua_pushnil(L); return 1; }
 
-	// cstring id = lua_tostring(L, 2);
+	cstring id = lua_tostring(L, 2);
 
+	LUA_INDEX_ASSERT();
 	// lua_pushnil(L);
 	return 1;
 }
 
-static int entity_tostring(lua_State * L) {
+static int Entity_newindex(lua_State * L) {
+	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	if (!object->exists()) { lua_pushnil(L); return 1; }
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_INDEX_ASSERT();
+	return 0;
+}
+
+static int Entity_tostring(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
-	lua_pushfstring(L, "(e %d:%d)", entity->id, entity->gen);
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	lua_pushfstring(L, "(e %d:%d)", object->id, object->gen);
 	return 1;
 }
 
-static int entity_eq(lua_State * L) {
+static int Entity_eq(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	custom::Entity * entity1 = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
-	custom::Entity * entity2 = (custom::Entity *)luaL_testudata(L, 2, "Entity");
-	lua_pushboolean(L, entity2 ? ((entity1 == entity2) || (*entity1 == *entity2)) : !entity1->exists());
+	custom::Entity * object1 = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity * object2 = (custom::Entity *)luaL_testudata(L, 2, "Entity");
+	lua_pushboolean(L, object2 ? ((object1 == object2) || (*object1 == *object2)) : !object1->exists());
 	return 1;
 }
 
-static int entity_add_component(lua_State * L) {
+static int Entity_add_component(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
-	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
-	custom::Ref const & component_ref = entity->add_component(type);
+	CUSTOM_ASSERT(object->exists(), "entity doesn't exist");
+	custom::Ref const & component_ref = object->add_component(type);
 	
 	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
 	luaL_setmetatable(L, custom::component::names[type]);
@@ -56,32 +70,32 @@ static int entity_add_component(lua_State * L) {
 	return 1;
 }
 
-static int entity_rem_component(lua_State * L) {
+static int Entity_rem_component(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
-	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
-	entity->rem_component(type);
+	CUSTOM_ASSERT(object->exists(), "entity doesn't exist");
+	object->rem_component(type);
 
 	return 0;
 }
 
-static int entity_has_component(lua_State * L) {
+static int Entity_has_component(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
-	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
+	CUSTOM_ASSERT(object->exists(), "entity doesn't exist");
 
-	lua_pushboolean(L, entity->has_component(type));
+	lua_pushboolean(L, object->has_component(type));
 	return 1;
 }
 
-static int entity_get_component(lua_State * L) {
+static int Entity_get_component(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
 	u32 type = (u32)luaL_checkinteger(L, 2);
-	CUSTOM_ASSERT(entity->exists(), "entity doesn't exist");
-	custom::Ref component_ref = entity->get_component(type);
+	CUSTOM_ASSERT(object->exists(), "entity doesn't exist");
+	custom::Ref component_ref = object->get_component(type);
 
 	bool has_component = (*custom::Entity::component_containers[type])(component_ref);
 	if (!has_component) { lua_pushnil(L); return 1; }
@@ -93,7 +107,7 @@ static int entity_get_component(lua_State * L) {
 	return 1;
 }
 
-static int entity_create(lua_State * L) {
+static int Entity_create(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
@@ -101,25 +115,26 @@ static int entity_create(lua_State * L) {
 	return 1;
 }
 
-static int entity_destroy(lua_State * L) {
+static int Entity_destroy(lua_State * L) {
 	CUSTOM_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	custom::Entity * entity = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
-	custom::Entity::destroy(*entity);
+	custom::Entity * object = (custom::Entity *)luaL_checkudata(L, 1, "Entity");
+	custom::Entity::destroy(*object);
 	return 0;
 }
 
 static luaL_Reg const Entity_meta[] = {
-	{"__index", entity_index},
-	{"__tostring", entity_tostring},
-	{"__eq", entity_eq},
+	{"__index", Entity_index},
+	{"__newindex", Entity_newindex},
+	{"__tostring", Entity_tostring},
+	{"__eq", Entity_eq},
 	// instance:###
-	{"add_component", entity_add_component},
-	{"rem_component", entity_rem_component},
-	{"has_component", entity_has_component},
-	{"get_component", entity_get_component},
+	{"add_component", Entity_add_component},
+	{"rem_component", Entity_rem_component},
+	{"has_component", Entity_has_component},
+	{"get_component", Entity_get_component},
 	// Type.###
-	{"create", entity_create},
-	{"destroy", entity_destroy},
+	{"create", Entity_create},
+	{"destroy", Entity_destroy},
 	//
 	{NULL, NULL},
 };
