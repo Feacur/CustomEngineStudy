@@ -5,9 +5,10 @@
 #include "../components/types.h"
 
 #include <lua.hpp>
-#include <lstate.h>
+// #include <lstate.h>
 
 static int Lua_Script_index(lua_State * L) {
+	LUA_ASSERT_USERDATA(1, "Lua_Script");
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
 
 	lua_pushvalue(L, 2);
@@ -16,7 +17,6 @@ static int Lua_Script_index(lua_State * L) {
 	if (type != LUA_TNIL) { return 1; }
 	lua_pop(L, 1);
 
-	LUA_ASSERT_USERDATA(1, "Lua_Script");
 	custom::RefT<Lua_Script> * object = (custom::RefT<Lua_Script> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
@@ -54,6 +54,7 @@ static luaL_Reg const Lua_Script_meta[] = {
 };
 
 static int Transform_index(lua_State * L) {
+	LUA_ASSERT_USERDATA(1, "Transform");
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
 
 	lua_pushvalue(L, 2);
@@ -62,7 +63,6 @@ static int Transform_index(lua_State * L) {
 	if (type != LUA_TNIL) { return 1; }
 	lua_pop(L, 1);
 
-	LUA_ASSERT_USERDATA(1, "Transform");
 	custom::RefT<Transform> * object = (custom::RefT<Transform> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
@@ -102,7 +102,6 @@ static int Transform_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	// @Change: might assume correct type?
 	if (strcmp(id, "position") == 0) {
 		LUA_ASSERT_USERDATA(3, "vec3");
 		vec3 const * value = (vec3 const *)lua_touserdata(L, 3);
@@ -136,6 +135,7 @@ static luaL_Reg const Transform_meta[] = {
 };
 
 static int Visual_index(lua_State * L) {
+	LUA_ASSERT_USERDATA(1, "Visual");
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
 
 	lua_pushvalue(L, 2);
@@ -144,7 +144,6 @@ static int Visual_index(lua_State * L) {
 	if (type != LUA_TNIL) { return 1; }
 	lua_pop(L, 1);
 
-	LUA_ASSERT_USERDATA(1, "Visual");
 	custom::RefT<Visual> * object = (custom::RefT<Visual> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 

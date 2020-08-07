@@ -11,6 +11,7 @@
 // #include <lstate.h>
 
 static int Entity_index(lua_State * L) {
+	LUA_ASSERT_USERDATA(1, "Entity");
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
 
 	lua_pushvalue(L, 2);
@@ -19,7 +20,6 @@ static int Entity_index(lua_State * L) {
 	if (type != LUA_TNIL) { return 1; }
 	lua_pop(L, 1);
 
-	LUA_ASSERT_USERDATA(1, "Entity");
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
@@ -37,7 +37,6 @@ static int Entity_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	// @Change: might assume correct type?
 	// if (strcmp(id, "") == 0) { return 0; }
 
 	LUA_REPORT_INDEX();
@@ -50,8 +49,8 @@ static int Entity_add_component(lua_State * L) {
 	LUA_ASSERT_USERDATA(1, "Entity");
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 
-	// @Change: might assume correct type?
-	u32 type = (u32)luaL_checkinteger(L, 2);
+	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	u32 type = (u32)lua_tointeger(L, 2);
 	custom::Ref const & component_ref = object->add_component(type);
 	
 	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
@@ -67,8 +66,8 @@ static int Entity_rem_component(lua_State * L) {
 	LUA_ASSERT_USERDATA(1, "Entity");
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 
-	// @Change: might assume correct type?
-	u32 type = (u32)luaL_checkinteger(L, 2);
+	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	u32 type = (u32)lua_tointeger(L, 2);
 	object->rem_component(type);
 
 	return 0;
@@ -80,8 +79,8 @@ static int Entity_has_component(lua_State * L) {
 	LUA_ASSERT_USERDATA(1, "Entity");
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 
-	// @Change: might assume correct type?
-	u32 type = (u32)luaL_checkinteger(L, 2);
+	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	u32 type = (u32)lua_tointeger(L, 2);
 	lua_pushboolean(L, object->has_component(type));
 
 	return 1;
@@ -93,8 +92,8 @@ static int Entity_get_component(lua_State * L) {
 	LUA_ASSERT_USERDATA(1, "Entity");
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 
-	// @Change: might assume correct type?
-	u32 type = (u32)luaL_checkinteger(L, 2);
+	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	u32 type = (u32)lua_tointeger(L, 2);
 	custom::Ref component_ref = object->get_component(type);
 
 	bool has_component = (*custom::Entity::component_containers[type])(component_ref);
