@@ -8,15 +8,9 @@
 // #include <lstate.h>
 
 static int Lua_Script_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Lua_Script");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
+	LUA_INDEX_RAWGET_IMPL(Lua_Script)
 
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
-	lua_pop(L, 1);
-
+	// LUA_ASSERT_USERDATA(1, "Lua_Script");
 	custom::RefT<Lua_Script> * object = (custom::RefT<Lua_Script> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
@@ -54,15 +48,9 @@ static luaL_Reg const Lua_Script_meta[] = {
 };
 
 static int Transform_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Transform");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
+	LUA_INDEX_RAWGET_IMPL(Transform)
 
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
-	lua_pop(L, 1);
-
+	// LUA_ASSERT_USERDATA(1, "Transform");
 	custom::RefT<Transform> * object = (custom::RefT<Transform> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
@@ -135,15 +123,9 @@ static luaL_Reg const Transform_meta[] = {
 };
 
 static int Visual_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Visual");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
+	LUA_INDEX_RAWGET_IMPL(Visual)
 
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
-	lua_pop(L, 1);
-
+	// LUA_ASSERT_USERDATA(1, "Visual");
 	custom::RefT<Visual> * object = (custom::RefT<Visual> *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 

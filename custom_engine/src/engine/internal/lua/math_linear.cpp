@@ -13,16 +13,9 @@
 //
 
 static int vec2_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec2");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
-
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
+	LUA_INDEX_RAWGET_IMPL(vec2)
 
 	vec2 * object = (vec2 *)lua_touserdata(L, 1);
-	lua_pop(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -101,16 +94,9 @@ static luaL_Reg const vec2_meta[] = {
 //
 
 static int vec3_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec3");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
-
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
+	LUA_INDEX_RAWGET_IMPL(vec3)
 
 	vec3 * object = (vec3 *)lua_touserdata(L, 1);
-	lua_pop(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -193,16 +179,9 @@ static luaL_Reg const vec3_meta[] = {
 //
 
 static int vec4_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec4");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
-
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
+	LUA_INDEX_RAWGET_IMPL(vec4)
 
 	vec4 * object = (vec4 *)lua_touserdata(L, 1);
-	lua_pop(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 

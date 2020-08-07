@@ -24,7 +24,7 @@
 	#define constexpr
 #endif
 
-#define CUSTOM_CONDITIONAL(statement, command, ...) if (statement) { /**/ } else {\
+#define CUSTOM_CONDITIONAL(statement, command, ...) if (!statement) { /**/ } else {\
 	CUSTOM_CRITICAL(__VA_ARGS__);\
 	CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
 	command;\

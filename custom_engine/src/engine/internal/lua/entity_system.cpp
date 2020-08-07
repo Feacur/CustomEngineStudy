@@ -11,14 +11,7 @@
 // #include <lstate.h>
 
 static int Entity_index(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Entity");
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }
-
-	lua_pushvalue(L, 2);
-	int type = lua_rawget(L, -2);
-	lua_remove(L, -2);
-	if (type != LUA_TNIL) { return 1; }
-	lua_pop(L, 1);
+	LUA_INDEX_RAWGET_IMPL(Entity)
 
 	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");

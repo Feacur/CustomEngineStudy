@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+// @Note: undef if want shipping mode logs and assertions
 #if !defined(CUSTOM_SHIPPING)
 	#define LOG_MESSAGE_ENABLED
 	#define LOG_ASSERT_ENABLED
@@ -84,7 +85,7 @@
 #endif
 
 #if defined(LOG_ASSERT_ENABLED)
-	#define CUSTOM_ASSERT(statement, ...) CUSTOM_CONDITIONAL(statement, CUSTOM_DEBUG_BREAK(), __VA_ARGS__)
+	#define CUSTOM_ASSERT(statement, ...) CUSTOM_CONDITIONAL(!(statement), CUSTOM_DEBUG_BREAK(), __VA_ARGS__)
 #else
 	#define CUSTOM_ASSERT(statement, ...) (void)0
 #endif
