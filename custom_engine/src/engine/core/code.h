@@ -24,6 +24,12 @@
 	#define constexpr
 #endif
 
+#define CUSTOM_CONDITIONAL(statement, command, ...) if (statement) { /**/ } else {\
+	CUSTOM_CRITICAL(__VA_ARGS__);\
+	CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
+	command;\
+}\
+
 // OS detection
 #if defined(_WIN64) || defined(_WIN32)
 	#define CUSTOM_OS_WINDOWS

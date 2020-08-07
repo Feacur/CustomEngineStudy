@@ -4,7 +4,13 @@
 
 namespace custom {
 
-// @Note: instantiate static data
+//  @Note: initialize compile-time structs:
+template struct Array<Entity>;
+template struct Array<ref_void_func *>;
+template struct Array<void_ref_func *>;
+template struct Array<bool_ref_func *>;
+
+//  @Note: initialize compile-time statics:
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
 Array<ref_void_func *> Entity::component_constructors;

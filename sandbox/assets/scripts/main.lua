@@ -10,6 +10,7 @@ local function create_visual(tp, tr, ts, vs, vt, vm)
 	visual.shader = vs;
 	visual.texture = vt;
 	visual.mesh = vm;
+	return entity
 end
 
 function global_init()
@@ -20,10 +21,12 @@ function global_init()
 		1, 0, 1
 	)
 
-	create_visual(
+	local some_entity = create_visual(
 		vec3.new(0, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 1, 1),
 		1, 0, 1
 	)
+	local some_script = some_entity:add_component(Lua_Script.type)
+	some_script.update = "script_rotate"
 
 	create_visual(
 		vec3.new(4, 2, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 2, 1),
@@ -40,17 +43,7 @@ function global_update()
 	end
 end
 
-function some_component_update(entity)
-	-- if (entity == nil) then
-	-- 	print(lua_tag .. "entity is nil")
-	-- 	return
-	-- end
-	-- print(lua_tag .. string.format("entity is %s", entity))
+function script_rotate(entity, dt)
 	local transform = entity:get_component(Transform.type)
-	-- if (transform ~= nil) then
-	-- 	local position = transform.position
-	-- 	print(lua_tag .. string.format("position is %s, dot is %f", position, vec3.dot(position, position)))
-	-- else
-	-- 	print(lua_tag .. "transform is nil")
-	-- end
+	if (transform == nil) then return end
 end

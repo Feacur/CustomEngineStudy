@@ -1,14 +1,36 @@
 #pragma once
 
-#if !defined(CUSTOM_SHIPPING)
-#define LUA_INDEX_ASSERT() do {\
+// #if !defined(CUSTOM_SHIPPING)
+	// #define CUSTOM_LUA_BREAK() (void)0
+	#define CUSTOM_LUA_BREAK() lua_error(L)
+// #endif
+
+#if defined(CUSTOM_LUA_BREAK)
+	#define CUSTOM_LUA_ASSERT(statement, ...) CUSTOM_CONDITIONAL(statement, CUSTOM_LUA_BREAK(), __VA_ARGS__)
+#else
+	#define CUSTOM_LUA_ASSERT(statement, ...) CUSTOM_ASSERT(statement, __VA_ARGS__)
+#endif
+
+#if defined(CUSTOM_LUA_ASSERT)
+#define LUA_REPORT_INDEX() do {\
 	lua_getfield(L, 1, "__name");\
-	CUSTOM_ASSERT(false, "%s '%s' doesn't contain '%s'", luaL_typename(L, 1), lua_tostring(L, -1), id);\
+	CUSTOM_LUA_ASSERT(false, "%s '%s' doesn't contain '%s'", luaL_typename(L, 1), lua_tostring(L, -1), id);\
 	lua_pop(L, 1);\
 } while (0)\
 
+#define LUA_ASSERT_USERDATA(index, type)\
+	do {\
+		CUSTOM_LUA_ASSERT(lua_type(L, index) == LUA_TUSERDATA, "expected a userdata at index %d", index);\
+		CUSTOM_LUA_ASSERT(lua_getmetatable(L, index), "expected a userdata with a metatable at index %d", index);\
+		CUSTOM_LUA_ASSERT(luaL_getmetatable(L, type) == LUA_TTABLE, "metatable '%s' doesn't exist", type);\
+		CUSTOM_LUA_ASSERT(lua_rawequal(L, -1, -2), "userdata at index %d is not '%s'", index, type);\
+		lua_pop(L, 2);\
+	\
+	} while (0)\
+
 #else
-	#define LUA_INDEX_ASSERT() (void)0
+	#define LUA_REPORT_INDEX() (void)0
+	#define LUA_ASSERT_USERDATA(index, type) (void)0
 #endif
 
 #define LUA_META_IMPL(T)\

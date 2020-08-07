@@ -25,6 +25,7 @@ static lua_State * L;
 
 void init_entity_components(void);
 static void on_app_init() {
+	// @Note: init systems
 	init_entity_components();
 
 	L = luaL_newstate();
@@ -38,17 +39,17 @@ static void on_app_init() {
 		custom::loader::script(L, asset_id);
 	}
 
+	// @Note: init data
 	camera_transform = {
 		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
 	};
 
-	//
-
+	// @Note: init entities
 	custom::Entity entity11 = custom::Entity::create();
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	custom::Entity::destroy(entity21);
+	custom::Entity::destroy(entity31);
 	custom::Entity::destroy(entity11);
 	
 	create_visual(
@@ -60,11 +61,7 @@ static void on_app_init() {
 		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
 	);
 
-	custom::Entity::destroy(entity31);
-	
-	custom::Entity script_entity = custom::Entity::create();
-	(*script_entity.add_component<Transform>().get_fast()) = {{1,2,3},{0,0,0,1},{3,2,1}};
-	(*script_entity.add_component<Lua_Script>().get_fast()) = {"some_component_update"};
+	custom::Entity::destroy(entity21);
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
@@ -116,7 +113,7 @@ static void on_app_update(r32 dt) {
 	custom::renderer::clear();
 	sandbox::ecs_renderer::update(camera_transform, camera.projection);
 	sandbox::ecs_lua_runner::lua_function(L, "global_update");
-	sandbox::ecs_lua_runner::update(L);
+	sandbox::ecs_lua_runner::update(L, dt);
 }
 
 int main(int argc, char * argv[]) {

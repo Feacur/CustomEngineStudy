@@ -4,7 +4,7 @@
 
 struct Lua_Script
 {
-	cstring function;
+	cstring update;
 };
 
 struct Visual

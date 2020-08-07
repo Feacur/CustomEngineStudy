@@ -1914,9 +1914,9 @@ static void platform_Load_Texture(Bytecode const & bc) {
 
 	CUSTOM_ASSERT(offset.x + size.x <= resource->size.x, "texture %d error: writing past data x bounds", asset_id);
 	CUSTOM_ASSERT(offset.y + size.y <= resource->size.y, "texture %d error: writing past data y bounds", asset_id);
-	CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id)
-	CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id)
-	CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id)
+	CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id);
+	CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id);
+	CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id);
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glTextureSubImage2D(
