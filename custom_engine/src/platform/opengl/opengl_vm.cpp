@@ -23,6 +23,10 @@
 
 #define COMPILE_VERSION(major, minor) (major * 10 + minor)
 
+#define RS_NONE    0
+#define RS_PENDING 1
+#define RS_LOADED  2
+
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 // https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/OpenGL%204.x%20and%20Beyond.pdf
 // https://www.khronos.org/assets/uploads/developers/library/2014-siggraph-bof/OpenGL-Ecosystem-BOF_Aug14.pdf
@@ -56,13 +60,13 @@ struct Field
 struct Program
 {
 	GLuint id = empty_gl_id;
-	bool uploaded = false;
+	u32 ready_state = RS_NONE;
 	// custom::Array_Fixed<Field, 4> attributes;
 	custom::Array_Fixed<Field, 10> uniforms;
 
 	~Program() {
 		id = empty_gl_id;
-		uploaded = false;
+		ready_state = RS_NONE;
 		// attributes.count = 0;
 		uniforms.count = 0;
 	}
@@ -72,7 +76,7 @@ template struct custom::Array<Program>;
 struct Texture
 {
 	GLuint id = empty_gl_id;
-	bool uploaded = false;
+	u32 ready_state = RS_NONE;
 	b8 is_dynamic;
 	GLenum target;
 	ivec2 size;
@@ -84,7 +88,7 @@ struct Texture
 
 	~Texture() {
 		id = empty_gl_id;
-		uploaded = false;
+		ready_state = RS_NONE;
 	}
 };
 template struct custom::Array<Texture>;
@@ -125,13 +129,13 @@ struct Buffer
 struct Mesh
 {
 	GLuint id = empty_gl_id;
-	bool uploaded = false;
+	u32 ready_state = RS_NONE;
 	custom::Array_Fixed<Buffer, 2> buffers;
 	u8 index_buffer;
 
 	~Mesh() {
 		id = empty_gl_id;
-		uploaded = false;
+		ready_state = RS_NONE;
 		buffers.count = 0;
 	}
 };
@@ -160,6 +164,7 @@ struct Render_Buffer
 struct Target
 {
 	GLuint id = empty_gl_id;
+	u32 ready_state = RS_NONE;
 	GLenum target;
 	custom::Array_Fixed<Render_Texture, 2> textures;
 	custom::Array_Fixed<Render_Buffer, 1> buffers;
@@ -179,6 +184,7 @@ struct Data
 	u32 version;
 
 	// @Note: might store offsets for random search
+	u32                 uniform_ready_state = RS_NONE;
 	custom::Array<char> uniform_names;
 	custom::Array<u32>  uniform_names_lengths;
 
@@ -367,47 +373,65 @@ void consume(Bytecode const & bc) {
 
 //
 
-bool is_inited_uniforms() {
-	return ogl.uniform_names.count > 0;
-}
-
-bool is_allocated_shader(u32 id) {
+inline static bool has_allocated_shader(u32 id) {
 	if (id >= ogl.programs.capacity) { return false; }
 	return ogl.programs.get(id).id != empty_gl_id;
 }
 
-bool is_allocated_texture(u32 id) {
+inline static bool has_allocated_texture(u32 id) {
 	if (id >= ogl.textures.capacity) { return false; }
 	return ogl.textures.get(id).id != empty_gl_id;
 }
 
-bool is_allocated_sampler(u32 id) {
+inline static bool has_allocated_sampler(u32 id) {
 	if (id >= ogl.samplers.capacity) { return false; }
 	return ogl.samplers.get(id).id != empty_gl_id;
 }
 
-bool is_allocated_mesh(u32 id) {
+inline static bool has_allocated_mesh(u32 id) {
 	if (id >= ogl.meshes.capacity) { return false; }
 	return ogl.meshes.get(id).id != empty_gl_id;
 }
 
-bool is_allocated_target(u32 id) {
+inline static bool has_allocated_target(u32 id) {
 	if (id >= ogl.targets.capacity) { return false; }
 	return ogl.targets.get(id).id != empty_gl_id;
 }
 
 //
 
-bool is_uploaded_shader(u32 id) {
-	return ogl.programs.get(id).uploaded;
+u32 mark_pending_uniforms() {
+	u32 ready_state = ogl.uniform_ready_state;
+	if (ready_state == RS_NONE) { ogl.uniform_ready_state = RS_PENDING; }
+	return ready_state;
 }
 
-bool is_uploaded_texture(u32 id) {
-	return ogl.textures.get(id).uploaded;
+u32 mark_pending_shader(u32 id) {
+	ogl.programs_ensure_capacity(id);
+	u32 ready_state = ogl.programs.get(id).ready_state;
+	if (ready_state == RS_NONE) { ogl.programs.get(id).ready_state = RS_PENDING; }
+	return ready_state;
 }
 
-bool is_uploaded_mesh(u32 id) {
-	return ogl.meshes.get(id).uploaded;
+u32 mark_pending_texture(u32 id) {
+	ogl.textures_ensure_capacity(id);
+	u32 ready_state = ogl.textures.get(id).ready_state;
+	if (ready_state == RS_NONE) { ogl.textures.get(id).ready_state = RS_PENDING; }
+	return ready_state;
+}
+
+u32 mark_pending_mesh(u32 id) {
+	ogl.meshes_ensure_capacity(id);
+	u32 ready_state = ogl.meshes.get(id).ready_state;
+	if (ready_state == RS_NONE) { ogl.meshes.get(id).ready_state = RS_PENDING; }
+	return ready_state;
+}
+
+u32 mark_pending_target(u32 id) {
+	ogl.targets_ensure_capacity(id);
+	u32 ready_state = ogl.targets.get(id).ready_state;
+	if (ready_state == RS_NONE) { ogl.targets.get(id).ready_state = RS_PENDING; }
+	return ready_state;
 }
 
 }}
@@ -1243,6 +1267,7 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 		CUSTOM_TRACE("shader %d already exists", asset_id);
 		return;
 	}
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", asset_id);
 	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
 }
@@ -1272,6 +1297,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 		platform_consume_texture_params(bc, &default_texture);
 		return;
 	}
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", asset_id);
 	platform_consume_texture_params(bc, resource);
 
 	// -- allocate memory --
@@ -1385,6 +1411,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		platform_consume_mesh_params(bc, &default_resource);
 		return;
 	}
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "mesh %d wasn't marked as pending", asset_id);
 	platform_consume_mesh_params(bc, resource);
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
@@ -1644,12 +1671,12 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 
 	CUSTOM_ASSERT(asset_id.sampler == empty_asset_id || ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
 
-	if (!graphics::is_allocated_texture(asset_id.texture)) {
+	if (!graphics::has_allocated_texture(asset_id.texture)) {
 		CUSTOM_WARNING("skipping unit (%d : %d): texture is not allocated", asset_id.texture, asset_id.sampler);
 		return;
 	}
 
-	if (asset_id.sampler != empty_asset_id && !graphics::is_allocated_sampler(asset_id.sampler)) {
+	if (asset_id.sampler != empty_asset_id && !graphics::has_allocated_sampler(asset_id.sampler)) {
 		CUSTOM_WARNING("skipping unit (%d : %d): sampler is not allocated", asset_id.texture, asset_id.sampler);
 		return;
 	}
@@ -1801,7 +1828,7 @@ static void platform_Use_Shader(Bytecode const & bc) {
 		return;
 	}
 
-	if (!graphics::is_allocated_shader(asset_id)) {
+	if (!graphics::has_allocated_shader(asset_id)) {
 		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
 		return;
 	}
@@ -1820,7 +1847,7 @@ static void platform_Use_Mesh(Bytecode const & bc) {
 		return;
 	}
 
-	if (!graphics::is_allocated_mesh(asset_id)) {
+	if (!graphics::has_allocated_mesh(asset_id)) {
 		CUSTOM_WARNING("skipping mesh %d: it is not allocated", asset_id);
 		return;
 	}
@@ -1852,8 +1879,11 @@ static void platform_Load_Shader(Bytecode const & bc) {
 
 	Inline_String source = read_cstring(bc);
 	Shader_Part parts = *bc.read<Shader_Part>();
-	if (resource->uploaded) { return; }
-	resource->uploaded = true;
+	if (resource->ready_state == RS_LOADED) {
+		CUSTOM_TRACE("trying to overwrite shader %d data", asset_id);
+		return;
+	}
+	resource->ready_state = RS_LOADED;
 
 	platform_link_program(resource->id, {(GLint)source.count, source.data}, parts);
 
@@ -1906,11 +1936,11 @@ static void platform_Load_Texture(Bytecode const & bc) {
 	Data_Type    data_type    = *bc.read<Data_Type>();
 	Texture_Type texture_type = *bc.read<Texture_Type>();
 	cmemory data = read_data(bc, data_type, size.x * size.y * channels);
-	if (resource->uploaded) {
+	if (resource->ready_state == RS_LOADED) {
 		if (!resource->is_dynamic) { return; }
 		CUSTOM_TRACE("overwriting texture %d data", asset_id);
 	}
-	resource->uploaded = true;
+	resource->ready_state = RS_LOADED;
 
 	CUSTOM_ASSERT(offset.x + size.x <= resource->size.x, "texture %d error: writing past data x bounds", asset_id);
 	CUSTOM_ASSERT(offset.y + size.y <= resource->size.y, "texture %d error: writing past data y bounds", asset_id);
@@ -1957,7 +1987,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 
 			u32 offset = *bc.read<u32>();
 			DT_Array in_buffer = read_data_array(bc);
-			if (resource->uploaded) {
+			if (resource->ready_state == RS_LOADED) {
 				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
 				CUSTOM_TRACE("overwriting mesh %d data", asset_id);
 			}
@@ -1988,7 +2018,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 	
 			u32 offset = *bc.read<u32>();
 			DT_Array in_buffer = read_data_array(bc);
-			if (resource->uploaded) {
+			if (resource->ready_state == RS_LOADED) {
 				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
 				CUSTOM_TRACE("overwriting mesh %d data", asset_id);
 			}
@@ -2007,12 +2037,12 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			);
 		}
 	}
-	resource->uploaded = true;
+	resource->ready_state = RS_LOADED;
 }
 
 static void platform_Set_Uniform(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
-	if (!graphics::is_allocated_shader(asset_id)) {
+	if (!graphics::has_allocated_shader(asset_id)) {
 		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
 		bc.read<u32>();
 		read_data_array(bc);

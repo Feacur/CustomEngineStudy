@@ -2,7 +2,7 @@ namespace custom {
 namespace loader {
 
 void uniforms() {
-	if (graphics::is_inited_uniforms()) { return; }
+	if (graphics::mark_pending_uniforms()) { return; }
 
 	bc->write(graphics::Instruction::Init_Uniforms);
 	bc->write((u32)asset::uniform::count);
@@ -15,7 +15,7 @@ void uniforms() {
 }
 
 void shader(u32 asset_id) {
-	if (graphics::is_allocated_shader(asset_id) && graphics::is_uploaded_shader(asset_id)) { return; }
+	if (graphics::mark_pending_shader(asset_id)) { return; }
 
 	if (asset_id >= asset::shader::count) { return; }
 	cstring path = asset::shader::paths[asset_id];
@@ -36,7 +36,7 @@ void shader(u32 asset_id) {
 }
 
 void offscreen(u32 asset_id) {
-	if (graphics::is_allocated_texture(asset_id) && graphics::is_uploaded_texture(asset_id)) { return; }
+	if (graphics::mark_pending_shader(asset_id)) { return; }
 
 	if (asset_id <= asset::texture::count) { return; }
 
@@ -63,7 +63,7 @@ void offscreen(u32 asset_id) {
 }
 
 void target(u32 asset_id) {
-	if (graphics::is_allocated_target(asset_id)) { return; }
+	if (graphics::mark_pending_target(asset_id)) { return; }
 
 	u8 meta_id = asset::target::meta_ids[asset_id];
 	asset::target::Meta const & meta = asset::target::meta_presets[meta_id];

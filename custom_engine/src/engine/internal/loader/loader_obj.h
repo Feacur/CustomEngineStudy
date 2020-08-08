@@ -24,7 +24,7 @@ template<typename T>
 static void write_data_array(custom::Array<T> const & data);
 
 void mesh(u32 asset_id) {
-	if (graphics::is_allocated_mesh(asset_id) && graphics::is_uploaded_mesh(asset_id)) { return; }
+	if (graphics::mark_pending_mesh(asset_id)) { return; }
 
 	if (asset_id >= asset::mesh::count) { return; }
 	cstring path = asset::mesh::paths[asset_id];

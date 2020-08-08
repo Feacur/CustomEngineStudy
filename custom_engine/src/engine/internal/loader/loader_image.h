@@ -14,14 +14,13 @@ static void describe_texture_load(
 );
 
 void image(u32 asset_id) {
-	if (graphics::is_allocated_texture(asset_id) && graphics::is_uploaded_texture(asset_id)) { return; }
+	if (graphics::mark_pending_texture(asset_id)) { return; }
 
 	if (asset_id >= asset::texture::count) { return; }
 	cstring path = asset::texture::paths[asset_id];
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
-
 
 	ivec2 size;
 	s32 channels;
@@ -43,7 +42,7 @@ void image(u32 asset_id) {
 }
 
 void imagef(u32 asset_id) {
-	if (graphics::is_allocated_texture(asset_id) && graphics::is_uploaded_texture(asset_id)) { return; }
+	if (graphics::mark_pending_texture(asset_id)) { return; }
 
 	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file::read(path, file);
@@ -69,7 +68,7 @@ void imagef(u32 asset_id) {
 }
 
 void image16(u32 asset_id) {
-	if (graphics::is_allocated_texture(asset_id) && graphics::is_uploaded_texture(asset_id)) { return; }
+	if (graphics::mark_pending_texture(asset_id)) { return; }
 
 	cstring path = asset::texture::paths[asset_id];
 	Array<u8> file; file::read(path, file);
