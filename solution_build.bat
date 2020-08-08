@@ -52,6 +52,11 @@ if %architecture_compiler% == %architecture_target% (
 )
 popd
 
+set log_file=-fileLogger -fileLoggerParameters:Verbosity=normal;LogFile=bin-int/%configuration%.log;Encoding=UTF-8 -detailedSummary
+set log_console=-noLogo -consoleLoggerParameters:Verbosity=quiet;Summary;ErrorsOnly;WarningsOnly
+rem -consoleLoggerParameters:PerformanceSummary
+rem verbosity: quiet, minimal, normal, detailed, diagnostic
+
 echo ---- BUILD ---- %time%
-msbuild %solution% -m -p:Configuration=%configuration%
+msbuild %solution% -p:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
 echo ---- DONE ---- %time%
