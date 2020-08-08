@@ -1,5 +1,7 @@
 #pragma once
 
+#define LUA_REPORT_ENABLED
+
 // @Note: fallback for shipping mode errors
 #if defined(CUSTOM_SHIPPING)
 	// #define CUSTOM_LUA_BREAK() (void)0
@@ -13,7 +15,7 @@
 	#define CUSTOM_LUA_ASSERT(statement, ...) CUSTOM_ASSERT(statement, __VA_ARGS__)
 #endif
 
-#if defined(CUSTOM_LUA_ASSERT)
+#if defined(LUA_REPORT_ENABLED)
 
 #define LUA_REPORT_INDEX() do {\
 	lua_getfield(L, 1, "__name");\
@@ -21,7 +23,7 @@
 	lua_pop(L, 1);\
 } while (0)\
 
-#define LUA_ASSERT_TYPE(T, index) CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d", #T, index)
+#define LUA_ASSERT_TYPE(T, index) CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d; got %s", #T, index, luaL_typename(L, index))
 
 #define LUA_ASSERT_USERDATA(T, index) do {\
 	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
