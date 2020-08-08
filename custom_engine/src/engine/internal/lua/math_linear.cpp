@@ -15,8 +15,7 @@
 static int vec2_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(vec2)
 
-	vec2 * object = (vec2 *)lua_touserdata(L, 1);
-
+	LUA_DECLARE_USERDATA_CONST_FAST(vec2, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
@@ -28,12 +27,11 @@ static int vec2_index(lua_State * L) {
 }
 
 static int vec2_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec2");
-	vec2 * object = (vec2 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(vec2, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 	if (strcmp(id, "x") == 0) { object->x = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "y") == 0) { object->y = (r32)lua_tonumber(L, 3); return 0; }
 
@@ -44,8 +42,7 @@ static int vec2_newindex(lua_State * L) {
 static int vec2_magnitude_squared(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 
-	LUA_ASSERT_USERDATA(1, "vec2");
-	vec2 * object = (vec2 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object, 1);
 	lua_pushnumber(L, magnitude_squared(*object));
 
 	return 1;
@@ -53,8 +50,8 @@ static int vec2_magnitude_squared(lua_State * L) {
 
 static int vec2_new(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	CUSTOM_LUA_ASSERT(lua_type(L, 1) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 
 	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
 	luaL_setmetatable(L, "vec2");
@@ -68,11 +65,8 @@ static int vec2_new(lua_State * L) {
 
 static int vec2_dot(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_USERDATA(1, "vec2");
-	LUA_ASSERT_USERDATA(2, "vec2");
-
-	vec2 * object1 = (vec2 *)lua_touserdata(L, 1);
-	vec2 * object2 = (vec2 *)lua_touserdata(L, 2);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
 	lua_pushnumber(L, dot_product(*object1, *object2));
 
 	return 1;
@@ -96,8 +90,7 @@ static luaL_Reg const vec2_meta[] = {
 static int vec3_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(vec3)
 
-	vec3 * object = (vec3 *)lua_touserdata(L, 1);
-
+	LUA_DECLARE_USERDATA_CONST_FAST(vec3, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
@@ -110,12 +103,11 @@ static int vec3_index(lua_State * L) {
 }
 
 static int vec3_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec3");
-	vec3 * object = (vec3 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(vec3, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 	if (strcmp(id, "x") == 0) { object->x = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "y") == 0) { object->y = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "z") == 0) { object->z = (r32)lua_tonumber(L, 3); return 0; }
@@ -127,8 +119,7 @@ static int vec3_newindex(lua_State * L) {
 static int vec3_magnitude_squared(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 
-	LUA_ASSERT_USERDATA(1, "vec3");
-	vec3 * object = (vec3 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object, 1);
 	lua_pushnumber(L, magnitude_squared(*object));
 
 	return 1;
@@ -136,9 +127,9 @@ static int vec3_magnitude_squared(lua_State * L) {
 
 static int vec3_new(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
-	CUSTOM_LUA_ASSERT(lua_type(L, 1) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 
 	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
 	luaL_setmetatable(L, "vec3");
@@ -153,11 +144,8 @@ static int vec3_new(lua_State * L) {
 
 static int vec3_dot(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_USERDATA(1, "vec3");
-	LUA_ASSERT_USERDATA(2, "vec3");
-
-	vec3 * object1 = (vec3 *)lua_touserdata(L, 1);
-	vec3 * object2 = (vec3 *)lua_touserdata(L, 2);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
 	lua_pushnumber(L, dot_product(*object1, *object2));
 
 	return 1;
@@ -181,8 +169,7 @@ static luaL_Reg const vec3_meta[] = {
 static int vec4_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(vec4)
 
-	vec4 * object = (vec4 *)lua_touserdata(L, 1);
-
+	LUA_DECLARE_USERDATA_CONST_FAST(vec4, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
@@ -196,12 +183,11 @@ static int vec4_index(lua_State * L) {
 }
 
 static int vec4_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "vec4");
-	vec4 * object = (vec4 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(vec4, object, 1);
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 	if (strcmp(id, "x") == 0) { object->x = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "y") == 0) { object->y = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "z") == 0) { object->z = (r32)lua_tonumber(L, 3); return 0; }
@@ -214,8 +200,7 @@ static int vec4_newindex(lua_State * L) {
 static int vec4_magnitude_squared(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 
-	LUA_ASSERT_USERDATA(1, "vec4");
-	vec4 * object = (vec4 *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
 	lua_pushnumber(L, magnitude_squared(*object));
 
 	return 1;
@@ -223,10 +208,10 @@ static int vec4_magnitude_squared(lua_State * L) {
 
 static int vec4_new(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 4, "expected 4 arguments");
-	CUSTOM_LUA_ASSERT(lua_type(L, 1) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
-	CUSTOM_LUA_ASSERT(lua_type(L, 4) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 4);
 
 	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
 	luaL_setmetatable(L, "vec4");
@@ -242,11 +227,8 @@ static int vec4_new(lua_State * L) {
 
 static int vec4_dot(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_USERDATA(1, "vec4");
-	LUA_ASSERT_USERDATA(2, "vec4");
-
-	vec4 * object1 = (vec4 *)lua_touserdata(L, 1);
-	vec4 * object2 = (vec4 *)lua_touserdata(L, 2);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
 	lua_pushnumber(L, dot_product(*object1, *object2));
 
 	return 1;

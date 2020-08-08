@@ -21,18 +21,21 @@
 	lua_pop(L, 1);\
 } while (0)\
 
-#define LUA_ASSERT_USERDATA(index, type) do {\
-	CUSTOM_LUA_ASSERT(lua_type(L, index) == LUA_TUSERDATA, "expected a userdata at index %d", index);\
+#define LUA_ASSERT_TYPE(T, index) CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d", #T, index)
+
+#define LUA_ASSERT_USERDATA(T, index) do {\
+	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
 	CUSTOM_LUA_ASSERT(lua_getmetatable(L, index), "expected a userdata with a metatable at index %d", index);\
-	CUSTOM_LUA_ASSERT(luaL_getmetatable(L, type) == LUA_TTABLE, "metatable '%s' doesn't exist", type);\
-	CUSTOM_LUA_ASSERT(lua_rawequal(L, -1, -2), "userdata at index %d is not '%s'", index, type);\
+	CUSTOM_LUA_ASSERT(luaL_getmetatable(L, #T) == LUA_TTABLE, "metatable '%s' doesn't exist", #T);\
+	CUSTOM_LUA_ASSERT(lua_rawequal(L, -1, -2), "expected '%s' at index %d", #T, index);\
 	lua_pop(L, 2);\
 \
 } while (0)\
 
 #else
 	#define LUA_REPORT_INDEX() (void)0
-	#define LUA_ASSERT_USERDATA(index, type) (void)0
+	#define LUA_ASSERT_TYPE(T, index) (void)0
+	#define LUA_ASSERT_USERDATA(T, index) (void)0
 #endif
 
 // @Note: metatable contains metamethods, instance functions, static functions;
@@ -48,12 +51,35 @@
 // @Note: seek for a value in the corresponding metatable first,
 //        then pass execution further to the rest of the index method
 #define LUA_INDEX_RAWGET_IMPL(T)\
-	LUA_ASSERT_USERDATA(1, #T);\
+	LUA_ASSERT_USERDATA(T, 1);\
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }\
 	\
 	lua_pushvalue(L, 2);\
 	if (lua_rawget(L, -2) != LUA_TNIL) { lua_remove(L, -2); return 1; }\
 	lua_rotate(L, -3, -2); lua_pop(L, 2);\
+
+// @Note: testing idea of universal userdata declarations
+#define LUA_DECLARE_USERDATA(T, name, index)\
+	LUA_ASSERT_USERDATA(T, index);\
+	T * name = (T *)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_CONST_FAST(T, name, index)\
+	T const * name = (T const*)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_CONST_SAFE(T, name, index)\
+	LUA_ASSERT_USERDATA(T, index);\
+	T const * name = (T const*)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_REF(T, name, index)\
+	LUA_ASSERT_USERDATA(T, index);\
+	custom::RefT<T> * name = (custom::RefT<T> *)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_CONST_REF_FAST(T, name, index)\
+	custom::RefT<T> const * name = (custom::RefT<T> const *)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_CONST_REF_SAFE(T, name, index)\
+	LUA_ASSERT_USERDATA(T, index);\
+	custom::RefT<T> const * name = (custom::RefT<T> const *)lua_touserdata(L, index)\
 
 /*
 #define LUA_META_INDEX_SELF_IMPL(T)\

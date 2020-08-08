@@ -10,8 +10,7 @@
 static int Lua_Script_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Lua_Script)
 
-	// LUA_ASSERT_USERDATA(1, "Lua_Script");
-	custom::RefT<Lua_Script> * object = (custom::RefT<Lua_Script> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Lua_Script, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -24,15 +23,14 @@ static int Lua_Script_index(lua_State * L) {
 }
 
 static int Lua_Script_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Lua_Script");
-	custom::RefT<Lua_Script> * object = (custom::RefT<Lua_Script> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_REF(Lua_Script, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
-		CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TSTRING, "expected a string");
+		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
 		object->get_fast()->update = lua_tostring(L, 3); return 0;
 	}
 
@@ -50,8 +48,7 @@ static luaL_Reg const Lua_Script_meta[] = {
 static int Transform_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Transform)
 
-	// LUA_ASSERT_USERDATA(1, "Transform");
-	custom::RefT<Transform> * object = (custom::RefT<Transform> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Transform, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -83,30 +80,26 @@ static int Transform_index(lua_State * L) {
 }
 
 static int Transform_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Transform");
-	custom::RefT<Transform> * object = (custom::RefT<Transform> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_REF(Transform, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
 	if (strcmp(id, "position") == 0) {
-		LUA_ASSERT_USERDATA(3, "vec3");
-		vec3 const * value = (vec3 const *)lua_touserdata(L, 3);
+		LUA_DECLARE_USERDATA_CONST_SAFE(vec3, value, 3);
 		object->get_fast()->position = *value;
 		return 0;
 	}
 
 	if (strcmp(id, "rotation") == 0) {
-		LUA_ASSERT_USERDATA(3, "vec4");
-		vec4 const * value = (vec4 const *)lua_touserdata(L, 3);
+		LUA_DECLARE_USERDATA_CONST_SAFE(vec4, value, 3);
 		object->get_fast()->rotation = *value;
 		return 0;
 	}
 
 	if (strcmp(id, "scale") == 0) {
-		LUA_ASSERT_USERDATA(3, "vec3");
-		vec3 const * value = (vec3 const *)lua_touserdata(L, 3);
+		LUA_DECLARE_USERDATA_CONST_SAFE(vec3, value, 3);
 		object->get_fast()->scale = *value;
 		return 0;
 	}
@@ -125,8 +118,7 @@ static luaL_Reg const Transform_meta[] = {
 static int Visual_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Visual)
 
-	// LUA_ASSERT_USERDATA(1, "Visual");
-	custom::RefT<Visual> * object = (custom::RefT<Visual> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Visual, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -141,23 +133,22 @@ static int Visual_index(lua_State * L) {
 }
 
 static int Visual_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Visual");
-	custom::RefT<Visual> * object = (custom::RefT<Visual> *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_REF(Visual, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 		object->get_fast()->shader = (u32)lua_tonumber(L, 3); return 1;
 	}
 	if (strcmp(id, "texture") == 0) {
-		CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 		object->get_fast()->texture = (u32)lua_tonumber(L, 3); return 1;
 	}
 	if (strcmp(id, "mesh") == 0) {
-		CUSTOM_LUA_ASSERT(lua_type(L, 3) == LUA_TNUMBER, "expected a number");
+		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 		object->get_fast()->mesh = (u32)lua_tonumber(L, 3); return 1;
 	}
 

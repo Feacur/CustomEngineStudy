@@ -10,10 +10,12 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
+typedef custom::Entity Entity;
+
 static int Entity_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Entity)
 
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_FAST(Entity, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -23,8 +25,7 @@ static int Entity_index(lua_State * L) {
 }
 
 static int Entity_newindex(lua_State * L) {
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(Entity, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -39,10 +40,9 @@ static int Entity_newindex(lua_State * L) {
 static int Entity_add_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(Entity, object, 1);
 
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
 	custom::Ref const & component_ref = object->add_component(type);
 	
@@ -56,10 +56,9 @@ static int Entity_add_component(lua_State * L) {
 static int Entity_rem_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA(Entity, object, 1);
 
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
 	object->rem_component(type);
 
@@ -69,10 +68,9 @@ static int Entity_rem_component(lua_State * L) {
 static int Entity_has_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(Entity, object, 1);
 
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
 	lua_pushboolean(L, object->has_component(type));
 
@@ -82,10 +80,9 @@ static int Entity_has_component(lua_State * L) {
 static int Entity_get_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(Entity, object, 1);
 
-	CUSTOM_LUA_ASSERT(lua_type(L, 2) == LUA_TNUMBER, "expected a number");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
 	custom::Ref component_ref = object->get_component(type);
 
@@ -112,8 +109,7 @@ static int Entity_create(lua_State * L) {
 static int Entity_destroy(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 
-	LUA_ASSERT_USERDATA(1, "Entity");
-	custom::Entity * object = (custom::Entity *)lua_touserdata(L, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(Entity, object, 1);
 	custom::Entity::destroy(*object);
 
 	return 0;

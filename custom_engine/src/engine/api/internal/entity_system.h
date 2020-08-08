@@ -23,9 +23,14 @@ template<typename T>
 struct RefT : public Ref
 {
 	static Ref_Pool<T> pool;
-	inline bool exists(void) { return pool.contains(*this); }
+
+	inline bool exists(void) const { return pool.contains(*this); }
+
 	inline T * get_fast(void) { return pool.get_fast(*this); }
 	inline T * get_safe(void) { return pool.get_safe(*this); }
+
+	inline T const * get_fast(void) const { return pool.get_fast(*this); }
+	inline T const * get_safe(void) const { return pool.get_safe(*this); }
 };
 
 //
@@ -54,7 +59,7 @@ struct Gen_Pool
 	// API
 	Ref create(void);
 	void destroy(Ref const & ref);
-	inline bool contains(Ref const & ref) { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
+	inline bool contains(Ref const & ref) const { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
 };
 
 // @Todo: might want to dynamically init pools should the code be used from a DLL?
@@ -71,11 +76,15 @@ struct Ref_Pool
 	// API
 	RefT<T> create(void);
 	void destroy(Ref const & ref);
-	inline bool contains(Ref const & ref) { return generations.contains(ref); };
 
 	// RefT API
+	inline bool contains(Ref const & ref) const { return generations.contains(ref); };
+
 	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
 	inline T * get_safe(Ref const & ref) { return generations.contains(ref) ? &instances[ref.id] : NULL; }
+
+	inline T const * get_fast(Ref const & ref) const { return &instances[ref.id]; }
+	inline T const * get_safe(Ref const & ref) const { return generations.contains(ref) ? &instances[ref.id] : NULL; }
 };
 
 //
