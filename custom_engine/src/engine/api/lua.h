@@ -56,7 +56,7 @@
 	\
 	lua_pushvalue(L, 2);\
 	if (lua_rawget(L, -2) != LUA_TNIL) { lua_remove(L, -2); return 1; }\
-	lua_rotate(L, -3, -2); lua_pop(L, 2);\
+	lua_pop(L, 2);\
 
 // @Note: testing idea of universal userdata declarations
 #define LUA_DECLARE_USERDATA(T, name, index)\
