@@ -44,6 +44,7 @@ function global_update()
 end
 
 function script_rotate(entity, dt)
+	local rotator = vec4.quat_from_radians(0, 1 * dt, 0)
 	local transform = entity:get_component(Transform.type)
-	if (transform == nil) then return end
+	transform.rotation = vec4.quat_product(transform.rotation, rotator)
 end

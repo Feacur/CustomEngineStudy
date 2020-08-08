@@ -816,7 +816,7 @@ inline xvec4<T> cosine(xvec4<T> value) {
 // icomplex routines
 //
 
-constexpr inline icomplex complex_reciprocal(icomplex value) {
+constexpr inline icomplex complex_conjugate(icomplex value) {
 	return {value.x, -value.y};
 }
 
@@ -853,12 +853,17 @@ inline complex complex_from_radians(r32 radians) {
 	return {cosine(radians), sine(radians)};
 }
 
-constexpr inline complex complex_reciprocal(complex value) {
-	// @Note: normalized value do not need division by magnitude_squared(value)
+constexpr inline complex complex_conjugate(complex value) {
 	return {value.x, -value.y};
 }
 
-constexpr inline complex complex_multiply(complex first, complex second) {
+// @Note: normalized value do not need reciprocal: a conjugate suffice
+constexpr inline r32 magnitude_squared(vec2 value);
+constexpr inline complex complex_reciprocal(complex value) {
+	return complex_conjugate(value) / magnitude_squared(value);
+}
+
+constexpr inline complex complex_product(complex first, complex second) {
 	return {
 		first.x * second.x - first.y * second.y,
 		first.x * second.y + first.y * second.x
@@ -866,7 +871,7 @@ constexpr inline complex complex_multiply(complex first, complex second) {
 }
 
 constexpr inline complex complex_rotate_vector(complex c, vec2 vector) {
-	return complex_multiply(c, vector);
+	return complex_product(c, vector);
 }
 
 //
@@ -934,9 +939,14 @@ quaternion rotation formula (by angle A around axis N)
 > > also that's why we specifically use (half_radians = euler_radians / 2) in the code
 */
 
-constexpr inline quat quat_reciprocal(quat value) {
-	// @Note: normalized value do not need division by magnitude_squared(value)
+constexpr inline quat quat_conjugate(quat value) {
 	return {-value.x, -value.y, -value.z, value.w};
+}
+
+// @Note: normalized value do not need reciprocal: a conjugate suffice
+constexpr inline r32 magnitude_squared(vec4 value);
+constexpr inline quat quat_reciprocal(quat value) {
+	return quat{-value.x, -value.y, -value.z, value.w} / magnitude_squared(value);
 }
 
 inline quat quat_from_axis(vec3 axis, r32 radians) {
@@ -992,7 +1002,8 @@ return quat_product(
 );
 */
 constexpr inline vec3 quat_rotate_vector(quat q, vec3 vector) {
-	quat reciprocal = quat_reciprocal(q);
+	// @Note: normalized value do not need reciprocal: a conjugate suffice
+	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis = cross_product(q.xyz, vector) + vector * q.w;
 	return cross_product(product_axis, reciprocal.xyz)
 	     + product_axis * reciprocal.w
@@ -1008,7 +1019,8 @@ up      = quat_rotate_vector(quat, {0, 1, 0});
 forward = quat_rotate_vector(quat, {0, 0, 1});
 */
 constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
-	quat reciprocal = quat_reciprocal(q);
+	// @Note: normalized value do not need reciprocal: a conjugate suffice
+	quat reciprocal = quat_conjugate(q);
 
 	vec3 product_axis_a = {q.w, q.z, -q.y};
 	right = cross_product(product_axis_a, reciprocal.xyz)
@@ -1027,7 +1039,8 @@ constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forw
 };
 
 constexpr inline vec3 quat_get_right(quat q) {
-	quat reciprocal = quat_reciprocal(q);
+	// @Note: normalized value do not need reciprocal: a conjugate suffice
+	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_a = {q.w, q.z, -q.y};
 	return cross_product(product_axis_a, reciprocal.xyz)
 	     + product_axis_a * reciprocal.w
@@ -1035,7 +1048,8 @@ constexpr inline vec3 quat_get_right(quat q) {
 };
 
 constexpr inline vec3 quat_get_up(quat q) {
-	quat reciprocal = quat_reciprocal(q);
+	// @Note: normalized value do not need reciprocal: a conjugate suffice
+	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_b = {-q.z, q.w, q.x};
 	return cross_product(product_axis_b, reciprocal.xyz)
 	     + product_axis_b * reciprocal.w
@@ -1043,7 +1057,8 @@ constexpr inline vec3 quat_get_up(quat q) {
 };
 
 constexpr inline vec3 quat_get_forward(quat q) {
-	quat reciprocal = quat_reciprocal(q);
+	// @Note: normalized value do not need reciprocal: a conjugate suffice
+	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_c = {q.y, -q.x, q.w};
 	return cross_product(product_axis_c, reciprocal.xyz)
 	     + product_axis_c * reciprocal.w

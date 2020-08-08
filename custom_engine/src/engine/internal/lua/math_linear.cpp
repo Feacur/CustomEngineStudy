@@ -13,6 +13,7 @@
 //
 
 static int vec2_index(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_INDEX_RAWGET_IMPL(vec2)
 
 	LUA_DECLARE_USERDATA_CONST_FAST(vec2, object, 1);
@@ -27,6 +28,7 @@ static int vec2_index(lua_State * L) {
 }
 
 static int vec2_newindex(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
 	LUA_DECLARE_USERDATA(vec2, object, 1);
 	cstring id = lua_tostring(L, 2);
 
@@ -39,11 +41,72 @@ static int vec2_newindex(lua_State * L) {
 	return 0;
 }
 
-static int vec2_magnitude_squared(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+static int vec2_add(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
 
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object, 1);
-	lua_pushnumber(L, magnitude_squared(*object));
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = *object1 + *object2;
+
+	return 1;
+}
+
+static int vec2_sub(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = *object1 - *object2;
+
+	return 1;
+}
+
+static int vec2_mul(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = *object1 * *object2;
+
+	return 1;
+}
+
+static int vec2_div(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = *object1 / *object2;
+
+	return 1;
+}
+
+static int vec2_unm(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = -*object1;
+
+	return 1;
+}
+
+static int vec2_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
 
 	return 1;
 }
@@ -72,14 +135,79 @@ static int vec2_dot(lua_State * L) {
 	return 1;
 }
 
+static int vec2_cross(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+	lua_pushnumber(L, cross_product(*object1, *object2));
+
+	return 1;
+}
+
+static int vec2_magnitude_squared(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object, 1);
+	lua_pushnumber(L, magnitude_squared(*object));
+
+	return 1;
+}
+
+static int vec2_scale(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = *object1 * (r32)lua_tonumber(L, 2);
+
+	return 1;
+}
+
+static int vec2_complex_from_radians(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = complex_from_radians((r32)lua_tonumber(L, 1));
+
+	return 1;
+}
+
+static int vec2_complex_product(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = complex_product(*object1, *object2);
+
+	return 1;
+}
+
 static luaL_Reg const vec2_meta[] = {
 	{"__index", vec2_index},
 	{"__newindex", vec2_newindex},
+	{"__add", vec2_add},
+	{"__sub", vec2_sub},
+	{"__mul", vec2_mul},
+	{"__div", vec2_div},
+	{"__unm", vec2_unm},
+	{"__eq",  vec2_eq},
 	// instance:###
-	{"magnitude_squared", vec2_magnitude_squared},
 	// Type.###
 	{"new", vec2_new},
 	{"dot", vec2_dot},
+	{"cross", vec2_cross},
+	{"magnitude_squared", vec2_magnitude_squared},
+	// Type.###
+	{"scale", vec2_scale},
+	// Type.###
+	{"complex_from_radians", vec2_complex_from_radians},
+	{"complex_product",      vec2_complex_product},
 	{NULL, NULL},
 };
 
@@ -88,6 +216,7 @@ static luaL_Reg const vec2_meta[] = {
 //
 
 static int vec3_index(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_INDEX_RAWGET_IMPL(vec3)
 
 	LUA_DECLARE_USERDATA_CONST_FAST(vec3, object, 1);
@@ -103,6 +232,7 @@ static int vec3_index(lua_State * L) {
 }
 
 static int vec3_newindex(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
 	LUA_DECLARE_USERDATA(vec3, object, 1);
 	cstring id = lua_tostring(L, 2);
 
@@ -116,11 +246,72 @@ static int vec3_newindex(lua_State * L) {
 	return 0;
 }
 
-static int vec3_magnitude_squared(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+static int vec3_add(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
 
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object, 1);
-	lua_pushnumber(L, magnitude_squared(*object));
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = *object1 + *object2;
+
+	return 1;
+}
+
+static int vec3_sub(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = *object1 - *object2;
+
+	return 1;
+}
+
+static int vec3_mul(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = *object1 * *object2;
+
+	return 1;
+}
+
+static int vec3_div(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = *object1 / *object2;
+
+	return 1;
+}
+
+static int vec3_unm(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = -*object1;
+
+	return 1;
+}
+
+static int vec3_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
 
 	return 1;
 }
@@ -151,14 +342,56 @@ static int vec3_dot(lua_State * L) {
 	return 1;
 }
 
+static int vec3_cross(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+	
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = cross_product(*object1, *object2);
+
+	return 1;
+}
+
+static int vec3_magnitude_squared(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object, 1);
+	lua_pushnumber(L, magnitude_squared(*object));
+
+	return 1;
+}
+
+static int vec3_scale(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object1, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = *object1 * (r32)lua_tonumber(L, 2);
+
+	return 1;
+}
+
 static luaL_Reg const vec3_meta[] = {
 	{"__index", vec3_index},
 	{"__newindex", vec3_newindex},
+	{"__add", vec3_add},
+	{"__sub", vec3_sub},
+	{"__mul", vec3_mul},
+	{"__div", vec3_div},
+	{"__unm", vec3_unm},
+	{"__eq",  vec3_eq},
 	// instance:###
-	{"magnitude_squared", vec3_magnitude_squared},
 	// Type.###
 	{"new", vec3_new},
 	{"dot", vec3_dot},
+	{"cross", vec3_cross},
+	{"magnitude_squared", vec3_magnitude_squared},
+	// Type.###
+	{"scale", vec3_scale},
 	{NULL, NULL},
 };
 
@@ -167,6 +400,7 @@ static luaL_Reg const vec3_meta[] = {
 //
 
 static int vec4_index(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_INDEX_RAWGET_IMPL(vec4)
 
 	LUA_DECLARE_USERDATA_CONST_FAST(vec4, object, 1);
@@ -183,6 +417,7 @@ static int vec4_index(lua_State * L) {
 }
 
 static int vec4_newindex(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
 	LUA_DECLARE_USERDATA(vec4, object, 1);
 	cstring id = lua_tostring(L, 2);
 
@@ -197,11 +432,72 @@ static int vec4_newindex(lua_State * L) {
 	return 0;
 }
 
-static int vec4_magnitude_squared(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+static int vec4_add(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
 
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
-	lua_pushnumber(L, magnitude_squared(*object));
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = *object1 + *object2;
+
+	return 1;
+}
+
+static int vec4_sub(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = *object1 - *object2;
+
+	return 1;
+}
+
+static int vec4_mul(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = *object1 * *object2;
+
+	return 1;
+}
+
+static int vec4_div(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = *object1 / *object2;
+
+	return 1;
+}
+
+static int vec4_unm(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = -*object1;
+
+	return 1;
+}
+
+static int vec4_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
 
 	return 1;
 }
@@ -234,14 +530,137 @@ static int vec4_dot(lua_State * L) {
 	return 1;
 }
 
+static int vec4_magnitude_squared(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+	lua_pushnumber(L, magnitude_squared(*object));
+
+	return 1;
+}
+
+static int vec4_scale(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = *object1 * (r32)lua_tonumber(L, 2);
+
+	return 1;
+}
+
+static int vec4_quat_from_axis(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, axis, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_from_axis(*axis, (r32)lua_tonumber(L, 2));
+
+	return 1;
+}
+
+static int vec4_quat_product(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_product(*object1, *object2);
+
+	return 1;
+}
+
+static int vec4_quat_from_radians(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_from_radians({
+		(r32)lua_tonumber(L, 1),
+		(r32)lua_tonumber(L, 2),
+		(r32)lua_tonumber(L, 3),
+	});
+
+	return 1;
+}
+
+static int vec4_quat_rotate_vector(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_rotate_vector(*object1, *object2);
+
+	return 1;
+}
+
+static int vec4_quat_get_right(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_right(*object);
+
+	return 1;
+}
+
+static int vec4_quat_get_up(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_up(*object);
+
+	return 1;
+}
+
+static int vec4_quat_get_forward(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_forward(*object);
+
+	return 1;
+}
+
 static luaL_Reg const vec4_meta[] = {
 	{"__index", vec4_index},
 	{"__newindex", vec4_newindex},
+	{"__add", vec4_add},
+	{"__sub", vec4_sub},
+	{"__mul", vec4_mul},
+	{"__div", vec4_div},
+	{"__unm", vec4_unm},
+	{"__eq",  vec4_eq},
 	// instance:###
-	{"magnitude_squared", vec4_magnitude_squared},
 	// Type.###
 	{"new", vec4_new},
 	{"dot", vec4_dot},
+	{"magnitude_squared", vec4_magnitude_squared},
+	// Type.###
+	{"scale", vec4_scale},
+	// Type.###
+	{"quat_from_axis",     vec4_quat_from_axis},
+	{"quat_product",       vec4_quat_product},
+	{"quat_from_radians",  vec4_quat_from_radians},
+	{"quat_rotate_vector", vec4_quat_rotate_vector},
+	{"quat_get_right",     vec4_quat_get_right},
+	{"quat_get_up",        vec4_quat_get_up},
+	{"quat_get_forward",   vec4_quat_get_forward},
 	{NULL, NULL},
 };
 
