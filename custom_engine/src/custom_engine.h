@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 #include "engine/core/code.h"
 #include "engine/core/types.h"
