@@ -165,29 +165,6 @@ static int vec2_scale(lua_State * L) {
 	return 1;
 }
 
-static int vec2_complex_from_radians(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
-
-	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
-	luaL_setmetatable(L, "vec2");
-	*udata = complex_from_radians((r32)lua_tonumber(L, 1));
-
-	return 1;
-}
-
-static int vec2_complex_product(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
-
-	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
-	luaL_setmetatable(L, "vec2");
-	*udata = complex_product(*object1, *object2);
-
-	return 1;
-}
-
 static luaL_Reg const vec2_meta[] = {
 	{"__index", vec2_index},
 	{"__newindex", vec2_newindex},
@@ -205,9 +182,36 @@ static luaL_Reg const vec2_meta[] = {
 	{"magnitude_squared", vec2_magnitude_squared},
 	// Type.###
 	{"scale", vec2_scale},
-	// Type.###
-	{"complex_from_radians", vec2_complex_from_radians},
-	{"complex_product",      vec2_complex_product},
+	{NULL, NULL},
+};
+
+static int complex_from_radians(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = complex_from_radians((r32)lua_tonumber(L, 1));
+
+	return 1;
+}
+
+static int complex_product(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec2, object2, 2);
+
+	vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
+	luaL_setmetatable(L, "vec2");
+	*udata = complex_product(*object1, *object2);
+
+	return 1;
+}
+
+static luaL_Reg const complex_aux[] = {
+	// Lib.###
+	{"complex_from_radians", complex_from_radians},
+	{"complex_product",      complex_product},
 	{NULL, NULL},
 };
 
@@ -551,92 +555,6 @@ static int vec4_scale(lua_State * L) {
 	return 1;
 }
 
-static int vec4_quat_from_axis(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, axis, 1);
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
-
-	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
-	luaL_setmetatable(L, "vec4");
-	*udata = quat_from_axis(*axis, (r32)lua_tonumber(L, 2));
-
-	return 1;
-}
-
-static int vec4_quat_product(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
-
-	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
-	luaL_setmetatable(L, "vec4");
-	*udata = quat_product(*object1, *object2);
-
-	return 1;
-}
-
-static int vec4_quat_from_radians(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-
-	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
-	luaL_setmetatable(L, "vec4");
-	*udata = quat_from_radians({
-		(r32)lua_tonumber(L, 1),
-		(r32)lua_tonumber(L, 2),
-		(r32)lua_tonumber(L, 3),
-	});
-
-	return 1;
-}
-
-static int vec4_quat_rotate_vector(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
-
-	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
-	luaL_setmetatable(L, "vec3");
-	*udata = quat_rotate_vector(*object1, *object2);
-
-	return 1;
-}
-
-static int vec4_quat_get_right(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
-
-	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
-	luaL_setmetatable(L, "vec3");
-	*udata = quat_get_right(*object);
-
-	return 1;
-}
-
-static int vec4_quat_get_up(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
-
-	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
-	luaL_setmetatable(L, "vec3");
-	*udata = quat_get_up(*object);
-
-	return 1;
-}
-
-static int vec4_quat_get_forward(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
-
-	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
-	luaL_setmetatable(L, "vec3");
-	*udata = quat_get_forward(*object);
-
-	return 1;
-}
-
 static luaL_Reg const vec4_meta[] = {
 	{"__index", vec4_index},
 	{"__newindex", vec4_newindex},
@@ -653,14 +571,104 @@ static luaL_Reg const vec4_meta[] = {
 	{"magnitude_squared", vec4_magnitude_squared},
 	// Type.###
 	{"scale", vec4_scale},
-	// Type.###
-	{"quat_from_axis",     vec4_quat_from_axis},
-	{"quat_product",       vec4_quat_product},
-	{"quat_from_radians",  vec4_quat_from_radians},
-	{"quat_rotate_vector", vec4_quat_rotate_vector},
-	{"quat_get_right",     vec4_quat_get_right},
-	{"quat_get_up",        vec4_quat_get_up},
-	{"quat_get_forward",   vec4_quat_get_forward},
+	{NULL, NULL},
+};
+
+static int quat_from_axis(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, axis, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_from_axis(*axis, (r32)lua_tonumber(L, 2));
+
+	return 1;
+}
+
+static int quat_product(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object2, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_product(*object1, *object2);
+
+	return 1;
+}
+
+static int quat_from_radians(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = quat_from_radians({
+		(r32)lua_tonumber(L, 1),
+		(r32)lua_tonumber(L, 2),
+		(r32)lua_tonumber(L, 3),
+	});
+
+	return 1;
+}
+
+static int quat_rotate_vector(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec3, object2, 2);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_rotate_vector(*object1, *object2);
+
+	return 1;
+}
+
+static int quat_get_right(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_right(*object);
+
+	return 1;
+}
+
+static int quat_get_up(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_up(*object);
+
+	return 1;
+}
+
+static int quat_get_forward(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 1 argument");
+	LUA_DECLARE_USERDATA_CONST_SAFE(vec4, object, 1);
+
+	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
+	luaL_setmetatable(L, "vec3");
+	*udata = quat_get_forward(*object);
+
+	return 1;
+}
+
+static luaL_Reg const quat_aux[] = {
+	// Lib.###
+	{"from_axis",     quat_from_axis},
+	{"product",       quat_product},
+	{"from_radians",  quat_from_radians},
+	{"rotate_vector", quat_rotate_vector},
+	{"get_right",     quat_get_right},
+	{"get_up",        quat_get_up},
+	{"get_forward",   quat_get_forward},
 	{NULL, NULL},
 };
 
@@ -671,6 +679,9 @@ void init_math_linear(lua_State * L) {
 	LUA_META_IMPL(vec2)
 	LUA_META_IMPL(vec3)
 	LUA_META_IMPL(vec4)
+	//
+	LUA_AUX_IMPL(complex)
+	LUA_AUX_IMPL(quat)
 }
 
 }}

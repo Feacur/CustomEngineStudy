@@ -40,6 +40,10 @@
 	#define LUA_ASSERT_USERDATA(T, index) (void)0
 #endif
 
+#define LUA_AUX_IMPL(T)\
+	luaL_newlib(L, T##_aux);\
+	lua_setglobal(L, #T);\
+
 // @Note: metatable contains metamethods, instance functions, static functions;
 //        also it becomes a global value
 #define LUA_META_IMPL(T)\
