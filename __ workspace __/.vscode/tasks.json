@@ -63,5 +63,57 @@
                 "cwd": ".."
             },
         },
+        {
+            "label": "Prepare Assets Shipping",
+            "group": "build",
+            "command": "${workspaceFolder}/../prepare_assets.bat",
+            "args": [
+                "Shipping-windows-x86_64",
+            ],
+            "problemMatcher": [],
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Prepare Assets Development",
+            "group": "build",
+            "command": "${workspaceFolder}/../prepare_assets.bat",
+            "args": [
+                "Development-windows-x86_64",
+            ],
+            "problemMatcher": [],
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Prepare Assets Debug",
+            "group": "build",
+            "command": "${workspaceFolder}/../prepare_assets.bat",
+            "args": [
+                "Debug-windows-x86_64",
+            ],
+            "problemMatcher": [],
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Prepare Assets DebugLibs",
+            "group": "build",
+            "command": "${workspaceFolder}/../prepare_assets.bat",
+            "args": [
+                "DebugLibs-windows-x86_64",
+            ],
+            "problemMatcher": [],
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
     ]
 }
