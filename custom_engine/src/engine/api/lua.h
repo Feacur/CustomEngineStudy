@@ -26,6 +26,7 @@
 #define LUA_ASSERT_TYPE(T, index) CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d; got %s", #T, index, luaL_typename(L, index))
 
 #define LUA_ASSERT_USERDATA(T, index) do {\
+	(void)(T *)0;\
 	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
 	CUSTOM_LUA_ASSERT(lua_getmetatable(L, index), "expected a userdata with a metatable at index %d", index);\
 	CUSTOM_LUA_ASSERT(luaL_getmetatable(L, #T) == LUA_TTABLE, "metatable '%s' doesn't exist", #T);\
@@ -56,16 +57,20 @@
 
 // @Note: seek for a value in the corresponding metatable first,
 //        then pass execution further to the rest of the index method
-#define LUA_INDEX_RAWGET_IMPL(T)\
+#define LUA_INDEX_RAWGET_IMPL(T) do {\
 	LUA_ASSERT_USERDATA(T, 1);\
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }\
 	\
 	lua_pushvalue(L, 2);\
 	if (lua_rawget(L, -2) != LUA_TNIL) { lua_remove(L, -2); return 1; }\
 	lua_pop(L, 2);\
+} while (0)\
 
 // @Note: testing idea of universal userdata declarations
-#define LUA_DECLARE_USERDATA(T, name, index)\
+#define LUA_DECLARE_USERDATA_FAST(T, name, index)\
+	T * name = (T *)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_SAFE(T, name, index)\
 	LUA_ASSERT_USERDATA(T, index);\
 	T * name = (T *)lua_touserdata(L, index)\
 
@@ -76,7 +81,11 @@
 	LUA_ASSERT_USERDATA(T, index);\
 	T const * name = (T const*)lua_touserdata(L, index)\
 
-#define LUA_DECLARE_USERDATA_REF(T, name, index)\
+// @Note: testing idea of universal userdata declarations
+#define LUA_DECLARE_USERDATA_REF_FAST(T, name, index)\
+	custom::RefT<T> * name = (custom::RefT<T> *)lua_touserdata(L, index)\
+
+#define LUA_DECLARE_USERDATA_REF_SAFE(T, name, index)\
 	LUA_ASSERT_USERDATA(T, index);\
 	custom::RefT<T> * name = (custom::RefT<T> *)lua_touserdata(L, index)\
 

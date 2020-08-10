@@ -8,7 +8,7 @@
 // #include <lstate.h>
 
 static int Lua_Script_index(lua_State * L) {
-	LUA_INDEX_RAWGET_IMPL(Lua_Script)
+	LUA_INDEX_RAWGET_IMPL(Lua_Script);
 
 	LUA_DECLARE_USERDATA_CONST_REF_FAST(Lua_Script, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
@@ -23,7 +23,7 @@ static int Lua_Script_index(lua_State * L) {
 }
 
 static int Lua_Script_newindex(lua_State * L) {
-	LUA_DECLARE_USERDATA_REF(Lua_Script, object, 1);
+	LUA_DECLARE_USERDATA_REF_FAST(Lua_Script, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -38,15 +38,26 @@ static int Lua_Script_newindex(lua_State * L) {
 	return 0;
 }
 
+static int Lua_Script_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Lua_Script, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Lua_Script, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
 static luaL_Reg const Lua_Script_meta[] = {
 	{"__index", Lua_Script_index},
 	{"__newindex", Lua_Script_newindex},
+	{"__eq", Lua_Script_eq},
 	//
 	{NULL, NULL},
 };
 
 static int Transform_index(lua_State * L) {
-	LUA_INDEX_RAWGET_IMPL(Transform)
+	LUA_INDEX_RAWGET_IMPL(Transform);
 
 	LUA_DECLARE_USERDATA_CONST_REF_FAST(Transform, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
@@ -80,7 +91,7 @@ static int Transform_index(lua_State * L) {
 }
 
 static int Transform_newindex(lua_State * L) {
-	LUA_DECLARE_USERDATA_REF(Transform, object, 1);
+	LUA_DECLARE_USERDATA_REF_FAST(Transform, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -108,15 +119,26 @@ static int Transform_newindex(lua_State * L) {
 	return 0;
 }
 
+static int Transform_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Transform, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Transform, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
 static luaL_Reg const Transform_meta[] = {
 	{"__index", Transform_index},
 	{"__newindex", Transform_newindex},
+	{"__eq", Transform_eq},
 	//
 	{NULL, NULL},
 };
 
 static int Visual_index(lua_State * L) {
-	LUA_INDEX_RAWGET_IMPL(Visual)
+	LUA_INDEX_RAWGET_IMPL(Visual);
 
 	LUA_DECLARE_USERDATA_CONST_REF_FAST(Visual, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
@@ -133,7 +155,7 @@ static int Visual_index(lua_State * L) {
 }
 
 static int Visual_newindex(lua_State * L) {
-	LUA_DECLARE_USERDATA_REF(Visual, object, 1);
+	LUA_DECLARE_USERDATA_REF_FAST(Visual, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -156,9 +178,20 @@ static int Visual_newindex(lua_State * L) {
 	return 0;
 }
 
+static int Visual_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_REF_FAST(Visual, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Visual, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
 static luaL_Reg const Visual_meta[] = {
 	{"__index", Visual_index},
 	{"__newindex", Visual_newindex},
+	{"__eq", Visual_eq},
 	//
 	{NULL, NULL},
 };

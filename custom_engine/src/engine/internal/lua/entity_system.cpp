@@ -13,7 +13,7 @@
 typedef custom::Entity Entity;
 
 static int Entity_index(lua_State * L) {
-	LUA_INDEX_RAWGET_IMPL(Entity)
+	LUA_INDEX_RAWGET_IMPL(Entity);
 
 	LUA_DECLARE_USERDATA_CONST_FAST(Entity, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
@@ -25,7 +25,7 @@ static int Entity_index(lua_State * L) {
 }
 
 static int Entity_newindex(lua_State * L) {
-	LUA_DECLARE_USERDATA(Entity, object, 1);
+	LUA_DECLARE_USERDATA_FAST(Entity, object, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -37,10 +37,20 @@ static int Entity_newindex(lua_State * L) {
 	return 0;
 }
 
+static int Entity_eq(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_DECLARE_USERDATA_CONST_FAST(Entity, object1, 1);
+	LUA_DECLARE_USERDATA_CONST_SAFE(Entity, object2, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
 static int Entity_add_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_DECLARE_USERDATA(Entity, object, 1);
+	LUA_DECLARE_USERDATA_SAFE(Entity, object, 1);
 
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
@@ -56,7 +66,7 @@ static int Entity_add_component(lua_State * L) {
 static int Entity_rem_component(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 
-	LUA_DECLARE_USERDATA(Entity, object, 1);
+	LUA_DECLARE_USERDATA_SAFE(Entity, object, 1);
 
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
@@ -118,6 +128,7 @@ static int Entity_destroy(lua_State * L) {
 static luaL_Reg const Entity_meta[] = {
 	{"__index", Entity_index},
 	{"__newindex", Entity_newindex},
+	{"__eq", Entity_eq},
 	// instance:###
 	{"add_component", Entity_add_component},
 	{"rem_component", Entity_rem_component},
