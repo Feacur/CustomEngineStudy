@@ -19,7 +19,7 @@ if [%target_location%] == [] (
 rem clean batch file arguments
 set target_location=%target_location:"=%
 
-echo ---- COPY ---- %time%
+echo ---- PREPARE ASSETS: START ---- %time%
 xcopy /Q /E /Y /I /D ".\custom_engine\assets" ".\bin\%target_location%\sandbox\assets"
 xcopy /Q /E /Y /I /D ".\sandbox\assets" ".\bin\%target_location%\sandbox\assets"
-echo ---- DONE ---- %time%
+echo ---- PREPARE ASSETS: DONE  ---- %time%

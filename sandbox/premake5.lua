@@ -31,8 +31,9 @@ project "sandbox"
 		"custom_engine",
 	}
 
-	postbuildcommands {
-		("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
-	}
+	-- @Note: testing custom xcopy calls instead
+	-- postbuildcommands {
+	-- 	("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
+	-- }
 
 	-- filter {}

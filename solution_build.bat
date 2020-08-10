@@ -57,6 +57,10 @@ set log_console=-noLogo -consoleLoggerParameters:Verbosity=quiet;Summary;ErrorsO
 rem -consoleLoggerParameters:PerformanceSummary
 rem verbosity: quiet, minimal, normal, detailed, diagnostic
 
-echo ---- BUILD ---- %time%
+echo ---- BUILD SOLUTION: START ---- %time%
 msbuild %solution% -p:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
-echo ---- DONE ---- %time%
+echo ---- BUILD SOLUTION: DONE  ---- %time%
+
+rem @Note: testing custom xcopy calls instead
+rem @Todo: provide system and architecture tags?
+call prepare_assets.bat "%configuration%-windows-x86_64"

@@ -49,9 +49,10 @@ project "custom_engine"
 		"stb",
 	}
 
-	postbuildcommands {
-		("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
-	}
+	-- @Note: testing custom xcopy calls instead
+	-- postbuildcommands {
+	-- 	("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
+	-- }
 
 	filter "system:windows"
 		defines {
@@ -126,9 +127,10 @@ project "custom_engine"
 		}
 		includedirs "%{engine_includes.glad}"
 
-	filter "kind:SharedLib"
-		postbuildcommands {
-			("{COPY} \"%{cfg.buildtarget.relpath}\" \"" .. engine_target_location .. "/sandbox/\""),
-		}
+	-- @Note: testing custom xcopy calls instead
+	-- filter "kind:SharedLib"
+	-- 	postbuildcommands {
+	-- 		("{COPY} \"%{cfg.buildtarget.relpath}\" \"" .. engine_target_location .. "/sandbox/\""),
+	-- 	}
 
 	filter {}
