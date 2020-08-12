@@ -5,7 +5,7 @@
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/graphics_params.h"
-#include "engine/impl/entity_system.h"
+#include "engine/api/internal/reference.h"
 
 // http://www.reedbeta.com/blog/depth-precision-visualized/
 // https://developer.nvidia.com/content/depth-precision-visualized

@@ -1,5 +1,7 @@
 #include "custom_engine.h"
 
+#include "engine/impl/math_linear.h"
+
 #include "assets/ids.h"
 #include "components/types.h"
 #include "entity_system/ecs_renderer.h"

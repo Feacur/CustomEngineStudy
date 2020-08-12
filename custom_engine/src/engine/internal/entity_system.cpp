@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 
+#include "engine/impl/array.h"
 #include "engine/impl/entity_system.h"
 
 namespace custom {

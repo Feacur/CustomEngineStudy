@@ -1,6 +1,5 @@
 #pragma once
 #include "engine/api/internal/entity_system.h"
-#include "engine/impl/array.h"
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
