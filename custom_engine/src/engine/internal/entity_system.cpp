@@ -15,8 +15,8 @@ template struct Array<bool_ref_func *>;
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
 Array<ref_void_func *> Entity::component_constructors;
-Array<bool_ref_func *> Entity::component_containers;
 Array<void_ref_func *> Entity::component_destructors;
+Array<bool_ref_func *> Entity::component_containers;
 Array<Ref>             Entity::components;
 
 }

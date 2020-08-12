@@ -76,8 +76,6 @@ BYTECODE_IMPL(char)
 }
 
 // @Note: initialize compile-time structs (Asset)
-namespace custom {
-
 #define ASSET_IMPL(T)\
 	/* @Note: initialize compile-time structs: */\
 	template struct custom::Array<T>;\
@@ -85,9 +83,7 @@ namespace custom {
 	/* @Note: initialize compile-time statics: */\
 	custom::Ref_Pool<T> custom::RefT<T>::pool;\
 
-ASSET_IMPL(ShaderAsset);
-ASSET_IMPL(TextureAsset);
-ASSET_IMPL(MeshAsset);
+ASSET_IMPL(custom::ShaderAsset);
+ASSET_IMPL(custom::TextureAsset);
+ASSET_IMPL(custom::MeshAsset);
 #undef ASSET_IMPL
-
-}

@@ -86,3 +86,20 @@ struct Ref_Pool
 };
 
 }
+
+//
+// universal access
+//
+
+namespace custom {
+
+#define REF_VOID_FUNC(ROUTINE_NAME) Ref ROUTINE_NAME(void)
+typedef REF_VOID_FUNC(ref_void_func);
+
+#define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & ref)
+typedef VOID_REF_FUNC(void_ref_func);
+
+#define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
+typedef BOOL_REF_FUNC(bool_ref_func);
+
+}

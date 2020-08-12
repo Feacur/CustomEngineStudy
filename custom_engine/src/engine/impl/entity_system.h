@@ -4,26 +4,6 @@
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
 //
-// entity components
-//
-
-namespace custom {
-
-template<typename T> REF_VOID_FUNC(ref_pool_create) {
-	return RefT<T>::pool.create();
-}
-
-template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
-	return RefT<T>::pool.contains(ref);
-}
-
-template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
-	if (RefT<T>::pool.contains(ref)) { RefT<T>::pool.destroy(ref); }
-}
-
-}
-
-//
 // entity
 //
 
