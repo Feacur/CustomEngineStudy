@@ -46,7 +46,8 @@ static void signal_handler(int value);
 
 namespace custom {
 namespace globals {
-void init(void);
+	// @Forward
+	void init(void);
 }}
 
 namespace custom {

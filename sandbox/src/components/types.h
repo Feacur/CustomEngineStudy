@@ -1,10 +1,12 @@
 #pragma once
 #include "engine/core/math_types.h"
-// #include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/entity_system.h"
 
 namespace custom {
-	struct ShaderAsset;
-	template<typename ShaderAsset> struct RefT;
+	// @Forward
+	struct ShaderAsset;  template<typename ShaderAsset>  struct RefT;
+	struct TextureAsset; template<typename TextureAsset> struct RefT;
+	struct MeshAsset;    template<typename MeshAsset>    struct RefT;
 }
 
 struct Lua_Script

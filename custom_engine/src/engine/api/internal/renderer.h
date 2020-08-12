@@ -2,12 +2,15 @@
 #include "engine/core/math_types.h"
 
 namespace custom {
-	struct ShaderAsset;
-	template<typename ShaderAsset> struct RefT;
+	// @Forward
+	struct ShaderAsset;  template<typename ShaderAsset>  struct RefT;
+	struct TextureAsset; template<typename TextureAsset> struct RefT;
+	struct MeshAsset;    template<typename MeshAsset>    struct RefT;
 }
 
 namespace custom {
-struct Bytecode;
+	// @Forward
+	struct Bytecode;
 }
 
 namespace custom {

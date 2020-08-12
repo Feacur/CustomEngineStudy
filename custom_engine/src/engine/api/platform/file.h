@@ -2,7 +2,8 @@
 #include "engine/core/types.h"
 
 namespace custom {
-template<typename T> struct Array;
+	// @Forward
+	template<typename T> struct Array;
 }
 
 namespace custom {

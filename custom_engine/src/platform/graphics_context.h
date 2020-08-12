@@ -5,13 +5,19 @@
 
 namespace custom {
 namespace window {
-struct Internal_Data; // @Note: an opaque pointer
+	// @Forward
+	struct Internal_Data; // @Note: an opaque pointer
+}}
+
+
+namespace custom {
+namespace context {
+	// @Forward
+	struct Internal_Data; // @Note: an opaque pointer
 }}
 
 namespace custom {
 namespace context {
-
-struct Internal_Data; // @Note: an opaque pointer
 
 Internal_Data * create(window::Internal_Data * window);
 void destroy(Internal_Data * data);

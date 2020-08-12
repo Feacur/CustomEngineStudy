@@ -4,12 +4,14 @@
 struct lua_State;
 
 namespace custom {
-	struct ShaderAsset;  template<typename ShaderAsset> struct RefT;
+	// @Forward
+	struct ShaderAsset;  template<typename ShaderAsset>  struct RefT;
 	struct TextureAsset; template<typename TextureAsset> struct RefT;
-	struct MeshAsset;    template<typename MeshAsset> struct RefT;
+	struct MeshAsset;    template<typename MeshAsset>    struct RefT;
 }
 
 namespace custom {
+	// @Forward
 	struct Bytecode;
 }
 

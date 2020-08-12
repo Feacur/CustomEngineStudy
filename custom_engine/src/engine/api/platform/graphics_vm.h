@@ -1,7 +1,8 @@
 #pragma once
 
 namespace custom {
-struct Bytecode;
+	// @Forward
+	struct Bytecode;
 }
 
 namespace custom {
