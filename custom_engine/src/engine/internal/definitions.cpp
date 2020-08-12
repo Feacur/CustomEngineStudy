@@ -5,7 +5,7 @@
 #include "engine/api/internal/assets.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
-#include "engine/impl/entity_system.h"
+#include "engine/impl/reference.h"
 
 // @Note: thought that a separate translation unit is currently too much for this
 namespace custom {

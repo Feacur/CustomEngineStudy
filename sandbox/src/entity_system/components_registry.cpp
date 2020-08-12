@@ -1,4 +1,5 @@
 #include "engine/api/client/components_lookup.h"
+#include "engine/impl/reference.h"
 #include "engine/impl/entity_system.h"
 
 #include "../components/types.h"

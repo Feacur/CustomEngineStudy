@@ -18,38 +18,13 @@ Array<bool_ref_func *> Entity::component_containers;
 Array<void_ref_func *> Entity::component_destructors;
 Array<Ref>             Entity::components;
 
-//
-// pool
-//
-
-Ref Gen_Pool::create(void) {
-	u32 id;
-	if (gaps.count > 0) {
-		id = gaps[gaps.count - 1];
-		gaps.pop();
-	}
-	else {
-		id = gens.count;
-		gens.push(0);
-	}
-	return { id, gens.get(id) };
-}
-
-void Gen_Pool::destroy(Ref const & ref) {
-	// @Change: ignore, but warn, if data doesn't exist?
-	CUSTOM_ASSERT(ref.gen == gens.get(ref.id), "destroying null data");
-	++gens[ref.id];
-	if (ref.id == gens.count - 1) {
-		gens.pop();
-	}
-	else {
-		gaps.push(ref.id);
-	}
 }
 
 //
 // entity
 //
+
+namespace custom {
 
 Entity Entity::create(void) {
 	Ref ref = Entity::generations.create();
@@ -83,9 +58,13 @@ void Entity::destroy(Entity const & entity) {
 	}
 }
 
+}
+
 //
 // entity components
 //
+
+namespace custom {
 
 Ref Entity::add_component(u32 type) {
 	// @Change: ignore, but warn, if component exists?

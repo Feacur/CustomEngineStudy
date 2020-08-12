@@ -23,22 +23,47 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
+static void init_assets(void) {
+	// @Note: shaders
+	(*custom::RefT<custom::ShaderAsset>::create().get_fast()) = {
+		"assets/shaders/v2_texture_tint.glsl",
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
+	(*custom::RefT<custom::ShaderAsset>::create().get_fast()) = {
+		"assets/shaders/v3_texture_tint.glsl",
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
+	// @Note: textures
+	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
+		"assets/textures/checkerboard.png",
+	};
+
+	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
+		"assets/textures/blue_noise.png",
+	};
+
+	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
+		"assets/textures/proto_blue.png",
+	};
+
+	// @Note: meshes
+	(*custom::RefT<custom::MeshAsset>::create().get_fast()) = {
+		"assets/meshes/plane_xz.obj",
+	};
+
+	(*custom::RefT<custom::MeshAsset>::create().get_fast()) = {
+		"assets/meshes/suzanne.obj",
+	};
+}
+
 void init_entity_components(void);
 static void on_app_init() {
 	// @Note: init systems
 	init_entity_components();
 
-	custom::RefT<custom::ShaderAsset> shader_ref_0 = custom::RefT<custom::ShaderAsset>::create();
-	(*shader_ref_0.get_fast()) = {
-		"assets/shaders/v2_texture_tint.glsl",
-		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
-	};
-
-	custom::RefT<custom::ShaderAsset> shader_ref_1 = custom::RefT<custom::ShaderAsset>::create();
-	(*shader_ref_1.get_fast()) = {
-		"assets/shaders/v3_texture_tint.glsl",
-		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
-	};
+	init_assets();
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -66,7 +91,7 @@ static void on_app_init() {
 	
 	create_visual(
 		{
-			shader_ref_1,
+			{1, 0},
 			(u32)sandbox::Texture::proto_blue,
 			(u32)sandbox::Mesh::plane_xz,
 		},
