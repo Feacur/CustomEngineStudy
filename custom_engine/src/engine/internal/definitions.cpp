@@ -2,8 +2,10 @@
 
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/internal/assets.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
+#include "engine/impl/entity_system.h"
 
 // @Note: thought that a separate translation unit is currently too much for this
 namespace custom {
@@ -64,7 +66,10 @@ template struct Array<ivec4>;
 #define GP_IMPL(T) template struct Array<T>;
 #include "graphics_params_registry_impl.h"
 
-//
+}
+
+namespace custom {
+
 #define BYTECODE_IMPL(T)\
 	template void Bytecode::write<T>(T const * data, u32 count);\
 	template void Bytecode::write<T>(T const & datum);\
@@ -105,5 +110,21 @@ BYTECODE_IMPL(mat4);
 #define GP_IMPL(T) BYTECODE_IMPL(T)
 #include "graphics_params_registry_impl.h"
 #undef BYTECODE_IMPL
+
+}
+
+namespace custom {
+
+#define ASSET_IMPL(T)\
+	/* @Note: initialize compile-time structs: */\
+	template struct custom::Array<T>;\
+	template struct custom::RefT<T>;\
+	/* @Note: initialize compile-time statics: */\
+	custom::Ref_Pool<T> custom::RefT<T>::pool;\
+
+ASSET_IMPL(ShaderAsset);
+ASSET_IMPL(TextureAsset);
+ASSET_IMPL(MeshAsset);
+#undef ASSET_IMPL
 
 }

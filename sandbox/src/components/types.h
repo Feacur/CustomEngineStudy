@@ -2,6 +2,11 @@
 #include "engine/core/math_types.h"
 // #include "engine/api/internal/entity_system.h"
 
+namespace custom {
+	struct ShaderAsset;
+	template<typename ShaderAsset> struct RefT;
+}
+
 struct Lua_Script
 {
 	cstring update;
@@ -9,7 +14,7 @@ struct Lua_Script
 
 struct Visual
 {
-	u32 shader;
+	custom::RefT<custom::ShaderAsset> shader;
 	u32 texture;
 	u32 mesh;
 };

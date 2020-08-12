@@ -28,6 +28,18 @@ static void on_app_init() {
 	// @Note: init systems
 	init_entity_components();
 
+	custom::RefT<custom::ShaderAsset> shader_ref_0 = custom::RefT<custom::ShaderAsset>::create();
+	(*shader_ref_0.get_fast()) = {
+		"assets/shaders/v2_texture_tint.glsl",
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
+	custom::RefT<custom::ShaderAsset> shader_ref_1 = custom::RefT<custom::ShaderAsset>::create();
+	(*shader_ref_1.get_fast()) = {
+		"assets/shaders/v3_texture_tint.glsl",
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
@@ -54,7 +66,7 @@ static void on_app_init() {
 	
 	create_visual(
 		{
-			(u32)sandbox::Shader::v3_texture_tint,
+			shader_ref_1,
 			(u32)sandbox::Texture::proto_blue,
 			(u32)sandbox::Mesh::plane_xz,
 		},

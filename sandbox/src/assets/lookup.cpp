@@ -15,28 +15,6 @@ namespace script {
 	};
 };
 
-namespace shader {
-	Meta meta_presets[] = {
-		{
-			graphics::Shader_Part::Vertex | graphics::Shader_Part::Pixel,
-		},
-	};
-	u32 meta_presets_count = C_ARRAY_LENGTH(meta_presets);
-
-	constexpr u32 const ids_count = (u32)sandbox::Shader::count;
-	u32 count = ids_count;
-	cstring paths[ids_count + 1] = {
-		"assets/shaders/v2_texture_tint.glsl",
-		"assets/shaders/v3_texture_tint.glsl",
-		NULL
-	};
-	
-	u8 meta_ids[ids_count] = {
-		0,
-		0,
-	};
-};
-
 namespace uniform {
 	constexpr u32 const ids_count = (u32)sandbox::Uniform::count;
 	u32 count = ids_count;

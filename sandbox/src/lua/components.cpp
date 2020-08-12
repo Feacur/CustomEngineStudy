@@ -146,7 +146,7 @@ static int Visual_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "shader") == 0) { lua_pushinteger(L, object->get_fast()->shader); return 1; }
+	if (strcmp(id, "shader") == 0) { lua_pushinteger(L, object->get_fast()->shader.id); return 1; }
 	if (strcmp(id, "texture") == 0) { lua_pushinteger(L, object->get_fast()->texture); return 1; }
 	if (strcmp(id, "mesh") == 0) { lua_pushinteger(L, object->get_fast()->mesh); return 1; }
 
@@ -163,7 +163,12 @@ static int Visual_newindex(lua_State * L) {
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
 		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-		object->get_fast()->shader = (u32)lua_tonumber(L, 3); return 1;
+		// @Todo: implement assets interface
+		object->get_fast()->shader = {
+			(u32)lua_tonumber(L, 3),
+			0,
+		};
+		return 1;
 	}
 	if (strcmp(id, "texture") == 0) {
 		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
