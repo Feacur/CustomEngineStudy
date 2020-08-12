@@ -42,12 +42,12 @@ void set_texture(RefT<ShaderAsset> const & shader, u32 uniform, u32 texture) {
 	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
 	if (texture == empty_asset_id) { return; }
 	bc->write(custom::graphics::Instruction::Allocate_Unit);
-	bc->write(custom::graphics::unit_id{texture, empty_asset_id});
+	bc->write(unit_id{texture, empty_asset_id});
 
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::unit_id);
-	bc->write((u32)1); bc->write(custom::graphics::unit_id{texture, empty_asset_id});
+	bc->write((u32)1); bc->write(unit_id{texture, empty_asset_id});
 }
 
 void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, mat4 const & matrix) {

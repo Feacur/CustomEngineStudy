@@ -188,7 +188,7 @@ struct Data
 	custom::Array<char> uniform_names;
 	custom::Array<u32>  uniform_names_lengths;
 
-	custom::Array<custom::graphics::unit_id> unit_ids; // sparse
+	custom::Array<unit_id> unit_ids; // sparse
 	u32 active_program = empty_asset_id;
 	u32 active_mesh    = empty_asset_id;
 	u32 active_target  = empty_asset_id;
@@ -269,7 +269,7 @@ static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) 
 
 static u32 find_unit(u32 texture, u32 sampler, u32 default_unit) {
 	for (u32 i = 0; i < ogl.unit_ids.capacity; ++i) {
-		custom::graphics::unit_id const & it = ogl.unit_ids.get(i);
+		unit_id const & it = ogl.unit_ids.get(i);
 		if (it.texture != texture) { continue; }
 		if (it.sampler != sampler) { continue; }
 		return i;
@@ -279,7 +279,7 @@ static u32 find_unit(u32 texture, u32 sampler, u32 default_unit) {
 
 static u32 find_empty_unit(u32 default_unit) {
 	for (u32 i = 0; i < ogl.unit_ids.capacity; ++i) {
-		custom::graphics::unit_id const & it = ogl.unit_ids.get(i);
+		unit_id const & it = ogl.unit_ids.get(i);
 		if (it.texture != empty_asset_id) { continue; }
 		if (it.sampler != empty_asset_id) { continue; }
 		return i;
@@ -1025,39 +1025,23 @@ static GLenum get_data_type(Data_Type value) {
 	return GL_NONE;
 }
 
-#define CASE_IMPL(T) case Data_Type::T: return sizeof(T)
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
-		CASE_IMPL(unit_id);
-		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
-		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
-		CASE_IMPL(r32); CASE_IMPL(r64);
-		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
-		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
-		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
-		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
+		#define DATA_TYPE_IMPL(T) case Data_Type::T: return sizeof(T);
+		#include "engine/api/data_type_registry_impl.h"
 	}
 	CUSTOM_ASSERT(false, "unknown data type %d", value);
 	return 0;
 }
-#undef CASE_IMPL
 
-#define CASE_IMPL(T) case Data_Type::T: return bc.read<T>(count)
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
-		CASE_IMPL(unit_id);
-		CASE_IMPL(s8); CASE_IMPL(s16); CASE_IMPL(s32);
-		CASE_IMPL(u8); CASE_IMPL(u16); CASE_IMPL(u32);
-		CASE_IMPL(r32); CASE_IMPL(r64);
-		CASE_IMPL(vec2); CASE_IMPL(vec3); CASE_IMPL(vec4);
-		CASE_IMPL(ivec2); CASE_IMPL(ivec3); CASE_IMPL(ivec4);
-		CASE_IMPL(uvec2); CASE_IMPL(uvec3); CASE_IMPL(uvec4);
-		CASE_IMPL(mat2); CASE_IMPL(mat3); CASE_IMPL(mat4);
+		#define DATA_TYPE_IMPL(T) case Data_Type::T: return bc.read<T>(count);
+		#include "engine/api/data_type_registry_impl.h"
 	}
 	CUSTOM_ASSERT(false, "unknown data type %d", type);
 	return NULL;
 }
-#undef CASE_IMPL
 
 struct DT_Array { Data_Type type; u32 count; cmemory data; };
 static DT_Array read_data_array(Bytecode const & bc) {
@@ -1663,7 +1647,7 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Unit(Bytecode const & bc) {
-	custom::graphics::unit_id asset_id = *bc.read<custom::graphics::unit_id>();
+	unit_id asset_id = *bc.read<unit_id>();
 	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to use a unit");
 
 	u32 existing_unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
@@ -1684,7 +1668,7 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 	// @Todo: rebind to an occupied one?
 	u32 unit = find_empty_unit(empty_unit);
 	CUSTOM_ASSERT(unit != empty_unit, "no available texture units");
-	custom::graphics::unit_id & unit_id = ogl.unit_ids.get(unit);
+	unit_id & unit_id = ogl.unit_ids.get(unit);
 
 	unit_id.texture = asset_id.texture;
 	opengl::Texture * texture = &ogl.textures.get(asset_id.texture);
@@ -1721,7 +1705,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 	glDeleteTextures(1, &resource->id);
 
 	for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
-		custom::graphics::unit_id & it = ogl.unit_ids.get(i);
+		unit_id & it = ogl.unit_ids.get(i);
 		if (it.texture == asset_id) {
 			it.texture = empty_asset_id;
 			// @Note: texture is unbound by deletion
@@ -1730,7 +1714,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 
 	if (ogl.version >= COMPILE_VERSION(3, 2)) {
 		for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
-			custom::graphics::unit_id & it = ogl.unit_ids.get(i);
+			unit_id & it = ogl.unit_ids.get(i);
 			if (it.sampler != empty_asset_id) {
 				it.sampler = empty_asset_id;
 				glBindSampler(i, 0);
@@ -1748,7 +1732,7 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 	glDeleteSamplers(1, &resource->id);
 
 	for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
-		custom::graphics::unit_id & it = ogl.unit_ids.get(i);
+		unit_id & it = ogl.unit_ids.get(i);
 		if (it.sampler == asset_id) {
 			it.sampler = empty_asset_id;
 			// @Note: sampler is unbound by deletion
@@ -1791,12 +1775,12 @@ static void platform_Free_Target(Bytecode const & bc) {
 }
 
 static void platform_Free_Unit(Bytecode const & bc) {
-	custom::graphics::unit_id asset_id = *bc.read<custom::graphics::unit_id>();
+	unit_id asset_id = *bc.read<unit_id>();
 	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to suspend a unit");
 
 	u32 unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
 	CUSTOM_ASSERT(unit != empty_unit, "no such texture unit available");
-	custom::graphics::unit_id & unit_id = ogl.unit_ids.get(unit);
+	unit_id & unit_id = ogl.unit_ids.get(unit);
 
 	if (asset_id.texture != empty_asset_id) {
 		unit_id.texture = empty_asset_id;
@@ -2067,9 +2051,9 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 	if (ogl.version >= COMPILE_VERSION(4, 1)) {
 		switch (uniform.type) {
 			case Data_Type::unit_id: {
-				custom::graphics::unit_id const * unit_ids = (custom::graphics::unit_id *)uniform.data;
+				unit_id const * unit_ids = (unit_id *)uniform.data;
 				for (u32 i = 0; i < uniform.count; ++i) {
-					custom::graphics::unit_id unit_id = unit_ids[i];
+					unit_id unit_id = unit_ids[i];
 					u32 unit = find_unit(unit_id.texture, unit_id.sampler, ogl.unit_ids.capacity - 1);
 					units.push((s32)unit);
 				}
@@ -2104,9 +2088,9 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 		}
 		switch (uniform.type) {
 			case Data_Type::unit_id: {
-				custom::graphics::unit_id const * unit_ids = (custom::graphics::unit_id *)uniform.data;
+				unit_id const * unit_ids = (unit_id *)uniform.data;
 				for (u32 i = 0; i < uniform.count; ++i) {
-					custom::graphics::unit_id unit_id = unit_ids[i];
+					unit_id unit_id = unit_ids[i];
 					u32 unit = find_unit(unit_id.texture, unit_id.sampler, ogl.unit_ids.capacity - 1);
 					units.push((s32)unit);
 				}

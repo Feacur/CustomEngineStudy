@@ -4,7 +4,6 @@
 #include "engine/impl/math_bitwise.h"
 
 constexpr u32 const empty_asset_id = UINT32_MAX;
-
 namespace custom {
 namespace graphics {
 
@@ -98,19 +97,11 @@ enum struct Texture_Type : u8
 UNDERLYING_TYPE_META(Texture_Type, u8)
 IS_ENUM_META(Texture_Type)
 
-// @Note: final sampler type is implementation defined; OpenGL takes s32
-typedef struct { u32 texture, sampler; } unit_id;
 enum struct Data_Type : u8
 {
 	None,
-	unit_id,
-	s8, s16, s32,
-	u8, u16, u32,
-	r32, r64,
-	vec2, vec3, vec4,
-	ivec2, ivec3, ivec4,
-	uvec2, uvec3, uvec4,
-	mat2, mat3, mat4,
+	#define DATA_TYPE_IMPL(T) T,
+	#include "data_type_registry_impl.h"
 };
 UNDERLYING_TYPE_META(Data_Type, u8)
 IS_ENUM_META(Data_Type)
