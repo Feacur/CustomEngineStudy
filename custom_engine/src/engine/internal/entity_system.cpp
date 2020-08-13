@@ -7,9 +7,6 @@ namespace custom {
 
 //  @Note: initialize compile-time structs:
 template struct Array<Entity>;
-template struct Array<ref_void_func *>;
-template struct Array<void_ref_func *>;
-template struct Array<bool_ref_func *>;
 
 //  @Note: initialize compile-time statics:
 Gen_Pool               Entity::generations;
@@ -81,7 +78,7 @@ Ref Entity::add_component(u32 type) {
 	u32 component_index = id * Entity::component_constructors.count + type;
 	Ref & ref = Entity::components.get(component_index);
 
-	CUSTOM_ASSERT(!(*Entity::component_containers[type])(ref), "component already exist");
+	CUSTOM_ASSERT(!(*Entity::component_containers[type])(ref), "component already exists");
 	ref = (*Entity::component_constructors[type])();
 
 	return {ref.id, ref.gen};
@@ -94,6 +91,8 @@ void Entity::rem_component(u32 type) {
 	u32 component_index = id * Entity::component_destructors.count + type;
 	CUSTOM_ASSERT(component_index < Entity::components.capacity, "component doesn't exist");
 	Ref const & ref = Entity::components.get(component_index);
+
+	CUSTOM_ASSERT((*Entity::component_containers[type])(ref), "component doesn't exist");
 
 	(*Entity::component_destructors[type])(ref);
 }

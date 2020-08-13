@@ -1,6 +1,8 @@
 #pragma once
 #include "reference.h"
 
+// https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
+
 //
 // entity
 //
