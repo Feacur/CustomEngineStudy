@@ -13,6 +13,8 @@
 	#include <new>
 #endif
 
+typedef custom::graphics::unit_id unit_id;
+
 #if !defined(CUSTOM_SHIPPING)
 	static void PLATFORM_CONSUME_ERRORS();
 	static void PLATFORM_INIT_DEBUG();
@@ -348,23 +350,18 @@ void shutdown(void) {
 #define INSTRUCTION_IMPL(T) static void platform_##T(Bytecode const & bc);
 #include "engine/api/instructions_registry_impl.h"
 
+// glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, #T);
+// glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, #T);
+// glPopDebugGroup();
+
 void consume(Bytecode const & bc) {
 	while (bc.offset < bc.buffer.count) {
 		Instruction instruction = *bc.read<Instruction>();
 
 		switch (instruction)
 		{
-			case Instruction::None: CUSTOM_ASSERT(false, "null instruction encountered"); break;
-			#define INSTRUCTION_IMPL(T)\
-				case Instruction::T:\
-					/*glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, #T);*/\
-					/*glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, #T);*/\
-					platform_##T(bc);\
-					/*glPopDebugGroup();*/\
-					break;\
-
+			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
 			#include "engine/api/instructions_registry_impl.h"
-			case Instruction::Last: CUSTOM_ASSERT(false, "non-instruction encountered"); break;
 			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
 		}
 		PLATFORM_CONSUME_ERRORS();

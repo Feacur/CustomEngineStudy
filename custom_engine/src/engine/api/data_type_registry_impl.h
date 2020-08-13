@@ -1,4 +1,4 @@
-// @Note: utility for automatic registration of GVM instructions:
+// @Note: utility for automatic registration of GVM-related data types:
 //        - #define a DATA_TYPE_IMPL(T) macro
 //        - #include this file
 DATA_TYPE_IMPL(unit_id)

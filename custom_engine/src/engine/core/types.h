@@ -24,6 +24,3 @@ typedef void const * cmemory;
 
 typedef intptr_t  sptr;
 typedef uintptr_t uptr;
-
-// @Note: final sampler type is implementation defined; OpenGL takes s32
-typedef struct { u32 texture, sampler; } unit_id;

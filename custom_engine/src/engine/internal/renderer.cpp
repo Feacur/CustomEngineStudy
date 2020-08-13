@@ -14,6 +14,8 @@
 // https://outerra.blogspot.com/2012/11/maximizing-depth-buffer-range-and.html
 #define REVERSED_Z
 
+typedef custom::graphics::unit_id unit_id;
+
 namespace custom {
 namespace renderer {
 
