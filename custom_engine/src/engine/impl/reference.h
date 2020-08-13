@@ -39,7 +39,7 @@ template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
 }
 
 template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
-	if (RefT<T>::pool.contains(ref)) { RefT<T>::pool.destroy(ref); }
+	RefT<T>::pool.destroy(ref);
 }
 
 }

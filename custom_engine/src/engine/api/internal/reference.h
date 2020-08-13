@@ -26,8 +26,8 @@ struct RefT : public Ref
 {
 	static Ref_Pool<T> pool;
 
-	static RefT<T> create(void) { return pool.create(); }
-	static void destroy(Ref const & ref) { return pool.destroy(ref); }
+	inline static RefT<T> create(void) { return pool.create(); }
+	inline void destroy(void) { return pool.destroy(*this); }
 	inline bool exists(void) const { return pool.contains(*this); }
 
 	inline T * get_fast(void) { return pool.get_fast(*this); }

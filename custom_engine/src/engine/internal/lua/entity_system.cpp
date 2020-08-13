@@ -119,8 +119,8 @@ static int Entity_create(lua_State * L) {
 static int Entity_destroy(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 
-	LUA_DECLARE_USERDATA_CONST_SAFE(Entity, object, 1);
-	custom::Entity::destroy(*object);
+	LUA_DECLARE_USERDATA_SAFE(Entity, object, 1);
+	object->destroy();
 
 	return 0;
 }

@@ -19,7 +19,7 @@ struct Entity : public Ref
 
 	// API
 	static Entity create(void);
-	static void destroy(Entity const & entity);
+	void destroy(void);
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
@@ -30,13 +30,13 @@ struct Entity : public Ref
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);
-	bool has_component(u32 type) const;
 	Ref  get_component(u32 type) const;
+	bool has_component(u32 type) const;
 
 	template<typename T> RefT<T> add_component(void);
 	template<typename T> void    rem_component(void);
-	template<typename T> bool    has_component(void) const;
 	template<typename T> RefT<T> get_component(void) const;
+	template<typename T> bool    has_component(void) const;
 };
 
 }

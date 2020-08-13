@@ -88,8 +88,8 @@ static void on_app_init() {
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	custom::Entity::destroy(entity31);
-	custom::Entity::destroy(entity11);
+	entity31.destroy();
+	entity11.destroy();
 	
 	create_visual(
 		{
@@ -100,7 +100,7 @@ static void on_app_init() {
 		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
 	);
 
-	custom::Entity::destroy(entity21);
+	entity21.destroy();
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
