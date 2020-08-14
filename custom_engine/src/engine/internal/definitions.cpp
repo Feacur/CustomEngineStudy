@@ -9,21 +9,6 @@
 
 typedef custom::graphics::unit_id unit_id;
 
-// @Note: thought that a separate translation unit is currently too much for this
-namespace custom {
-
-Bytecode::Bytecode(void)
-	: buffer()
-	, offset(0)
-{ }
-
-void Bytecode::reset(void) {
-	buffer.count = 0;
-	offset = 0;
-}
-
-}
-
 // @Note: initialize compile-time structs (xvec<T>)
 namespace custom {
 
@@ -45,6 +30,7 @@ template struct xvec4<u32>;
 namespace custom {
 
 template struct Array<char>;
+template struct Array<cstring>;
 
 #define DATA_TYPE_IMPL(T) template struct Array<T>;
 #include "engine/api/data_type_registry_impl.h"
@@ -70,6 +56,7 @@ namespace custom {
 	template void Bytecode::copy<T>(T * out, u32 count) const;\
 
 BYTECODE_IMPL(char)
+BYTECODE_IMPL(cstring)
 
 #define DATA_TYPE_IMPL(T) BYTECODE_IMPL(T)
 #include "engine/api/data_type_registry_impl.h"
@@ -80,16 +67,3 @@ BYTECODE_IMPL(char)
 #undef BYTECODE_IMPL
 
 }
-
-// @Note: initialize compile-time structs (Asset)
-#define ASSET_IMPL(T)\
-	/* @Note: initialize compile-time structs: */\
-	template struct custom::Array<T>;\
-	template struct custom::RefT<T>;\
-	/* @Note: initialize compile-time statics: */\
-	custom::Ref_Pool<T> custom::RefT<T>::pool;\
-
-ASSET_IMPL(custom::ShaderAsset);
-ASSET_IMPL(custom::TextureAsset);
-ASSET_IMPL(custom::MeshAsset);
-#undef ASSET_IMPL

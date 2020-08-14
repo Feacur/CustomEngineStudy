@@ -2,6 +2,7 @@
 #include "engine/core/collection_types.h"
 
 namespace custom {
+	// @Forward
 	template<typename T> struct Ref_Pool;
 }
 
