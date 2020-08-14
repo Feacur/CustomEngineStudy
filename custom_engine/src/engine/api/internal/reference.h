@@ -18,8 +18,11 @@ struct Ref
 };
 
 inline bool operator==(Ref const & a, Ref const & b) {
-	return a.id  == b.id
-	    && a.gen == b.gen;
+	return a.id == b.id && a.gen == b.gen;
+}
+
+inline bool operator!=(Ref const & a, Ref const & b) {
+	return a.id != b.id || a.gen != b.gen;
 }
 
 template<typename T>

@@ -46,8 +46,7 @@ void Entity::destroy(void) {
 	Entity::generations.destroy(*this);
 
 	for (u32 i = 0; i < instances.count; ++i) {
-		if (instances[i].id != id) { continue; }
-		if (instances[i].gen != gen) { continue; }
+		if (instances[i] != *this) { continue; }
 		instances.remove_at(i);
 		break;
 	}

@@ -17,6 +17,7 @@
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
+#include "engine/api/internal/asset_system.h"
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/application.h"
 #include "engine/api/internal/lua.h"

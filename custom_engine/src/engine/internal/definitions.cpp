@@ -38,6 +38,8 @@ template struct Array<cstring>;
 #define GRAPHICS_PARAM_IMPL(T) template struct Array<graphics::T>;
 #include "graphics_params_registry_impl.h"
 
+template struct Array<Ref>;
+
 template struct Array<ref_void_func *>;
 template struct Array<void_ref_func *>;
 template struct Array<bool_ref_func *>;

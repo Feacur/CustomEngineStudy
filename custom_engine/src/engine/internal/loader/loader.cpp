@@ -12,6 +12,7 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
+#include "engine/impl/asset_system.h"
 
 namespace custom {
 namespace loader {

@@ -19,8 +19,9 @@ void shader(RefT<ShaderAsset> const & asset_ref) {
 
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
 	ShaderAsset const * asset = asset_ref.get_fast();
+	cstring path = Asset_System::get_path(asset_ref);
 
-	Array<u8> file; file::read(asset->path, file);
+	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	bc->write(graphics::Instruction::Allocate_Shader);

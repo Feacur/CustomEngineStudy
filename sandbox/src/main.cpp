@@ -1,6 +1,7 @@
 #include "custom_engine.h"
 
 #include "engine/impl/math_linear.h"
+#include "engine/impl/asset_system.h"
 
 #include "assets/ids.h"
 #include "components/types.h"
@@ -25,47 +26,34 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-static void init_assets(void) {
+static void init_client_assets(void) {
 	// @Note: shaders
-	(*custom::RefT<custom::ShaderAsset>::create().get_fast()) = {
-		"assets/shaders/v2_texture_tint.glsl",
+	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v2_texture_tint.glsl").get_fast()) = {
 		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
 	};
 
-	(*custom::RefT<custom::ShaderAsset>::create().get_fast()) = {
-		"assets/shaders/v3_texture_tint.glsl",
+	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl").get_fast()) = {
 		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
 	};
 
 	// @Note: textures
-	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
-		"assets/textures/checkerboard.png",
-	};
-
-	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
-		"assets/textures/blue_noise.png",
-	};
-
-	(*custom::RefT<custom::TextureAsset>::create().get_fast()) = {
-		"assets/textures/proto_blue.png",
-	};
+	// "assets/textures/checkerboard.png",
+	// "assets/textures/blue_noise.png",
+	// "assets/textures/proto_blue.png",
 
 	// @Note: meshes
-	(*custom::RefT<custom::MeshAsset>::create().get_fast()) = {
-		"assets/meshes/plane_xz.obj",
-	};
-
-	(*custom::RefT<custom::MeshAsset>::create().get_fast()) = {
-		"assets/meshes/suzanne.obj",
-	};
+	// "assets/meshes/plane_xz.obj",
+	// "assets/meshes/suzanne.obj",
 }
 
+void init_asset_system(void);
 void init_entity_components(void);
 static void on_app_init() {
 	// @Note: init systems
+	init_asset_system();
 	init_entity_components();
 
-	init_assets();
+	init_client_assets();
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -93,7 +81,7 @@ static void on_app_init() {
 	
 	create_visual(
 		{
-			{1, 0},
+			custom::Asset_System::get_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl"),
 			(u32)sandbox::Texture::proto_blue,
 			(u32)sandbox::Mesh::plane_xz,
 		},

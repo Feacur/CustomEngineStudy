@@ -4,15 +4,16 @@
 
 namespace custom {
 
-struct Asset {
-	cstring path;
-};
-
-struct ShaderAsset : public Asset {
+struct ShaderAsset {
 	graphics::Shader_Part parts;
 };
 
-struct TextureAsset : public Asset { };
-struct MeshAsset : public Asset { };
+struct TextureAsset {
+	u8 dummy;
+};
+
+struct MeshAsset {
+	u8 dummy;
+};
 
 }
