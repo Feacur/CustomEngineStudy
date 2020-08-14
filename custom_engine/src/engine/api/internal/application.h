@@ -3,7 +3,8 @@
 #include "engine/core/key_codes.h"
 
 namespace custom {
-struct Bytecode;
+	// @Forward
+	struct Bytecode;
 }
 
 namespace custom {

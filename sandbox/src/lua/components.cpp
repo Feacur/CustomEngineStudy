@@ -2,6 +2,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
 #include "engine/api/internal/entity_system.h"
+#include "engine/impl/asset_system.h"
 #include "../components/types.h"
 
 #include <lua.hpp>
@@ -146,7 +147,11 @@ static int Visual_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "shader") == 0) { lua_pushinteger(L, object->get_fast()->shader); return 1; }
+	if (strcmp(id, "shader") == 0) {
+		cstring path = custom::Asset_System::get_path<custom::ShaderAsset>(object->get_fast()->shader);
+		lua_pushstring(L, path); return 1;
+	}
+
 	if (strcmp(id, "texture") == 0) { lua_pushinteger(L, object->get_fast()->texture); return 1; }
 	if (strcmp(id, "mesh") == 0) { lua_pushinteger(L, object->get_fast()->mesh); return 1; }
 
@@ -162,9 +167,14 @@ static int Visual_newindex(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-		object->get_fast()->shader = (u32)lua_tonumber(L, 3); return 1;
+		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
+		object->get_fast()->shader = custom::Asset_System::get_asset<custom::ShaderAsset>(
+			lua_tostring(L, 3)
+		);
+		return 1;
 	}
+
+	// @Todo: implement assets interface
 	if (strcmp(id, "texture") == 0) {
 		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
 		object->get_fast()->texture = (u32)lua_tonumber(L, 3); return 1;

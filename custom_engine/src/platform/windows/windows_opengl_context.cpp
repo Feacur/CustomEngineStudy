@@ -114,7 +114,8 @@ static bool platform_swap_interval(HDC hdc, s32);
 
 namespace custom {
 namespace window {
-HDC get_hdc(Internal_Data * window);
+	// @Forward
+	HDC get_hdc(Internal_Data * window);
 }}
 
 namespace custom {

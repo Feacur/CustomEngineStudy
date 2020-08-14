@@ -1,95 +1,13 @@
 #pragma once
-#include "engine/core/collection_types.h"
+#include "reference.h"
 
-namespace custom {
-
-//
-// reference
-//
-
-struct Ref
-{
-	u32 id, gen;
-};
-
-inline bool operator==(Ref const & a, Ref const & b) {
-	return a.id  == b.id
-	    && a.gen == b.gen;
-}
-
-template<typename T> struct Ref_Pool;
-
-template<typename T>
-struct RefT : public Ref
-{
-	static Ref_Pool<T> pool;
-
-	inline bool exists(void) const { return pool.contains(*this); }
-
-	inline T * get_fast(void) { return pool.get_fast(*this); }
-	inline T * get_safe(void) { return pool.get_safe(*this); }
-
-	inline T const * get_fast(void) const { return pool.get_fast(*this); }
-	inline T const * get_safe(void) const { return pool.get_safe(*this); }
-};
-
-//
-// pool
-//
-
-#define REF_VOID_FUNC(ROUTINE_NAME) Ref ROUTINE_NAME(void)
-typedef REF_VOID_FUNC(ref_void_func);
-
-#define VOID_REF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & ref)
-typedef VOID_REF_FUNC(void_ref_func);
-
-#define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
-typedef BOOL_REF_FUNC(bool_ref_func);
-
-// @Todo: factor out sparse array functionality?
-// @GEAB: replace `gaps` with a `next_free` pointer
-//        although, might be not the valid case here if `gens` needs to be consistent
-struct Gen_Pool
-{
-	~Gen_Pool(void) = default;
-
-	Array<u32> gens; // sparse; count indicates the last active object
-	Array<u32> gaps;
-
-	// API
-	Ref create(void);
-	void destroy(Ref const & ref);
-	inline bool contains(Ref const & ref) const { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
-};
-
-// @Todo: might want to dynamically init pools should the code be used from a DLL?
-//        not quite relates to the pool itself, but definitely to RefT and
-//        types/places that make use of it
-template<typename T>
-struct Ref_Pool
-{
-	~Ref_Pool(void) = default;
-
-	Gen_Pool generations;
-	Array<T> instances; // sparse; count indicates the last active object
-
-	// API
-	RefT<T> create(void);
-	void destroy(Ref const & ref);
-
-	// RefT API
-	inline bool contains(Ref const & ref) const { return generations.contains(ref); };
-
-	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
-	inline T * get_safe(Ref const & ref) { return generations.contains(ref) ? &instances[ref.id] : NULL; }
-
-	inline T const * get_fast(Ref const & ref) const { return &instances[ref.id]; }
-	inline T const * get_safe(Ref const & ref) const { return generations.contains(ref) ? &instances[ref.id] : NULL; }
-};
+// https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
 //
 // entity
 //
+
+namespace custom {
 
 template<typename T> struct Component_Registry { static u32 type; };
 
@@ -101,24 +19,24 @@ struct Entity : public Ref
 
 	// API
 	static Entity create(void);
-	static void destroy(Entity const & entity);
+	void destroy(void);
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
 	static Array<ref_void_func *> component_constructors;
-	static Array<bool_ref_func *> component_containers;
 	static Array<void_ref_func *> component_destructors;
+	static Array<bool_ref_func *> component_containers;
 	static Array<Ref> components; // sparse
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);
-	bool has_component(u32 type) const;
 	Ref  get_component(u32 type) const;
+	bool has_component(u32 type) const;
 
 	template<typename T> RefT<T> add_component(void);
 	template<typename T> void    rem_component(void);
-	template<typename T> bool    has_component(void) const;
 	template<typename T> RefT<T> get_component(void) const;
+	template<typename T> bool    has_component(void) const;
 };
 
 }

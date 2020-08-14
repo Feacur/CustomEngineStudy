@@ -8,13 +8,6 @@ namespace asset {
 namespace script {
 };
 
-namespace shader {
-	struct Meta
-	{
-		graphics::Shader_Part parts;
-	};
-};
-
 namespace uniform {
 };
 

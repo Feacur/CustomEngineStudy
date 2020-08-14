@@ -1,5 +1,8 @@
 #include "custom_engine.h"
 
+#include "engine/impl/math_linear.h"
+#include "engine/impl/asset_system.h"
+
 #include "assets/ids.h"
 #include "components/types.h"
 #include "entity_system/ecs_renderer.h"
@@ -23,10 +26,34 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
+static void init_client_assets(void) {
+	// @Note: shaders
+	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v2_texture_tint.glsl").get_fast()) = {
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
+	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl").get_fast()) = {
+		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
+	};
+
+	// @Note: textures
+	// "assets/textures/checkerboard.png",
+	// "assets/textures/blue_noise.png",
+	// "assets/textures/proto_blue.png",
+
+	// @Note: meshes
+	// "assets/meshes/plane_xz.obj",
+	// "assets/meshes/suzanne.obj",
+}
+
+void init_asset_system(void);
 void init_entity_components(void);
 static void on_app_init() {
 	// @Note: init systems
+	init_asset_system();
 	init_entity_components();
+
+	init_client_assets();
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -49,19 +76,19 @@ static void on_app_init() {
 	custom::Entity entity21 = custom::Entity::create();
 	custom::Entity entity31 = custom::Entity::create();
 
-	custom::Entity::destroy(entity31);
-	custom::Entity::destroy(entity11);
+	entity31.destroy();
+	entity11.destroy();
 	
 	create_visual(
 		{
-			(u32)sandbox::Shader::v3_texture_tint,
+			custom::Asset_System::get_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl"),
 			(u32)sandbox::Texture::proto_blue,
 			(u32)sandbox::Mesh::plane_xz,
 		},
 		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
 	);
 
-	custom::Entity::destroy(entity21);
+	entity21.destroy();
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }

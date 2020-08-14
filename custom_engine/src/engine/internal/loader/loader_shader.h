@@ -14,25 +14,23 @@ void uniforms() {
 	}
 }
 
-void shader(u32 asset_id) {
-	if (graphics::mark_pending_shader(asset_id)) { return; }
+void shader(RefT<ShaderAsset> const & asset_ref) {
+	if (graphics::mark_pending_shader(asset_ref.id)) { return; }
 
-	if (asset_id >= asset::shader::count) { return; }
-	cstring path = asset::shader::paths[asset_id];
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	ShaderAsset const * asset = asset_ref.get_fast();
+	cstring path = Asset_System::get_path(asset_ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
-	u8 meta_id = asset::shader::meta_ids[asset_id];
-	asset::shader::Meta const & meta = asset::shader::meta_presets[meta_id];
-
 	bc->write(graphics::Instruction::Allocate_Shader);
-	bc->write(asset_id);
+	bc->write(asset_ref.id);
 	
 	bc->write(graphics::Instruction::Load_Shader);
-	bc->write(asset_id);
+	bc->write(asset_ref.id);
 	bc->write_sized_array(file.data, file.count);
-	bc->write(meta.parts);
+	bc->write(asset->parts);
 }
 
 void offscreen(u32 asset_id) {
