@@ -34,12 +34,12 @@ template<typename T> REF_VOID_FUNC(ref_pool_create) {
 	return RefT<T>::pool.create();
 }
 
-template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
-	return RefT<T>::pool.contains(ref);
-}
-
 template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
 	RefT<T>::pool.destroy(ref);
+}
+
+template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
+	return RefT<T>::pool.contains(ref);
 }
 
 }
