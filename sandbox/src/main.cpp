@@ -26,15 +26,15 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-static void init_client_assets(void) {
-	// @uniforms
-	// "u_Resolution",
-	// "u_ViewProjection",
-	// "u_Transform",
-	// "u_Texture",
-	// "u_Color",
-	// "u_Z",
-}
+// static void init_client_assets(void) {
+// 	// @uniforms
+// 	// "u_Resolution",
+// 	// "u_ViewProjection",
+// 	// "u_Transform",
+// 	// "u_Texture",
+// 	// "u_Color",
+// 	// "u_Z",
+// }
 
 void init_asset_system(void);
 void init_entity_components(void);
@@ -42,9 +42,6 @@ static void on_app_init() {
 	// @Note: init systems
 	init_asset_system();
 	init_entity_components();
-
-	init_client_assets();
-	custom::RefT<custom::Lua_Asset> lua_ref = custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua");
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -54,7 +51,7 @@ static void on_app_init() {
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 
-	custom::loader::script(L, lua_ref);
+	custom::loader::script(L, custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua"));
 
 	// @Note: init data
 	camera_transform = {
