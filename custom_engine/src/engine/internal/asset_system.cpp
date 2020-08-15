@@ -52,7 +52,7 @@ Ref Assets::add(u32 type, cstring id) {
 	if (ref.id == UINT32_MAX || !(*Assets::asset_containers[type])(ref)) {
 		ref = (*Assets::asset_constructors[type])();
 	}
-	else { CUSTOM_ASSERT(false, "component already exists"); }
+	else { CUSTOM_ASSERT(false, "asset already exists"); }
 
 	return ref;
 }
@@ -60,7 +60,7 @@ Ref Assets::add(u32 type, cstring id) {
 void Assets::rem(u32 type, cstring id) {
 	u32 index = find(type, Assets::types, Assets::paths, id);
 	if (index == UINT32_MAX) {
-		CUSTOM_ASSERT(false, "component doesn't exist"); return;
+		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
 	}
 
 	Assets::paths.remove_at(index);
@@ -72,7 +72,7 @@ void Assets::rem(u32 type, cstring id) {
 	if ((*Assets::asset_containers[type])(ref)) {
 		(*Assets::asset_destructors[type])(ref);
 	}
-	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
+	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 }
 
 Ref Assets::get(u32 type, cstring id) {

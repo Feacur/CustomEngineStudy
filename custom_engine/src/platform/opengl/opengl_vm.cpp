@@ -628,29 +628,29 @@ struct Shader_Props
 	GL_String defines;
 };
 
-static u8 fill_props(custom::graphics::Shader_Part parts, Shader_Props * props, u8 cap)
+static u8 fill_props(GL_String source, custom::graphics::Shader_Part parts, Shader_Props * props, u8 cap)
 {
 	u8 count = 0;
 
-	if (bits_are_set(parts, custom::graphics::Shader_Part::Vertex)) {
+	if (strstr(source.data, "VERTEX_SECTION")) {
 		constexpr static GLchar const version[] = "#version 330 core\n";
 		constexpr static GLchar const defines[] = "#define VERTEX_SECTION";
 		props[count++] = { GL_VERTEX_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
-	if (bits_are_set(parts, custom::graphics::Shader_Part::Pixel)) {
+	if (strstr(source.data, "FRAGMENT_SECTION")) {
 		constexpr static GLchar const version[] = "#version 330 core\n";
 		constexpr static GLchar const defines[] = "#define FRAGMENT_SECTION\n";
 		props[count++] = { GL_FRAGMENT_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
-	if (bits_are_set(parts, custom::graphics::Shader_Part::Geometry)) {
+	if (strstr(source.data, "GEOMETRY_SECTION")) {
 		constexpr static GLchar const version[] = "#version 330 core\n";
 		constexpr static GLchar const defines[] = "#define GEOMETRY_SECTION\n";
 		props[count++] = { GL_GEOMETRY_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
-	if (bits_are_set(parts, custom::graphics::Shader_Part::Compute)) {
+	if (strstr(source.data, "COMPUTE_SECTION")) {
 		constexpr static GLchar const version[] = "#version 430 core\n";
 		constexpr static GLchar const defines[] = "#define COMPUTE_SECTION\n";
 		props[count++] = { GL_COMPUTE_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
@@ -671,7 +671,7 @@ static bool platform_link_program(GLuint program_id, GL_String source, custom::g
 	u8 const props_cap = 4;
 	Shader_Props props[props_cap];
 	GLuint       shaders[props_cap];
-	u8 props_count = fill_props(parts, props, props_cap);
+	u8 props_count = fill_props(source, parts, props, props_cap);
 
 	// Compile shaders
 	for (u8 i = 0; i < props_count; ++i) {

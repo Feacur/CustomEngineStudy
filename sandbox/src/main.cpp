@@ -27,14 +27,16 @@ static Camera camera;
 static lua_State * L;
 
 static void init_client_assets(void) {
-	// @Note: shaders
-	(*custom::Assets::add<custom::Shader_Asset>("assets/shaders/v2_texture_tint.glsl").get_fast()) = {
-		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
-	};
+	// @uniforms
+	// "u_Resolution",
+	// "u_ViewProjection",
+	// "u_Transform",
+	// "u_Texture",
+	// "u_Color",
+	// "u_Z",
 
-	(*custom::Assets::add<custom::Shader_Asset>("assets/shaders/v3_texture_tint.glsl").get_fast()) = {
-		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
-	};
+	// @Note: scripts
+	// "assets/scripts/main.lua",
 
 	// @Note: textures
 	// "assets/textures/checkerboard.png",
@@ -79,17 +81,11 @@ static void on_app_init() {
 
 	entity31.destroy();
 	entity11.destroy();
-	
-	create_visual(
-		{
-			custom::Assets::get<custom::Shader_Asset>("assets/shaders/v3_texture_tint.glsl"),
-			(u32)sandbox::Texture::proto_blue,
-			(u32)sandbox::Mesh::plane_xz,
-		},
-		{{0, 0, 0}, {0, 0, 0, 1}, {10, 10, 10}}
-	);
+
+	custom::Entity entity41 = custom::Entity::create();
 
 	entity21.destroy();
+	entity41.destroy();
 
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
