@@ -1,6 +1,6 @@
 #include "custom_pch.h"
 
-#include "engine/api/internal/assets.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"
 #include "engine/impl/asset_system.h"

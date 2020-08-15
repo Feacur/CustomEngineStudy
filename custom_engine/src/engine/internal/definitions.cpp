@@ -2,7 +2,7 @@
 
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_params.h"
-#include "engine/api/internal/assets.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
 #include "engine/impl/reference.h"
