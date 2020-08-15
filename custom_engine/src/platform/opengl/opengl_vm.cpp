@@ -1900,7 +1900,16 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// 	field_buffer.type, field_buffer.name, field_buffer.size,
 		// 	i, field_buffer.location
 		// );
-		field->id = find_uniform_id(field_buffer.name, field_buffer.name_count);
+
+		// @Todo: make uniforms dynamic?
+		u32 uniform_id = find_uniform_id(field_buffer.name, field_buffer.name_count);
+		// if (uniform_id == empty_asset_id) {
+		// 	uniform_id = ogl.uniform_names_lengths.count;
+		// 	ogl.uniform_names.push_range(field_buffer.name, field_buffer.name_count);
+		// 	ogl.uniform_names_lengths.push(field_buffer.name_count);
+		// }
+
+		field->id = uniform_id;
 		field->location = field_buffer.location;
 	}
 }
