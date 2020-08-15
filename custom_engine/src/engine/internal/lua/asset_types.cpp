@@ -3,8 +3,8 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
-#include "engine/api/internal/assets.h"
-#include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/asset_types.h"
+#include "engine/api/client/asset_types_lookup.h"
 #include "engine/impl/asset_system.h"
 
 #include <lua.hpp>
@@ -59,25 +59,11 @@ static int Shader_Asset_eq(lua_State * L) {
 	return 1;
 }
 
-static int Shader_Asset_get_path(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Shader_Asset, object, 1);
-
-	cstring path = Assets::get_path<Shader_Asset>(*object);
-
-	if (!path) { lua_pushnil(L); return 1; }
-
-	lua_pushstring(L, path);
-
-	return 1;
-}
-
 static luaL_Reg const Shader_Asset_meta[] = {
 	{"__index", Shader_Asset_index},
 	{"__newindex", Shader_Asset_newindex},
 	{"__eq", Shader_Asset_eq},
 	// instance:###
-	{"get_path", Shader_Asset_get_path},
 	// Type.###
 	//
 	{NULL, NULL},
@@ -125,25 +111,11 @@ static int Texture_Asset_eq(lua_State * L) {
 	return 1;
 }
 
-static int Texture_Asset_get_path(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Texture_Asset, object, 1);
-
-	cstring path = Assets::get_path(*object);
-
-	if (!path) { lua_pushnil(L); return 1; }
-
-	lua_pushstring(L, path);
-
-	return 1;
-}
-
 static luaL_Reg const Texture_Asset_meta[] = {
 	{"__index", Texture_Asset_index},
 	{"__newindex", Texture_Asset_newindex},
 	{"__eq", Texture_Asset_eq},
 	// instance:###
-	{"get_path", Texture_Asset_get_path},
 	// Type.###
 	//
 	{NULL, NULL},
@@ -191,25 +163,11 @@ static int Mesh_Asset_eq(lua_State * L) {
 	return 1;
 }
 
-static int Mesh_Asset_get_path(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
-	LUA_DECLARE_USERDATA_CONST_REF_SAFE(Mesh_Asset, object, 1);
-
-	cstring path = Assets::get_path(*object);
-
-	if (!path) { lua_pushnil(L); return 1; }
-
-	lua_pushstring(L, path);
-
-	return 1;
-}
-
 static luaL_Reg const Mesh_Asset_meta[] = {
 	{"__index", Mesh_Asset_index},
 	{"__newindex", Mesh_Asset_newindex},
 	{"__eq", Mesh_Asset_eq},
 	// instance:###
-	{"get_path", Mesh_Asset_get_path},
 	// Type.###
 	//
 	{NULL, NULL},

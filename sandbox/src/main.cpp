@@ -60,7 +60,6 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 	custom::lua::init_math_linear(L);
-	custom::lua::init_reference(L);
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 

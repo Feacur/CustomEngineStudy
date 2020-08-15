@@ -25,12 +25,11 @@
 
 #define LUA_ASSERT_TYPE(T, index) CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d; got %s", #T, index, luaL_typename(L, index))
 
-#define LUA_ASSERT_USERDATA(T, index) do {\
-	(void)(T *)0;\
+#define LUA_ASSERT_USERDATA(name, index) do {\
 	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
 	CUSTOM_LUA_ASSERT(lua_getmetatable(L, index), "expected a userdata with a metatable at index %d", index);\
-	CUSTOM_LUA_ASSERT(luaL_getmetatable(L, #T) == LUA_TTABLE, "metatable '%s' doesn't exist", #T);\
-	CUSTOM_LUA_ASSERT(lua_rawequal(L, -1, -2), "expected '%s' at index %d", #T, index);\
+	CUSTOM_LUA_ASSERT(luaL_getmetatable(L, name) == LUA_TTABLE, "metatable '%s' doesn't exist", name);\
+	CUSTOM_LUA_ASSERT(lua_rawequal(L, -1, -2), "expected '%s' at index %d", name, index);\
 	lua_pop(L, 2);\
 \
 } while (0)\
@@ -38,7 +37,7 @@
 #else
 	#define LUA_REPORT_INDEX() (void)0
 	#define LUA_ASSERT_TYPE(T, index) (void)0
-	#define LUA_ASSERT_USERDATA(T, index) (void)0
+	#define LUA_ASSERT_USERDATA(name, index) (void)0
 #endif
 
 #define LUA_AUX_IMPL(T)\
@@ -58,7 +57,8 @@
 // @Note: seek for a value in the corresponding metatable first,
 //        then pass execution further to the rest of the index method
 #define LUA_INDEX_RAWGET_IMPL(T) do {\
-	LUA_ASSERT_USERDATA(T, 1);\
+	(void)(T *)0;\
+	LUA_ASSERT_USERDATA(#T, 1);\
 	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }\
 	\
 	lua_pushvalue(L, 2);\
@@ -71,14 +71,14 @@
 	T * name = (T *)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_SAFE(T, name, index)\
-	LUA_ASSERT_USERDATA(T, index);\
+	LUA_ASSERT_USERDATA(#T, index);\
 	T * name = (T *)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_CONST_FAST(T, name, index)\
 	T const * name = (T const*)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_CONST_SAFE(T, name, index)\
-	LUA_ASSERT_USERDATA(T, index);\
+	LUA_ASSERT_USERDATA(#T, index);\
 	T const * name = (T const*)lua_touserdata(L, index)\
 
 // @Note: testing idea of universal userdata declarations
@@ -86,14 +86,14 @@
 	custom::RefT<T> * name = (custom::RefT<T> *)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_REF_SAFE(T, name, index)\
-	LUA_ASSERT_USERDATA(T, index);\
+	LUA_ASSERT_USERDATA(#T, index);\
 	custom::RefT<T> * name = (custom::RefT<T> *)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_CONST_REF_FAST(T, name, index)\
 	custom::RefT<T> const * name = (custom::RefT<T> const *)lua_touserdata(L, index)\
 
 #define LUA_DECLARE_USERDATA_CONST_REF_SAFE(T, name, index)\
-	LUA_ASSERT_USERDATA(T, index);\
+	LUA_ASSERT_USERDATA(#T, index);\
 	custom::RefT<T> const * name = (custom::RefT<T> const *)lua_touserdata(L, index)\
 
 /*

@@ -5,7 +5,6 @@
 #include "engine/api/lua.h"
 #include "engine/api/internal/asset_system.h"
 #include "engine/api/client/asset_types_lookup.h"
-#include "engine/api/client/lua.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -100,7 +99,9 @@ static int Assets_get_path(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 
 	u32 type = (u32)lua_tointeger(L, 1);
-	LUA_DECLARE_USERDATA_CONST_SAFE(Ref, ref, 2);
+
+	LUA_ASSERT_USERDATA(custom::asset::names[type], 2);
+	LUA_DECLARE_USERDATA_CONST_FAST(Ref, ref, 2);
 	cstring path = Assets::get_path(type, *ref);
 
 	if (!path) { lua_pushnil(L); return 1; }

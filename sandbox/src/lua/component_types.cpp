@@ -1,7 +1,6 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
-#include "engine/api/internal/entity_system.h"
 #include "engine/impl/asset_system.h"
 #include "../components/types.h"
 
