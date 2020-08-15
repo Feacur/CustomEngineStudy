@@ -24,13 +24,13 @@ void init_asset_system(void) {
 	#define ASSET_IMPL(T) custom::Asset_Registry<T>::type = asset_types_count++;
 	#include "assets_registry_impl.h"
 
-	custom::Assets::asset_constructors.set_capacity(asset_types_count);
-	custom::Assets::asset_destructors.set_capacity(asset_types_count);
-	custom::Assets::asset_containers.set_capacity(asset_types_count);
+	custom::Asset::asset_constructors.set_capacity(asset_types_count);
+	custom::Asset::asset_destructors.set_capacity(asset_types_count);
+	custom::Asset::asset_containers.set_capacity(asset_types_count);
 	#define ASSET_IMPL(T)\
-		custom::Assets::asset_constructors.push(&custom::ref_pool_create<T>);\
-		custom::Assets::asset_destructors.push(&custom::ref_pool_destroy<T>);\
-		custom::Assets::asset_containers.push(&custom::ref_pool_contains<T>);\
+		custom::Asset::asset_constructors.push(&custom::ref_pool_create<T>);\
+		custom::Asset::asset_destructors.push(&custom::ref_pool_destroy<T>);\
+		custom::Asset::asset_containers.push(&custom::ref_pool_contains<T>);\
 
 	#include "assets_registry_impl.h"
 }

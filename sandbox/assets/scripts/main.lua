@@ -16,11 +16,11 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local shader2d = Assets.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl")
-	local shader3d = Assets.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
+	local shader2d = Asset.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl")
+	local shader3d = Asset.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
 
-	local shader = Assets.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
-	print(Assets.get_path(Shader_Asset.type, shader))
+	local shader = Asset.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
+	print(Asset.get_path(Shader_Asset.type, shader))
 
 	create_visual(
 		vec3.new(0, 0, 0), vec4.new(0, 0, 0, 1), vec3.new(10, 10, 10),

@@ -9,13 +9,13 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
-typedef custom::Assets Assets;
+typedef custom::Asset Asset;
 typedef custom::Ref Ref;
 
-static int Assets_index(lua_State * L) {
-	LUA_INDEX_RAWGET_IMPL(Assets);
+static int Asset_index(lua_State * L) {
+	LUA_INDEX_RAWGET_IMPL(Asset);
 
-	Assets const * object = (Assets const *)lua_touserdata(L, 1);
+	Asset const * object = (Asset const *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -23,8 +23,8 @@ static int Assets_index(lua_State * L) {
 	lua_pushnil(L); return 1;
 }
 
-static int Assets_newindex(lua_State * L) {
-	Assets * object = (Assets *)lua_touserdata(L, 1);
+static int Asset_newindex(lua_State * L) {
+	Asset * object = (Asset *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -35,14 +35,14 @@ static int Assets_newindex(lua_State * L) {
 	return 0;
 }
 
-static int Assets_add(lua_State * L) {
+static int Asset_add(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id = lua_tostring(L, 2);
-	Ref const & component_ref = Assets::add(type, id);
+	Ref const & component_ref = Asset::add(type, id);
 	
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
 	luaL_setmetatable(L, custom::asset::names[type]);
@@ -51,40 +51,40 @@ static int Assets_add(lua_State * L) {
 	return 1;
 }
 
-static int Assets_rem(lua_State * L) {
+static int Asset_rem(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id = lua_tostring(L, 2);
-	Assets::rem(type, id);
+	Asset::rem(type, id);
 
 	return 0;
 }
 
-static int Assets_has(lua_State * L) {
+static int Asset_has(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id = lua_tostring(L, 2);
-	lua_pushboolean(L, Assets::has(type, id));
+	lua_pushboolean(L, Asset::has(type, id));
 
 	return 1;
 }
 
-static int Assets_get(lua_State * L) {
+static int Asset_get(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id = lua_tostring(L, 2);
-	Ref component_ref = Assets::get(type, id);
+	Ref component_ref = Asset::get(type, id);
 
-	bool has_asset = (*Assets::asset_containers[type])(component_ref);
+	bool has_asset = (*Asset::asset_containers[type])(component_ref);
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
@@ -94,15 +94,15 @@ static int Assets_get(lua_State * L) {
 	return 1;
 }
 
-static int Assets_get_path(lua_State * L) {
+static int Asset_get_path(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	LUA_ASSERT_USERDATA(custom::asset::names[type], 2);
 
-	Ref const * ref = (Ref const *)lua_touserdata(L, 2);
-	cstring path = Assets::get_path(type, *ref);
+	Asset const * ref = (Asset const *)lua_touserdata(L, 2);
+	cstring path = Asset::get_path(type, *ref);
 
 	if (!path) { lua_pushnil(L); return 1; }
 
@@ -111,16 +111,16 @@ static int Assets_get_path(lua_State * L) {
 	return 1;
 }
 
-static luaL_Reg const Assets_meta[] = {
-	{"__index", Assets_index},
-	{"__newindex", Assets_newindex},
+static luaL_Reg const Asset_meta[] = {
+	{"__index", Asset_index},
+	{"__newindex", Asset_newindex},
 	// instance:###
 	// Type.###
-	{"add", Assets_add},
-	{"rem", Assets_rem},
-	{"has", Assets_has},
-	{"get", Assets_get},
-	{"get_path", Assets_get_path},
+	{"add", Asset_add},
+	{"rem", Asset_rem},
+	{"has", Asset_has},
+	{"get", Asset_get},
+	{"get_path", Asset_get_path},
 	//
 	{NULL, NULL},
 };
@@ -128,10 +128,10 @@ static luaL_Reg const Assets_meta[] = {
 namespace custom {
 namespace lua {
 
-void init_assets(lua_State * L);
+extern void init_asset_types(lua_State * L);
 void init_asset_system(lua_State * L) {
-	LUA_META_IMPL(Assets)
-	custom::lua::init_assets(L);
+	LUA_META_IMPL(Asset)
+	custom::lua::init_asset_types(L);
 	for (u32 i = 0; i < custom::asset::count; ++i) {
 		lua_getglobal(L, custom::asset::names[i]);
 		lua_pushinteger(L, i);

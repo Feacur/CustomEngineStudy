@@ -6,18 +6,21 @@
 
 namespace custom {
 
+//  @Note: initialize compile-time structs:
+template struct Array<Asset>;
+
 //  @Note: initialize compile-time statics:
-Array<cstring>         Assets::paths;
-Array<Ref>             Assets::instances;
-Array<u32>             Assets::types;
-Array<ref_void_func *> Assets::asset_constructors;
-Array<void_ref_func *> Assets::asset_destructors;
-Array<bool_ref_func *> Assets::asset_containers;
+Array<Asset>           Asset::instances;
+Array<cstring>         Asset::paths;
+Array<u32>             Asset::types;
+Array<ref_void_func *> Asset::asset_constructors;
+Array<void_ref_func *> Asset::asset_destructors;
+Array<bool_ref_func *> Asset::asset_containers;
 
 }
 
 //
-// assets
+// asset
 //
 
 namespace custom {
@@ -30,7 +33,7 @@ static u32 find(u32 type, Array<u32> const & types, Array<cstring> const & paths
 	return UINT32_MAX;
 }
 
-static u32 find(u32 type, Array<u32> const & types, Array<Ref> const & instances, Ref const & ref) {
+static u32 find(u32 type, Array<u32> const & types, Array<Asset> const & instances, Asset const & ref) {
 	for (u32 i = 0; i < instances.count; ++i) {
 		if (types[i] != type) { continue; }
 		if (instances[i] == ref) { return i; }
@@ -38,63 +41,63 @@ static u32 find(u32 type, Array<u32> const & types, Array<Ref> const & instances
 	return UINT32_MAX;
 }
 
-Ref Assets::add(u32 type, cstring id) {
-	u32 index = find(type, Assets::types, Assets::paths, id);
+Ref Asset::add(u32 type, cstring id) {
+	u32 index = find(type, Asset::types, Asset::paths, id);
 	if (index == UINT32_MAX) {
-		index = Assets::paths.count;
-		Assets::paths.push(id);
-		Assets::instances.push({UINT32_MAX, 0});
-		Assets::types.push(type);
+		index = Asset::paths.count;
+		Asset::paths.push(id);
+		Asset::instances.push({UINT32_MAX, 0});
+		Asset::types.push(type);
 	}
 
-	Ref & ref = Assets::instances[index];
+	Ref & ref = Asset::instances[index];
 
-	if (ref.id == UINT32_MAX || !(*Assets::asset_containers[type])(ref)) {
-		ref = (*Assets::asset_constructors[type])();
+	if (ref.id == UINT32_MAX || !(*Asset::asset_containers[type])(ref)) {
+		ref = (*Asset::asset_constructors[type])();
 	}
 	else { CUSTOM_ASSERT(false, "asset already exists"); }
 
 	return ref;
 }
 
-void Assets::rem(u32 type, cstring id) {
-	u32 index = find(type, Assets::types, Assets::paths, id);
+void Asset::rem(u32 type, cstring id) {
+	u32 index = find(type, Asset::types, Asset::paths, id);
 	if (index == UINT32_MAX) {
 		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
 	}
 
-	Assets::paths.remove_at(index);
-	Assets::instances.remove_at(index);
-	Assets::types.remove_at(index);
+	Asset::paths.remove_at(index);
+	Asset::instances.remove_at(index);
+	Asset::types.remove_at(index);
 
-	Ref const & ref = Assets::instances[index];
+	Ref const & ref = Asset::instances[index];
 
-	if ((*Assets::asset_containers[type])(ref)) {
-		(*Assets::asset_destructors[type])(ref);
+	if ((*Asset::asset_containers[type])(ref)) {
+		(*Asset::asset_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 }
 
-Ref Assets::get(u32 type, cstring id) {
-	u32 index = find(type, Assets::types, Assets::paths, id);
+Ref Asset::get(u32 type, cstring id) {
+	u32 index = find(type, Asset::types, Asset::paths, id);
 	if (index == UINT32_MAX) { return {UINT32_MAX, 0}; }
 
-	return Assets::instances[index];
+	return Asset::instances[index];
 }
 
-bool Assets::has(u32 type, cstring id) {
-	u32 index = find(type, Assets::types, Assets::paths, id);
+bool Asset::has(u32 type, cstring id) {
+	u32 index = find(type, Asset::types, Asset::paths, id);
 	if (index == UINT32_MAX) { return false; }
 
-	Ref const & ref = Assets::instances[index];
-	return (*Assets::asset_containers[type])(ref);
+	Ref const & ref = Asset::instances[index];
+	return (*Asset::asset_containers[type])(ref);
 }
 
-cstring Assets::get_path(u32 type, Ref const & ref) {
-	u32 index = find(type, Assets::types, Assets::instances, ref);
+cstring Asset::get_path(u32 type, Asset const & ref) {
+	u32 index = find(type, Asset::types, Asset::instances, ref);
 	if (index == UINT32_MAX) { return NULL; }
 
-	return Assets::paths[index];
+	return Asset::paths[index];
 }
 
 }

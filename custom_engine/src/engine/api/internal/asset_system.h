@@ -2,18 +2,18 @@
 #include "reference.h"
 
 //
-// assets
+// asset
 //
 
 namespace custom {
 
 template<typename T> struct Asset_Registry { static u32 type; };
 
-struct Assets
+struct Asset : Ref
 {
 	// instances
+	static Array<Asset> instances;
 	static Array<cstring> paths;
-	static Array<Ref> instances;
 	static Array<u32> types;
 
 	// types API
@@ -26,7 +26,7 @@ struct Assets
 	static Ref  get(u32 type, cstring id);
 	static bool has(u32 type, cstring id);
 
-	static cstring get_path(u32 type, Ref const & ref);
+	static cstring get_path(u32 type, Asset const & ref);
 
 	template<typename T> static RefT<T> add(cstring id);
 	template<typename T> static void    rem(cstring id);

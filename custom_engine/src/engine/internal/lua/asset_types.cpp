@@ -10,7 +10,7 @@
 #include <lua.hpp>
 // #include <lstate.h>
 
-typedef custom::Assets Assets;
+typedef custom::Asset Asset;
 
 typedef custom::Shader_Asset Shader_Asset;
 typedef custom::Texture_Asset Texture_Asset;
@@ -199,7 +199,7 @@ static luaL_Reg const Mesh_Asset_meta[] = {
 namespace custom {
 namespace lua {
 
-void init_assets(lua_State * L) {
+void init_asset_types(lua_State * L) {
 	#define ASSET_IMPL(T) LUA_META_IMPL(T)
 	#include "../assets_registry_impl.h"
 }
