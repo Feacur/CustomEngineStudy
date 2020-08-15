@@ -28,7 +28,7 @@ void init(Bytecode * bytecode) {
 	init_defaults();
 }
 
-void set_shader(RefT<ShaderAsset> const & asset) {
+void set_shader(RefT<Shader_Asset> const & asset) {
 	CUSTOM_ASSERT(asset.exists(), "asset doesn't exitst");
 	bc->write(custom::graphics::Instruction::Use_Shader);
 	bc->write(asset.id);
@@ -40,7 +40,7 @@ void set_mesh(u32 mesh) {
 	bc->write(mesh);
 }
 
-void set_texture(RefT<ShaderAsset> const & shader, u32 uniform, u32 texture) {
+void set_texture(RefT<Shader_Asset> const & shader, u32 uniform, u32 texture) {
 	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
 	if (texture == empty_asset_id) { return; }
 	bc->write(custom::graphics::Instruction::Allocate_Unit);
@@ -52,7 +52,7 @@ void set_texture(RefT<ShaderAsset> const & shader, u32 uniform, u32 texture) {
 	bc->write((u32)1); bc->write(unit_id{texture, empty_asset_id});
 }
 
-void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, mat4 const & matrix) {
+void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat4 const & matrix) {
 	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
@@ -60,7 +60,7 @@ void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, mat4 const & mat
 	bc->write((u32)1); bc->write(matrix);
 }
 
-void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, mat3 const & matrix) {
+void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & matrix) {
 	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
@@ -68,7 +68,7 @@ void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, mat3 const & mat
 	bc->write((u32)1); bc->write(matrix);
 }
 
-void set_uniform(RefT<ShaderAsset> const & shader, u32 uniform, ivec2 const & value) {
+void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, ivec2 const & value) {
 	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);

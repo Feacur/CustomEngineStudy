@@ -28,11 +28,11 @@ static lua_State * L;
 
 static void init_client_assets(void) {
 	// @Note: shaders
-	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v2_texture_tint.glsl").get_fast()) = {
+	(*custom::Assets::add<custom::Shader_Asset>("assets/shaders/v2_texture_tint.glsl").get_fast()) = {
 		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
 	};
 
-	(*custom::Asset_System::add_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl").get_fast()) = {
+	(*custom::Assets::add<custom::Shader_Asset>("assets/shaders/v3_texture_tint.glsl").get_fast()) = {
 		custom::graphics::Shader_Part::Vertex | custom::graphics::Shader_Part::Pixel,
 	};
 
@@ -60,6 +60,8 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 	custom::lua::init_math_linear(L);
+	custom::lua::init_reference(L);
+	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 
 	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
@@ -81,7 +83,7 @@ static void on_app_init() {
 	
 	create_visual(
 		{
-			custom::Asset_System::get_asset<custom::ShaderAsset>("assets/shaders/v3_texture_tint.glsl"),
+			custom::Assets::get<custom::Shader_Asset>("assets/shaders/v3_texture_tint.glsl"),
 			(u32)sandbox::Texture::proto_blue,
 			(u32)sandbox::Mesh::plane_xz,
 		},

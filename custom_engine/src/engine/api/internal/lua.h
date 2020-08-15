@@ -5,6 +5,8 @@ namespace custom {
 namespace lua {
 
 void init_math_linear(lua_State * L);
+void init_reference(lua_State * L);
+void init_asset_system(lua_State * L);
 void init_entity_system(lua_State * L);
 
 }}

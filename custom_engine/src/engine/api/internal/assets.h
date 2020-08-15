@@ -4,15 +4,15 @@
 
 namespace custom {
 
-struct ShaderAsset {
+struct Shader_Asset {
 	graphics::Shader_Part parts;
 };
 
-struct TextureAsset {
+struct Texture_Asset {
 	u8 dummy;
 };
 
-struct MeshAsset {
+struct Mesh_Asset {
 	u8 dummy;
 };
 

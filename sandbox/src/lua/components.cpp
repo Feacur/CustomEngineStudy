@@ -148,12 +148,24 @@ static int Visual_index(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		cstring path = custom::Asset_System::get_path<custom::ShaderAsset>(object->get_fast()->shader);
-		lua_pushstring(L, path); return 1;
+		typedef custom::RefT<custom::Shader_Asset> Ref;
+		Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
+		luaL_setmetatable(L, "Shader_Asset");
+		*udata = object->get_fast()->shader;
+		return 1;
 	}
 
-	if (strcmp(id, "texture") == 0) { lua_pushinteger(L, object->get_fast()->texture); return 1; }
-	if (strcmp(id, "mesh") == 0) { lua_pushinteger(L, object->get_fast()->mesh); return 1; }
+	if (strcmp(id, "texture") == 0) {
+		typedef custom::RefT<custom::Texture_Asset> Ref;
+		lua_pushinteger(L, object->get_fast()->texture);
+		return 1;
+	}
+
+	if (strcmp(id, "mesh") == 0) {
+		typedef custom::RefT<custom::Mesh_Asset> Ref;
+		lua_pushinteger(L, object->get_fast()->mesh);
+		return 1;
+	}
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -167,21 +179,21 @@ static int Visual_newindex(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
-		object->get_fast()->shader = custom::Asset_System::get_asset<custom::ShaderAsset>(
-			lua_tostring(L, 3)
-		);
-		return 1;
+		typedef custom::Shader_Asset Shader_Asset;
+		LUA_DECLARE_USERDATA_CONST_REF_SAFE(Shader_Asset, value, 3);
+		object->get_fast()->shader = *value; return 0;
 	}
 
 	// @Todo: implement assets interface
 	if (strcmp(id, "texture") == 0) {
+		typedef custom::Texture_Asset Texture_Asset;
 		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-		object->get_fast()->texture = (u32)lua_tonumber(L, 3); return 1;
+		object->get_fast()->texture = (u32)lua_tonumber(L, 3); return 0;
 	}
 	if (strcmp(id, "mesh") == 0) {
+		typedef custom::Mesh_Asset Mesh_Asset;
 		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-		object->get_fast()->mesh = (u32)lua_tonumber(L, 3); return 1;
+		object->get_fast()->mesh = (u32)lua_tonumber(L, 3); return 0;
 	}
 
 	LUA_REPORT_INDEX();

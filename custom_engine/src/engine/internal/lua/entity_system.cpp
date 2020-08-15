@@ -11,6 +11,7 @@
 // #include <lstate.h>
 
 typedef custom::Entity Entity;
+typedef custom::Ref Ref;
 
 static int Entity_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Entity);
@@ -19,6 +20,9 @@ static int Entity_index(lua_State * L) {
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -54,9 +58,9 @@ static int Entity_add_component(lua_State * L) {
 
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
-	custom::Ref const & component_ref = object->add_component(type);
+	Ref const & component_ref = object->add_component(type);
 	
-	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
+	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
 	luaL_setmetatable(L, custom::component::names[type]);
 	*udata = component_ref;
 
@@ -94,12 +98,12 @@ static int Entity_get_component(lua_State * L) {
 
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	u32 type = (u32)lua_tointeger(L, 2);
-	custom::Ref component_ref = object->get_component(type);
+	Ref component_ref = object->get_component(type);
 
-	bool has_component = (*custom::Entity::component_containers[type])(component_ref);
+	bool has_component = (*Entity::component_containers[type])(component_ref);
 	if (!has_component) { lua_pushnil(L); return 1; }
 
-	custom::Ref * udata = (custom::Ref *)lua_newuserdatauv(L, sizeof(custom::Ref), 0);
+	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
 	luaL_setmetatable(L, custom::component::names[type]);
 	*udata = component_ref;
 
@@ -109,7 +113,7 @@ static int Entity_get_component(lua_State * L) {
 static int Entity_create(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
 
-	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(Entity), 0);
 	luaL_setmetatable(L, "Entity");
 	*udata = custom::Entity::create();
 

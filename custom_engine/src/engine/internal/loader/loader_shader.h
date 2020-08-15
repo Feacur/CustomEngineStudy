@@ -14,12 +14,12 @@ void uniforms() {
 	}
 }
 
-void shader(RefT<ShaderAsset> const & asset_ref) {
+void shader(RefT<Shader_Asset> const & asset_ref) {
 	if (graphics::mark_pending_shader(asset_ref.id)) { return; }
 
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	ShaderAsset const * asset = asset_ref.get_fast();
-	cstring path = Asset_System::get_path(asset_ref);
+	Shader_Asset const * asset = asset_ref.get_fast();
+	cstring path = Assets::get_path(asset_ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }

@@ -9,7 +9,7 @@ namespace custom {
 
 template<typename T> struct Asset_Registry { static u32 type; };
 
-struct Asset_System
+struct Assets
 {
 	// instances
 	static Array<cstring> paths;
@@ -21,19 +21,19 @@ struct Asset_System
 	static Array<void_ref_func *> asset_destructors;
 	static Array<bool_ref_func *> asset_containers;
 
-	static Ref  add_asset(u32 type, cstring id);
-	static void rem_asset(u32 type, cstring id);
-	static Ref  get_asset(u32 type, cstring id);
-	static bool has_asset(u32 type, cstring id);
+	static Ref  add(u32 type, cstring id);
+	static void rem(u32 type, cstring id);
+	static Ref  get(u32 type, cstring id);
+	static bool has(u32 type, cstring id);
 
-	static cstring get_path(u32 type, Ref ref);
+	static cstring get_path(u32 type, Ref const & ref);
 
-	template<typename T> static RefT<T> add_asset(cstring id);
-	template<typename T> static void    rem_asset(cstring id);
-	template<typename T> static RefT<T> get_asset(cstring id);
-	template<typename T> static bool    has_asset(cstring id);
+	template<typename T> static RefT<T> add(cstring id);
+	template<typename T> static void    rem(cstring id);
+	template<typename T> static RefT<T> get(cstring id);
+	template<typename T> static bool    has(cstring id);
 
-	template<typename T> static cstring get_path(RefT<T> ref);
+	template<typename T> static cstring get_path(RefT<T> const & ref);
 };
 
 }

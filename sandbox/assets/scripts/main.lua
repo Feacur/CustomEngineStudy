@@ -16,23 +16,23 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local shader_path = "assets/shaders/v3_texture_tint.glsl"
+	local shader = Assets.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
 
 	create_visual(
 		vec3.new(-4, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(2, 1, 2),
-		shader_path, 0, 1
+		shader, 0, 1
 	)
 
 	local some_entity = create_visual(
 		vec3.new(0, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 1, 1),
-		shader_path, 0, 1
+		shader, 0, 1
 	)
 	local some_script = some_entity:add_component(Lua_Script.type)
 	some_script.update = "script_rotate"
 
 	create_visual(
 		vec3.new(4, 2, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 2, 1),
-		shader_path, 0, 1
+		shader, 0, 1
 	)
 end
 
