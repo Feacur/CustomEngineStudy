@@ -14,6 +14,7 @@ struct Asset_System
 	// instances
 	static Array<cstring> paths;
 	static Array<Ref> instances;
+	static Array<u32> types;
 
 	// types API
 	static Array<ref_void_func *> asset_constructors;
