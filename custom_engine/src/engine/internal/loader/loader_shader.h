@@ -30,9 +30,9 @@ void shader(RefT<Shader_Asset> const & asset_ref) {
 	bc->write(graphics::Instruction::Load_Shader);
 	bc->write(asset_ref.id);
 	bc->write_sized_array(file.data, file.count);
-	bc->write(asset->parts);
 }
 
+/*
 void offscreen(u32 asset_id) {
 	if (graphics::mark_pending_shader(asset_id)) { return; }
 
@@ -74,5 +74,6 @@ void target(u32 asset_id) {
 	bc->write((u16)1); bc->write(meta.size);
 	bc->write(meta.data_type); bc->write(meta.texture_type);
 }
+*/
 
 }}

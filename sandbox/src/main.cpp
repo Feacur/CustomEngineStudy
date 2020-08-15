@@ -38,11 +38,6 @@ static void init_client_assets(void) {
 	// @Note: scripts
 	// "assets/scripts/main.lua",
 
-	// @Note: textures
-	// "assets/textures/checkerboard.png",
-	// "assets/textures/blue_noise.png",
-	// "assets/textures/proto_blue.png",
-
 	// @Note: meshes
 	// "assets/meshes/plane_xz.obj",
 	// "assets/meshes/suzanne.obj",

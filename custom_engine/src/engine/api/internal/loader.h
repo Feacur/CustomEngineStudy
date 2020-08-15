@@ -22,9 +22,9 @@ void init(Bytecode * bc);
 
 void script(lua_State * L, u32 asset_id);
 
-void image(u32 asset_id);
-void imagef(u32 asset_id);
-void image16(u32 asset_id);
+void image(RefT<Texture_Asset> const & asset_ref);
+void imagef(RefT<Texture_Asset> const & asset_ref);
+void image16(RefT<Texture_Asset> const & asset_ref);
 
 void uniforms();
 void shader(RefT<Shader_Asset> const & asset);

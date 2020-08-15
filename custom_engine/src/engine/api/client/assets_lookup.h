@@ -14,15 +14,6 @@ namespace uniform {
 	extern cstring names[];
 };
 
-namespace texture {
-	extern u32 meta_presets_count;
-	extern Meta meta_presets[];
-
-	extern u32 count;
-	extern cstring paths[];
-	extern u8 meta_ids[];
-};
-
 namespace mesh {
 	extern u32 meta_presets_count;
 	extern Meta meta_presets[];
