@@ -15,7 +15,7 @@ typedef custom::Ref Ref;
 static int Assets_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Assets);
 
-	LUA_DECLARE_USERDATA_CONST_FAST(Assets, object, 1);
+	Assets const * object = (Assets const *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -24,7 +24,7 @@ static int Assets_index(lua_State * L) {
 }
 
 static int Assets_newindex(lua_State * L) {
-	LUA_DECLARE_USERDATA_FAST(Assets, object, 1);
+	Assets * object = (Assets *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -99,9 +99,9 @@ static int Assets_get_path(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 
 	u32 type = (u32)lua_tointeger(L, 1);
-
 	LUA_ASSERT_USERDATA(custom::asset::names[type], 2);
-	LUA_DECLARE_USERDATA_CONST_FAST(Ref, ref, 2);
+
+	Ref const * ref = (Ref const *)lua_touserdata(L, 2);
 	cstring path = Assets::get_path(type, *ref);
 
 	if (!path) { lua_pushnil(L); return 1; }
