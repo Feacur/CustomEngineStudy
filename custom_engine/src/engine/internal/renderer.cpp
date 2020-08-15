@@ -34,10 +34,10 @@ void set_shader(RefT<Shader_Asset> const & asset) {
 	bc->write(asset.id);
 }
 
-void set_mesh(u32 mesh) {
-	if (mesh == empty_asset_id) { return; }
+void set_mesh(RefT<Mesh_Asset> const & asset) {
+	CUSTOM_ASSERT(asset.exists(), "asset doesn't exitst");
 	bc->write(custom::graphics::Instruction::Use_Mesh);
-	bc->write(mesh);
+	bc->write(asset.id);
 }
 
 void set_texture(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_Asset> const & texture) {

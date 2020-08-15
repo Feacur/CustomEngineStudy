@@ -19,7 +19,10 @@ struct Texture_Asset {
 };
 
 struct Mesh_Asset {
-	u8 dummy;
+	graphics::Mesh_Frequency vfrequency = graphics::Mesh_Frequency::Static;
+	graphics::Mesh_Access vaccess       = graphics::Mesh_Access::Draw;
+	graphics::Mesh_Frequency ifrequency = graphics::Mesh_Frequency::Static;
+	graphics::Mesh_Access iaccess       = graphics::Mesh_Access::Draw;
 };
 
 }

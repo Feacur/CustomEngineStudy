@@ -27,8 +27,8 @@ void imagef(RefT<Texture_Asset> const & asset_ref);
 void image16(RefT<Texture_Asset> const & asset_ref);
 
 void uniforms();
-void shader(RefT<Shader_Asset> const & asset);
+void shader(RefT<Shader_Asset> const & asset_ref);
 
-void mesh(u32 asset_id);
+void mesh(RefT<Mesh_Asset> const & asset_ref);
 
 }}

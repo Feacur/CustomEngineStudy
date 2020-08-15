@@ -37,10 +37,6 @@ static void init_client_assets(void) {
 
 	// @Note: scripts
 	// "assets/scripts/main.lua",
-
-	// @Note: meshes
-	// "assets/meshes/plane_xz.obj",
-	// "assets/meshes/suzanne.obj",
 }
 
 void init_asset_system(void);

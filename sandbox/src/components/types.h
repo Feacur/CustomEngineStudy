@@ -18,7 +18,7 @@ struct Visual
 {
 	custom::RefT<custom::Shader_Asset> shader;
 	custom::RefT<custom::Texture_Asset> texture;
-	u32 mesh;
+	custom::RefT<custom::Mesh_Asset> mesh;
 };
 
 struct Transform

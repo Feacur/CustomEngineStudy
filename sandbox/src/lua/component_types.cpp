@@ -178,14 +178,16 @@ static int Visual_index(lua_State * L) {
 	if (strcmp(id, "texture") == 0) {
 		typedef custom::RefT<custom::Texture_Asset> Asset_Ref;
 		Asset_Ref * udata = (Asset_Ref *)lua_newuserdatauv(L, sizeof(Asset_Ref), 0);
-		luaL_setmetatable(L, "Shader_Asset");
+		luaL_setmetatable(L, "Texture_Asset");
 		*udata = object->get_fast()->texture;
 		return 1;
 	}
-
+	
 	if (strcmp(id, "mesh") == 0) {
 		typedef custom::RefT<custom::Mesh_Asset> Asset_Ref;
-		lua_pushinteger(L, object->get_fast()->mesh);
+		Asset_Ref * udata = (Asset_Ref *)lua_newuserdatauv(L, sizeof(Asset_Ref), 0);
+		luaL_setmetatable(L, "Mesh_Asset");
+		*udata = object->get_fast()->mesh;
 		return 1;
 	}
 
@@ -216,11 +218,11 @@ static int Visual_newindex(lua_State * L) {
 		object->get_fast()->texture = *value; return 0;
 	}
 
-	// @Todo: implement assets interface
 	if (strcmp(id, "mesh") == 0) {
-		typedef custom::Mesh_Asset Mesh_Asset;
-		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-		object->get_fast()->mesh = (u32)lua_tonumber(L, 3); return 0;
+		typedef custom::RefT<custom::Mesh_Asset> Asset_Ref;
+		LUA_ASSERT_USERDATA("Mesh_Asset", 3);
+		Asset_Ref const * value = (Asset_Ref const *)lua_touserdata(L, 3);
+		object->get_fast()->mesh = *value; return 0;
 	}
 
 	LUA_REPORT_INDEX();
