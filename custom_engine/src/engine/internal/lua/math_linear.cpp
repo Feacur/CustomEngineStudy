@@ -96,7 +96,7 @@ static int vec2_div(lua_State * L) {
 	luaL_setmetatable(L, "vec2");
 
 	if (lua_type(L, 2) == LUA_TNUMBER) {
-		*udata = *object1 * (r32)lua_tonumber(L, 2);
+		*udata = *object1 / (r32)lua_tonumber(L, 2);
 	}
 	else {
 		LUA_ASSERT_USERDATA("vec2", 2);
@@ -318,7 +318,7 @@ static int vec3_div(lua_State * L) {
 	luaL_setmetatable(L, "vec3");
 
 	if (lua_type(L, 2) == LUA_TNUMBER) {
-		*udata = *object1 * (r32)lua_tonumber(L, 2);
+		*udata = *object1 / (r32)lua_tonumber(L, 2);
 	}
 	else {
 		LUA_ASSERT_USERDATA("vec3", 2);
@@ -514,7 +514,7 @@ static int vec4_div(lua_State * L) {
 	luaL_setmetatable(L, "vec4");
 
 	if (lua_type(L, 2) == LUA_TNUMBER) {
-		*udata = *object1 * (r32)lua_tonumber(L, 2);
+		*udata = *object1 / (r32)lua_tonumber(L, 2);
 	}
 	else {
 		LUA_ASSERT_USERDATA("vec4", 2);
