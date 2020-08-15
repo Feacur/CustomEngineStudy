@@ -38,12 +38,12 @@ void init_asset_system(void) {
 namespace custom {
 namespace asset {
 
-u32 count = 3;
-
 #define ASSET_IMPL(T) #T,
 cstring names[] = {
 	#include "assets_registry_impl.h"
 	NULL
 };
+
+u32 count = C_ARRAY_LENGTH(names) - 1;
 
 }}

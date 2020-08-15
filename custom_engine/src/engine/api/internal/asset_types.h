@@ -4,6 +4,10 @@
 
 namespace custom {
 
+struct Lua_Asset {
+	u8 dummy;
+};
+
 struct Shader_Asset {
 	u8 dummy;
 };

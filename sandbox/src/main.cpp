@@ -34,9 +34,6 @@ static void init_client_assets(void) {
 	// "u_Texture",
 	// "u_Color",
 	// "u_Z",
-
-	// @Note: scripts
-	// "assets/scripts/main.lua",
 }
 
 void init_asset_system(void);
@@ -47,6 +44,7 @@ static void on_app_init() {
 	init_entity_components();
 
 	init_client_assets();
+	custom::RefT<custom::Lua_Asset> lua_ref = custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua");
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -56,9 +54,7 @@ static void on_app_init() {
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 
-	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
-		custom::loader::script(L, asset_id);
-	}
+	custom::loader::script(L, lua_ref);
 
 	// @Note: init data
 	camera_transform = {

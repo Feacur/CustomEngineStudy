@@ -5,6 +5,7 @@ struct lua_State;
 
 namespace custom {
 	// @Forward
+	struct Lua_Asset;     template<typename Lua_Asset>  struct RefT;
 	struct Shader_Asset;  template<typename Shader_Asset>  struct RefT;
 	struct Texture_Asset; template<typename Texture_Asset> struct RefT;
 	struct Mesh_Asset;    template<typename Mesh_Asset>    struct RefT;
@@ -20,7 +21,7 @@ namespace loader {
 
 void init(Bytecode * bc);
 
-void script(lua_State * L, u32 asset_id);
+void script(lua_State * L, RefT<Lua_Asset> const & asset_ref);
 
 void image(RefT<Texture_Asset> const & asset_ref);
 void imagef(RefT<Texture_Asset> const & asset_ref);

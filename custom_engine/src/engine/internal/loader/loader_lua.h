@@ -9,10 +9,10 @@ namespace loader {
 	|| lua_pcall(L, 0, LUA_MULTRET, 0)\
 )\
 
-void script(lua_State * L, u32 asset_id) {
-	// if (has_script(asset_id)) { return; }
-	if (asset_id >= asset::script::count) { return; }
-	cstring path = asset::script::paths[asset_id];
+void script(lua_State * L, RefT<Lua_Asset> const & asset_ref) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Lua_Asset const * asset = asset_ref.get_fast();
+	cstring path = Asset::get_path(asset_ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
