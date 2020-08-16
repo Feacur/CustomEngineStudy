@@ -11505,7 +11505,7 @@ GLAPI void APIENTRY glGetIntegerui64i_vNV (GLenum value, GLuint index, GLuint64E
 #define GL_CURRENT_ATTRIB_NV              0x8626
 #define GL_PROGRAM_LENGTH_NV              0x8627
 #define GL_PROGRAM_STRING_NV              0x8628
-#define GL_MODELVIEW_PROJECTION_NV        0x8629
+#define GL_MODELView_ProjectionECTION_NV        0x8629
 #define GL_IDENTITY_NV                    0x862A
 #define GL_INVERSE_NV                     0x862B
 #define GL_TRANSPOSE_NV                   0x862C

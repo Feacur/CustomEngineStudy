@@ -6,12 +6,8 @@ namespace sandbox {
 
 enum struct Uniform : u32
 {
-	resolution,
-	view_proj,
-	transform,
-	texture,
-	color,
-	z,
+	#define UNIFORM_IMPL(T) T,
+	#include "uniform_registry_impl.h"
 	count,
 };
 UNDERLYING_TYPE_META(Uniform, u32)

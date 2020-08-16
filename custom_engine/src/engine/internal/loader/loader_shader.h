@@ -5,10 +5,10 @@ void uniforms() {
 	if (graphics::mark_pending_uniforms()) { return; }
 
 	bc->write(graphics::Instruction::Init_Uniforms);
-	bc->write((u32)asset::uniform::count);
+	bc->write((u32)custom::uniform_names.count);
 
-	for (u32 i = 0; i < (u32)asset::uniform::count; ++i) {
-		cstring name = asset::uniform::names[i];
+	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
+		cstring name = custom::uniform_names[i];
 		u32 length = (u32)strlen(name);
 		bc->write_sized_array(name, length);
 	}

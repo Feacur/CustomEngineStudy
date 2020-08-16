@@ -4,7 +4,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
 #include "engine/api/internal/entity_system.h"
-#include "engine/api/client/components_lookup.h"
+#include "engine/api/internal/types_names_lookup.h"
 #include "engine/api/client/lua.h"
 
 #include <lua.hpp>
@@ -63,7 +63,7 @@ static int Entity_add_component(lua_State * L) {
 	Ref const & component_ref = object->add_component(type);
 	
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::component::names[type]);
+	luaL_setmetatable(L, custom::component_names[type]);
 	*udata = component_ref;
 
 	return 1;
@@ -106,7 +106,7 @@ static int Entity_get_component(lua_State * L) {
 	if (!has_component) { lua_pushnil(L); return 1; }
 
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::component::names[type]);
+	luaL_setmetatable(L, custom::component_names[type]);
 	*udata = component_ref;
 
 	return 1;
@@ -154,8 +154,8 @@ namespace lua {
 void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
 	custom::lua_client::init_components(L);
-	for (u32 i = 0; i < custom::component::count; ++i) {
-		lua_getglobal(L, custom::component::names[i]);
+	for (u32 i = 0; i < custom::component_names.count; ++i) {
+		lua_getglobal(L, custom::component_names[i]);
 		lua_pushinteger(L, i);
 		lua_setfield(L, -2, "type");
 		lua_pop(L, 1);

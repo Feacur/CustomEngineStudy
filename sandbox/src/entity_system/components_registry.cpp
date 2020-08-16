@@ -1,4 +1,4 @@
-#include "engine/api/client/components_lookup.h"
+#include "engine/api/internal/types_names_lookup.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"
 #include "engine/impl/entity_system.h"
@@ -21,14 +21,15 @@
 
 void init_entity_components(void) {
 	// @Note: initialize runtime components' data:
-	u32 component_types_count = 0;
-	#define COMPONENT_IMPL(T) custom::Component_Registry<T>::type = component_types_count++;
+	#define COMPONENT_IMPL(T)\
+		custom::Component_Registry<T>::type = custom::component_names.count;\
+		custom::component_names.push(#T);\
+
 	#include "../components/registry_impl.h"
 
-	custom::component::count = component_types_count;
-	custom::Entity::component_constructors.set_capacity(component_types_count);
-	custom::Entity::component_destructors.set_capacity(component_types_count);
-	custom::Entity::component_containers.set_capacity(component_types_count);
+	custom::Entity::component_constructors.set_capacity(custom::component_names.count);
+	custom::Entity::component_destructors.set_capacity(custom::component_names.count);
+	custom::Entity::component_containers.set_capacity(custom::component_names.count);
 	#define COMPONENT_IMPL(T)\
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\

@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 
+#include "engine/api/internal/types_names_lookup.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"
@@ -20,13 +21,15 @@
 
 void init_asset_system(void) {
 	// @Note: initialize runtime assets' data:
-	u32 asset_types_count = 0;
-	#define ASSET_IMPL(T) custom::Asset_Registry<T>::type = asset_types_count++;
+	#define ASSET_IMPL(T)\
+		custom::Asset_Registry<T>::type = custom::asset_names.count;\
+		custom::asset_names.push(#T);\
+
 	#include "assets_registry_impl.h"
 
-	custom::Asset::asset_constructors.set_capacity(asset_types_count);
-	custom::Asset::asset_destructors.set_capacity(asset_types_count);
-	custom::Asset::asset_containers.set_capacity(asset_types_count);
+	custom::Asset::asset_constructors.set_capacity(custom::asset_names.count);
+	custom::Asset::asset_destructors.set_capacity(custom::asset_names.count);
+	custom::Asset::asset_containers.set_capacity(custom::asset_names.count);
 	#define ASSET_IMPL(T)\
 		custom::Asset::asset_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Asset::asset_destructors.push(&custom::ref_pool_destroy<T>);\

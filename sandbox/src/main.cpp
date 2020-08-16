@@ -26,21 +26,13 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-// static void init_client_assets(void) {
-// 	// @uniforms
-// 	// "u_Resolution",
-// 	// "u_ViewProjection",
-// 	// "u_Transform",
-// 	// "u_Texture",
-// 	// "u_Color",
-// 	// "u_Z",
-// }
-
 void init_asset_system(void);
+void init_uniform_names(void);
 void init_entity_components(void);
 static void on_app_init() {
 	// @Note: init systems
 	init_asset_system();
+	init_uniform_names();
 	init_entity_components();
 
 	L = luaL_newstate();

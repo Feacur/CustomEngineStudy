@@ -49,9 +49,9 @@ void update(Transform const & camera_transform, mat4 const & projection) {
 
 		//
 		custom::renderer::set_shader(visual->shader);
-		custom::renderer::set_texture(visual->shader, (u32)sandbox::Uniform::texture, visual->texture);
-		custom::renderer::set_uniform(visual->shader, (u32)sandbox::Uniform::view_proj, camera_matrix);
-		custom::renderer::set_uniform(visual->shader, (u32)sandbox::Uniform::transform, transform_matrix);
+		custom::renderer::set_texture(visual->shader, (u32)sandbox::Uniform::Texture, visual->texture);
+		custom::renderer::set_uniform(visual->shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
+		custom::renderer::set_uniform(visual->shader, (u32)sandbox::Uniform::Transform, transform_matrix);
 		// custom::renderer::set_uniform(visual->shader, (u32)sandbox::Uniform::resolution, viewport_size);
 		custom::renderer::set_mesh(visual->mesh);
 		custom::renderer::draw();
