@@ -115,6 +115,19 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	asset->source.data = file.data; file.data = NULL;
 	asset->source.capacity = file.capacity; file.capacity = 0;
 	asset->source.count = file.count; file.count = 0;
+
+	// @Note: direct asset to the GVM
+	if (graphics::mark_pending_shader(ref.id)) {
+		CUSTOM_ASSERT(false, "shader resource already exists");
+		custom::loader::bc->write(graphics::Instruction::Free_Shader);
+		custom::loader::bc->write((Ref const &)ref);
+	}
+
+	custom::loader::bc->write(graphics::Instruction::Allocate_Shader);
+	custom::loader::bc->write((Ref const &)ref);
+	
+	custom::loader::bc->write(graphics::Instruction::Load_Shader);
+	custom::loader::bc->write((Ref const &)ref);
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
@@ -122,7 +135,11 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	Shader_Asset * asset = refT.get_fast();
-	asset->source.set_capacity(0);
+	asset->~Shader_Asset();
+
+	// @Note: remove asset from the GVM
+	custom::loader::bc->write(graphics::Instruction::Free_Shader);
+	custom::loader::bc->write((Ref const &)ref);
 }
 
 }
@@ -141,19 +158,6 @@ void uniforms() {
 		u32 length = (u32)strlen(name);
 		bc->write_sized_array(name, length);
 	}
-}
-
-void shader(RefT<Shader_Asset> const & ref) {
-	if (graphics::mark_pending_shader(ref.id)) { return; }
-
-	Shader_Asset const * asset = ref.get_fast();
-	if (!asset->source.count) { return; }
-
-	bc->write(graphics::Instruction::Allocate_Shader);
-	bc->write((Ref const &)ref);
-	
-	bc->write(graphics::Instruction::Load_Shader);
-	bc->write((Ref const &)ref);
 }
 
 }}
@@ -178,27 +182,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	new (asset) Texture_Asset;
 
 	stbi_set_flip_vertically_on_load(1);
-	asset->data = stbi_load_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
-}
-
-template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
-	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
-
-	Texture_Asset * asset = refT.get_fast();
-	stbi_image_free(asset->data);
-}
-
-}
-
-namespace custom {
-namespace loader {
-
-void image(RefT<Texture_Asset> const & ref) {
-	if (graphics::mark_pending_texture(ref.id)) { return; }
-
-	Texture_Asset const * asset = ref.get_fast();
-	if (!asset->data) { return; }
+	stbi_uc * data = stbi_load_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
 
 	u8 data_type_size = 0;
 	switch (asset->data_type)
@@ -208,16 +192,37 @@ void image(RefT<Texture_Asset> const & ref) {
 		case custom::graphics::Data_Type::r32: data_type_size = sizeof(r32); break;
 	}
 
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	bc->write(graphics::Instruction::Allocate_Texture);
-	bc->write((Ref const &)ref);
+	asset->data.data = data;
+	asset->data.capacity = asset->size.x * asset->size.y * asset->channels * data_type_size;
+	asset->data.capacity = asset->data.capacity;
 
-	// @Note: upload actual texture data; might stream it later
-	bc->write(graphics::Instruction::Load_Texture);
-	bc->write((Ref const &)ref);
+	// @Note: direct asset to the GVM
+	if (graphics::mark_pending_texture(ref.id)) {
+		CUSTOM_ASSERT(false, "texture resource already exists");
+		custom::loader::bc->write(graphics::Instruction::Free_Texture);
+		custom::loader::bc->write((Ref const &)ref);
+	}
+
+	custom::loader::bc->write(graphics::Instruction::Allocate_Texture);
+	custom::loader::bc->write((Ref const &)ref);
+
+	custom::loader::bc->write(graphics::Instruction::Load_Texture);
+	custom::loader::bc->write((Ref const &)ref);
 }
 
-}}
+template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
+	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+
+	Texture_Asset * asset = refT.get_fast();
+	asset->~Texture_Asset();
+
+	// @Note: remove asset from the GVM
+	custom::loader::bc->write(graphics::Instruction::Free_Texture);
+	custom::loader::bc->write((Ref const &)ref);
+}
+
+}
 
 //
 // Mesh_Asset
@@ -278,6 +283,19 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 		buffer.data_type = graphics::Data_Type::u32;
 		buffer.is_index = true;
 	}
+
+	// @Note: direct asset to the GVM
+	if (graphics::mark_pending_mesh(ref.id)) {
+		CUSTOM_ASSERT(false, "mesh resource already exists");
+		custom::loader::bc->write(graphics::Instruction::Free_Mesh);
+		custom::loader::bc->write((Ref const &)ref);
+	}
+
+	custom::loader::bc->write(graphics::Instruction::Allocate_Mesh);
+	custom::loader::bc->write((Ref const &)ref);
+
+	custom::loader::bc->write(graphics::Instruction::Load_Mesh);
+	custom::loader::bc->write((Ref const &)ref);
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
@@ -285,32 +303,11 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	Mesh_Asset * asset = refT.get_fast();
-	for (u32 i = 0; i < asset->buffers.count; ++i) {
-		asset->buffers[i].attributes.set_capacity(0);
-		asset->buffers[i].buffer.set_capacity(0);
-	}
-	asset->buffers.set_capacity(0);
+	asset->~Mesh_Asset();
+
+	// @Note: remove asset from the GVM
+	custom::loader::bc->write(graphics::Instruction::Free_Mesh);
+	custom::loader::bc->write((Ref const &)ref);
 }
 
 }
-
-namespace custom {
-namespace loader {
-
-template<typename T>
-static void write_data_array(custom::Array<T> const & data);
-
-void mesh(RefT<Mesh_Asset> const & ref) {
-	if (graphics::mark_pending_mesh(ref.id)) { return; }
-
-	Mesh_Asset const * asset = ref.get_fast();
-	if (!asset->buffers.count) { return; }
-
-	bc->write(graphics::Instruction::Allocate_Mesh);
-	bc->write((Ref const &)ref);
-
-	bc->write(graphics::Instruction::Load_Mesh);
-	bc->write((Ref const &)ref);
-}
-
-}}

@@ -39,6 +39,8 @@ static void on_app_init() {
 	init_client_component_types();
 	init_uniform_names();
 
+	custom::loader::uniforms();
+
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);

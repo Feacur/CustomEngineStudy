@@ -1,7 +1,6 @@
 #include "ecs_renderer.h"
 
 #include "engine/api/internal/bytecode.h"
-#include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/internal/component_types.h"
 // #include "engine/api/internal/application.h"
@@ -26,8 +25,6 @@ void update(Transform const & camera_transform, mat4 const & projection) {
 
 	// ivec2 viewport_size = custom::application::get_viewport_size();
 
-	custom::loader::uniforms();
-
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -42,11 +39,6 @@ void update(Transform const & camera_transform, mat4 const & projection) {
 		mat4 transform_matrix = to_matrix(
 			transform->position, transform->rotation, transform->scale
 		);
-
-		//
-		custom::loader::shader(visual->shader);
-		custom::loader::image(visual->texture);
-		custom::loader::mesh(visual->mesh);
 
 		//
 		custom::renderer::set_shader(visual->shader);

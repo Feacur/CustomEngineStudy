@@ -64,6 +64,7 @@ struct Field
 
 struct Program
 {
+	u32 gen;
 	GLuint id = empty_gl_id;
 	u32 ready_state = RS_NONE;
 	// custom::Array_Fixed<Field, 4> attributes;
@@ -80,6 +81,7 @@ template struct custom::Array<Program>;
 
 struct Texture
 {
+	u32 gen;
 	GLuint id = empty_gl_id;
 	u32 ready_state = RS_NONE;
 	b8 is_dynamic;
@@ -133,6 +135,7 @@ struct Buffer
 
 struct Mesh
 {
+	u32 gen;
 	GLuint id = empty_gl_id;
 	u32 ready_state = RS_NONE;
 	custom::Array_Fixed<Buffer, 2> buffers;
@@ -1255,6 +1258,9 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 		CUSTOM_TRACE("shader %d already exists", ref.id);
 		return;
 	}
+
+	resource->gen = ref.gen;
+
 	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", ref.id);
 	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
@@ -1287,6 +1293,8 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 		CUSTOM_TRACE("texture %d already exists", ref.id);
 		return;
 	}
+
+	resource->gen = ref.gen;
 
 	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", ref.id);
 	platform_consume_texture_params(asset, resource);
@@ -1406,6 +1414,8 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	}
 	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "mesh %d wasn't marked as pending", ref.id);
 	platform_consume_mesh_params(asset, resource);
+
+	resource->gen = ref.gen;
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
 
@@ -1697,25 +1707,35 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 }
 
 static void platform_Free_Shader(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	opengl::Program * resource = &ogl.programs.get(asset_id);
+	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+
+	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
+
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	// Shader_Asset const * asset = ref.get_fast();
+
 	glDeleteProgram(resource->id);
 	resource->opengl::Program::~Program();
-	if (ogl.active_program == asset_id) {
+	if (ogl.active_program == ref.id) {
 		ogl.active_program = empty_asset_id;
 	}
 }
 
 static void platform_Free_Texture(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	opengl::Texture * resource = &ogl.textures.get(asset_id);
+	RefT<Texture_Asset> const ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
+
+	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
+
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	// Texture_Asset const * asset = ref.get_fast();
+
 	glDeleteTextures(1, &resource->id);
 
 	for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
 		unit_id & it = ogl.unit_ids.get(i);
-		if (it.texture == asset_id) {
+		if (it.texture == ref.id) {
 			it.texture = empty_asset_id;
 			// @Note: texture is unbound by deletion
 		}
@@ -1752,15 +1772,20 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 }
 
 static void platform_Free_Mesh(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	opengl::Mesh * resource = &ogl.meshes.get(asset_id);
+	RefT<Mesh_Asset> const ref = *(RefT<Mesh_Asset> *)bc.read<Ref>();
+
+	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
+
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	// Mesh_Asset const * asset = ref.get_fast();
+
 	for (u16 i = 0; i < resource->buffers.count; ++i) {
 		glDeleteBuffers(1, &resource->buffers[i].id);
 	}
 	glDeleteVertexArrays(1, &resource->id);
 	resource->opengl::Mesh::~Mesh();
-	if (ogl.active_mesh == asset_id) {
+	if (ogl.active_mesh == ref.id) {
 		ogl.active_mesh = empty_asset_id;
 	}
 }
@@ -1927,7 +1952,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	}
 
 	// @Todo: implement load/unload
-	Asset::asset_unloaders[Asset_Registry<Shader_Asset>::type]((Ref &)ref);
+	asset->~Shader_Asset();
 }
 
 static void platform_Load_Texture(Bytecode const & bc) {
@@ -1961,7 +1986,7 @@ static void platform_Load_Texture(Bytecode const & bc) {
 			offset.x, offset.y, asset->size.x, asset->size.y,
 			get_texture_data_format(asset->texture_type, (u8)asset->channels),
 			get_texture_data_type(asset->texture_type, asset->data_type),
-			asset->data
+			asset->data.data
 		);
 	}
 	else {
@@ -1972,12 +1997,12 @@ static void platform_Load_Texture(Bytecode const & bc) {
 			offset.x, offset.y, asset->size.x, asset->size.y,
 			get_texture_data_format(asset->texture_type, (u8)asset->channels),
 			get_texture_data_type(asset->texture_type, asset->data_type),
-			asset->data
+			asset->data.data
 		);
 	}
 
 	// @Todo: implement load/unload
-	Asset::asset_unloaders[Asset_Registry<Texture_Asset>::type]((Ref &)ref);
+	asset->~Texture_Asset();
 }
 
 static void platform_Load_Mesh(Bytecode const & bc) {
@@ -2054,7 +2079,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 	resource->ready_state = RS_LOADED;
 
 	// @Todo: implement load/unload
-	Asset::asset_unloaders[Asset_Registry<Mesh_Asset>::type]((Ref &)ref);
+	asset->~Mesh_Asset();
 }
 
 static void platform_Set_Uniform(Bytecode const & bc) {
