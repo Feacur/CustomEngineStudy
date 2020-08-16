@@ -99,7 +99,7 @@
 	}\
 	else { lua_pop(L, 1); }\
 
-// @Note: fallback '__index' receives 'T##_functions' as the table
+// @Note: fallback `__index` receives `T##_functions` as the table
 #define LUA_META_INDEX_SCOPE_FALLBACK_IMPL(T)\
 	if (luaL_newmetatable(L, #T)) {\
 		luaL_setfuncs(L, T##_meta, 0);\

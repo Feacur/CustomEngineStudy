@@ -7,7 +7,7 @@
 // http://www.unicode.org/versions/Unicode6.2.0/UnicodeStandard-6.2.pdf
 
 // encoding template (from a N-bytes array)
-// - to decode, mask and tightly pack all the 'x'
+// - to decode, mask and tightly pack all the `x`
 // 4 bytes: 0b 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 // 3 bytes: 0b 1110xxxx 10xxxxxx 10xxxxxx ________
 // 2 bytes: 0b 110xxxxx 10xxxxxx ________ ________

@@ -18,7 +18,7 @@ namespace custom {
 // @Note: it might be beneficial to align written data for future reads
 //        - either because of performance of loading loading data
 //        - or because of potential read failures and system failures
-//        alternatively do not 'read', but 'copy' data
+//        alternatively do not `read`, but `copy` data
 //        *disclaimer*: didn't check actual benefits here, rather making
 //        a proof of concept code for now
 #define CUSTOM_GET_NEXT_MULTIPLE_2(value, multiple) ((value + (multiple - 1)) & ~(multiple - 1))
