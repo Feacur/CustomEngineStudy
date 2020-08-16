@@ -4,9 +4,12 @@
 #include "engine/api/platform/graphics_vm.h"
 #include "engine/api/platform/graphics_resource.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
+#include "engine/impl/reference.h"
+#include "engine/impl/asset_system.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
@@ -1241,45 +1244,52 @@ static void platform_Stencil_Mask(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Shader(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	ogl.programs_ensure_capacity(asset_id);
-	opengl::Program * resource = &ogl.programs.get(asset_id);
+	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	// Shader_Asset const * asset = ref.get_fast();
+
+	ogl.programs_ensure_capacity(ref.id);
+	opengl::Program * resource = &ogl.programs.get(ref.id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_TRACE("shader %d already exists", asset_id);
+		CUSTOM_TRACE("shader %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", asset_id);
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", ref.id);
 	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
 }
 
-static void platform_consume_texture_params(Bytecode const & bc, opengl::Texture * resource) {
+static void platform_consume_texture_params(Texture_Asset const * asset, opengl::Texture * resource) {
 	new (resource) opengl::Texture;
 	resource->target       = GL_TEXTURE_2D;
-	resource->is_dynamic   = *bc.read<b8>();
-	resource->size         = *bc.read<ivec2>();
-	resource->channels     = *bc.read<u8>();
-	resource->data_type    = *bc.read<Data_Type>();
-	resource->texture_type = *bc.read<Texture_Type>();
-	resource->min_tex      = *bc.read<Filter_Mode>();
-	resource->min_mip      = *bc.read<Filter_Mode>();
-	resource->mag_tex      = *bc.read<Filter_Mode>();
-	resource->wrap_x       = *bc.read<Wrap_Mode>();
-	resource->wrap_y       = *bc.read<Wrap_Mode>();
+	resource->is_dynamic   = asset->is_dynamic;
+	resource->size         = asset->size;
+	resource->channels     = (u8)asset->channels;
+	resource->data_type    = asset->data_type;
+	resource->texture_type = asset->texture_type;
+	resource->min_tex      = asset->min_tex;
+	resource->min_mip      = asset->min_mip;
+	resource->mag_tex      = asset->mag_tex;
+	resource->wrap_x       = asset->wrap_x;
+	resource->wrap_y       = asset->wrap_y;
 }
 
 static void platform_Allocate_Texture(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	ogl.textures_ensure_capacity(asset_id);
-	opengl::Texture * resource = &ogl.textures.get(asset_id);
+	RefT<Texture_Asset> ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+
+	ogl.textures_ensure_capacity(ref.id);
+	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_TRACE("texture %d already exists", asset_id);
-		opengl::Texture default_texture;
-		platform_consume_texture_params(bc, &default_texture);
+		CUSTOM_TRACE("texture %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", asset_id);
-	platform_consume_texture_params(bc, resource);
+
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", ref.id);
+	platform_consume_texture_params(asset, resource);
 
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -1354,46 +1364,48 @@ static void platform_Allocate_Sampler(Bytecode const & bc) {
 	glSamplerParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(resource->wrap_y));
 }
 
-static void platform_consume_mesh_params(Bytecode const & bc, opengl::Mesh * resource) {
+static void platform_consume_mesh_params(Mesh_Asset const * asset, opengl::Mesh * resource) {
 	new (resource) opengl::Mesh;
-	u8 buffers_count = *bc.read<u8>();
-	// resource->buffers.set_capacity(buffers_count);
-	CUSTOM_ASSERT(buffers_count <= resource->buffers.capacity, "too many buffers");
-	for (u8 i = 0; i < buffers_count; ++i) {
+
+	// resource->buffers.set_capacity(asset->buffers.count);
+	CUSTOM_ASSERT(asset->buffers.count <= resource->buffers.capacity, "too many buffers");
+	for (u8 i = 0; i < asset->buffers.count; ++i) {
 		resource->buffers.push();
 		opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
 
-		buffer->is_index  = *bc.read<b8>();
-		buffer->frequency = *bc.read<Mesh_Frequency>();
-		buffer->access    = *bc.read<Mesh_Access>();
-		buffer->type      = *bc.read<Data_Type>();
-		buffer->capacity  = *bc.read<u32>();
-		buffer->count     = *bc.read<u32>();
+		Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
+		buffer->is_index  = in_buffer.is_index;
+		buffer->frequency = in_buffer.frequency;
+		buffer->access    = in_buffer.access;
+		buffer->type      = in_buffer.data_type;
+		buffer->capacity  = in_buffer.buffer.capacity;
+		buffer->count     = 0;
 
-		u32 attr_count = *bc.read<u32>();
-		// buffer->attributes.set_capacity(attr_count);
-		CUSTOM_ASSERT(attr_count <= buffer->attributes.capacity, "too many attributes");
-		for (u16 attr_i = 0; attr_i < attr_count; ++attr_i) {
+		// buffer->attributes.set_capacity(in_buffer.attributes.count);
+		CUSTOM_ASSERT(in_buffer.attributes.count <= buffer->attributes.capacity, "too many attributes");
+		for (u16 attr_i = 0; attr_i < in_buffer.attributes.count; ++attr_i) {
 			buffer->attributes.push();
 			opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
-			attribute->count = *bc.read<u8>();
+			attribute->count = in_buffer.attributes[attr_i];
 		}
-		if (buffer->is_index) { resource->index_buffer = i; }
+		if (in_buffer.is_index) { resource->index_buffer = i; }
 	}
 }
 
 static void platform_Allocate_Mesh(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	ogl.meshes_ensure_capacity(asset_id);
-	opengl::Mesh * resource = &ogl.meshes.get(asset_id);
+	RefT<Mesh_Asset> ref = *(RefT<Mesh_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	Mesh_Asset const * asset = ref.get_fast();
+
+	ogl.meshes_ensure_capacity(ref.id);
+	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_TRACE("mesh %d already exists", asset_id);
-		opengl::Mesh default_resource;
-		platform_consume_mesh_params(bc, &default_resource);
+		CUSTOM_TRACE("mesh %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "mesh %d wasn't marked as pending", asset_id);
-	platform_consume_mesh_params(bc, resource);
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "mesh %d wasn't marked as pending", ref.id);
+	platform_consume_mesh_params(asset, resource);
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
 
@@ -1412,9 +1424,9 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_mesh != asset_id) {
-			CUSTOM_WARNING("OGL: switched to mesh %d (before: %d)", asset_id, ogl.active_mesh);
-			ogl.active_mesh = asset_id;
+		if (ogl.active_mesh != ref.id) {
+			CUSTOM_WARNING("OGL: switched to mesh %d (before: %d)", ref.id, ogl.active_mesh);
+			ogl.active_mesh = ref.id;
 		}
 		glGenVertexArrays(1, &resource->id);
 		glBindVertexArray(resource->id);
@@ -1853,21 +1865,23 @@ static void platform_Use_Target(Bytecode const & bc) {
 }
 
 static void platform_Load_Shader(Bytecode const & bc) {
-	// @Change: receive a pointer instead, then free if needed?
-	u32 asset_id = *bc.read<u32>();
-	opengl::Program * resource = &ogl.programs.get(asset_id);
+	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	Shader_Asset const * asset = ref.get_fast();
+
+	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
-	Inline_String source = read_cstring(bc);
 	if (resource->ready_state == RS_LOADED) {
-		CUSTOM_TRACE("trying to overwrite shader %d data", asset_id);
+		CUSTOM_TRACE("trying to overwrite shader %d data", ref.id);
 		return;
 	}
 	resource->ready_state = RS_LOADED;
 
-	platform_link_program(resource->id, {(GLint)source.count, source.data});
+	platform_link_program(resource->id, {(GLint)asset->source.count, (glstring)asset->source.data});
 
-	// CUSTOM_TRACE("program %d info:", asset_id);
+	// CUSTOM_TRACE("program %d info:", ref.id);
 	Program_Field field_buffer;
 
 	// GLint attributes_capacity;
@@ -1911,40 +1925,43 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		field->id = uniform_id;
 		field->location = field_buffer.location;
 	}
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Shader_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Load_Texture(Bytecode const & bc) {
-	// @Change: receive a pointer instead, then free if needed?
-	u32 asset_id = *bc.read<u32>();
-	opengl::Texture * resource = &ogl.textures.get(asset_id);
+	RefT<Texture_Asset> const ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+
+	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
-	ivec2 offset = *bc.read<ivec2>();
-	ivec2 size = *bc.read<ivec2>();
-	u8           channels     = *bc.read<u8>();
-	Data_Type    data_type    = *bc.read<Data_Type>();
-	Texture_Type texture_type = *bc.read<Texture_Type>();
-	cmemory data = read_data(bc, data_type, size.x * size.y * channels);
+	// @Todo: allow offests usage
+	ivec2 offset = {0, 0};
+
 	if (resource->ready_state == RS_LOADED) {
 		if (!resource->is_dynamic) { return; }
-		CUSTOM_TRACE("overwriting texture %d data", asset_id);
+		CUSTOM_TRACE("overwriting texture %d data", ref.id);
 	}
 	resource->ready_state = RS_LOADED;
 
-	CUSTOM_ASSERT(offset.x + size.x <= resource->size.x, "texture %d error: writing past data x bounds", asset_id);
-	CUSTOM_ASSERT(offset.y + size.y <= resource->size.y, "texture %d error: writing past data y bounds", asset_id);
-	CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id);
-	CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id);
-	CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id);
+	CUSTOM_ASSERT(offset.x + asset->size.x <= resource->size.x, "texture %d error: writing past data x bounds", ref.id);
+	CUSTOM_ASSERT(offset.y + asset->size.y <= resource->size.y, "texture %d error: writing past data y bounds", ref.id);
+	CUSTOM_ASSERT(asset->channels == resource->channels, "texture %d error: different channels count", ref.id);
+	CUSTOM_ASSERT(asset->data_type == resource->data_type, "texture %d error: different data types", ref.id);
+	CUSTOM_ASSERT(asset->texture_type == resource->texture_type, "texture %d error: different texture types", ref.id);
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glTextureSubImage2D(
 			resource->id,
 			0,
-			offset.x, offset.y, size.x, size.y,
-			get_texture_data_format(texture_type, channels),
-			get_texture_data_type(texture_type, data_type),
-			data
+			offset.x, offset.y, asset->size.x, asset->size.y,
+			get_texture_data_format(asset->texture_type, (u8)asset->channels),
+			get_texture_data_type(asset->texture_type, asset->data_type),
+			asset->data
 		);
 	}
 	else {
@@ -1952,81 +1969,92 @@ static void platform_Load_Texture(Bytecode const & bc) {
 		glTexSubImage2D(
 			resource->target,
 			0,
-			offset.x, offset.y, size.x, size.y,
-			get_texture_data_format(texture_type, channels),
-			get_texture_data_type(texture_type, data_type),
-			data
+			offset.x, offset.y, asset->size.x, asset->size.y,
+			get_texture_data_format(asset->texture_type, (u8)asset->channels),
+			get_texture_data_type(asset->texture_type, asset->data_type),
+			asset->data
 		);
 	}
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Texture_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Load_Mesh(Bytecode const & bc) {
-	// @Change: receive a pointer instead, then free if needed?
-	u32 asset_id = *bc.read<u32>();
-	opengl::Mesh * resource = &ogl.meshes.get(asset_id);
+	RefT<Mesh_Asset> ref = *(RefT<Mesh_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	Mesh_Asset const * asset = ref.get_fast();
+
+	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
 
-	u8 buffers_count = *bc.read<u8>();
-
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		for (u16 i = 0; i < buffers_count; ++i) {
+		for (u16 i = 0; i < asset->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
-			u32 offset = *bc.read<u32>();
-			DT_Array in_buffer = read_data_array(bc);
+			// @Todo: allow offests usage
+			u32 offset = 0;
+			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
 				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
-				CUSTOM_TRACE("overwriting mesh %d data", asset_id);
+				CUSTOM_TRACE("overwriting mesh %d data", ref.id);
 			}
 
-			CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
-			CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
+			CUSTOM_ASSERT(offset + in_buffer.buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", ref.id, i);
+			CUSTOM_ASSERT(buffer.type == in_buffer.data_type, "mesh %d buffer %d error: different data types", ref.id, i);
 
-			GLsizeiptr type_size = get_type_size(in_buffer.type);
+			GLsizeiptr type_size = get_type_size(in_buffer.data_type);
+			buffer.count = in_buffer.buffer.count / (u32)type_size;
 
 			glNamedBufferSubData(
 				buffer.id,
 				offset * type_size,
-				in_buffer.count * type_size,
-				in_buffer.data
+				in_buffer.buffer.count * type_size,
+				in_buffer.buffer.data
 			);
 		}
 	}
 	else {
-		if (ogl.active_mesh != empty_asset_id && ogl.active_mesh != asset_id) {
+		if (ogl.active_mesh != empty_asset_id && ogl.active_mesh != ref.id) {
 			glBindVertexArray(0);
-			CUSTOM_WARNING("OGL: disabled mesh %d (loading: %d)", ogl.active_mesh, asset_id);
+			CUSTOM_WARNING("OGL: disabled mesh %d (loading: %d)", ogl.active_mesh, ref.id);
 			ogl.active_mesh = empty_asset_id;
 		}
-		for (u16 i = 0; i < buffers_count; ++i) {
+		for (u16 i = 0; i < asset->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-	
-			u32 offset = *bc.read<u32>();
-			DT_Array in_buffer = read_data_array(bc);
+
+			// @Todo: allow offests usage
+			u32 offset = 0;
+			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
 				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
-				CUSTOM_TRACE("overwriting mesh %d data", asset_id);
+				CUSTOM_TRACE("overwriting mesh %d data", ref.id);
 			}
 	
-			CUSTOM_ASSERT(offset + in_buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", asset_id, i);
-			CUSTOM_ASSERT(buffer.type == in_buffer.type, "mesh %d buffer %d error: different data types", asset_id, i);
+			CUSTOM_ASSERT(offset + in_buffer.buffer.count <= buffer.capacity, "mesh %d buffer %d error: writing past data bounds", ref.id, i);
+			CUSTOM_ASSERT(buffer.type == in_buffer.data_type, "mesh %d buffer %d error: different data types", ref.id, i);
 	
-			GLsizeiptr type_size = get_type_size(in_buffer.type);
+			GLsizeiptr type_size = get_type_size(in_buffer.data_type);
+			buffer.count = in_buffer.buffer.count / (u32)type_size;
 	
 			glBindBuffer(target, buffer.id);
 			glBufferSubData(
 				target,
 				offset * type_size,
-				in_buffer.count * type_size,
-				in_buffer.data
+				in_buffer.buffer.count * type_size,
+				in_buffer.buffer.data
 			);
 		}
 	}
 	resource->ready_state = RS_LOADED;
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Mesh_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Set_Uniform(Bytecode const & bc) {
