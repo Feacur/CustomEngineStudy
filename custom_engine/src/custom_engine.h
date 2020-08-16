@@ -22,5 +22,6 @@
 #include "engine/api/internal/application.h"
 #include "engine/api/internal/lua.h"
 #include "engine/api/internal/asset_types.h"
+#include "engine/api/internal/component_types.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/api/graphics_params.h"

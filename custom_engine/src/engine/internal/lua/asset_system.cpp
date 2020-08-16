@@ -129,9 +129,11 @@ namespace custom {
 namespace lua {
 
 extern void init_asset_types(lua_State * L);
+extern void init_client_asset_types(lua_State * L);
 void init_asset_system(lua_State * L) {
 	LUA_META_IMPL(Asset)
 	custom::lua::init_asset_types(L);
+	custom::lua::init_client_asset_types(L);
 	for (u32 i = 0; i < custom::asset_names.count; ++i) {
 		lua_getglobal(L, custom::asset_names[i]);
 		lua_pushinteger(L, i);

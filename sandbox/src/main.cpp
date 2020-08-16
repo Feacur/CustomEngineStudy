@@ -3,8 +3,8 @@
 #include "engine/impl/math_linear.h"
 #include "engine/impl/asset_system.h"
 
-#include "assets/ids.h"
-#include "components/types.h"
+#include "asset_system/uniform_ids.h"
+#include "entity_system/component_types.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 
@@ -26,14 +26,18 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-void init_asset_system(void);
+void init_asset_types(void);
+void init_client_asset_types(void);
+void init_component_types(void);
+void init_client_component_types(void);
 void init_uniform_names(void);
-void init_entity_components(void);
 static void on_app_init() {
 	// @Note: init systems
-	init_asset_system();
+	init_asset_types();
+	init_component_types();
+	init_client_asset_types();
+	init_client_component_types();
 	init_uniform_names();
-	init_entity_components();
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);

@@ -5,7 +5,6 @@
 #include "engine/api/lua.h"
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/types_names_lookup.h"
-#include "engine/api/client/lua.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -151,9 +150,12 @@ static luaL_Reg const Entity_meta[] = {
 namespace custom {
 namespace lua {
 
+extern void init_component_types(lua_State * L);
+extern void init_client_component_types(lua_State * L);
 void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
-	custom::lua_client::init_components(L);
+	custom::lua::init_component_types(L);
+	custom::lua::init_client_component_types(L);
 	for (u32 i = 0; i < custom::component_names.count; ++i) {
 		lua_getglobal(L, custom::component_names[i]);
 		lua_pushinteger(L, i);

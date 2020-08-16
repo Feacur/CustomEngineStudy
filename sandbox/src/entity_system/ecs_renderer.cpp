@@ -3,13 +3,14 @@
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
+#include "engine/api/internal/component_types.h"
 // #include "engine/api/internal/application.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
 
-#include "../assets/ids.h"
-#include "../components/types.h"
+#include "../asset_system/uniform_ids.h"
+#include "component_types.h"
 
 // @Note: thoughts on factoring code for a renderer
 //        - batch together materials/objects with the same shaders

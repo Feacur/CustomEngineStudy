@@ -19,7 +19,7 @@
 
 #include "assets_registry_impl.h"
 
-void init_asset_types(void) {
+void init_client_asset_types(void) {
 	// @Note: initialize runtime assets' data:
 	#define ASSET_IMPL(T)\
 		custom::Asset_Registry<T>::type = custom::asset_names.count;\

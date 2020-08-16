@@ -6,8 +6,7 @@
 #include "engine/api/internal/loader.h"
 #include "engine/impl/array.h"
 
-#include "../assets/ids.h"
-#include "../components/types.h"
+#include "component_types.h"
 
 #include <lua.hpp>
 
