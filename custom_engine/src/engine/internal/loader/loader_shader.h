@@ -21,10 +21,10 @@ void shader(RefT<Shader_Asset> const & ref) {
 	if (!asset->source.count) { return; }
 
 	bc->write(graphics::Instruction::Allocate_Shader);
-	bc->write(ref);
+	bc->write((Ref const &)ref);
 	
 	bc->write(graphics::Instruction::Load_Shader);
-	bc->write(ref);
+	bc->write((Ref const &)ref);
 }
 
 /*

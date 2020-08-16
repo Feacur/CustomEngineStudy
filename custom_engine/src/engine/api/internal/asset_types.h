@@ -19,6 +19,7 @@ struct Texture_Asset {
 	ivec2 size;
 	s32 channels;
 
+	u8 is_dynamic = true;
 	graphics::Data_Type data_type = graphics::Data_Type::u8;
 	graphics::Texture_Type texture_type = graphics::Texture_Type::Color;
 

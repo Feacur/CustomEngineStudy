@@ -1244,7 +1244,11 @@ static void platform_Stencil_Mask(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Shader(Bytecode const & bc) {
-	RefT<Shader_Asset> ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	// Shader_Asset const * asset = ref.get_fast();
+
 	ogl.programs_ensure_capacity(ref.id);
 	opengl::Program * resource = &ogl.programs.get(ref.id);
 	if (resource->id != empty_gl_id) {
@@ -1256,33 +1260,37 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 	resource->id = glCreateProgram();
 }
 
-static void platform_consume_texture_params(Bytecode const & bc, opengl::Texture * resource) {
+static void platform_consume_texture_params(RefT<Texture_Asset> const & ref, opengl::Texture * resource) {
+	Texture_Asset const * asset = ref.get_fast();
+
 	new (resource) opengl::Texture;
 	resource->target       = GL_TEXTURE_2D;
-	resource->is_dynamic   = *bc.read<b8>();
-	resource->size         = *bc.read<ivec2>();
-	resource->channels     = *bc.read<u8>();
-	resource->data_type    = *bc.read<Data_Type>();
-	resource->texture_type = *bc.read<Texture_Type>();
-	resource->min_tex      = *bc.read<Filter_Mode>();
-	resource->min_mip      = *bc.read<Filter_Mode>();
-	resource->mag_tex      = *bc.read<Filter_Mode>();
-	resource->wrap_x       = *bc.read<Wrap_Mode>();
-	resource->wrap_y       = *bc.read<Wrap_Mode>();
+	resource->is_dynamic   = asset->is_dynamic;
+	resource->size         = asset->size;
+	resource->channels     = (u8)asset->channels;
+	resource->data_type    = asset->data_type;
+	resource->texture_type = asset->texture_type;
+	resource->min_tex      = asset->min_tex;
+	resource->min_mip      = asset->min_mip;
+	resource->mag_tex      = asset->mag_tex;
+	resource->wrap_x       = asset->wrap_x;
+	resource->wrap_y       = asset->wrap_y;
 }
 
 static void platform_Allocate_Texture(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	ogl.textures_ensure_capacity(asset_id);
-	opengl::Texture * resource = &ogl.textures.get(asset_id);
+	RefT<Texture_Asset> ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+
+	ogl.textures_ensure_capacity(ref.id);
+	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_TRACE("texture %d already exists", asset_id);
-		opengl::Texture default_texture;
-		platform_consume_texture_params(bc, &default_texture);
+		CUSTOM_TRACE("texture %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", asset_id);
-	platform_consume_texture_params(bc, resource);
+
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", ref.id);
+	platform_consume_texture_params(ref, resource);
 
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -1856,11 +1864,10 @@ static void platform_Use_Target(Bytecode const & bc) {
 }
 
 static void platform_Load_Shader(Bytecode const & bc) {
-	// @Change: receive a pointer instead, then free if needed?
-	RefT<Shader_Asset> ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
 
-	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Shader_Asset * asset = ref.get_fast();
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	Shader_Asset const * asset = ref.get_fast();
 
 	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
@@ -1920,37 +1927,36 @@ static void platform_Load_Shader(Bytecode const & bc) {
 }
 
 static void platform_Load_Texture(Bytecode const & bc) {
-	// @Change: receive a pointer instead, then free if needed?
-	u32 asset_id = *bc.read<u32>();
-	opengl::Texture * resource = &ogl.textures.get(asset_id);
+	RefT<Texture_Asset> const ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+
+	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
-	ivec2 offset = *bc.read<ivec2>();
-	ivec2 size = *bc.read<ivec2>();
-	u8           channels     = *bc.read<u8>();
-	Data_Type    data_type    = *bc.read<Data_Type>();
-	Texture_Type texture_type = *bc.read<Texture_Type>();
-	cmemory data = read_data(bc, data_type, size.x * size.y * channels);
+	ivec2 offset = {0, 0};
+
 	if (resource->ready_state == RS_LOADED) {
 		if (!resource->is_dynamic) { return; }
-		CUSTOM_TRACE("overwriting texture %d data", asset_id);
+		CUSTOM_TRACE("overwriting texture %d data", ref.id);
 	}
 	resource->ready_state = RS_LOADED;
 
-	CUSTOM_ASSERT(offset.x + size.x <= resource->size.x, "texture %d error: writing past data x bounds", asset_id);
-	CUSTOM_ASSERT(offset.y + size.y <= resource->size.y, "texture %d error: writing past data y bounds", asset_id);
-	CUSTOM_ASSERT(channels == resource->channels, "texture %d error: different channels count", asset_id);
-	CUSTOM_ASSERT(data_type == resource->data_type, "texture %d error: different data types", asset_id);
-	CUSTOM_ASSERT(texture_type == resource->texture_type, "texture %d error: different texture types", asset_id);
+	CUSTOM_ASSERT(offset.x + asset->size.x <= resource->size.x, "texture %d error: writing past data x bounds", ref.id);
+	CUSTOM_ASSERT(offset.y + asset->size.y <= resource->size.y, "texture %d error: writing past data y bounds", ref.id);
+	CUSTOM_ASSERT(asset->channels == resource->channels, "texture %d error: different channels count", ref.id);
+	CUSTOM_ASSERT(asset->data_type == resource->data_type, "texture %d error: different data types", ref.id);
+	CUSTOM_ASSERT(asset->texture_type == resource->texture_type, "texture %d error: different texture types", ref.id);
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glTextureSubImage2D(
 			resource->id,
 			0,
-			offset.x, offset.y, size.x, size.y,
-			get_texture_data_format(texture_type, channels),
-			get_texture_data_type(texture_type, data_type),
-			data
+			offset.x, offset.y, asset->size.x, asset->size.y,
+			get_texture_data_format(asset->texture_type, (u8)asset->channels),
+			get_texture_data_type(asset->texture_type, asset->data_type),
+			asset->data
 		);
 	}
 	else {
@@ -1958,10 +1964,10 @@ static void platform_Load_Texture(Bytecode const & bc) {
 		glTexSubImage2D(
 			resource->target,
 			0,
-			offset.x, offset.y, size.x, size.y,
-			get_texture_data_format(texture_type, channels),
-			get_texture_data_type(texture_type, data_type),
-			data
+			offset.x, offset.y, asset->size.x, asset->size.y,
+			get_texture_data_format(asset->texture_type, (u8)asset->channels),
+			get_texture_data_type(asset->texture_type, asset->data_type),
+			asset->data
 		);
 	}
 }
