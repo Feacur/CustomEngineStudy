@@ -16,6 +16,8 @@ Array<u32>             Asset::types;
 Array<ref_void_func *> Asset::asset_constructors;
 Array<void_ref_func *> Asset::asset_destructors;
 Array<bool_ref_func *> Asset::asset_containers;
+Array<void_dref_func *> Asset::asset_loaders;
+Array<void_dref_func *> Asset::asset_unloaders;
 
 }
 
@@ -54,6 +56,7 @@ Ref Asset::add(u32 type, cstring id) {
 
 	if (ref.id == UINT32_MAX || !(*Asset::asset_containers[type])(ref)) {
 		ref = (*Asset::asset_constructors[type])();
+		(*Asset::asset_loaders[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "asset already exists"); }
 
@@ -70,9 +73,10 @@ void Asset::rem(u32 type, cstring id) {
 	Asset::instances.remove_at(index);
 	Asset::types.remove_at(index);
 
-	Ref const & ref = Asset::instances[index];
+	Ref & ref = Asset::instances[index];
 
 	if ((*Asset::asset_containers[type])(ref)) {
+		(*Asset::asset_unloaders[type])(ref);
 		(*Asset::asset_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }

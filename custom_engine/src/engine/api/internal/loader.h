@@ -21,15 +21,13 @@ namespace loader {
 
 void init(Bytecode * bc);
 
-void script(lua_State * L, RefT<Lua_Asset> const & asset_ref);
+void script(lua_State * L, RefT<Lua_Asset> const & ref);
 
-void image(RefT<Texture_Asset> const & asset_ref);
-void imagef(RefT<Texture_Asset> const & asset_ref);
-void image16(RefT<Texture_Asset> const & asset_ref);
+void image(RefT<Texture_Asset> const & ref);
 
 void uniforms();
-void shader(RefT<Shader_Asset> const & asset_ref);
+void shader(RefT<Shader_Asset> const & ref);
 
-void mesh(RefT<Mesh_Asset> const & asset_ref);
+void mesh(RefT<Mesh_Asset> const & ref);
 
 }}

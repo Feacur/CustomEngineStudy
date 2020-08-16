@@ -106,4 +106,7 @@ typedef VOID_REF_FUNC(void_ref_func);
 #define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
 typedef BOOL_REF_FUNC(bool_ref_func);
 
+#define VOID_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
+typedef VOID_DREF_FUNC(void_dref_func);
+
 }

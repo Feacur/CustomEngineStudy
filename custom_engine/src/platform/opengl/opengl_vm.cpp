@@ -36,8 +36,8 @@ typedef custom::graphics::unit_id unit_id;
 // https://github.com/etodd/lasercrabs/blob/master/src/platform/glvm.cpp
 
 // @Todo: improve duplication protection:
-//        - 'id' check for Allocate_###
-//        - 'uploaded' state check for Load_###
+//        - `id` check for Allocate_###
+//        - `uploaded` state check for Load_###
 //        - provide default mesh, texture, program
 
 // @Todo:
@@ -656,7 +656,7 @@ static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 		props[count++] = { GL_COMPUTE_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
 	}
 
-	// @Note: exclude '\0' from the length
+	// @Note: exclude `\0` from the length
 	//        alternative is to call `strlen` instead of `C_ARRAY_LENGTH`
 	for (u8 i = 0; i < count; ++i) {
 		--props[i].version.count;

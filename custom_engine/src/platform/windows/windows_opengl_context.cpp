@@ -204,7 +204,7 @@ bool check_vsync(Internal_Data * data) {
 
 void swap_buffers(Internal_Data * data)
 {
-	// @Todo: whether `flush` is even
+	// @Todo: whether `flush` is even required?
 	if (wgl.pixel_format.doublebuffer) {
 		SwapBuffers(data->hdc);
 	}

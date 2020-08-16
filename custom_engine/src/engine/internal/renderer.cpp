@@ -29,20 +29,20 @@ void init(Bytecode * bytecode) {
 }
 
 void set_shader(RefT<Shader_Asset> const & asset) {
-	CUSTOM_ASSERT(asset.exists(), "asset doesn't exitst");
+	if (!asset.exists()) { CUSTOM_ASSERT(false, "shader doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Use_Shader);
 	bc->write(asset.id);
 }
 
 void set_mesh(RefT<Mesh_Asset> const & asset) {
-	CUSTOM_ASSERT(asset.exists(), "asset doesn't exitst");
+	if (!asset.exists()) { CUSTOM_ASSERT(false, "mesh doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Use_Mesh);
 	bc->write(asset.id);
 }
 
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_Asset> const & texture) {
-	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exist");
-	CUSTOM_ASSERT(texture.exists(), "texture asset doesn't exist");
+	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader doesn't exist"); return; }
+	if (!texture.exists()) { CUSTOM_ASSERT(false, "texture doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Allocate_Unit);
 	bc->write(unit_id{texture.id, empty_asset_id});
 
@@ -53,7 +53,7 @@ void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_As
 }
 
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat4 const & matrix) {
-	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
+	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat4);
@@ -61,7 +61,7 @@ void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat4 const & ma
 }
 
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & matrix) {
-	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
+	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::mat3);
@@ -69,7 +69,7 @@ void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & ma
 }
 
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, ivec2 const & value) {
-	CUSTOM_ASSERT(shader.exists(), "shader asset doesn't exitst");
+	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
 	bc->write(custom::graphics::Data_Type::ivec2);

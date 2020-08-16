@@ -20,6 +20,8 @@ struct Asset : Ref
 	static Array<ref_void_func *> asset_constructors;
 	static Array<void_ref_func *> asset_destructors;
 	static Array<bool_ref_func *> asset_containers;
+	static Array<void_dref_func *> asset_loaders;
+	static Array<void_dref_func *> asset_unloaders;
 
 	static Ref  add(u32 type, cstring id);
 	static void rem(u32 type, cstring id);

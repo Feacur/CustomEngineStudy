@@ -17,7 +17,7 @@ struct Lua_Script
 
 struct Visual
 {
-	custom::RefT<custom::Shader_Asset> shader;
-	custom::RefT<custom::Texture_Asset> texture;
-	custom::RefT<custom::Mesh_Asset> mesh;
+	custom::RefT<custom::Shader_Asset> shader = {UINT32_MAX, 0};
+	custom::RefT<custom::Texture_Asset> texture = {UINT32_MAX, 0};
+	custom::RefT<custom::Mesh_Asset> mesh = {UINT32_MAX, 0};
 };
