@@ -8,8 +8,6 @@
 #include "engine/api/platform/graphics_resource.h"
 #include "engine/api/internal/types_names_lookup.h"
 #include "engine/api/internal/asset_types.h"
-#include "engine/api/graphics_params.h"
-#include "engine/api/internal/entity_system.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
 #include "engine/impl/asset_system.h"
@@ -20,6 +18,25 @@
 #include <lua.hpp>
 
 #include "obj_parser.h"
+
+//
+//
+//
+
+namespace custom {
+namespace loader {
+
+static Bytecode * bc = NULL;
+
+void init(Bytecode * bytecode) {
+	bc = bytecode;
+}
+
+}}
+
+//
+// Lua_Asset
+//
 
 namespace custom {
 
@@ -50,6 +67,35 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
 }
 
 namespace custom {
+namespace loader {
+
+// @Note: alternative to `luaL_dostring(L, (cstring)asset->source.data)`
+#define CUSTOM_LOAD() (\
+	luaL_loadbufferx(L, (cstring)asset->source.data, asset->source.count, path, NULL)\
+	|| lua_pcall(L, 0, LUA_MULTRET, 0)\
+)\
+
+void script(lua_State * L, RefT<Lua_Asset> const & ref) {
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+
+	Lua_Asset const * asset = ref.get_fast();
+	if (!asset->source.count) { return; }
+
+	cstring path = Asset::get_path(ref);
+	if (CUSTOM_LOAD() != LUA_OK) {
+		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
+		lua_pop(L, 1);
+	}
+}
+#undef CUSTOM_LOAD
+
+}}
+
+//
+// Shader_Asset
+//
+
+namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
@@ -78,6 +124,41 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
 }
 
 namespace custom {
+namespace loader {
+
+void uniforms() {
+	if (graphics::mark_pending_uniforms()) { return; }
+
+	bc->write(graphics::Instruction::Init_Uniforms);
+	bc->write((u32)custom::uniform_names.count);
+
+	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
+		cstring name = custom::uniform_names[i];
+		u32 length = (u32)strlen(name);
+		bc->write_sized_array(name, length);
+	}
+}
+
+void shader(RefT<Shader_Asset> const & ref) {
+	if (graphics::mark_pending_shader(ref.id)) { return; }
+
+	Shader_Asset const * asset = ref.get_fast();
+	if (!asset->source.count) { return; }
+
+	bc->write(graphics::Instruction::Allocate_Shader);
+	bc->write((Ref const &)ref);
+	
+	bc->write(graphics::Instruction::Load_Shader);
+	bc->write((Ref const &)ref);
+}
+
+}}
+
+//
+// Texture_Asset
+//
+
+namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
@@ -104,6 +185,38 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
 }
 
 }
+
+namespace custom {
+namespace loader {
+
+void image(RefT<Texture_Asset> const & ref) {
+	if (graphics::mark_pending_texture(ref.id)) { return; }
+
+	Texture_Asset const * asset = ref.get_fast();
+	if (!asset->data) { return; }
+
+	u8 data_type_size = 0;
+	switch (asset->data_type)
+	{
+		case custom::graphics::Data_Type::u8: data_type_size = sizeof(u8); break;
+		case custom::graphics::Data_Type::u16: data_type_size = sizeof(u16); break;
+		case custom::graphics::Data_Type::r32: data_type_size = sizeof(r32); break;
+	}
+
+	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
+	bc->write(graphics::Instruction::Allocate_Texture);
+	bc->write((Ref const &)ref);
+
+	// @Note: upload actual texture data; might stream it later
+	bc->write(graphics::Instruction::Load_Texture);
+	bc->write((Ref const &)ref);
+}
+
+}}
+
+//
+// Mesh_Asset
+//
 
 namespace custom {
 
@@ -177,15 +290,20 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 namespace custom {
 namespace loader {
 
-static Bytecode * bc = NULL;
+template<typename T>
+static void write_data_array(custom::Array<T> const & data);
 
-void init(Bytecode * bytecode) {
-	bc = bytecode;
+void mesh(RefT<Mesh_Asset> const & ref) {
+	if (graphics::mark_pending_mesh(ref.id)) { return; }
+
+	Mesh_Asset const * asset = ref.get_fast();
+	if (!asset->buffers.count) { return; }
+
+	bc->write(graphics::Instruction::Allocate_Mesh);
+	bc->write((Ref const &)ref);
+
+	bc->write(graphics::Instruction::Load_Mesh);
+	bc->write((Ref const &)ref);
 }
 
 }}
-
-#include "loader_lua.h"
-#include "loader_shader.h"
-#include "loader_image.h"
-#include "loader_obj.h"

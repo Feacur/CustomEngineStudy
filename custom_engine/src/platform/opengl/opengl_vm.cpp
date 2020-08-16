@@ -1925,6 +1925,9 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		field->id = uniform_id;
 		field->location = field_buffer.location;
 	}
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Shader_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Load_Texture(Bytecode const & bc) {
@@ -1936,6 +1939,7 @@ static void platform_Load_Texture(Bytecode const & bc) {
 	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
+	// @Todo: allow offests usage
 	ivec2 offset = {0, 0};
 
 	if (resource->ready_state == RS_LOADED) {
@@ -1971,6 +1975,9 @@ static void platform_Load_Texture(Bytecode const & bc) {
 			asset->data
 		);
 	}
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Texture_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Load_Mesh(Bytecode const & bc) {
@@ -1988,6 +1995,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
+			// @Todo: allow offests usage
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
@@ -2019,7 +2027,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			opengl::Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-	
+
+			// @Todo: allow offests usage
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
@@ -2043,6 +2052,9 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 	}
 	resource->ready_state = RS_LOADED;
+
+	// @Todo: implement load/unload
+	Asset::asset_unloaders[Asset_Registry<Mesh_Asset>::type]((Ref &)ref);
 }
 
 static void platform_Set_Uniform(Bytecode const & bc) {
