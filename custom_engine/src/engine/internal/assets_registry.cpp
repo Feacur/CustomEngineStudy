@@ -30,10 +30,14 @@ void init_asset_types(void) {
 	custom::Asset::asset_constructors.set_capacity(custom::asset_names.count);
 	custom::Asset::asset_destructors.set_capacity(custom::asset_names.count);
 	custom::Asset::asset_containers.set_capacity(custom::asset_names.count);
+	custom::Asset::asset_loaders.set_capacity(custom::asset_names.count);
+	custom::Asset::asset_unloaders.set_capacity(custom::asset_names.count);
 	#define ASSET_IMPL(T)\
 		custom::Asset::asset_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Asset::asset_destructors.push(&custom::ref_pool_destroy<T>);\
 		custom::Asset::asset_containers.push(&custom::ref_pool_contains<T>);\
+		custom::Asset::asset_loaders.push(&custom::asset_pool_load<T>);\
+		custom::Asset::asset_unloaders.push(&custom::asset_pool_unload<T>);\
 
 	#include "assets_registry_impl.h"
 }

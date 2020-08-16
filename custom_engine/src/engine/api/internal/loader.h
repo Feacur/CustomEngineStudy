@@ -24,8 +24,6 @@ void init(Bytecode * bc);
 void script(lua_State * L, RefT<Lua_Asset> const & ref);
 
 void image(RefT<Texture_Asset> const & ref);
-void imagef(RefT<Texture_Asset> const & ref);
-void image16(RefT<Texture_Asset> const & ref);
 
 void uniforms();
 void shader(RefT<Shader_Asset> const & ref);

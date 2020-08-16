@@ -1,5 +1,3 @@
-#include <stb_image.h>
-
 namespace custom {
 namespace loader {
 
@@ -16,97 +14,15 @@ static void describe_texture_load(
 void image(RefT<Texture_Asset> const & ref) {
 	if (graphics::mark_pending_texture(ref.id)) { return; }
 
-	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-
-	cstring path = Asset::get_path(ref);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
-
-	Array<u8> file; file::read(path, file);
-	if (file.count != file.capacity) { return; }
-
 	Texture_Asset const * asset = ref.get_fast();
-
-	ivec2 size;
-	s32 channels;
-	stbi_set_flip_vertically_on_load(1);
-	stbi_uc * data = stbi_load_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
-	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
-
-	constexpr graphics::Data_Type const data_type = graphics::Data_Type::u8;
-	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
+	if (!asset->data) { return; }
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
+	describe_texture(ref.id, *asset, false, asset->size, (u8)asset->channels, asset->data_type, asset->texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
-
-	stbi_image_free(data);
-}
-
-void imagef(RefT<Texture_Asset> const & ref) {
-	if (graphics::mark_pending_texture(ref.id)) { return; }
-
-	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-
-	cstring path = Asset::get_path(ref);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
-
-	Array<u8> file; file::read(path, file);
-	if (file.count != file.capacity) { return; }
-
-	Texture_Asset const * asset = ref.get_fast();
-
-	ivec2 size;
-	s32 channels;
-	stbi_set_flip_vertically_on_load(1);
-	float * data = stbi_loadf_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
-	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
-
-	constexpr graphics::Data_Type const data_type = graphics::Data_Type::r32;
-	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
-
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
-
-	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
-
-	stbi_image_free(data);
-}
-
-void image16(RefT<Texture_Asset> const & ref) {
-	if (graphics::mark_pending_texture(ref.id)) { return; }
-
-	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-
-	cstring path = Asset::get_path(ref);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
-
-	Array<u8> file; file::read(path, file);
-	if (file.count != file.capacity) { return; }
-
-	Texture_Asset const * asset = ref.get_fast();
-
-	ivec2 size;
-	s32 channels;
-	stbi_set_flip_vertically_on_load(1);
-	stbi_us * data = stbi_load_16_from_memory(file.data, file.count, &size.x, &size.y, &channels, 0);
-	CUSTOM_ASSERT(data, "failed to read image '%s'", path);
-
-	constexpr graphics::Data_Type const data_type = graphics::Data_Type::u16;
-	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
-
-	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
-
-	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
-	bc->write(data, size.x * size.y * channels);
-
-	stbi_image_free(data);
+	describe_texture_load(ref.id, {0, 0}, asset->size, (u8)asset->channels, asset->data_type, asset->texture_type);
+	bc->write(asset->data, asset->size.x * asset->size.y * asset->channels);
 }
 
 }}

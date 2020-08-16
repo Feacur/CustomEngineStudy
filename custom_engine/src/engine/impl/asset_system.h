@@ -2,6 +2,17 @@
 #include "engine/api/internal/asset_system.h"
 
 //
+// universal access
+//
+
+namespace custom {
+
+template<typename T> VOID_DREF_FUNC(asset_pool_load);
+template<typename T> VOID_DREF_FUNC(asset_pool_unload);
+
+}
+
+//
 // asset
 //
 
