@@ -27,11 +27,14 @@ void mesh(RefT<Mesh_Asset> const & ref) {
 	if (graphics::mark_pending_mesh(ref.id)) { return; }
 
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Mesh_Asset const * asset = ref.get_fast();
+
 	cstring path = Asset::get_path(ref);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
+
+	Mesh_Asset const * asset = ref.get_fast();
 
 	Array<u8> vertex_attributes;
 	Array<r32> vertices;

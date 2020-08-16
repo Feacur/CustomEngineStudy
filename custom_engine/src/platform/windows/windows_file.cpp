@@ -26,27 +26,41 @@ static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read);
 namespace custom {
 namespace file {
 
+// CompareFileTime
+
+bool exists(cstring path) {
+	WIN32_FIND_DATA findFileData;
+	HANDLE handle = FindFirstFile(path, &findFileData);
+	if (handle == INVALID_HANDLE_VALUE) {
+		LOG_LAST_ERROR();
+		return false;
+	}
+
+	FindClose(handle);
+	return true;
+}
+
 void read(cstring path, Array<u8> & buffer) {
-	HANDLE file = CreateFile(
+	HANDLE handle = CreateFile(
 		path,
 		GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
-	if (file == INVALID_HANDLE_VALUE) {
+	if (handle == INVALID_HANDLE_VALUE) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to open file: %s", path);
 		return;
 	}
 
-	LONGLONG file_size = platform_get_file_size(file);
+	LONGLONG file_size = platform_get_file_size(handle);
 	buffer.set_capacity((u32)file_size);
 	if (buffer.data) {
-		buffer.count = (u32)platform_read_file(file, buffer.data, file_size);
+		buffer.count = (u32)platform_read_file(handle, buffer.data, file_size);
 		CUSTOM_ASSERT(buffer.count == buffer.capacity, "failed to read file: %s;\n    read %d out of %d bytes", path, buffer.count, buffer.capacity);
 	}
 
-	CloseHandle(file);
+	CloseHandle(handle);
 }
 
 }}

@@ -18,11 +18,14 @@ void shader(RefT<Shader_Asset> const & ref) {
 	if (graphics::mark_pending_shader(ref.id)) { return; }
 
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Shader_Asset const * asset = ref.get_fast();
+
 	cstring path = Asset::get_path(ref);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
+
+	Shader_Asset const * asset = ref.get_fast();
 
 	bc->write(graphics::Instruction::Allocate_Shader);
 	bc->write(ref.id);

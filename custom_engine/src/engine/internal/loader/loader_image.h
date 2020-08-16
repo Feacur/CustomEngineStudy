@@ -17,11 +17,14 @@ void image(RefT<Texture_Asset> const & ref) {
 	if (graphics::mark_pending_texture(ref.id)) { return; }
 
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = ref.get_fast();
+
 	cstring path = Asset::get_path(ref);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
+
+	Texture_Asset const * asset = ref.get_fast();
 
 	ivec2 size;
 	s32 channels;
@@ -46,11 +49,14 @@ void imagef(RefT<Texture_Asset> const & ref) {
 	if (graphics::mark_pending_texture(ref.id)) { return; }
 
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = ref.get_fast();
+
 	cstring path = Asset::get_path(ref);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
+
+	Texture_Asset const * asset = ref.get_fast();
 
 	ivec2 size;
 	s32 channels;
@@ -75,11 +81,14 @@ void image16(RefT<Texture_Asset> const & ref) {
 	if (graphics::mark_pending_texture(ref.id)) { return; }
 
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = ref.get_fast();
+
 	cstring path = Asset::get_path(ref);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
+
+	Texture_Asset const * asset = ref.get_fast();
 
 	ivec2 size;
 	s32 channels;
