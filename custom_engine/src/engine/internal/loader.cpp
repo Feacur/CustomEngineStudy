@@ -51,6 +51,8 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	if (!file.count) { return; }
 
 	Lua_Asset * asset = refT.get_fast();
+	new (asset) Lua_Asset;
+
 	asset->source.data     = file.data;     file.data     = NULL;
 	asset->source.count    = file.count;    file.count    = 0;
 	asset->source.capacity = file.capacity; file.capacity = 0;
@@ -108,6 +110,8 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!file.count) { return; }
 
 	Shader_Asset * asset = refT.get_fast();
+	new (asset) Shader_Asset;
+
 	asset->source.data = file.data; file.data = NULL;
 	asset->source.capacity = file.capacity; file.capacity = 0;
 	asset->source.count = file.count; file.count = 0;
@@ -171,6 +175,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!file.count) { return; }
 
 	Texture_Asset * asset = refT.get_fast();
+	new (asset) Texture_Asset;
 
 	stbi_set_flip_vertically_on_load(1);
 	asset->data = stbi_load_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
@@ -236,6 +241,8 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	obj::parse(file, attributes, vertices, indices);
 
 	Mesh_Asset * asset = refT.get_fast();
+	new (asset) Mesh_Asset;
+
 	asset->buffers.set_capacity(2);
 
 	{
