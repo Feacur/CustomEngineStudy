@@ -33,13 +33,17 @@ struct Texture_Asset {
 };
 
 struct Mesh_Asset {
-	Array<u8> attributes;
-	Array<r32> vertices;
-	Array<u32> indices;
-	graphics::Mesh_Frequency vfrequency = graphics::Mesh_Frequency::Static;
-	graphics::Mesh_Access vaccess       = graphics::Mesh_Access::Draw;
-	graphics::Mesh_Frequency ifrequency = graphics::Mesh_Frequency::Static;
-	graphics::Mesh_Access iaccess       = graphics::Mesh_Access::Draw;
+	struct Buffer {
+		Array<u8> attributes;
+		Array<u8> buffer;
+
+		u8 is_index;
+		graphics::Data_Type data_type;
+
+		graphics::Mesh_Frequency frequency = graphics::Mesh_Frequency::Static;
+		graphics::Mesh_Access    access    = graphics::Mesh_Access::Draw;
+	};
+	Array<Buffer> buffers;
 };
 
 }

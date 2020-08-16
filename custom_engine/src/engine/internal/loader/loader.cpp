@@ -14,9 +14,12 @@
 #include "engine/impl/bytecode.h"
 #include "engine/impl/asset_system.h"
 
-#include "obj_parser.h"
+#include <new>
+
 #include <stb_image.h>
 #include <lua.hpp>
+
+#include "obj_parser.h"
 
 namespace custom {
 
@@ -31,8 +34,8 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	if (!file.count) { return; }
 
 	Lua_Asset * asset = refT.get_fast();
-	asset->source.data = file.data; file.data = NULL;
-	asset->source.count = file.count; file.count = 0;
+	asset->source.data     = file.data;     file.data     = NULL;
+	asset->source.count    = file.count;    file.count    = 0;
 	asset->source.capacity = file.capacity; file.capacity = 0;
 }
 
@@ -60,8 +63,8 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 
 	Shader_Asset * asset = refT.get_fast();
 	asset->source.data = file.data; file.data = NULL;
-	asset->source.count = file.count; file.count = 0;
 	asset->source.capacity = file.capacity; file.capacity = 0;
+	asset->source.count = file.count; file.count = 0;
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
@@ -114,8 +117,47 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Array<u8> attributes;
+	Array<r32> vertices;
+	Array<u32> indices;
+	obj::parse(file, attributes, vertices, indices);
+
 	Mesh_Asset * asset = refT.get_fast();
-	obj::parse(file, asset->attributes, asset->vertices, asset->indices);
+	asset->buffers.set_capacity(2);
+
+	{
+		asset->buffers.push();
+		Mesh_Asset::Buffer & buffer = asset->buffers[0];
+		new (&buffer) Mesh_Asset::Buffer;
+	
+		buffer.attributes.data     = attributes.data;     attributes.data     = NULL;
+		buffer.attributes.capacity = attributes.capacity; attributes.capacity = 0;
+		buffer.attributes.count    = attributes.count;    attributes.count    = 0;
+
+		buffer.buffer.data     = (u8 *)vertices.data;             vertices.data     = NULL;
+		buffer.buffer.capacity = vertices.capacity * sizeof(r32); vertices.capacity = 0;
+		buffer.buffer.count    = vertices.count * sizeof(r32);    vertices.count    = 0;
+
+		buffer.data_type = graphics::Data_Type::r32;
+		buffer.is_index = false;
+	}
+
+	{
+		asset->buffers.push();
+		Mesh_Asset::Buffer & buffer = asset->buffers[1];
+		new (&buffer) Mesh_Asset::Buffer;
+
+		buffer.attributes.data     = NULL;
+		buffer.attributes.capacity = 0;
+		buffer.attributes.count    = 0;
+
+		buffer.buffer.data     = (u8 *)indices.data;             indices.data     = NULL;
+		buffer.buffer.capacity = indices.capacity * sizeof(u32); indices.capacity = 0;
+		buffer.buffer.count    = indices.count * sizeof(u32);    indices.count    = 0;
+
+		buffer.data_type = graphics::Data_Type::u32;
+		buffer.is_index = true;
+	}
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
@@ -123,9 +165,11 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	Mesh_Asset * asset = refT.get_fast();
-	asset->attributes.set_capacity(0);
-	asset->vertices.set_capacity(0);
-	asset->indices.set_capacity(0);
+	for (u32 i = 0; i < asset->buffers.count; ++i) {
+		asset->buffers[i].attributes.set_capacity(0);
+		asset->buffers[i].buffer.set_capacity(0);
+	}
+	asset->buffers.set_capacity(0);
 }
 
 }
