@@ -628,7 +628,7 @@ struct Shader_Props
 	GL_String defines;
 };
 
-static u8 fill_props(GL_String source, custom::graphics::Shader_Part parts, Shader_Props * props, u8 cap)
+static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 {
 	u8 count = 0;
 
@@ -666,12 +666,12 @@ static u8 fill_props(GL_String source, custom::graphics::Shader_Part parts, Shad
 	return count;
 }
 
-static bool platform_link_program(GLuint program_id, GL_String source, custom::graphics::Shader_Part parts)
+static bool platform_link_program(GLuint program_id, GL_String source)
 {
 	u8 const props_cap = 4;
 	Shader_Props props[props_cap];
 	GLuint       shaders[props_cap];
-	u8 props_count = fill_props(source, parts, props, props_cap);
+	u8 props_count = fill_props(source, props, props_cap);
 
 	// Compile shaders
 	for (u8 i = 0; i < props_count; ++i) {
@@ -1859,14 +1859,13 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
 	Inline_String source = read_cstring(bc);
-	Shader_Part parts = *bc.read<Shader_Part>();
 	if (resource->ready_state == RS_LOADED) {
 		CUSTOM_TRACE("trying to overwrite shader %d data", asset_id);
 		return;
 	}
 	resource->ready_state = RS_LOADED;
 
-	platform_link_program(resource->id, {(GLint)source.count, source.data}, parts);
+	platform_link_program(resource->id, {(GLint)source.count, source.data});
 
 	// CUSTOM_TRACE("program %d info:", asset_id);
 	Program_Field field_buffer;
@@ -1900,7 +1899,16 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// 	field_buffer.type, field_buffer.name, field_buffer.size,
 		// 	i, field_buffer.location
 		// );
-		field->id = find_uniform_id(field_buffer.name, field_buffer.name_count);
+
+		// @Todo: make uniforms dynamic?
+		u32 uniform_id = find_uniform_id(field_buffer.name, field_buffer.name_count);
+		// if (uniform_id == empty_asset_id) {
+		// 	uniform_id = ogl.uniform_names_lengths.count;
+		// 	ogl.uniform_names.push_range(field_buffer.name, field_buffer.name_count);
+		// 	ogl.uniform_names_lengths.push(field_buffer.name_count);
+		// }
+
+		field->id = uniform_id;
 		field->location = field_buffer.location;
 	}
 }

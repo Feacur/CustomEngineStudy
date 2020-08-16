@@ -4,7 +4,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
 #include "engine/api/internal/asset_system.h"
-#include "engine/api/client/asset_types_lookup.h"
+#include "engine/api/internal/types_names_lookup.h"
 
 #include <lua.hpp>
 // #include <lstate.h>
@@ -45,7 +45,7 @@ static int Asset_add(lua_State * L) {
 	Ref const & component_ref = Asset::add(type, id);
 	
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::asset::names[type]);
+	luaL_setmetatable(L, custom::asset_names[type]);
 	*udata = component_ref;
 
 	return 1;
@@ -88,7 +88,7 @@ static int Asset_get(lua_State * L) {
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::asset::names[type]);
+	luaL_setmetatable(L, custom::asset_names[type]);
 	*udata = component_ref;
 
 	return 1;
@@ -99,7 +99,7 @@ static int Asset_get_path(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 
 	u32 type = (u32)lua_tointeger(L, 1);
-	LUA_ASSERT_USERDATA(custom::asset::names[type], 2);
+	LUA_ASSERT_USERDATA(custom::asset_names[type], 2);
 
 	Asset const * ref = (Asset const *)lua_touserdata(L, 2);
 	cstring path = Asset::get_path(type, *ref);
@@ -129,11 +129,13 @@ namespace custom {
 namespace lua {
 
 extern void init_asset_types(lua_State * L);
+extern void init_client_asset_types(lua_State * L);
 void init_asset_system(lua_State * L) {
 	LUA_META_IMPL(Asset)
 	custom::lua::init_asset_types(L);
-	for (u32 i = 0; i < custom::asset::count; ++i) {
-		lua_getglobal(L, custom::asset::names[i]);
+	custom::lua::init_client_asset_types(L);
+	for (u32 i = 0; i < custom::asset_names.count; ++i) {
+		lua_getglobal(L, custom::asset_names[i]);
 		lua_pushinteger(L, i);
 		lua_setfield(L, -2, "type");
 		lua_pop(L, 1);

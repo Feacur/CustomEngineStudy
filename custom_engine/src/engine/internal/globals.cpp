@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 
+#include "engine/core/collection_types.h"
 #include "engine/api/platform/system.h"
 #include "engine/api/platform/timer.h"
 #include "engine/api/rendering_settings.h"
@@ -18,6 +19,12 @@ namespace timer {
 namespace custom {
 	Context_Settings context_settings;
 	Pixel_Format pixel_format_hint;
+}
+
+namespace custom {
+	Array<cstring> component_names;
+	Array<cstring> asset_names;
+	Array<cstring> uniform_names;
 }
 
 namespace custom {

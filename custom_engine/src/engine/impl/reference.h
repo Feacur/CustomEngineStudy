@@ -1,6 +1,9 @@
 #pragma once
 #include "engine/api/internal/reference.h"
 
+// @Todo: migrating asset system, need default, remove later (?)
+#include <new>
+
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
 //
@@ -13,6 +16,7 @@ template<typename T>
 RefT<T> Ref_Pool<T>::create(void) {
 	if (generations.gaps.count == 0) { instances.push(); }
 	Ref ref = generations.create();
+	new (instances.data + ref.id) T;
 	return {ref.id, ref.gen};
 }
 

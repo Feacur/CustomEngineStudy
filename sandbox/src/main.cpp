@@ -3,8 +3,8 @@
 #include "engine/impl/math_linear.h"
 #include "engine/impl/asset_system.h"
 
-#include "assets/ids.h"
-#include "components/types.h"
+#include "asset_system/uniform_ids.h"
+#include "entity_system/component_types.h"
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 
@@ -26,36 +26,18 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-static void init_client_assets(void) {
-	// @uniforms
-	// "u_Resolution",
-	// "u_ViewProjection",
-	// "u_Transform",
-	// "u_Texture",
-	// "u_Color",
-	// "u_Z",
-
-	// @Note: scripts
-	// "assets/scripts/main.lua",
-
-	// @Note: textures
-	// "assets/textures/checkerboard.png",
-	// "assets/textures/blue_noise.png",
-	// "assets/textures/proto_blue.png",
-
-	// @Note: meshes
-	// "assets/meshes/plane_xz.obj",
-	// "assets/meshes/suzanne.obj",
-}
-
-void init_asset_system(void);
-void init_entity_components(void);
+void init_asset_types(void);
+void init_client_asset_types(void);
+void init_component_types(void);
+void init_client_component_types(void);
+void init_uniform_names(void);
 static void on_app_init() {
 	// @Note: init systems
-	init_asset_system();
-	init_entity_components();
-
-	init_client_assets();
+	init_asset_types();
+	init_component_types();
+	init_client_asset_types();
+	init_client_component_types();
+	init_uniform_names();
 
 	L = luaL_newstate();
 	// luaL_openlibs(lua);
@@ -65,9 +47,7 @@ static void on_app_init() {
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 
-	for (u32 asset_id = 0; asset_id < (u32)sandbox::Script::count; ++asset_id) {
-		custom::loader::script(L, asset_id);
-	}
+	custom::loader::script(L, custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua"));
 
 	// @Note: init data
 	camera_transform = {

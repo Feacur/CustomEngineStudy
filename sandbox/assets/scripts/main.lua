@@ -16,32 +16,43 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
+	print("Lua_Asset " .. Lua_Asset.type)
+	print("Shader_Asset " .. Shader_Asset.type)
 	local shader2d = Asset.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl")
 	local shader3d = Asset.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
+
+	print("Texture_Asset " .. Texture_Asset.type)
+	local texture1 = Asset.add(Texture_Asset.type, "assets/textures/checkerboard.png")
+	local texture2 = Asset.add(Texture_Asset.type, "assets/textures/blue_noise.png")
+	local texture3 = Asset.add(Texture_Asset.type, "assets/textures/proto_blue.png")
+
+	print("Mesh_Asset " .. Mesh_Asset.type)
+	local mesh1 = Asset.add(Mesh_Asset.type, "assets/meshes/plane_xz.obj")
+	local mesh2 = Asset.add(Mesh_Asset.type, "assets/meshes/suzanne.obj")
 
 	local shader = Asset.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
 	print(Asset.get_path(Shader_Asset.type, shader))
 
 	create_visual(
 		vec3.new(0, 0, 0), vec4.new(0, 0, 0, 1), vec3.new(10, 10, 10),
-		shader3d, 2, 0
+		shader3d, texture3, mesh1
 	)
 
 	create_visual(
 		vec3.new(-4, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(2, 1, 2),
-		shader, 0, 1
+		shader, texture1, mesh2
 	)
 
 	local some_entity = create_visual(
 		vec3.new(0, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 1, 1),
-		shader, 0, 1
+		shader, texture1, mesh2
 	)
 	local some_script = some_entity:add_component(Lua_Script.type)
 	some_script.update = "script_rotate"
 
 	create_visual(
 		vec3.new(4, 2, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 2, 1),
-		shader, 0, 1
+		shader, texture1, mesh2
 	)
 end
 

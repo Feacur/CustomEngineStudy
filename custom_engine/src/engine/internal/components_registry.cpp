@@ -1,9 +1,8 @@
 #include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/component_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"
 #include "engine/impl/entity_system.h"
-
-#include "component_types.h"
 
 #define COMPONENT_IMPL(T)\
 	/* @Note: initialize compile-time structs: */\
@@ -19,7 +18,7 @@
 
 #include "components_registry_impl.h"
 
-void init_client_component_types(void) {
+void init_component_types(void) {
 	// @Note: initialize runtime components' data:
 	#define COMPONENT_IMPL(T)\
 		custom::Component_Registry<T>::type = custom::component_names.count;\

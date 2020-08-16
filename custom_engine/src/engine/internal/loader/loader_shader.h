@@ -5,10 +5,10 @@ void uniforms() {
 	if (graphics::mark_pending_uniforms()) { return; }
 
 	bc->write(graphics::Instruction::Init_Uniforms);
-	bc->write((u32)asset::uniform::count);
+	bc->write((u32)custom::uniform_names.count);
 
-	for (u32 i = 0; i < (u32)asset::uniform::count; ++i) {
-		cstring name = asset::uniform::names[i];
+	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
+		cstring name = custom::uniform_names[i];
 		u32 length = (u32)strlen(name);
 		bc->write_sized_array(name, length);
 	}
@@ -30,9 +30,9 @@ void shader(RefT<Shader_Asset> const & asset_ref) {
 	bc->write(graphics::Instruction::Load_Shader);
 	bc->write(asset_ref.id);
 	bc->write_sized_array(file.data, file.count);
-	bc->write(asset->parts);
 }
 
+/*
 void offscreen(u32 asset_id) {
 	if (graphics::mark_pending_shader(asset_id)) { return; }
 
@@ -74,5 +74,6 @@ void target(u32 asset_id) {
 	bc->write((u16)1); bc->write(meta.size);
 	bc->write(meta.data_type); bc->write(meta.texture_type);
 }
+*/
 
 }}
