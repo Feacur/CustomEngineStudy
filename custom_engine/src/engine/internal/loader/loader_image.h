@@ -17,12 +17,20 @@ void image(RefT<Texture_Asset> const & ref) {
 	Texture_Asset const * asset = ref.get_fast();
 	if (!asset->data) { return; }
 
+	u8 data_type_size = 0;
+	switch (asset->data_type)
+	{
+		case custom::graphics::Data_Type::u8: data_type_size = sizeof(u8); break;
+		case custom::graphics::Data_Type::u16: data_type_size = sizeof(u16); break;
+		case custom::graphics::Data_Type::r32: data_type_size = sizeof(r32); break;
+	}
+
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
 	describe_texture(ref.id, *asset, false, asset->size, (u8)asset->channels, asset->data_type, asset->texture_type);
 
 	// @Note: upload actual texture data; might stream it later
 	describe_texture_load(ref.id, {0, 0}, asset->size, (u8)asset->channels, asset->data_type, asset->texture_type);
-	bc->write(asset->data, asset->size.x * asset->size.y * asset->channels);
+	bc->write(asset->data, asset->size.x * asset->size.y * asset->channels * data_type_size);
 }
 
 }}
