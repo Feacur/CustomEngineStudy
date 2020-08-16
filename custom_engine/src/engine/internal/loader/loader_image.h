@@ -13,12 +13,12 @@ static void describe_texture_load(
 	graphics::Data_Type data_type, graphics::Texture_Type texture_type
 );
 
-void image(RefT<Texture_Asset> const & asset_ref) {
-	if (graphics::mark_pending_texture(asset_ref.id)) { return; }
+void image(RefT<Texture_Asset> const & ref) {
+	if (graphics::mark_pending_texture(ref.id)) { return; }
 
-	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = asset_ref.get_fast();
-	cstring path = Asset::get_path(asset_ref);
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+	cstring path = Asset::get_path(ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -33,21 +33,21 @@ void image(RefT<Texture_Asset> const & asset_ref) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(asset_ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
+	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(asset_ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);
 }
 
-void imagef(RefT<Texture_Asset> const & asset_ref) {
-	if (graphics::mark_pending_texture(asset_ref.id)) { return; }
+void imagef(RefT<Texture_Asset> const & ref) {
+	if (graphics::mark_pending_texture(ref.id)) { return; }
 
-	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = asset_ref.get_fast();
-	cstring path = Asset::get_path(asset_ref);
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+	cstring path = Asset::get_path(ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -62,21 +62,21 @@ void imagef(RefT<Texture_Asset> const & asset_ref) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(asset_ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
+	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(asset_ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);
 }
 
-void image16(RefT<Texture_Asset> const & asset_ref) {
-	if (graphics::mark_pending_texture(asset_ref.id)) { return; }
+void image16(RefT<Texture_Asset> const & ref) {
+	if (graphics::mark_pending_texture(ref.id)) { return; }
 
-	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Texture_Asset const * asset = asset_ref.get_fast();
-	cstring path = Asset::get_path(asset_ref);
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Texture_Asset const * asset = ref.get_fast();
+	cstring path = Asset::get_path(ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
@@ -91,10 +91,10 @@ void image16(RefT<Texture_Asset> const & asset_ref) {
 	constexpr graphics::Texture_Type const texture_type = graphics::Texture_Type::Color;
 
 	// @Note: allocate GPU memory, describe; might take it from some lightweight meta
-	describe_texture(asset_ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
+	describe_texture(ref.id, *asset, false, size, (u8)channels, data_type, texture_type);
 
 	// @Note: upload actual texture data; might stream it later
-	describe_texture_load(asset_ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
+	describe_texture_load(ref.id, {0, 0}, size, (u8)channels, data_type, texture_type);
 	bc->write(data, size.x * size.y * channels);
 
 	stbi_image_free(data);

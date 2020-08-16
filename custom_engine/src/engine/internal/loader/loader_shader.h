@@ -14,21 +14,21 @@ void uniforms() {
 	}
 }
 
-void shader(RefT<Shader_Asset> const & asset_ref) {
-	if (graphics::mark_pending_shader(asset_ref.id)) { return; }
+void shader(RefT<Shader_Asset> const & ref) {
+	if (graphics::mark_pending_shader(ref.id)) { return; }
 
-	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-	Shader_Asset const * asset = asset_ref.get_fast();
-	cstring path = Asset::get_path(asset_ref);
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Shader_Asset const * asset = ref.get_fast();
+	cstring path = Asset::get_path(ref);
 
 	Array<u8> file; file::read(path, file);
 	if (file.count != file.capacity) { return; }
 
 	bc->write(graphics::Instruction::Allocate_Shader);
-	bc->write(asset_ref.id);
+	bc->write(ref.id);
 	
 	bc->write(graphics::Instruction::Load_Shader);
-	bc->write(asset_ref.id);
+	bc->write(ref.id);
 	bc->write_sized_array(file.data, file.count);
 }
 
