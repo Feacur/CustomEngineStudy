@@ -22,10 +22,10 @@ namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -38,7 +38,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	Lua_Asset * asset = refT.get_fast();
 	asset->source.set_capacity(0);
@@ -50,10 +50,10 @@ namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -66,7 +66,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	Shader_Asset * asset = refT.get_fast();
 	asset->source.set_capacity(0);
@@ -78,10 +78,10 @@ namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -94,7 +94,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	Texture_Asset * asset = refT.get_fast();
 	stbi_image_free(asset->data);
@@ -106,10 +106,10 @@ namespace custom {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist"); return; }
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -120,7 +120,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	Mesh_Asset * asset = refT.get_fast();
 	asset->attributes.set_capacity(0);

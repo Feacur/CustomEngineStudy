@@ -4,9 +4,12 @@
 #include "engine/api/platform/graphics_vm.h"
 #include "engine/api/platform/graphics_resource.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
+#include "engine/impl/reference.h"
+#include "engine/impl/asset_system.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <glad/glad.h>
@@ -1241,14 +1244,14 @@ static void platform_Stencil_Mask(Bytecode const & bc) {
 }
 
 static void platform_Allocate_Shader(Bytecode const & bc) {
-	u32 asset_id = *bc.read<u32>();
-	ogl.programs_ensure_capacity(asset_id);
-	opengl::Program * resource = &ogl.programs.get(asset_id);
+	RefT<Shader_Asset> ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+	ogl.programs_ensure_capacity(ref.id);
+	opengl::Program * resource = &ogl.programs.get(ref.id);
 	if (resource->id != empty_gl_id) {
-		CUSTOM_TRACE("shader %d already exists", asset_id);
+		CUSTOM_TRACE("shader %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", asset_id);
+	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", ref.id);
 	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
 }
@@ -1854,20 +1857,23 @@ static void platform_Use_Target(Bytecode const & bc) {
 
 static void platform_Load_Shader(Bytecode const & bc) {
 	// @Change: receive a pointer instead, then free if needed?
-	u32 asset_id = *bc.read<u32>();
-	opengl::Program * resource = &ogl.programs.get(asset_id);
+	RefT<Shader_Asset> ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
+
+	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
+	Shader_Asset * asset = ref.get_fast();
+
+	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
-	Inline_String source = read_cstring(bc);
 	if (resource->ready_state == RS_LOADED) {
-		CUSTOM_TRACE("trying to overwrite shader %d data", asset_id);
+		CUSTOM_TRACE("trying to overwrite shader %d data", ref.id);
 		return;
 	}
 	resource->ready_state = RS_LOADED;
 
-	platform_link_program(resource->id, {(GLint)source.count, source.data});
+	platform_link_program(resource->id, {(GLint)asset->source.count, (glstring)asset->source.data});
 
-	// CUSTOM_TRACE("program %d info:", asset_id);
+	// CUSTOM_TRACE("program %d info:", ref.id);
 	Program_Field field_buffer;
 
 	// GLint attributes_capacity;
