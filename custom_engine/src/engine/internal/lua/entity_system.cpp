@@ -7,7 +7,8 @@
 #include "engine/api/internal/types_names_lookup.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 typedef custom::Entity Entity;
 typedef custom::Ref Ref;

@@ -9,7 +9,6 @@
 #include "entity_system/ecs_lua_runner.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
 
 // studying these:
 // https://github.com/etodd/lasercrabs

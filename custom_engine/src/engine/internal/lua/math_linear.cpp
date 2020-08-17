@@ -6,7 +6,8 @@
 #include "engine/impl/math_linear.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 //
 // vec2

@@ -7,7 +7,8 @@
 #include "engine/api/internal/types_names_lookup.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 typedef custom::Asset Asset;
 typedef custom::Ref Ref;
@@ -40,6 +41,9 @@ static int Asset_add(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
+	// @Todo: protect strings so that they wouldn't be garbage-collected
+	//        - either by storing them at the engine side
+	//        - or by marking them as such at the Lua side
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id = lua_tostring(L, 2);
 	Ref const & component_ref = Asset::add(type, id);

@@ -6,7 +6,8 @@
 #include "../entity_system/component_types.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 //
 // Lua_Script

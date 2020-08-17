@@ -6,7 +6,8 @@
 #include "../asset_system/asset_types.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 //
 // None

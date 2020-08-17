@@ -5,7 +5,8 @@
 #include "engine/impl/asset_system.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 //
 // Transform

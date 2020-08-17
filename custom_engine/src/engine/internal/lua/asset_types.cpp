@@ -8,7 +8,8 @@
 #include "engine/impl/asset_system.h"
 
 #include <lua.hpp>
-// #include <lstate.h>
+
+// @Todo: reuse userdata?
 
 typedef custom::Lua_Asset Lua_Asset;
 typedef custom::Shader_Asset Shader_Asset;
