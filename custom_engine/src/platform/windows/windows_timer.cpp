@@ -14,8 +14,9 @@
 
 // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-sleep
 // https://docs.microsoft.com/ru-ru/windows/win32/api/timeapi/nf-timeapi-timebeginperiod
+// https://software.intel.com/content/www/us/en/develop/articles/a-common-construct-to-avoid-the-contention-of-threads-architecture-agnostic-spin-wait-loops.html
+// https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer
 // @Todo: scope each frame or scope entire runtime?
-static UINT system_timer_period;
 #if defined(TIMER_ADJUST_PRECISION)
 	#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
 		CUSTOM_WARNING("failed to adjust timer precision");\
@@ -48,6 +49,8 @@ constexpr static inline u64 mul_div(u64 value, u64 numerator, u64 denominator) {
 // API implementation
 //
 
+static UINT system_timer_period;
+
 static UINT     platform_get_resolution(void);
 static LONGLONG platform_get_frequency(void);
 static LONGLONG platform_get_counter(void);
@@ -59,6 +62,9 @@ void init(void) {
 	ticks_per_second = (u64)platform_get_frequency();
 	system_timer_period = platform_get_resolution();
 	snapshot();
+}
+
+void shutdown(void) {
 }
 
 u64 get_ticks(void) {
@@ -82,8 +88,26 @@ u64 wait_next_frame(u64 duration, u64 precision)
 		current_ticks = (u64)platform_get_counter();
 		if (current_ticks >= frame_end_ticks) { break; }
 
-		u64 sleep_milliseconds = mul_div(frame_end_ticks - current_ticks, millisecond, ticks_per_second);
-		Sleep((DWORD)sleep_milliseconds);
+		// @Todo: figure out a better way (?)
+		//        - Sleep(0), Sleep(1), Sleep(>= 2)
+		//        - SetWaitableTimer()
+		//        - SwitchToThread()
+		//        - _mm_pause(), YieldProcessor()
+
+		YieldProcessor();
+
+		// Sleep((DWORD)mul_div(frame_end_ticks - current_ticks, millisecond, ticks_per_second));
+
+		// HANDLE timer_handle = CreateWaitableTimer(NULL, TRUE, NULL);
+		// if(timer_handle) {
+		// 	// @Note: The time after which the state of the timer is to be set to signaled, in 100 nanosecond intervals
+		// 	LARGE_INTEGER due_time;
+		// 	due_time.QuadPart = -(s64)mul_div(frame_end_ticks - current_ticks, nanosecond / 100, ticks_per_second);
+		// 	if (SetWaitableTimer(timer_handle, &due_time, 0, NULL, NULL, FALSE)) {
+		// 		WaitForSingleObject(timer_handle, INFINITE);
+		// 	}
+		// 	CloseHandle(timer_handle);
+		// }
 	}
 	TIME_END();
 	u64 frame_ticks = current_ticks - frame_start_ticks;
@@ -114,7 +138,7 @@ static LONGLONG platform_get_frequency(void) {
 	if (!status) {
 		LOG_LAST_ERROR();
 		CUSTOM_ASSERT(false, "failed to retieve performance frequency");
-		return 1000;
+		return custom::timer::millisecond;
 	}
 	return value.QuadPart;
 }

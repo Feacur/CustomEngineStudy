@@ -16,6 +16,7 @@ void update(Internal_Data * data);
 
 void set_vsync(Internal_Data * data, s32 value);
 bool check_vsync(Internal_Data * data);
+s32 get_refresh_rate(Internal_Data * data, s32 default_value);
 
 void set_header(Internal_Data * data, cstring value);
 ivec2 const & get_size(Internal_Data * data);

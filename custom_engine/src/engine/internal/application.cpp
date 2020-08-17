@@ -18,7 +18,7 @@
 
 #if defined(APP_DISPLAY_PERFORMANCE)
 	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision) {
-		float debug_ms = duration * 1000 / (float)precision;
+		float debug_ms = duration * custom::timer::millisecond / (float)precision;
 		float debug_fps = precision / (float)duration;
 		static char header_text[64];
 		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS)", debug_ms, debug_fps);
@@ -28,9 +28,9 @@
 	#define DISPLAY_PERFORMANCE(window, duration, precision)
 #endif
 
-static u64 get_last_frame_ticks(bool vsync) {
-	static u64 const duration  = 16666;
-	static u64 const precision = custom::timer::microsecond;
+static u64 get_last_frame_ticks(bool vsync, s32 refresh_rate) {
+	static u64 const duration  = custom::timer::nanosecond / (u64)refresh_rate;
+	static u64 const precision = custom::timer::nanosecond;
 	if (vsync) {
 		return custom::timer::snapshot();
 	}
@@ -95,7 +95,10 @@ void run(void) {
 		if (custom::window::get_should_close(app.window)) { break; }
 
 		// prepare for a frame
-		u64 last_frame_ticks = get_last_frame_ticks(custom::window::check_vsync(app.window));
+		u64 last_frame_ticks = get_last_frame_ticks(
+			custom::window::check_vsync(app.window),
+			custom::window::get_refresh_rate(app.window, 60)
+		);
 		DISPLAY_PERFORMANCE(app.window, last_frame_ticks, custom::timer::ticks_per_second);
 
 		// process the frame
@@ -113,6 +116,7 @@ void run(void) {
 		app.bytecode_renderer.reset();
 	}
 
+	custom::timer::shutdown();
 	custom::graphics::shutdown();
 	custom::window::destroy(app.window);
 }

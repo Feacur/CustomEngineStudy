@@ -16,6 +16,8 @@
 
 #define CUSTOM_WINDOW_PTR "cwptr"
 
+// https://docs.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-getdevicecaps
+
 //
 // API implementation
 //
@@ -109,6 +111,11 @@ bool check_vsync(Internal_Data * data) {
 	return context::check_vsync(data->graphics_context);
 }
 
+s32 get_refresh_rate(Internal_Data * data, s32 default_value) {
+	s32 monitor_hz = GetDeviceCaps(GetDC(data->hwnd), VREFRESH);
+	return (monitor_hz > 0) ? monitor_hz : default_value;
+}
+
 void set_header(Internal_Data * data, cstring value) {
 	SetWindowText(data->hwnd, value);
 }
@@ -164,8 +171,8 @@ void set_viewport_callback(Internal_Data * data, viewport_func * callback) {
 }
 
 // platform internal access
-HDC get_hdc(Internal_Data * window) {
-	return GetDC(window->hwnd);
+HDC get_hdc(Internal_Data * data) {
+	return GetDC(data->hwnd);
 }
 
 }}
