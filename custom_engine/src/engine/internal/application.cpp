@@ -37,6 +37,9 @@ static u64 get_last_frame_ticks(bool vsync) {
 	return custom::timer::wait_next_frame(duration, precision);
 }
 
+void init_asset_types(void);
+void init_component_types(void);
+
 namespace custom {
 namespace application {
 
@@ -66,6 +69,9 @@ static void init(void) {
 	custom::timer::init();
 	custom::loader::init(&app.bytecode_loader);
 	custom::renderer::init(&app.bytecode_renderer);
+
+	init_asset_types();
+	init_component_types();
 
 	// @Todo: init context outside a window environment?
 	app.window = custom::window::create();

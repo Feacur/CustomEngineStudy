@@ -151,8 +151,11 @@ static luaL_Reg const Entity_meta[] = {
 namespace custom {
 namespace lua {
 
-extern void init_component_types(lua_State * L);
+// @Change: let client call `init` itself?
+//          although why potentially discarding engine-side types?
+void init_component_types(lua_State * L);
 extern void init_client_component_types(lua_State * L);
+
 void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
 	custom::lua::init_component_types(L);

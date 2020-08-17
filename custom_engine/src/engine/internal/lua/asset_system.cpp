@@ -132,8 +132,11 @@ static luaL_Reg const Asset_meta[] = {
 namespace custom {
 namespace lua {
 
-extern void init_asset_types(lua_State * L);
+// @Change: let client call `init` itself?
+//          although why potentially discarding engine-side types?
+void init_asset_types(lua_State * L);
 extern void init_client_asset_types(lua_State * L);
+
 void init_asset_system(lua_State * L) {
 	LUA_META_IMPL(Asset)
 	custom::lua::init_asset_types(L);

@@ -17,7 +17,7 @@ namespace custom {
 namespace lua {
 
 void init_client_asset_types(lua_State * L) {
-	#define COMPONENT_IMPL(T) LUA_META_IMPL(T)
+	#define ASSET_IMPL(T) LUA_META_IMPL(T)
 	#include "../asset_system/assets_registry_impl.h"
 }
 

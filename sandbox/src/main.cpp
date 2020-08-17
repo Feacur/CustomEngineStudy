@@ -25,15 +25,12 @@ static Transform camera_transform;
 static Camera camera;
 static lua_State * L;
 
-void init_asset_types(void);
 void init_client_asset_types(void);
-void init_component_types(void);
 void init_client_component_types(void);
 void init_uniform_names(void);
+
 static void on_app_init() {
 	// @Note: init systems
-	init_asset_types();
-	init_component_types();
 	init_client_asset_types();
 	init_client_component_types();
 	init_uniform_names();
@@ -41,12 +38,13 @@ static void on_app_init() {
 	custom::loader::uniforms();
 
 	L = luaL_newstate();
-	// luaL_openlibs(lua);
-	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
-	luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 	custom::lua::init_math_linear(L);
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
+
+	// luaL_openlibs(lua);
+	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
+	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
 	custom::loader::script(L, custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua"));
 

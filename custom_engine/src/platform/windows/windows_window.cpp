@@ -88,8 +88,7 @@ void destroy(Internal_Data * data) {
 	free(data);
 }
 
-void init_context(Internal_Data * data)
-{
+void init_context(Internal_Data * data) {
 	CUSTOM_ASSERT(!data->graphics_context, "trying to create a second rendering context");
 	data->graphics_context = context::create(data);
 	graphics::init();

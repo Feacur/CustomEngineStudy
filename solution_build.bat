@@ -55,10 +55,11 @@ popd
 set log_file=-fileLogger -fileLoggerParameters:Verbosity=normal;LogFile=bin-int/%configuration%.log;Encoding=UTF-8 -detailedSummary
 set log_console=-noLogo -consoleLoggerParameters:Verbosity=quiet;Summary;ErrorsOnly;WarningsOnly
 rem -consoleLoggerParameters:PerformanceSummary
-rem verbosity: quiet, minimal, normal, detailed, diagnostic
+rem ... verbosity: quiet, minimal, normal, detailed, diagnostic
+rem -target:Clean,Build,Rebuild,sandbox:Run,...
 
 echo ---- BUILD SOLUTION: START ---- %time%
-msbuild %solution% -p:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
+msbuild %solution% -property:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
 echo ---- BUILD SOLUTION: DONE  ---- %time%
 
 rem @Note: testing custom xcopy calls instead
