@@ -3,6 +3,12 @@
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
 
+// @Note: two modes:
+//        - dense: SoA of {component ref, type, entity id}
+//        - sparse: each enity always has N components, some of them active;
+//          packed into blocks inside `components` array
+// #define ENTITY_COMPONENTS_DENSE
+
 //
 // entity
 //
@@ -26,7 +32,12 @@ struct Entity : public Ref
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
-	static Array<Ref> components; // sparse
+	static Array<Ref> components;
+
+	#if defined(ENTITY_COMPONENTS_DENSE)
+	static Array<u32> component_types;
+	static Array<u32> component_entity_ids;
+	#endif
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);

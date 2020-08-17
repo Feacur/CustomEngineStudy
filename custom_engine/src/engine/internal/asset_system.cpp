@@ -69,11 +69,11 @@ void Asset::rem(u32 type, cstring id) {
 		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
 	}
 
+	Ref ref = Asset::instances[index];
+
 	Asset::paths.remove_at(index);
 	Asset::instances.remove_at(index);
 	Asset::types.remove_at(index);
-
-	Ref & ref = Asset::instances[index];
 
 	if ((*Asset::asset_containers[type])(ref)) {
 		(*Asset::asset_unloaders[type])(ref);

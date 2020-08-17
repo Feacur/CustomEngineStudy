@@ -16,6 +16,11 @@ Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
 Array<Ref>             Entity::components;
 
+#if defined(ENTITY_COMPONENTS_DENSE)
+Array<u32>             Entity::component_types;
+Array<u32>             Entity::component_entity_ids;
+#endif
+
 }
 
 //
@@ -57,6 +62,84 @@ void Entity::destroy(void) {
 //
 // entity components
 //
+
+#if defined(ENTITY_COMPONENTS_DENSE)
+
+namespace custom {
+
+static u32 find(u32 type, u32 entity, Array<u32> const & types, Array<u32> const & entities) {
+	for (u32 i = 0; i < entities.count; ++i) {
+		if (types[i] != type) { continue; }
+		if (entities[i] == entity) { return i; }
+	}
+	return UINT32_MAX;
+}
+
+Ref Entity::add_component(u32 type) {
+	// @Change: ignore, but warn, if component exists?
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = find(type, id, component_types, component_entity_ids);
+	if (component_index == UINT32_MAX) {
+		component_index = Entity::components.count;
+		Entity::components.push({UINT32_MAX, 0});
+		Entity::component_types.push(type);
+		Entity::component_entity_ids.push(id);
+	}
+
+	Ref & ref = Entity::components[component_index];
+
+	if (!(*Entity::component_containers[type])(ref)) {
+		ref = (*Entity::component_constructors[type])();
+	}
+	else { CUSTOM_ASSERT(false, "component already exists"); }
+
+	return ref;
+}
+
+void Entity::rem_component(u32 type) {
+	// @Change: ignore, but warn, if component doesn't exist?
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = find(type, id, component_types, component_entity_ids);
+	if (component_index == UINT32_MAX) {
+		CUSTOM_ASSERT(false, "component doesn't exist"); return;
+	}
+
+	Ref ref = Entity::components[component_index];
+
+	Entity::components.remove_at(component_index);
+	Entity::component_types.remove_at(component_index);
+	Entity::component_entity_ids.remove_at(component_index);
+
+	if ((*Entity::component_containers[type])(ref)) {
+		(*Entity::component_destructors[type])(ref);
+	}
+	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
+}
+
+Ref Entity::get_component(u32 type) const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = find(type, id, component_types, component_entity_ids);
+	if (component_index == UINT32_MAX) { return {UINT32_MAX, 0}; }
+
+	return Entity::components[component_index];
+}
+
+bool Entity::has_component(u32 type) const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	u32 component_index = find(type, id, component_types, component_entity_ids);
+	if (component_index == UINT32_MAX) { return false; }
+
+	Ref const & ref = Entity::components[component_index];
+	return (*Entity::component_containers[type])(ref);
+}
+
+}
+
+#else
 
 namespace custom {
 
@@ -119,3 +202,5 @@ bool Entity::has_component(u32 type) const {
 }
 
 }
+
+#endif
