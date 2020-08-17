@@ -1712,7 +1712,7 @@ static void platform_Free_Shader(Bytecode const & bc) {
 	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
-	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't match"); return; }
 	// Shader_Asset const * asset = ref.get_fast();
 
 	glDeleteProgram(resource->id);
@@ -1728,7 +1728,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
-	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't match"); return; }
 	// Texture_Asset const * asset = ref.get_fast();
 
 	glDeleteTextures(1, &resource->id);
@@ -1777,7 +1777,7 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
 
-	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't match"); return; }
 	// Mesh_Asset const * asset = ref.get_fast();
 
 	for (u16 i = 0; i < resource->buffers.count; ++i) {
@@ -1898,6 +1898,8 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	opengl::Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't match"); return; }
+
 	if (resource->ready_state == RS_LOADED) {
 		CUSTOM_TRACE("trying to overwrite shader %d data", ref.id);
 		return;
@@ -1964,6 +1966,8 @@ static void platform_Load_Texture(Bytecode const & bc) {
 	opengl::Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't match"); return; }
+
 	// @Todo: allow offests usage
 	ivec2 offset = {0, 0};
 
@@ -2013,6 +2017,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 
 	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
+
+	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't match"); return; }
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
