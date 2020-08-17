@@ -1377,9 +1377,9 @@ static void platform_consume_mesh_params(Mesh_Asset const * asset, opengl::Mesh 
 
 	// resource->buffers.set_capacity(asset->buffers.count);
 	CUSTOM_ASSERT(asset->buffers.count <= resource->buffers.capacity, "too many buffers");
-	for (u8 i = 0; i < asset->buffers.count; ++i) {
+	for (u32 i = 0; i < asset->buffers.count; ++i) {
 		resource->buffers.push();
-		opengl::Buffer * buffer = new (&resource->buffers[i]) opengl::Buffer;
+		opengl::Buffer * buffer = new (&resource->buffers[(u16)i]) opengl::Buffer;
 
 		Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 		buffer->is_index  = in_buffer.is_index;
@@ -1391,12 +1391,12 @@ static void platform_consume_mesh_params(Mesh_Asset const * asset, opengl::Mesh 
 
 		// buffer->attributes.set_capacity(in_buffer.attributes.count);
 		CUSTOM_ASSERT(in_buffer.attributes.count <= buffer->attributes.capacity, "too many attributes");
-		for (u16 attr_i = 0; attr_i < in_buffer.attributes.count; ++attr_i) {
+		for (u32 attr_i = 0; attr_i < in_buffer.attributes.count; ++attr_i) {
 			buffer->attributes.push();
-			opengl::Attribute * attribute = new (&buffer->attributes[attr_i]) opengl::Attribute;
+			opengl::Attribute * attribute = new (&buffer->attributes[(u16)attr_i]) opengl::Attribute;
 			attribute->count = in_buffer.attributes[attr_i];
 		}
-		if (in_buffer.is_index) { resource->index_buffer = i; }
+		if (in_buffer.is_index) { resource->index_buffer = (u8)i; }
 	}
 }
 
@@ -2015,8 +2015,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
-		for (u16 i = 0; i < asset->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[i];
+		for (u32 i = 0; i < asset->buffers.count; ++i) {
+			opengl::Buffer & buffer = resource->buffers[(u16)i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
@@ -2036,8 +2036,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 
 			glNamedBufferSubData(
 				buffer.id,
-				offset * type_size,
-				in_buffer.buffer.count * type_size,
+				offset,
+				in_buffer.buffer.count,
 				in_buffer.buffer.data
 			);
 		}
@@ -2048,8 +2048,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			CUSTOM_WARNING("OGL: disabled mesh %d (loading: %d)", ogl.active_mesh, ref.id);
 			ogl.active_mesh = empty_asset_id;
 		}
-		for (u16 i = 0; i < asset->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[i];
+		for (u32 i = 0; i < asset->buffers.count; ++i) {
+			opengl::Buffer & buffer = resource->buffers[(u16)i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
@@ -2070,8 +2070,8 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			glBindBuffer(target, buffer.id);
 			glBufferSubData(
 				target,
-				offset * type_size,
-				in_buffer.buffer.count * type_size,
+				offset,
+				in_buffer.buffer.count,
 				in_buffer.buffer.data
 			);
 		}
