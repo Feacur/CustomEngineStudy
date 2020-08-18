@@ -119,12 +119,10 @@ static int Camera_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "projection") == 0) {
-		mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
-		luaL_setmetatable(L, "mat4");
-		*udata = object->get_fast()->projection;
-		return 1;
-	}
+	if (strcmp(id, "near")  == 0) { lua_pushnumber(L, object->get_fast()->near);  return 1; }
+	if (strcmp(id, "far")   == 0) { lua_pushnumber(L, object->get_fast()->far);   return 1; }
+	if (strcmp(id, "scale") == 0) { lua_pushnumber(L, object->get_fast()->scale); return 1; }
+	if (strcmp(id, "persp") == 0) { lua_pushnumber(L, object->get_fast()->persp); return 1; }
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -139,12 +137,11 @@ static int Camera_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "projection") == 0) {
-		LUA_ASSERT_USERDATA("mat4", 3);
-		mat4 const * value = (mat4 const *)lua_touserdata(L, 3);
-		object->get_fast()->projection = *value;
-		return 0;
-	}
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	if (strcmp(id, "near")  == 0) { object->get_fast()->near  = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "far")   == 0) { object->get_fast()->far   = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "scale") == 0) { object->get_fast()->scale = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "persp") == 0) { object->get_fast()->persp = (r32)lua_tonumber(L, 3); return 0; }
 
 	LUA_REPORT_INDEX();
 	return 0;

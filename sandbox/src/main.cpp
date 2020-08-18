@@ -23,8 +23,7 @@ custom::Entity create_visual(Visual visual_data, Transform transform_data) {
 	return entity;
 }
 
-static Transform camera_transform;
-static Camera camera;
+static custom::Entity camera_entity;
 static lua_State * L;
 
 void init_client_asset_types(void);
@@ -52,11 +51,6 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	// @Note: init data
-	camera_transform = {
-		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
-	};
-
 	// @Note: init entities
 	custom::Entity entity11 = custom::Entity::create();
 	custom::Entity entity21 = custom::Entity::create();
@@ -70,30 +64,32 @@ static void on_app_init() {
 	entity21.destroy();
 	entity41.destroy();
 
+	camera_entity = custom::Entity::create();
+	custom::RefT<Transform> c_transform = camera_entity.add_component<Transform>();
+	custom::RefT<Camera> c_camera = camera_entity.add_component<Camera>();
+
+	(*c_transform.get_fast()) = {
+		{0, 2, -5}, {0, 0, 0, 1}, {1, 1, 1}
+	};
+	(*c_camera.get_fast()) = {
+		0.1f, 20.0f, 1.0f / tangent((pi / 2) / 2), 1.0f
+	};
+
 	custom::Asset::add<Lua_Asset>("assets/scripts/main.lua");
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
 
-r32 camera_zoom = 1;
-ivec2 viewport_size;
-static void update_camera_projection(void) {
-	r32 const near = 0.1f; r32 const far  = 20.0f;
-	r32 const scale_x = camera_zoom / tangent((pi / 2) / 2);
-	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
-	camera.projection = mat_persp({scale_x, scale_x * aspect}, near, far);
-}
-
 static void on_app_viewport(ivec2 size) {
-	viewport_size = size;
-	update_camera_projection();
 	custom::renderer::viewport({0, 0}, size);
 }
 
 static void on_app_update(r32 dt) {
+	Transform * camera_transform = camera_entity.get_component<Transform>().get_fast();
+	Camera * camera = camera_entity.get_component<Camera>().get_fast();
+
 	vec2 wheel = custom::application::get_mouse_wheel();
 	if (wheel.y != 0) {
-		camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
-		update_camera_projection();
+		// camera_zoom = clamp(camera_zoom + wheel.y * dt, 0.5f, 2.0f);
 	}
 
 	if (custom::application::get_mouse_key(custom::Mouse_Code::Key2)) {
@@ -107,19 +103,19 @@ static void on_app_update(r32 dt) {
 		#undef GET_DIR_IMPL
 
 		// @Note: object-space rotation
-		camera_transform.rotation = normalize(quat_product(
-			camera_transform.rotation,
+		camera_transform->rotation = normalize(quat_product(
+			camera_transform->rotation,
 			quat_from_radians(
 				vec3{-(r32)mouse_delta.y, (r32)mouse_delta.x, 0} * (0.3f * dt)
 			)
 		));
 
-		camera_transform.position += quat_rotate_vector(camera_transform.rotation, move_delta) * (move_speed * dt);
+		camera_transform->position += quat_rotate_vector(camera_transform->rotation, move_delta) * (move_speed * dt);
 	}
 
 	// render entities
 	custom::renderer::clear();
-	sandbox::ecs_renderer::update(camera_transform, camera.projection);
+	sandbox::ecs_renderer::update();
 	sandbox::ecs_lua_runner::lua_function(L, "global_update");
 	sandbox::ecs_lua_runner::update(L, dt);
 }

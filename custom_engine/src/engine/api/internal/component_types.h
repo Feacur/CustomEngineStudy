@@ -15,7 +15,10 @@ struct Transform
 
 struct Camera
 {
-	mat4 projection;
+	r32 near;
+	r32 far;
+	r32 scale;
+	r32 persp;
 };
 
 // struct Hierarchy : public custom::Ref
