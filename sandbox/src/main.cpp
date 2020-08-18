@@ -8,6 +8,8 @@
 #include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
 
+#include "asset_system/asset_types.h"
+
 #include <lua.hpp>
 
 // studying these:
@@ -28,16 +30,18 @@ static lua_State * L;
 void init_client_asset_types(void);
 void init_client_component_types(void);
 void init_uniform_names(void);
+void init_client_loader(lua_State * L);
 
 static void on_app_init() {
 	// @Note: init systems
 	init_client_asset_types();
 	init_client_component_types();
-	init_uniform_names();
 
+	init_uniform_names();
 	custom::loader::uniforms();
 
 	L = luaL_newstate();
+	init_client_loader(L);
 	custom::lua::init_math_linear(L);
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
@@ -45,8 +49,6 @@ static void on_app_init() {
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
-
-	custom::loader::script(L, custom::Asset::add<custom::Lua_Asset>("assets/scripts/main.lua"));
 
 	// @Note: init data
 	camera_transform = {
@@ -66,6 +68,7 @@ static void on_app_init() {
 	entity21.destroy();
 	entity41.destroy();
 
+	custom::Asset::add<Lua_Asset>("assets/scripts/main.lua");
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
 }
 

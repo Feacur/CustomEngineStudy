@@ -6,16 +6,9 @@
 
 namespace custom {
 
-struct Lua_Asset {
-	Array<u8> source;
-};
-
 struct Shader_Asset {
 	Array<u8> source;
-
-	~Shader_Asset() {
-		source.~Array();
-	}
+	~Shader_Asset() = default;
 };
 
 struct Texture_Asset {
@@ -23,21 +16,14 @@ struct Texture_Asset {
 	ivec2 size;
 	s32 channels;
 
-	u8 is_dynamic = true;
-	graphics::Data_Type data_type = graphics::Data_Type::u8;
-	graphics::Texture_Type texture_type = graphics::Texture_Type::Color;
+	u8 is_dynamic;
+	graphics::Data_Type data_type;
+	graphics::Texture_Type texture_type;
 
-	graphics::Filter_Mode
-		min_tex = graphics::Filter_Mode::None,
-		min_mip = graphics::Filter_Mode::None,
-		mag_tex = graphics::Filter_Mode::None;
-	graphics::Wrap_Mode
-		wrap_x = graphics::Wrap_Mode::Repeat,
-		wrap_y = graphics::Wrap_Mode::Repeat;
+	graphics::Filter_Mode min_tex, min_mip, mag_tex;
+	graphics::Wrap_Mode wrap_x, wrap_y;
 
-	~Texture_Asset() {
-		data.~Array();
-	}
+	~Texture_Asset() = default;
 };
 
 struct Mesh_Asset {
@@ -48,8 +34,8 @@ struct Mesh_Asset {
 		u8 is_index;
 		graphics::Data_Type data_type;
 
-		graphics::Mesh_Frequency frequency = graphics::Mesh_Frequency::Static;
-		graphics::Mesh_Access    access    = graphics::Mesh_Access::Draw;
+		graphics::Mesh_Frequency frequency;
+		graphics::Mesh_Access access;
 	};
 	Array<Buffer> buffers;
 

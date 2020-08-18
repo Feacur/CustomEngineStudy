@@ -1,13 +1,11 @@
 #include "custom_pch.h"
 
 #include "engine/api/internal/types_names_lookup.h"
-#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"
 #include "engine/impl/asset_system.h"
 
-#define ASSET_IMPL(T) typedef custom::T T;
-#include "assets_registry_impl.h"
+#include "asset_types.h"
 
 #define ASSET_IMPL(T)\
 	/* @Note: initialize compile-time structs: */\
