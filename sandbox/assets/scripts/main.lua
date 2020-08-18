@@ -2,15 +2,36 @@ local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
 local function create_visual(tp, tr, ts, vs, vt, vm)
 	local entity = Entity.create()
+
 	local transform = entity:add_component(Transform.type)
-	local visual = entity:add_component(Visual.type)
 	transform.position = tp
 	transform.rotation = tr
 	transform.scale = ts
+
+	local visual = entity:add_component(Visual.type)
 	visual.shader = vs;
 	visual.texture = vt;
 	visual.mesh = vm;
+
 	return entity
+end
+
+local function create_camera()
+	local entity = Entity.create()
+
+	local transform = entity:add_component(Transform.type)
+	transform.position = vec3.new(0, 2, -5)
+	transform.rotation = vec4.new(0, 0, 0, 1)
+	transform.scale    = vec3.new(1, 1, 1)
+
+	local camera = entity:add_component(Camera.type)
+	camera.near = 0.1
+	camera.far = 20
+	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
+	camera.persp = 1
+
+	local camera_script = entity:add_component(Lua_Script.type)
+	camera_script.update = "script_fly"
 end
 
 function global_init()
@@ -51,16 +72,7 @@ function global_init()
 		shader, texture1, mesh2
 	)
 
-	-- local entity = Entity.create()
-	-- local camera = entity:add_component(Camera.type)
-	-- local camera_zoom = 1
-	-- local near = 0.1
-	-- local far = 20
-	-- local scale_x = camera_zoom / math.tan((math.pi / 2) / 2);
-	-- local aspect = 1000 / 500;
-	-- camera.projection = mat4.persp(scale_x, scale_x * aspect, near, far)
-	-- local camera_script = camera_entity:add_component(Lua_Script.type)
-	-- camera_script.update = "script_fly"
+	create_camera()
 end
 
 local counter = 0
@@ -79,6 +91,12 @@ function script_rotate(entity, dt)
 end
 
 function script_fly(entity, dt)
+	local mouse_wheel = Input.get_mouse_wheel()
+	if (mouse_wheel.y ~= 0) then
+		local camera = entity:get_component(Camera.type)
+		camera.scale = math.min(math.max(camera.scale + mouse_wheel.y * dt, 0.5), 2.0)
+	end
+
 	if (not Input.get_mouse_key(Mouse_Code.Key2)) then return end
 
 	local position_delta = vec3.new(
