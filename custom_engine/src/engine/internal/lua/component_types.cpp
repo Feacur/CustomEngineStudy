@@ -122,7 +122,7 @@ static int Camera_index(lua_State * L) {
 	if (strcmp(id, "near")  == 0) { lua_pushnumber(L, object->get_fast()->near);  return 1; }
 	if (strcmp(id, "far")   == 0) { lua_pushnumber(L, object->get_fast()->far);   return 1; }
 	if (strcmp(id, "scale") == 0) { lua_pushnumber(L, object->get_fast()->scale); return 1; }
-	if (strcmp(id, "persp") == 0) { lua_pushnumber(L, object->get_fast()->persp); return 1; }
+	if (strcmp(id, "ortho") == 0) { lua_pushnumber(L, object->get_fast()->ortho); return 1; }
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -141,7 +141,7 @@ static int Camera_newindex(lua_State * L) {
 	if (strcmp(id, "near")  == 0) { object->get_fast()->near  = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "far")   == 0) { object->get_fast()->far   = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "scale") == 0) { object->get_fast()->scale = (r32)lua_tonumber(L, 3); return 0; }
-	if (strcmp(id, "persp") == 0) { object->get_fast()->persp = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "ortho") == 0) { object->get_fast()->ortho = (r32)lua_tonumber(L, 3); return 0; }
 
 	LUA_REPORT_INDEX();
 	return 0;

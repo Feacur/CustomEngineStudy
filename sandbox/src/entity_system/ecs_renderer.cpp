@@ -42,7 +42,11 @@ void update() {
 	mat4 camera_matrix = to_matrix(camera_transform->position, camera_transform->rotation, camera_transform->scale);
 	camera_matrix = mat_product(
 		mat_inverse_transform(camera_matrix),
-		mat_persp({camera->scale, camera->scale * aspect}, camera->near, camera->far)
+		interpolate(
+			mat_persp({camera->scale, camera->scale * aspect}, camera->near, camera->far),
+			mat_ortho({camera->scale, camera->scale * aspect}, camera->near, camera->far),
+			camera->ortho
+		)
 	);
 
 	// @Todo: prefetch all relevant components into a contiguous array?

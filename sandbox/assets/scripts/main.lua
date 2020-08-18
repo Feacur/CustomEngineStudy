@@ -26,9 +26,9 @@ local function create_camera()
 
 	local camera = entity:add_component(Camera.type)
 	camera.near = 0.1
-	camera.far = 20
+	camera.far = 20 -- math.huge
 	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
-	camera.persp = 1
+	camera.ortho = 0
 
 	local camera_script = entity:add_component(Lua_Script.type)
 	camera_script.update = "script_fly"
@@ -92,9 +92,15 @@ end
 
 function script_fly(entity, dt)
 	local mouse_wheel = Input.get_mouse_wheel()
-	if (mouse_wheel.y ~= 0) then
+	if (mouse_wheel.y ~= 0) and entity:has_component(Camera.type) then
 		local camera = entity:get_component(Camera.type)
-		camera.scale = math.min(math.max(camera.scale + mouse_wheel.y * dt, 0.5), 2.0)
+		if Input.get_key(Key_Code.Control) then
+			camera.ortho = math.min(math.max(camera.ortho + mouse_wheel.y * 4 * dt, 0), 1)
+		elseif Input.get_key(Key_Code.Alt) then
+			camera.far = math.min(math.max(camera.far + mouse_wheel.y * 10 * dt, 0), math.huge)
+		else
+			camera.scale = math.min(math.max(camera.scale + mouse_wheel.y * 2 * dt, 0.5), 2)
+		end
 	end
 
 	if (not Input.get_mouse_key(Mouse_Code.Key2)) then return end

@@ -1091,6 +1091,13 @@ constexpr inline mat2 mat_product(mat2 first, mat2 second) {
 	};
 }
 
+constexpr inline mat2 interpolate(mat2 const & first, mat2 const & second, r32 fraction) {
+	return {
+		interpolate(first.x, second.x, fraction),
+		interpolate(first.y, second.y, fraction),
+	};
+}
+
 //
 // mat3 routines
 //
@@ -1117,6 +1124,14 @@ constexpr inline mat3 mat_product(mat3 first, mat3 second) {
 		mat_product(t, first.x),
 		mat_product(t, first.y),
 		mat_product(t, first.z)
+	};
+}
+
+constexpr inline mat3 interpolate(mat3 const & first, mat3 const & second, r32 fraction) {
+	return {
+		interpolate(first.x, second.x, fraction),
+		interpolate(first.y, second.y, fraction),
+		interpolate(first.z, second.z, fraction),
 	};
 }
 
@@ -1170,6 +1185,15 @@ constexpr inline mat4 mat_product(mat4 first, mat4 second) {
 		mat_product(t, first.y),
 		mat_product(t, first.z),
 		mat_product(t, first.w)
+	};
+}
+
+constexpr inline mat4 interpolate(mat4 const & first, mat4 const & second, r32 fraction) {
+	return {
+		interpolate(first.x, second.x, fraction),
+		interpolate(first.y, second.y, fraction),
+		interpolate(first.z, second.z, fraction),
+		interpolate(first.w, second.w, fraction),
 	};
 }
 
@@ -1270,23 +1294,10 @@ constexpr inline mat4 mat_persp(vec2 scale, r32 near, r32 far) {
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = (far - NCP * near) * reverse_depth;
+	result[2][2] = isinf(far) ? 1 : ((far - NCP * near) * reverse_depth);
 	result[2][3] = 1; // W += 1 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = (NCP - 1) * near * far * reverse_depth;
-	result[3][3] = 0; // W += 0 * vec4.w
-	return result;
-}
-
-constexpr inline mat4 mat_persp_inf(vec2 scale, r32 near) {
-	constexpr float const NCP = 0;
-	mat4 result = {};
-	result[0][0] = scale.x;
-	result[1][1] = scale.y;
-	result[2][2] = 1;
-	result[2][3] = 1; // W += 1 * vec4.z
-	// result[3].xy = offset;
-	result[3][2] = (NCP - 1) * near;
+	result[3][2] = isinf(far) ? ((NCP - 1) * near) : ((NCP - 1) * near * far * reverse_depth);
 	result[3][3] = 0; // W += 0 * vec4.w
 	return result;
 }
@@ -1297,10 +1308,10 @@ constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = (1 - NCP) * reverse_depth;
+	result[2][2] = isinf(far) ? 0 : ((1 - NCP) * reverse_depth);
 	result[2][3] = 0; // W += 0 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = (far * NCP - near) * reverse_depth;
+	result[3][2] = isinf(far) ? 1 : ((far * NCP - near) * reverse_depth);
 	result[3][3] = 1; // W += 1 * vec4.w
 	return result;
 }

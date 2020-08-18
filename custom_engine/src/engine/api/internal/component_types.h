@@ -18,7 +18,7 @@ struct Camera
 	r32 near;
 	r32 far;
 	r32 scale;
-	r32 persp;
+	r32 ortho;
 };
 
 // struct Hierarchy : public custom::Ref
