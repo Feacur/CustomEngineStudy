@@ -15,7 +15,7 @@
 	custom::Ref_Pool<T> custom::RefT<T>::pool;\
 	u32 custom::Asset_Registry<T>::type;\
 
-#include "assets_registry_impl.h"
+#include "../registry_impl/asset_types.h"
 
 void init_client_asset_types(void) {
 	// @Note: initialize runtime assets' data:
@@ -23,7 +23,7 @@ void init_client_asset_types(void) {
 		custom::Asset_Registry<T>::type = custom::asset_names.count;\
 		custom::asset_names.push(#T);\
 
-	#include "assets_registry_impl.h"
+	#include "../registry_impl/asset_types.h"
 
 	custom::Asset::asset_constructors.set_capacity(custom::asset_names.count);
 	custom::Asset::asset_destructors.set_capacity(custom::asset_names.count);
@@ -37,5 +37,5 @@ void init_client_asset_types(void) {
 		custom::Asset::asset_loaders.push(&custom::asset_pool_load<T>);\
 		custom::Asset::asset_unloaders.push(&custom::asset_pool_unload<T>);\
 
-	#include "assets_registry_impl.h"
+	#include "../registry_impl/asset_types.h"
 }

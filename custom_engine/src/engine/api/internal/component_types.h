@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/math_types.h"
+#include "engine/api/graphics_params.h"
 // #include "engine/api/internal/entity_system.h"
 
 namespace custom {
@@ -19,6 +20,7 @@ struct Camera
 	r32 far;
 	r32 scale;
 	r32 ortho;
+	custom::graphics::Clear_Flag clear;
 };
 
 // struct Hierarchy : public custom::Ref

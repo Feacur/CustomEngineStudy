@@ -123,6 +123,7 @@ static int Camera_index(lua_State * L) {
 	if (strcmp(id, "far")   == 0) { lua_pushnumber(L, object->get_fast()->far);   return 1; }
 	if (strcmp(id, "scale") == 0) { lua_pushnumber(L, object->get_fast()->scale); return 1; }
 	if (strcmp(id, "ortho") == 0) { lua_pushnumber(L, object->get_fast()->ortho); return 1; }
+	if (strcmp(id, "clear") == 0) { lua_pushinteger(L, (u8)object->get_fast()->clear); return 1; }
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -142,6 +143,7 @@ static int Camera_newindex(lua_State * L) {
 	if (strcmp(id, "far")   == 0) { object->get_fast()->far   = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "scale") == 0) { object->get_fast()->scale = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "ortho") == 0) { object->get_fast()->ortho = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "clear") == 0) { object->get_fast()->clear = (custom::graphics::Clear_Flag)lua_tonumber(L, 3); return 0; }
 
 	LUA_REPORT_INDEX();
 	return 0;
@@ -178,7 +180,7 @@ namespace lua {
 
 void init_component_types(lua_State * L) {
 	#define COMPONENT_IMPL(T) LUA_META_IMPL(T)
-	#include "../components_registry_impl.h"
+	#include "engine/registry_impl/component_types.h"
 }
 
 }}

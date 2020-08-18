@@ -8,16 +8,15 @@ constexpr u32 const empty_asset_id = UINT32_MAX;
 namespace custom {
 namespace graphics {
 
-enum struct Clear_Flags : u8
+enum struct Clear_Flag : u8
 {
 	None    = 0,
-	Color   = BIT(u8, 0),
-	Depth   = BIT(u8, 1),
-	Stencil = BIT(u8, 2),
+	#define CLEAR_FLAG_IMPL(T, i) T = BIT(u8, i),
+	#include "engine/registry_impl/clear_flag.h"
 };
-UNDERLYING_TYPE_META(Clear_Flags, u8)
-IS_ENUM_META(Clear_Flags)
-ENUM_FLAG_OPERATORS_IMPL(Clear_Flags)
+UNDERLYING_TYPE_META(Clear_Flag, u8)
+IS_ENUM_META(Clear_Flag)
+ENUM_FLAG_OPERATORS_IMPL(Clear_Flag)
 
 enum struct Comparison : u8
 {
@@ -105,7 +104,7 @@ enum struct Data_Type : u8
 {
 	None,
 	#define DATA_TYPE_IMPL(T) T,
-	#include "data_type_registry_impl.h"
+	#include "engine/registry_impl/data_type.h"
 };
 UNDERLYING_TYPE_META(Data_Type, u8)
 IS_ENUM_META(Data_Type)
@@ -167,7 +166,7 @@ enum struct Instruction : u8
 {
 	None,
 	#define INSTRUCTION_IMPL(T) T,
-	#include "instructions_registry_impl.h"
+	#include "engine/registry_impl/instruction.h"
 };
 UNDERLYING_TYPE_META(Instruction, u8)
 IS_ENUM_META(Instruction)

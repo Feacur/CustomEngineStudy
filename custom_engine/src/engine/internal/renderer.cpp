@@ -81,10 +81,10 @@ void viewport(ivec2 const & position, ivec2 const & size) {
 	bc->write(position); bc->write(size);
 }
 
-void clear(void) {
+void clear(graphics::Clear_Flag flags) {
+	if (flags == graphics::Clear_Flag::None) { return; }
 	bc->write(graphics::Instruction::Clear);
-	bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth);
-	// bc->write(graphics::Clear_Flags::Color | graphics::Clear_Flags::Depth | graphics::Clear_Flags::Stencil);
+	bc->write(flags);
 }
 
 void draw(void) {

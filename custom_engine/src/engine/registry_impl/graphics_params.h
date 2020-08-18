@@ -1,7 +1,7 @@
 // @Note: utility for automatic registration of GVM-specific parameters:
 //        - #define a GRAPHICS_PARAM_IMPL(T) macro
 //        - #include this file
-GRAPHICS_PARAM_IMPL(Clear_Flags)
+GRAPHICS_PARAM_IMPL(Clear_Flag)
 GRAPHICS_PARAM_IMPL(Comparison)
 GRAPHICS_PARAM_IMPL(Color_Write)
 GRAPHICS_PARAM_IMPL(Operation)

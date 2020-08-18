@@ -33,10 +33,10 @@ template struct Array<char>;
 template struct Array<cstring>;
 
 #define DATA_TYPE_IMPL(T) template struct Array<T>;
-#include "engine/api/data_type_registry_impl.h"
+#include "engine/registry_impl/data_type.h"
 
 #define GRAPHICS_PARAM_IMPL(T) template struct Array<graphics::T>;
-#include "graphics_params_registry_impl.h"
+#include "engine/registry_impl/graphics_params.h"
 
 template struct Array<Ref>;
 
@@ -61,10 +61,10 @@ BYTECODE_IMPL(char)
 BYTECODE_IMPL(cstring)
 
 #define DATA_TYPE_IMPL(T) BYTECODE_IMPL(T)
-#include "engine/api/data_type_registry_impl.h"
+#include "engine/registry_impl/data_type.h"
 
 #define GRAPHICS_PARAM_IMPL(T) BYTECODE_IMPL(graphics::T)
-#include "graphics_params_registry_impl.h"
+#include "engine/registry_impl/graphics_params.h"
 
 #undef BYTECODE_IMPL
 

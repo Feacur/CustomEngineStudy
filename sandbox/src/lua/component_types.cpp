@@ -178,7 +178,7 @@ namespace lua {
 
 void init_client_component_types(lua_State * L) {
 	#define COMPONENT_IMPL(T) LUA_META_IMPL(T)
-	#include "../entity_system/components_registry_impl.h"
+	#include "../registry_impl/component_types.h"
 }
 
 }}

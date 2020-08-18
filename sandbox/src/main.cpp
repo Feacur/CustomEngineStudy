@@ -33,6 +33,7 @@ static void on_app_init() {
 	L = luaL_newstate();
 	init_client_loader(L);
 	custom::lua::init_input(L);
+	custom::lua::init_graphics_params(L);
 	custom::lua::init_math_linear(L);
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
@@ -56,7 +57,6 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_lua_runner::lua_function(L, "global_update");
 	sandbox::ecs_lua_runner::update(L, dt);
 
-	custom::renderer::clear();
 	sandbox::ecs_renderer::update();
 }
 

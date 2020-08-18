@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/math_types.h"
+#include "engine/api/graphics_params.h"
 
 namespace custom {
 	// @Forward
@@ -26,7 +27,7 @@ void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & ma
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, ivec2 const & value);
 
 void viewport(ivec2 const & position, ivec2 const & size);
-void clear(void);
+void clear(graphics::Clear_Flag flags);
 void draw(void);
 
 }}

@@ -17,7 +17,7 @@
 	custom::Ref_Pool<T> custom::RefT<T>::pool;\
 	u32 custom::Component_Registry<T>::type;\
 
-#include "components_registry_impl.h"
+#include "../registry_impl/component_types.h"
 
 void init_client_component_types(void) {
 	// @Note: initialize runtime components' data:
@@ -25,7 +25,7 @@ void init_client_component_types(void) {
 		custom::Component_Registry<T>::type = custom::component_names.count;\
 		custom::component_names.push(#T);\
 
-	#include "components_registry_impl.h"
+	#include "../registry_impl/component_types.h"
 
 	custom::Entity::component_constructors.set_capacity(custom::component_names.count);
 	custom::Entity::component_destructors.set_capacity(custom::component_names.count);
@@ -35,5 +35,5 @@ void init_client_component_types(void) {
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\
 		custom::Entity::component_containers.push(&custom::ref_pool_contains<T>);\
 
-	#include "components_registry_impl.h"
+	#include "../registry_impl/component_types.h"
 }

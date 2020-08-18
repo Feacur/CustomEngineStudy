@@ -354,7 +354,7 @@ void shutdown(void) {
 }
 
 #define INSTRUCTION_IMPL(T) static void platform_##T(Bytecode const & bc);
-#include "engine/api/instructions_registry_impl.h"
+#include "engine/registry_impl/instruction.h"
 
 // glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, #T);
 // glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, #T);
@@ -367,7 +367,7 @@ void consume(Bytecode const & bc) {
 		switch (instruction)
 		{
 			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
-			#include "engine/api/instructions_registry_impl.h"
+			#include "engine/registry_impl/instruction.h"
 			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
 		}
 		PLATFORM_CONSUME_ERRORS();
@@ -1031,7 +1031,7 @@ static GLenum get_data_type(Data_Type value) {
 static u16 get_type_size(Data_Type value) {
 	switch (value) {
 		#define DATA_TYPE_IMPL(T) case Data_Type::T: return sizeof(T);
-		#include "engine/api/data_type_registry_impl.h"
+		#include "engine/registry_impl/data_type.h"
 	}
 	CUSTOM_ASSERT(false, "unknown data type %d", value);
 	return 0;
@@ -1040,7 +1040,7 @@ static u16 get_type_size(Data_Type value) {
 static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
 	switch (type) {
 		#define DATA_TYPE_IMPL(T) case Data_Type::T: return bc.read<T>(count);
-		#include "engine/api/data_type_registry_impl.h"
+		#include "engine/registry_impl/data_type.h"
 	}
 	CUSTOM_ASSERT(false, "unknown data type %d", type);
 	return NULL;
@@ -2191,14 +2191,14 @@ static void platform_Viewport(Bytecode const & bc) {
 
 static void platform_Clear(Bytecode const & bc) {
 	GLbitfield gl_clear_flags = 0;
-	Clear_Flags clear_flags = *bc.read<Clear_Flags>();
-	if (bits_are_set(clear_flags, Clear_Flags::Color)) {
+	Clear_Flag clear_flags = *bc.read<Clear_Flag>();
+	if (bits_are_set(clear_flags, Clear_Flag::Color)) {
 		gl_clear_flags |= GL_COLOR_BUFFER_BIT;
 	}
-	if (bits_are_set(clear_flags, Clear_Flags::Depth)) {
+	if (bits_are_set(clear_flags, Clear_Flag::Depth)) {
 		gl_clear_flags |= GL_DEPTH_BUFFER_BIT;
 	}
-	if (bits_are_set(clear_flags, Clear_Flags::Stencil)) {
+	if (bits_are_set(clear_flags, Clear_Flag::Stencil)) {
 		gl_clear_flags |= GL_STENCIL_BUFFER_BIT;
 	}
 	glClear(gl_clear_flags);

@@ -204,7 +204,7 @@ namespace lua {
 
 void init_asset_types(lua_State * L) {
 	#define ASSET_IMPL(T) LUA_META_IMPL(T)
-	#include "../assets_registry_impl.h"
+	#include "engine/registry_impl/asset_types.h"
 }
 
 }}

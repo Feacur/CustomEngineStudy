@@ -16,7 +16,7 @@ local function create_visual(tp, tr, ts, vs, vt, vm)
 	return entity
 end
 
-local function create_camera()
+local function create_camera(clear)
 	local entity = Entity.create()
 
 	local transform = entity:add_component(Transform.type)
@@ -29,9 +29,9 @@ local function create_camera()
 	camera.far = 20 -- math.huge
 	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
 	camera.ortho = 0
+	camera.clear = clear
 
-	local camera_script = entity:add_component(Lua_Script.type)
-	camera_script.update = "script_fly"
+	return entity
 end
 
 function global_init()
@@ -72,7 +72,11 @@ function global_init()
 		shader, texture1, mesh2
 	)
 
-	create_camera()
+	local camera_entity = create_camera(Clear_Flag.Color | Clear_Flag.Depth)
+	local camera_script = camera_entity:add_component(Lua_Script.type)
+	camera_script.update = "script_fly"
+
+	create_camera(Clear_Flag.Depth)
 end
 
 local counter = 0
