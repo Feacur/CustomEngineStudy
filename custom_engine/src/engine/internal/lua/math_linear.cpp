@@ -833,34 +833,36 @@ static int mat4_product_vec(lua_State * L) {
 }
 
 static int mat4_persp(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
-	LUA_ASSERT_USERDATA("vec2", 1);
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 4, "expected 4 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 4);
 
 	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
 	luaL_setmetatable(L, "mat4");
 	*udata = mat_persp(
-		*(vec2 const *)lua_touserdata(L, 1),
-		(r32)lua_tonumber(L, 2),
-		(r32)lua_tonumber(L, 3)
+		{(r32)lua_tonumber(L, 1), (r32)lua_tonumber(L, 2)},
+		(r32)lua_tonumber(L, 3),
+		(r32)lua_tonumber(L, 4)
 	);
 
 	return 1;
 }
 
 static int mat4_ortho(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
-	LUA_ASSERT_USERDATA("vec2", 1);
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 4, "expected 4 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 4);
 
 	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
 	luaL_setmetatable(L, "mat4");
 	*udata = mat_ortho(
-		*(vec2 const *)lua_touserdata(L, 1),
-		(r32)lua_tonumber(L, 2),
-		(r32)lua_tonumber(L, 3)
+		{(r32)lua_tonumber(L, 1), (r32)lua_tonumber(L, 2)},
+		(r32)lua_tonumber(L, 3),
+		(r32)lua_tonumber(L, 4)
 	);
 
 	return 1;

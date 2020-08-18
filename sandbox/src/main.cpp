@@ -42,12 +42,14 @@ static void on_app_init() {
 
 	L = luaL_newstate();
 	init_client_loader(L);
+	custom::lua::init_input(L);
 	custom::lua::init_math_linear(L);
 	custom::lua::init_asset_system(L);
 	custom::lua::init_entity_system(L);
 
 	// luaL_openlibs(lua);
 	luaL_requiref(L, LUA_GNAME, luaopen_base, 1); lua_pop(L, 1);
+	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
 	// @Note: init data

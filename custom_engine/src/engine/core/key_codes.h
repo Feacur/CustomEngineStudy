@@ -6,11 +6,8 @@ namespace custom {
 
 enum struct Key_Code : u8 {
 	None,
-	D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
-	F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
-	A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
-	Left, Right, Down, Up,
-	Space, Enter, Control, Shift, Alt, Tab, Escape,
+	#define KEY_CODE_IMPL(T) T,
+	#include "key_codes_registry_impl.h"
 	Last,
 };
 UNDERLYING_TYPE_META(Key_Code, u8)
@@ -18,7 +15,8 @@ IS_ENUM_META(Key_Code)
 
 enum struct Mouse_Code : u8 {
 	None,
-	Key1, Key2, Key3, Key4, Key5,
+	#define MOUSE_CODE_IMPL(T) T,
+	#include "mouse_codes_registry_impl.h"
 	Last
 };
 UNDERLYING_TYPE_META(Mouse_Code, u8)
