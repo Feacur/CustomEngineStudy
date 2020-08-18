@@ -169,6 +169,10 @@ static luaL_Reg const Visual_meta[] = {
 	{NULL, NULL},
 };
 
+//
+//
+//
+
 namespace custom {
 namespace lua {
 

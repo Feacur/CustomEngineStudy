@@ -104,6 +104,78 @@ static luaL_Reg const Transform_meta[] = {
 	{NULL, NULL},
 };
 
+//
+// Camera
+//
+
+static int Camera_index(lua_State * L) {
+	typedef custom::RefT<Camera> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Camera);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	if (strcmp(id, "projection") == 0) {
+		mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
+		luaL_setmetatable(L, "mat4");
+		*udata = object->get_fast()->projection;
+		return 1;
+	}
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Camera_newindex(lua_State * L) {
+	typedef custom::RefT<Camera> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	if (strcmp(id, "projection") == 0) {
+		LUA_ASSERT_USERDATA("mat4", 3);
+		mat4 const * value = (mat4 const *)lua_touserdata(L, 3);
+		object->get_fast()->projection = *value;
+		return 0;
+	}
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Camera_eq(lua_State * L) {
+	typedef custom::RefT<Camera> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Camera", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static luaL_Reg const Camera_meta[] = {
+	{"__index", Camera_index},
+	{"__newindex", Camera_newindex},
+	{"__eq", Camera_eq},
+	//
+	{NULL, NULL},
+};
+
+//
+//
+//
+
 namespace custom {
 namespace lua {
 

@@ -148,6 +148,10 @@ static luaL_Reg const Entity_meta[] = {
 	{NULL, NULL},
 };
 
+//
+//
+//
+
 namespace custom {
 namespace lua {
 

@@ -129,6 +129,10 @@ static luaL_Reg const Asset_meta[] = {
 	{NULL, NULL},
 };
 
+//
+//
+//
+
 namespace custom {
 namespace lua {
 
