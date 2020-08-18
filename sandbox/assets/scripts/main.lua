@@ -56,19 +56,19 @@ function global_init()
 	)
 
 	create_visual(
-		vec3.new(-4, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(2, 1, 2),
+		vec3.new(-4, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(2, 1, 2),
 		shader, texture1, mesh2
 	)
 
 	local some_entity = create_visual(
-		vec3.new(0, 1, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 1, 1),
+		vec3.new(0, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 1, 1),
 		shader, texture1, mesh2
 	)
 	local some_script = some_entity:add_component(Lua_Script.type)
 	some_script.update = "script_rotate"
 
 	create_visual(
-		vec3.new(4, 2, 0), vec4.new(0, 0, 0, 1), vec3.new(1, 2, 1),
+		vec3.new(4, 2, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 2, 1),
 		shader, texture1, mesh2
 	)
 
