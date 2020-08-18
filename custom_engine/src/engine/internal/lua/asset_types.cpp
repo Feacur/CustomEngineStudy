@@ -11,70 +11,9 @@
 
 // @Todo: reuse userdata?
 
-typedef custom::Lua_Asset Lua_Asset;
 typedef custom::Shader_Asset Shader_Asset;
 typedef custom::Texture_Asset Texture_Asset;
 typedef custom::Mesh_Asset Mesh_Asset;
-
-//
-// Lua_Asset
-//
-
-static int Lua_Asset_index(lua_State * L) {
-	typedef custom::RefT<custom::Lua_Asset> Ref;
-
-	LUA_INDEX_RAWGET_IMPL(Lua_Asset);
-
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
-	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
-
-	cstring id = lua_tostring(L, 2);
-
-	// @Optimize?
-	// if (strcmp(id, "") == 0) { return 0; }
-
-	LUA_REPORT_INDEX();
-	lua_pushnil(L); return 1;
-}
-
-static int Lua_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<custom::Lua_Asset> Ref;
-
-	Ref * object = (Ref *)lua_touserdata(L, 1);
-	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
-
-	cstring id = lua_tostring(L, 2);
-
-	// @Optimize?
-	// if (strcmp(id, "") == 0) { return 0; }
-
-	LUA_REPORT_INDEX();
-	return 0;
-}
-
-static int Lua_Asset_eq(lua_State * L) {
-	typedef custom::RefT<custom::Lua_Asset> Ref;
-
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_USERDATA("Lua_Asset", 2);
-
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
-
-	lua_pushboolean(L, *object1 == *object2);
-
-	return 1;
-}
-
-static luaL_Reg const Lua_Asset_meta[] = {
-	{"__index", Lua_Asset_index},
-	{"__newindex", Lua_Asset_newindex},
-	{"__eq", Lua_Asset_eq},
-	// instance:###
-	// Type.###
-	//
-	{NULL, NULL},
-};
 
 //
 // Shader_Asset
@@ -255,6 +194,10 @@ static luaL_Reg const Mesh_Asset_meta[] = {
 	//
 	{NULL, NULL},
 };
+
+//
+//
+//
 
 namespace custom {
 namespace lua {

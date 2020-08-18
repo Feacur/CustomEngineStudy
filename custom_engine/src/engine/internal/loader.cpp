@@ -15,7 +15,6 @@
 #include <new>
 
 #include <stb_image.h>
-#include <lua.hpp>
 
 #include "obj_parser.h"
 
@@ -31,65 +30,6 @@ static Bytecode * bc = NULL;
 void init(Bytecode * bytecode) {
 	bc = bytecode;
 }
-
-}}
-
-//
-// Lua_Asset
-//
-
-namespace custom {
-
-template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
-	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
-
-	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
-	Array<u8> file; file::read(path, file);
-	if (!file.count) { return; }
-
-	Lua_Asset * asset = refT.get_fast();
-	new (asset) Lua_Asset;
-
-	asset->source.data     = file.data;     file.data     = NULL;
-	asset->source.count    = file.count;    file.count    = 0;
-	asset->source.capacity = file.capacity; file.capacity = 0;
-}
-
-template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
-	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
-
-	Lua_Asset * asset = refT.get_fast();
-	asset->source.set_capacity(0);
-}
-
-}
-
-namespace custom {
-namespace loader {
-
-// @Note: alternative to `luaL_dostring(L, (cstring)asset->source.data)`
-#define CUSTOM_LOAD() (\
-	luaL_loadbufferx(L, (cstring)asset->source.data, asset->source.count, path, NULL)\
-	|| lua_pcall(L, 0, LUA_MULTRET, 0)\
-)\
-
-void script(lua_State * L, RefT<Lua_Asset> const & ref) {
-	if (!ref.exists()) { CUSTOM_ASSERT(false, "asset doesn't exist"); return; }
-
-	Lua_Asset const * asset = ref.get_fast();
-	if (!asset->source.count) { return; }
-
-	cstring path = Asset::get_path(ref);
-	if (CUSTOM_LOAD() != LUA_OK) {
-		CUSTOM_ERROR("lua: '%s'", lua_tostring(L, -1));
-		lua_pop(L, 1);
-	}
-}
-#undef CUSTOM_LOAD
 
 }}
 
@@ -112,9 +52,9 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	Shader_Asset * asset = refT.get_fast();
 	new (asset) Shader_Asset;
 
-	asset->source.data = file.data; file.data = NULL;
+	asset->source.data     = file.data;     file.data     = NULL;
 	asset->source.capacity = file.capacity; file.capacity = 0;
-	asset->source.count = file.count; file.count = 0;
+	asset->source.count    = file.count;    file.count    = 0;
 
 	// @Note: direct asset to the GVM
 	if (graphics::mark_pending_shader(ref.id)) {
@@ -181,20 +121,41 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	Texture_Asset * asset = refT.get_fast();
 	new (asset) Texture_Asset;
 
-	stbi_set_flip_vertically_on_load(1);
-	stbi_uc * data = stbi_load_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
+	// @Todo: read meta or provide these otherwise
+	asset->is_dynamic = false;
+	asset->data_type = graphics::Data_Type::u8;
+	asset->texture_type = graphics::Texture_Type::Color;
+
+	asset->min_tex = graphics::Filter_Mode::None;
+	asset->min_mip = graphics::Filter_Mode::None;
+	asset->mag_tex = graphics::Filter_Mode::None;
+	asset->wrap_x = graphics::Wrap_Mode::Repeat;
+	asset->wrap_y = graphics::Wrap_Mode::Repeat;
 
 	u8 data_type_size = 0;
+
+	stbi_set_flip_vertically_on_load(1);
 	switch (asset->data_type)
 	{
-		case custom::graphics::Data_Type::u8: data_type_size = sizeof(u8); break;
-		case custom::graphics::Data_Type::u16: data_type_size = sizeof(u16); break;
-		case custom::graphics::Data_Type::r32: data_type_size = sizeof(r32); break;
+		case custom::graphics::Data_Type::u8:
+			data_type_size = sizeof(u8);
+			asset->data.data = (u8 *)stbi_load_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
+			break;
+		case custom::graphics::Data_Type::u16:
+			data_type_size = sizeof(u16);
+			asset->data.data = (u8 *)stbi_load_16_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
+			break;
+		case custom::graphics::Data_Type::r32:
+			data_type_size = sizeof(r32);
+			asset->data.data = (u8 *)stbi_loadf_from_memory(file.data, file.count, &asset->size.x, &asset->size.y, &asset->channels, 0);
+			break;
+		default:
+			CUSTOM_ASSERT(false, "texture data type is not supported: %d", (u8)asset->data_type);
+			break;
 	}
 
-	asset->data.data = data;
 	asset->data.capacity = asset->size.x * asset->size.y * asset->channels * data_type_size;
-	asset->data.capacity = asset->data.capacity;
+	asset->data.count = asset->data.capacity;
 
 	// @Note: direct asset to the GVM
 	if (graphics::mark_pending_texture(ref.id)) {
@@ -265,6 +226,10 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 
 		buffer.data_type = graphics::Data_Type::r32;
 		buffer.is_index = false;
+
+		// @Todo: read meta or provide these otherwise
+		buffer.frequency = graphics::Mesh_Frequency::Static;
+		buffer.access = graphics::Mesh_Access::Draw;
 	}
 
 	{
@@ -272,16 +237,16 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 		Mesh_Asset::Buffer & buffer = asset->buffers[1];
 		new (&buffer) Mesh_Asset::Buffer;
 
-		buffer.attributes.data     = NULL;
-		buffer.attributes.capacity = 0;
-		buffer.attributes.count    = 0;
-
 		buffer.buffer.data     = (u8 *)indices.data;             indices.data     = NULL;
 		buffer.buffer.capacity = indices.capacity * sizeof(u32); indices.capacity = 0;
 		buffer.buffer.count    = indices.count * sizeof(u32);    indices.count    = 0;
 
 		buffer.data_type = graphics::Data_Type::u32;
 		buffer.is_index = true;
+
+		// @Todo: read meta or provide these otherwise
+		buffer.frequency = graphics::Mesh_Frequency::Static;
+		buffer.access = graphics::Mesh_Access::Draw;
 	}
 
 	// @Note: direct asset to the GVM

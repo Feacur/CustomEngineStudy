@@ -3,7 +3,7 @@
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/internal/component_types.h"
-// #include "engine/api/internal/application.h"
+#include "engine/api/internal/application.h"
 #include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
@@ -19,11 +19,31 @@
 namespace sandbox {
 namespace ecs_renderer {
 
-void update(Transform const & camera_transform, mat4 const & projection) {
-	mat4 camera_matrix = to_matrix(camera_transform.position, camera_transform.rotation, camera_transform.scale);
-	camera_matrix = mat_product(mat_inverse_transform(camera_matrix), projection);
+void update() {
+	
+	custom::Entity camera_entity = {UINT32_MAX, 0};
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::instances[i];
+		if (!entity.exists()) { continue; }
+		if (!entity.has_component<Transform>()) { continue; }
+		if (!entity.has_component<Camera>()) { continue; }
+		camera_entity = entity;
+		break;
+	}
 
-	// ivec2 viewport_size = custom::application::get_viewport_size();
+	if (!camera_entity.exists()) { return; }
+
+	Transform * camera_transform = camera_entity.get_component<Transform>().get_fast();
+	Camera * camera = camera_entity.get_component<Camera>().get_fast();
+
+	ivec2 viewport_size = custom::application::get_viewport_size();
+	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
+
+	mat4 camera_matrix = to_matrix(camera_transform->position, camera_transform->rotation, camera_transform->scale);
+	camera_matrix = mat_product(
+		mat_inverse_transform(camera_matrix),
+		mat_persp({camera->scale, camera->scale * aspect}, camera->near, camera->far)
+	);
 
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {

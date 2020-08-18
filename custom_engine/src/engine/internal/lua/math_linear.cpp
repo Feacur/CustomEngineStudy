@@ -189,11 +189,11 @@ static luaL_Reg const vec2_meta[] = {
 	{"__unm", vec2_unm},
 	{"__eq",  vec2_eq},
 	// instance:###
-	// Type.###
-	{"new", vec2_new},
 	{"dot", vec2_dot},
 	{"cross", vec2_cross},
 	{"magnitude_squared", vec2_magnitude_squared},
+	// Type.###
+	{"new", vec2_new},
 	{NULL, NULL},
 };
 
@@ -224,9 +224,10 @@ static int complex_product(lua_State * L) {
 }
 
 static luaL_Reg const complex_aux[] = {
-	// Lib.###
-	{"complex_from_radians", complex_from_radians},
+	// Lib_instance.###
 	{"complex_product",      complex_product},
+	// Lib_Type.###
+	{"complex_from_radians", complex_from_radians},
 	{NULL, NULL},
 };
 
@@ -416,11 +417,11 @@ static luaL_Reg const vec3_meta[] = {
 	{"__unm", vec3_unm},
 	{"__eq",  vec3_eq},
 	// instance:###
-	// Type.###
-	{"new", vec3_new},
 	{"dot", vec3_dot},
 	{"cross", vec3_cross},
 	{"magnitude_squared", vec3_magnitude_squared},
+	// Type.###
+	{"new", vec3_new},
 	{NULL, NULL},
 };
 
@@ -600,10 +601,10 @@ static luaL_Reg const vec4_meta[] = {
 	{"__unm", vec4_unm},
 	{"__eq",  vec4_eq},
 	// instance:###
-	// Type.###
-	{"new", vec4_new},
 	{"dot", vec4_dot},
 	{"magnitude_squared", vec4_magnitude_squared},
+	// Type.###
+	{"new", vec4_new},
 	{NULL, NULL},
 };
 
@@ -708,16 +709,180 @@ static int quat_get_forward(lua_State * L) {
 }
 
 static luaL_Reg const quat_aux[] = {
-	// Lib.###
-	{"from_axis",     quat_from_axis},
+	// Lib_instance.###
 	{"product",       quat_product},
-	{"from_radians",  quat_from_radians},
 	{"rotate_vector", quat_rotate_vector},
 	{"get_right",     quat_get_right},
 	{"get_up",        quat_get_up},
 	{"get_forward",   quat_get_forward},
+	// Lib_Type.###
+	{"from_axis",     quat_from_axis},
+	{"from_radians",  quat_from_radians},
 	{NULL, NULL},
 };
+
+//
+// mat4
+//
+
+static int mat4_index(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_INDEX_RAWGET_IMPL(mat4);
+
+	mat4 const * object = (mat4 const *)lua_touserdata(L, 1);
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	if (strcmp(id, "x") == 0) {
+		vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+		luaL_setmetatable(L, "vec4");
+		*udata = object->x;
+		return 1;
+	}
+
+	if (strcmp(id, "y") == 0) {
+		vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+		luaL_setmetatable(L, "vec4");
+		*udata = object->y;
+		return 1;
+	}
+
+	if (strcmp(id, "z") == 0) {
+		vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+		luaL_setmetatable(L, "vec4");
+		*udata = object->z;
+		return 1;
+	}
+
+	if (strcmp(id, "w") == 0) {
+		vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+		luaL_setmetatable(L, "vec4");
+		*udata = object->w;
+		return 1;
+	}
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int mat4_newindex(lua_State * L) {	
+	mat4 * object = (mat4 *)lua_touserdata(L, 1);
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	if (strcmp(id, "x") == 0) {
+		LUA_ASSERT_USERDATA("vec4", 3);
+		vec4 const * value = (vec4 const *)lua_touserdata(L, 3);
+		object->x = *value;
+		return 0;
+	}
+
+	if (strcmp(id, "y") == 0) {
+		LUA_ASSERT_USERDATA("vec4", 3);
+		vec4 const * value = (vec4 const *)lua_touserdata(L, 3);
+		object->y = *value;
+		return 0;
+	}
+
+	if (strcmp(id, "z") == 0) {
+		LUA_ASSERT_USERDATA("vec4", 3);
+		vec4 const * value = (vec4 const *)lua_touserdata(L, 3);
+		object->z = *value;
+		return 0;
+	}
+
+	if (strcmp(id, "w") == 0) {
+		LUA_ASSERT_USERDATA("vec4", 3);
+		vec4 const * value = (vec4 const *)lua_touserdata(L, 3);
+		object->w = *value;
+		return 0;
+	}
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int mat4_product(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("mat4", 1);
+	LUA_ASSERT_USERDATA("mat4", 2);
+
+	mat4 const * object1 = (mat4 const *)lua_touserdata(L, 1);
+	mat4 const * object2 = (mat4 const *)lua_touserdata(L, 2);
+
+	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
+	luaL_setmetatable(L, "mat4");
+	*udata = mat_product(*object1, *object2);
+
+	return 1;
+}
+
+static int mat4_product_vec(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("mat4", 1);
+	LUA_ASSERT_USERDATA("vec4", 2);
+
+	mat4 const * object1 = (mat4 const *)lua_touserdata(L, 1);
+	vec4 const * object2 = (vec4 const *)lua_touserdata(L, 2);
+
+	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
+	luaL_setmetatable(L, "vec4");
+	*udata = mat_product(*object1, *object2);
+
+	return 1;
+}
+
+static int mat4_persp(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 4, "expected 4 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 4);
+
+	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
+	luaL_setmetatable(L, "mat4");
+	*udata = mat_persp(
+		{(r32)lua_tonumber(L, 1), (r32)lua_tonumber(L, 2)},
+		(r32)lua_tonumber(L, 3),
+		(r32)lua_tonumber(L, 4)
+	);
+
+	return 1;
+}
+
+static int mat4_ortho(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 4, "expected 4 arguments");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 2);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 4);
+
+	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
+	luaL_setmetatable(L, "mat4");
+	*udata = mat_ortho(
+		{(r32)lua_tonumber(L, 1), (r32)lua_tonumber(L, 2)},
+		(r32)lua_tonumber(L, 3),
+		(r32)lua_tonumber(L, 4)
+	);
+
+	return 1;
+}
+
+static luaL_Reg const mat4_meta[] = {
+	{"__index", mat4_index},
+	{"__newindex", mat4_newindex},
+	// instance:###
+	{"product", mat4_product},
+	{"product_vec", mat4_product_vec},
+	// Type.###
+	{"persp", mat4_persp},
+	{"ortho", mat4_ortho},
+	{NULL, NULL},
+};
+
+//
+//
+//
 
 namespace custom {
 namespace lua {
@@ -726,6 +891,8 @@ void init_math_linear(lua_State * L) {
 	LUA_META_IMPL(vec2)
 	LUA_META_IMPL(vec3)
 	LUA_META_IMPL(vec4)
+	//
+	LUA_META_IMPL(mat4)
 	//
 	LUA_AUX_IMPL(complex)
 	LUA_AUX_IMPL(quat)

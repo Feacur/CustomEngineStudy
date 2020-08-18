@@ -21,8 +21,6 @@ namespace loader {
 
 void init(Bytecode * bc);
 
-void script(lua_State * L, RefT<Lua_Asset> const & ref);
-
 void uniforms();
 
 }}
