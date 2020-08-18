@@ -108,6 +108,11 @@ static int Visual_index(lua_State * L) {
 		*udata = object->get_fast()->mesh;
 		return 1;
 	}
+	
+	if (strcmp(id, "layer") == 0) {
+		lua_pushinteger(L, object->get_fast()->layer);
+		return 1;
+	}
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -141,6 +146,11 @@ static int Visual_newindex(lua_State * L) {
 		LUA_ASSERT_USERDATA("Mesh_Asset", 3);
 		Asset_Ref const * value = (Asset_Ref const *)lua_touserdata(L, 3);
 		object->get_fast()->mesh = *value; return 0;
+	}
+
+	if (strcmp(id, "layer") == 0) {
+		LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
+		object->get_fast()->layer = (u8)lua_tointeger(L, 3); return 0;
 	}
 
 	LUA_REPORT_INDEX();

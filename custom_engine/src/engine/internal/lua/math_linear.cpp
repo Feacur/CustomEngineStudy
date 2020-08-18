@@ -654,7 +654,7 @@ static int quat_from_radians(lua_State * L) {
 	return 1;
 }
 
-static int quat_rotate_vector(lua_State * L) {
+static int quat_rotate(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("vec4", 1);
 	LUA_ASSERT_USERDATA("vec3", 2);
@@ -664,7 +664,7 @@ static int quat_rotate_vector(lua_State * L) {
 
 	vec3 * udata = (vec3 *)lua_newuserdatauv(L, sizeof(vec3), 0);
 	luaL_setmetatable(L, "vec3");
-	*udata = quat_rotate_vector(*object1, *object2);
+	*udata = quat_rotate(*object1, *object2);
 
 	return 1;
 }
@@ -711,7 +711,7 @@ static int quat_get_forward(lua_State * L) {
 static luaL_Reg const quat_aux[] = {
 	// Lib_instance.###
 	{"product",       quat_product},
-	{"rotate_vector", quat_rotate_vector},
+	{"rotate", quat_rotate},
 	{"get_right",     quat_get_right},
 	{"get_up",        quat_get_up},
 	{"get_forward",   quat_get_forward},

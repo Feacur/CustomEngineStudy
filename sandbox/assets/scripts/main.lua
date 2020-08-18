@@ -1,6 +1,6 @@
 local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
-local function create_visual(tp, tr, ts, vs, vt, vm)
+local function create_visual(layer, tp, tr, ts, vs, vt, vm)
 	local entity = Entity.create()
 
 	local transform = entity:add_component(Transform.type)
@@ -12,11 +12,12 @@ local function create_visual(tp, tr, ts, vs, vt, vm)
 	visual.shader = vs;
 	visual.texture = vt;
 	visual.mesh = vm;
+	visual.layer = layer;
 
 	return entity
 end
 
-local function create_camera(clear)
+local function create_camera(layer, clear)
 	local entity = Entity.create()
 
 	local transform = entity:add_component(Transform.type)
@@ -30,6 +31,7 @@ local function create_camera(clear)
 	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
 	camera.ortho = 0
 	camera.clear = clear
+	camera.layer = layer;
 
 	return entity
 end
@@ -51,16 +53,19 @@ function global_init()
 	print(Asset.get_path(Shader_Asset.type, shader))
 
 	create_visual(
+		0,
 		vec3.new(0, 0, 0), vec4.new(0, 0, 0, 1), vec3.new(10, 10, 10),
 		shader3d, texture3, mesh1
 	)
 
 	create_visual(
+		0,
 		vec3.new(-4, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(2, 1, 2),
 		shader, texture1, mesh2
 	)
 
 	local some_entity = create_visual(
+		1,
 		vec3.new(0, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 1, 1),
 		shader, texture1, mesh2
 	)
@@ -68,15 +73,16 @@ function global_init()
 	some_script.update = "script_rotate"
 
 	create_visual(
+		0,
 		vec3.new(4, 2, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 2, 1),
 		shader, texture1, mesh2
 	)
 
-	local camera_entity = create_camera(Clear_Flag.Color | Clear_Flag.Depth)
+	local camera_entity = create_camera(0, Clear_Flag.Color | Clear_Flag.Depth)
 	local camera_script = camera_entity:add_component(Lua_Script.type)
 	camera_script.update = "script_fly"
 
-	create_camera(Clear_Flag.Depth)
+	create_camera(1, Clear_Flag.Depth)
 end
 
 local counter = 0
@@ -126,6 +132,6 @@ function script_fly(entity, dt)
 	)
 
 	local transform = entity:get_component(Transform.type)
-	transform.position = transform.position + position_delta * (move_speed * dt);
+	transform.position = transform.position + quat.rotate(transform.rotation, position_delta) * (move_speed * dt);
 	transform.rotation = quat.product(transform.rotation, rotation_delta)
 end

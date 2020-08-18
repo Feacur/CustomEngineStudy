@@ -827,10 +827,6 @@ constexpr inline icomplex complex_multiply(icomplex first, icomplex second) {
 	};
 }
 
-constexpr inline icomplex complex_rotate_vector(icomplex c, ivec2 vector) {
-	return complex_multiply(c, vector);
-}
-
 //
 // complex routines
 // code assumes normalized values
@@ -868,10 +864,6 @@ constexpr inline complex complex_product(complex first, complex second) {
 		first.x * second.x - first.y * second.y,
 		first.x * second.y + first.y * second.x
 	};
-}
-
-constexpr inline complex complex_rotate_vector(complex c, vec2 vector) {
-	return complex_product(c, vector);
 }
 
 //
@@ -1001,7 +993,7 @@ return quat_product(
 	quat_reciprocal(quat)
 );
 */
-constexpr inline vec3 quat_rotate_vector(quat q, vec3 vector) {
+constexpr inline vec3 quat_rotate(quat q, vec3 vector) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis = cross_product(q.xyz, vector) + vector * q.w;
@@ -1014,9 +1006,9 @@ constexpr inline vec3 quat_rotate_vector(quat q, vec3 vector) {
 This code is a result of expanding the following expressions,
 excluding stuff negated by multiplication with zero
 
-right   = quat_rotate_vector(quat, {1, 0, 0});
-up      = quat_rotate_vector(quat, {0, 1, 0});
-forward = quat_rotate_vector(quat, {0, 0, 1});
+right   = quat_rotate(quat, {1, 0, 0});
+up      = quat_rotate(quat, {0, 1, 0});
+forward = quat_rotate(quat, {0, 0, 1});
 */
 constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
@@ -1311,7 +1303,7 @@ constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
 	result[2][2] = isinf(far) ? 0 : ((1 - NCP) * reverse_depth);
 	result[2][3] = 0; // W += 0 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = isinf(far) ? 1 : ((far * NCP - near) * reverse_depth);
+	result[3][2] = isinf(far) ? 0 : ((far * NCP - near) * reverse_depth);
 	result[3][3] = 1; // W += 1 * vec4.w
 	return result;
 }

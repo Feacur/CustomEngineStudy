@@ -20,4 +20,5 @@ struct Visual
 	custom::RefT<custom::Shader_Asset> shader = {UINT32_MAX, 0};
 	custom::RefT<custom::Texture_Asset> texture = {UINT32_MAX, 0};
 	custom::RefT<custom::Mesh_Asset> mesh = {UINT32_MAX, 0};
+	u8 layer;
 };

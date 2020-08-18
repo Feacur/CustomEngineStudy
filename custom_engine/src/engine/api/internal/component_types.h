@@ -21,6 +21,7 @@ struct Camera
 	r32 scale;
 	r32 ortho;
 	custom::graphics::Clear_Flag clear;
+	u8 layer;
 };
 
 // struct Hierarchy : public custom::Ref
