@@ -22,7 +22,7 @@ namespace context {
 Internal_Data * create(window::Internal_Data * window);
 void destroy(Internal_Data * data);
 
-void set_vsync(Internal_Data * data, s32 value);
+void set_vsync(Internal_Data * data, u8 value);
 bool check_vsync(Internal_Data * data);
 void swap_buffers(Internal_Data * data);
 

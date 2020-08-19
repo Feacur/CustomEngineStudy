@@ -12,11 +12,11 @@ void destroy(Internal_Data * data);
 
 void init_context(Internal_Data * data);
 
-void update(Internal_Data * data);
+void after_update(Internal_Data * data);
 
-void set_vsync(Internal_Data * data, s32 value);
+void set_vsync(Internal_Data * data, u8 value);
 bool check_vsync(Internal_Data * data);
-s32 get_refresh_rate(Internal_Data * data, s32 default_value);
+u16 get_refresh_rate(Internal_Data * data, u16 default_value);
 
 void set_header(Internal_Data * data, cstring value);
 ivec2 const & get_size(Internal_Data * data);

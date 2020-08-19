@@ -61,6 +61,7 @@ static void on_app_update(r32 dt) {
 }
 
 int main(int argc, char * argv[]) {
+	custom::application::set_refresh_rate(60, 10, 1, false);
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);

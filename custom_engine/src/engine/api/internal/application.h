@@ -11,6 +11,7 @@ namespace custom {
 namespace application {
 
 void run(void);
+void set_refresh_rate(u16 target, u8 failsafe, u8 vsync, b8 force);
 
 // data
 ivec2 const & get_viewport_size(void);

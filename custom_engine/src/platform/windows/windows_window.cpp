@@ -96,14 +96,14 @@ void init_context(Internal_Data * data) {
 	graphics::init();
 }
 
-void update(Internal_Data * data) {
+void after_update(Internal_Data * data) {
 	// @Todo: split into input consumption and buffer output?
 	keyboard_update(data);
 	mouse_update(data);
 	context::swap_buffers(data->graphics_context);
 }
 
-void set_vsync(Internal_Data * data, s32 value) {
+void set_vsync(Internal_Data * data, u8 value) {
 	context::set_vsync(data->graphics_context, value);
 }
 
@@ -111,9 +111,9 @@ bool check_vsync(Internal_Data * data) {
 	return context::check_vsync(data->graphics_context);
 }
 
-s32 get_refresh_rate(Internal_Data * data, s32 default_value) {
+u16 get_refresh_rate(Internal_Data * data, u16 default_value) {
 	s32 monitor_hz = GetDeviceCaps(GetDC(data->hwnd), VREFRESH);
-	return (monitor_hz > 0) ? monitor_hz : default_value;
+	return (monitor_hz > 0) ? (u16)monitor_hz : default_value;
 }
 
 void set_header(Internal_Data * data, cstring value) {
