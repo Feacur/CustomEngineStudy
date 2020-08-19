@@ -110,7 +110,7 @@ constexpr static inline bool bits_are_set(DWORD container, DWORD bits) {
 static void * load_ogl_function(cstring name);
 static void platform_init_wgl(void);
 static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc);
-static bool platform_swap_interval(HDC hdc, s32);
+static bool platform_swap_interval(HDC hdc, u32 value);
 
 namespace custom {
 namespace window {
@@ -185,7 +185,7 @@ void destroy(Internal_Data * data) {
 	ZeroMemory(&wgl, sizeof(wgl));
 }
 
-void set_vsync(Internal_Data * data, s32 value)
+void set_vsync(Internal_Data * data, u8 value)
 {
 	if (wgl.pixel_format.doublebuffer) {
 		if (platform_swap_interval(data->hdc, value)) {
@@ -850,10 +850,10 @@ static HGLRC platform_create_context(HDC hdc, HGLRC share_hrc) {
 	return hrc;
 }
 
-static bool platform_swap_interval(HDC hdc, s32 value) {
+static bool platform_swap_interval(HDC hdc, u32 value) {
 	// https://www.khronos.org/registry/OpenGL/extensions/EXT/WGL_EXT_swap_control.txt
 	if (wgl.EXT_swap_control) {
-		return wgl.SwapIntervalEXT(value);
+		return wgl.SwapIntervalEXT((s32)value);
 	}
 	return true;
 }

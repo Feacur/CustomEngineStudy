@@ -17,24 +17,21 @@
 #endif
 
 #if defined(APP_DISPLAY_PERFORMANCE)
-	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision) {
+	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision, r32 dt) {
 		float debug_ms = duration * custom::timer::millisecond / (float)precision;
 		float debug_fps = precision / (float)duration;
 		static char header_text[64];
-		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS)", debug_ms, debug_fps);
+		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS) ---> dt %.4f ms", debug_ms, debug_fps, dt);
 		custom::window::set_header(window, header_text);
 	}
 #else
-	#define DISPLAY_PERFORMANCE(window, duration, precision)
+	#define DISPLAY_PERFORMANCE(window, duration, precision, dt) (void)0
 #endif
 
-static u64 get_last_frame_ticks(bool vsync, s32 refresh_rate) {
-	static u64 const duration  = custom::timer::nanosecond / (u64)refresh_rate;
+static u64 get_last_frame_ticks(bool vsync, u16 refresh_rate) {
+	if (vsync) { return custom::timer::snapshot(); }
 	static u64 const precision = custom::timer::nanosecond;
-	if (vsync) {
-		return custom::timer::snapshot();
-	}
-	return custom::timer::wait_next_frame(duration, precision);
+	return custom::timer::wait_next_frame(precision / (u64)refresh_rate, precision);
 }
 
 void init_asset_types(void);
@@ -49,6 +46,13 @@ static struct {
 	custom::window::Internal_Data * window;
 
 	ivec2 viewport_size;
+
+	struct {
+		u16 target;
+		u8 failsafe;
+		u8 vsync;
+		b8 force;
+	} refresh_rate;
 
 	struct {
 		init_func * init;
@@ -95,23 +99,25 @@ void run(void) {
 		if (custom::window::get_should_close(app.window)) { break; }
 
 		// prepare for a frame
+		u16 refresh_rate = app.refresh_rate.force
+			? app.refresh_rate.target
+			: custom::window::get_refresh_rate(app.window, app.refresh_rate.target);
 		u64 last_frame_ticks = get_last_frame_ticks(
 			custom::window::check_vsync(app.window),
-			custom::window::get_refresh_rate(app.window, 60)
+			refresh_rate
 		);
-		DISPLAY_PERFORMANCE(app.window, last_frame_ticks, custom::timer::ticks_per_second);
+
+		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
+		if (dt > (r32)app.refresh_rate.failsafe / refresh_rate) { dt = 1.0f / refresh_rate; }
+		DISPLAY_PERFORMANCE(app.window, last_frame_ticks, custom::timer::ticks_per_second, dt);
 
 		// process the frame
 		custom::system::update();
-
-		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 		CALL_SAFELY(app.callbacks.update, dt);
+		custom::window::after_update(app.window);
 
 		custom::graphics::consume(app.bytecode_loader);
 		custom::graphics::consume(app.bytecode_renderer);
-		custom::window::update(app.window);
-
-		// clean up after the frame
 		app.bytecode_loader.reset();
 		app.bytecode_renderer.reset();
 	}
@@ -119,6 +125,10 @@ void run(void) {
 	custom::timer::shutdown();
 	custom::graphics::shutdown();
 	custom::window::destroy(app.window);
+}
+
+void set_refresh_rate(u16 target, u8 failsafe, u8 vsync, b8 force) {
+	app.refresh_rate = {target, failsafe, vsync, force};
 }
 
 // data
