@@ -11,6 +11,8 @@
 #include "../asset_system/uniform_ids.h"
 #include "component_types.h"
 
+#include <stdlib.h>
+
 // @Note: thoughts on factoring code for a renderer
 //        - batch together materials/objects with the same shaders
 //        - proactively bind textures pending to rendering
@@ -35,8 +37,11 @@ void update() {
 	// @Todo: global shaders data
 	// custom::renderer::set_uniform(shader, (u32)sandbox::Uniform::resolution, viewport_size);
 
+	ivec2 viewport_size = custom::application::get_viewport_size();
+	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
+
 	// @Todo: sort renderers by depth
-	custom::Array<Renderer_Blob> cameras;
+	custom::Array<Renderer_Blob> renderers;
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
@@ -47,11 +52,18 @@ void update() {
 		Camera * camera = entity.get_component<Camera>().get_safe();
 		if (!camera) { continue; }
 
-		cameras.push({entity, *transform, *camera});
+		renderers.push({entity, *transform, *camera});
 	}
 
+	// @Todo: revisit sorting
+	qsort(renderers.data, renderers.count, sizeof(*renderers.data), [](void const * va, void const * vb) {
+		Renderer_Blob const * a = (Renderer_Blob const *)va;
+		Renderer_Blob const * b = (Renderer_Blob const *)vb;
+		return (a->camera.layer > b->camera.layer) - (a->camera.layer < b->camera.layer);
+	});
+
 	// @Change: sort renderables by layer instead of prefetching them into an array of relevant ones?
-	custom::Array<Renderable_Blob> all_renderables;
+	custom::Array<Renderable_Blob> renderables;
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
@@ -62,15 +74,20 @@ void update() {
 		Visual * visual = entity.get_component<Visual>().get_safe();
 		if (!visual) { continue; }
 
-		all_renderables.push({entity, *transform, *visual});
+		renderables.push({entity, *transform, *visual});
 	}
 
-	custom::Array<Renderable_Blob> relevant_renderables(all_renderables.count);
-	for (u32 camera_i = 0; camera_i < cameras.count; ++camera_i) {
-		Renderer_Blob const & renderer = cameras[camera_i];
+	// @Todo: revisit sorting
+	qsort(renderables.data, renderables.count, sizeof(*renderables.data), [](void const * va, void const * vb) {
+		Renderable_Blob const * a = (Renderable_Blob const *)va;
+		Renderable_Blob const * b = (Renderable_Blob const *)vb;
+		return (a->visual.layer > b->visual.layer) - (a->visual.layer < b->visual.layer);
+	});
 
-		ivec2 viewport_size = custom::application::get_viewport_size();
-		r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
+	u32 renderable_i = 0;
+	custom::Array<Renderable_Blob> relevant_renderables(renderables.count);
+	for (u32 camera_i = 0; camera_i < renderers.count; ++camera_i) {
+		Renderer_Blob const & renderer = renderers[camera_i];
 
 		mat4 camera_matrix = to_matrix(renderer.transform.position, renderer.transform.rotation, renderer.transform.scale);
 		camera_matrix = mat_product(
@@ -82,28 +99,38 @@ void update() {
 			)
 		);
 
-		// prefetch
-		relevant_renderables.count = 0;
-		for (u32 i = 0; i < all_renderables.count; ++i) {
-			Renderable_Blob const & renderable = all_renderables[i];
-			if (renderer.camera.layer == renderable.visual.layer) {
-				relevant_renderables.push(renderable);
-			}
+		u32 last_renderable_i = renderable_i;
+		for (; last_renderable_i < renderables.count; ++last_renderable_i) {
+			Renderable_Blob const & renderable = renderables[last_renderable_i];
+			if (renderable.visual.layer != renderer.camera.layer) { break; }
 		}
+
+		// @Todo: revisit sorting;
+		//        - account distance
+		//        - account mesh, too?
+		qsort(renderables.data + renderable_i, (last_renderable_i - renderable_i), sizeof(*renderables.data), [](void const * va, void const * vb) {
+			Renderable_Blob const * a = (Renderable_Blob const *)va;
+			Renderable_Blob const * b = (Renderable_Blob const *)vb;
+			return (a->visual.shader.id > b->visual.shader.id) - (a->visual.shader.id < b->visual.shader.id);
+		});
 
 		custom::renderer::clear(renderer.camera.clear);
 
-		// @Todo: sort by material; additionally by mesh, too (?)
-		for (u32 i = 0; i < relevant_renderables.count; ++i) {
-			Renderable_Blob const & renderable = relevant_renderables[i];
+		u32 shader_id = UINT32_MAX;
+		for (; renderable_i < last_renderable_i; ++renderable_i) {
+			Renderable_Blob const & renderable = renderables[renderable_i];
 
 			mat4 transform_matrix = to_matrix(
 				renderable.transform.position, renderable.transform.rotation, renderable.transform.scale
 			);
 
-			custom::renderer::set_shader(renderable.visual.shader);
+			if (shader_id != renderable.visual.shader.id) {
+				shader_id = renderable.visual.shader.id;
+				custom::renderer::set_shader(renderable.visual.shader);
+				custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
+			}
+
 			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, renderable.visual.texture);
-			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
 			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Transform, transform_matrix);
 			custom::renderer::set_mesh(renderable.visual.mesh);
 			custom::renderer::draw();
