@@ -3,12 +3,14 @@
 #include "engine/core/math_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
+#include "engine/impl/array.h"
 #include "engine/impl/asset_system.h"
 
 #include <new>
 #include <lua.hpp>
 
 #include "asset_types.h"
+#include "prefab_parser.h"
 
 //
 //
@@ -88,10 +90,11 @@ template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
 	Prefab * asset = refT.get_fast();
 	new (asset) Prefab;
 
-	// @Note: direct asset to the Lua
+	// @Note: parse asset
+	sandbox::prefab::parse(*asset, file);
 
 	// @Todo: implement load/unload
-	asset->~Prefab();
+	// asset->~Prefab();
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {

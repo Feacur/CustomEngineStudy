@@ -179,8 +179,4 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	// CUSTOM_TRACE("unpack: %lld", (custom::timer::get_ticks() - ticks_before));
 }
 
-#undef IS_BLANK
-#undef IS_EOL
-#undef IS_DIGIT
-
 }}
