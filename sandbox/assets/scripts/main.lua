@@ -49,6 +49,8 @@ function global_init()
 	local mesh1 = Asset.add(Mesh_Asset.type, "assets/meshes/plane_xz.obj")
 	local mesh2 = Asset.add(Mesh_Asset.type, "assets/meshes/suzanne.obj")
 
+	local prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne rotating.entity")
+
 	local shader = Asset.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
 	print(Asset.get_path(Shader_Asset.type, shader))
 
@@ -64,13 +66,14 @@ function global_init()
 		shader, texture1, mesh2
 	)
 
-	local some_entity = create_visual(
-		1,
-		vec3.new(0, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 1, 1),
-		shader, texture1, mesh2
-	)
-	local some_script = some_entity:add_component(Lua_Script.type)
-	some_script.update = "script_rotate"
+	Prefab.instantiate(prefab)
+	-- local some_entity = create_visual(
+	-- 	1,
+	-- 	vec3.new(0, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 1, 1),
+	-- 	shader, texture1, mesh2
+	-- )
+	-- local some_script = some_entity:add_component(Lua_Script.type)
+	-- some_script.update = "script_rotate"
 
 	create_visual(
 		0,

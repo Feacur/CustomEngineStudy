@@ -64,7 +64,42 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	Lua_Asset * asset = refT.get_fast();
-	asset->source.set_capacity(0);
+	asset->~Lua_Asset();
+}
+
+}
+
+//
+// Prefab
+//
+
+namespace custom {
+
+template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
+	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+
+	cstring path = Asset::get_path(refT);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+
+	Array<u8> file; file::read(path, file);
+	if (!file.count) { return; }
+
+	Prefab * asset = refT.get_fast();
+	new (asset) Prefab;
+
+	// @Note: direct asset to the Lua
+
+	// @Todo: implement load/unload
+	asset->~Prefab();
+}
+
+template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {
+	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+
+	Prefab * asset = refT.get_fast();
+	asset->~Prefab();
 }
 
 }
