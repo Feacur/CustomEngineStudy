@@ -20,8 +20,9 @@
 	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision, r32 dt) {
 		float debug_ms = duration * custom::timer::millisecond / (float)precision;
 		float debug_fps = precision / (float)duration;
+		float debug_dt = dt * custom::timer::millisecond;
 		static char header_text[64];
-		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS) ---> dt %.4f ms", debug_ms, debug_fps, dt);
+		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS) ---> dt %.1f ms", debug_ms, debug_fps, debug_dt);
 		custom::window::set_header(window, header_text);
 	}
 #else
