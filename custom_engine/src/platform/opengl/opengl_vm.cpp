@@ -1716,7 +1716,7 @@ static void platform_Free_Shader(Bytecode const & bc) {
 	// Shader_Asset const * asset = ref.get_fast();
 
 	glDeleteProgram(resource->id);
-	resource->opengl::Program::~Program();
+	resource->~Program();
 	if (ogl.active_program == ref.id) {
 		ogl.active_program = empty_asset_id;
 	}
@@ -1751,7 +1751,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 		}
 	}
 
-	resource->opengl::Texture::~Texture();
+	resource->~Texture();
 }
 
 static void platform_Free_Sampler(Bytecode const & bc) {
@@ -1768,7 +1768,7 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 		}
 	}
 
-	resource->opengl::Sampler::~Sampler();
+	resource->~Sampler();
 }
 
 static void platform_Free_Mesh(Bytecode const & bc) {
@@ -1784,7 +1784,7 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 		glDeleteBuffers(1, &resource->buffers[i].id);
 	}
 	glDeleteVertexArrays(1, &resource->id);
-	resource->opengl::Mesh::~Mesh();
+	resource->~Mesh();
 	if (ogl.active_mesh == ref.id) {
 		ogl.active_mesh = empty_asset_id;
 	}
@@ -1802,7 +1802,7 @@ static void platform_Free_Target(Bytecode const & bc) {
 		glDeleteRenderbuffers(1, &resource->buffers[i].id);
 	}
 	glDeleteFramebuffers(1, &resource->id);
-	resource->opengl::Target::~Target();
+	resource->~Target();
 	if (ogl.active_target == asset_id) {
 		ogl.active_target = empty_asset_id;
 	}
