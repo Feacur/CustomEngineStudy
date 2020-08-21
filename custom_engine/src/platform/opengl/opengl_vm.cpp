@@ -361,7 +361,7 @@ void shutdown(void) {
 // glPopDebugGroup();
 
 void consume(Bytecode const & bc) {
-	while (bc.offset < bc.buffer.count) {
+	while (bc.read_offset < bc.buffer.count) {
 		Instruction instruction = *bc.read<Instruction>();
 
 		switch (instruction)
@@ -1028,34 +1028,17 @@ static GLenum get_data_type(Data_Type value) {
 	return GL_NONE;
 }
 
-static u16 get_type_size(Data_Type value) {
-	switch (value) {
-		#define DATA_TYPE_IMPL(T) case Data_Type::T: return sizeof(T);
-		#include "engine/registry_impl/data_type.h"
-	}
-	CUSTOM_ASSERT(false, "unknown data type %d", value);
-	return 0;
+extern u16 get_type_size(Data_Type value);
+
+struct C_Memory { u32 count; cmemory data; };
+static C_Memory read_cmemory(Bytecode const & bc, Data_Type type) {
+	u32 count = *bc.read<u32>();
+	cmemory data = bc.read<u8>(count * get_type_size(type));
+	return { count, (cmemory)data };
 }
 
-static cmemory read_data(Bytecode const & bc, Data_Type type, u32 count) {
-	switch (type) {
-		#define DATA_TYPE_IMPL(T) case Data_Type::T: return bc.read<T>(count);
-		#include "engine/registry_impl/data_type.h"
-	}
-	CUSTOM_ASSERT(false, "unknown data type %d", type);
-	return NULL;
-}
-
-struct DT_Array { Data_Type type; u32 count; cmemory data; };
-static DT_Array read_data_array(Bytecode const & bc) {
-	Data_Type type  = *bc.read<Data_Type>();
-	u32       count = *bc.read<u32>();
-	cmemory   data  = read_data(bc, type, count);
-	return { type, count, data };
-}
-
-struct Inline_String { u32 count; cstring data; };
-static Inline_String read_cstring(Bytecode const & bc) {
+struct C_String { u32 count; cstring data; };
+static C_String read_cstring(Bytecode const & bc) {
 	u32 count = *bc.read<u32>();
 	cstring data = bc.read<char>(count);
 	return { count, data };
@@ -2090,16 +2073,15 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 
 static void platform_Set_Uniform(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
+	u32 uniform_id = *bc.read<u32>();
+	Data_Type type  = *bc.read<Data_Type>();
+	C_Memory uniform = read_cmemory(bc, type);
+
 	if (!graphics::has_allocated_shader(asset_id)) {
 		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
-		bc.read<u32>();
-		read_data_array(bc);
 		return;
 	}
 	opengl::Program const * resource = &ogl.programs.get(asset_id);
-
-	u32 uniform_id = *bc.read<u32>();
-	DT_Array uniform = read_data_array(bc);
 
 	opengl::Field const * field = find_uniform_field(asset_id, uniform_id);
 
@@ -2113,7 +2095,7 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 
 	static custom::Array_Fixed<s32, 256> units; units.count = 0;
 	if (ogl.version >= COMPILE_VERSION(4, 1)) {
-		switch (uniform.type) {
+		switch (type) {
 			case Data_Type::unit_id: {
 				unit_id const * unit_ids = (unit_id *)uniform.data;
 				for (u32 i = 0; i < uniform.count; ++i) {
@@ -2150,7 +2132,7 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 			CUSTOM_WARNING("OGL: switched to program %d (before: %d)", asset_id, ogl.active_program);
 			ogl.active_program = asset_id;
 		}
-		switch (uniform.type) {
+		switch (type) {
 			case Data_Type::unit_id: {
 				unit_id const * unit_ids = (unit_id *)uniform.data;
 				for (u32 i = 0; i < uniform.count; ++i) {
@@ -2230,8 +2212,8 @@ static void platform_consume_clear_target_params(Bytecode const & bc, Array_Fixe
 			case Texture_Type::Color: {
 				datum->index     = *bc.read<u8>();
 				datum->data_type = *bc.read<Data_Type>();
-				cmemory value = read_data(bc, datum->data_type, 1);
-				memcpy(&datum->bdata, value, get_type_size(datum->data_type));
+				// cmemory value = read_cmemory(bc, datum->data_type, 1);
+				// memcpy(&datum->bdata, value, get_type_size(datum->data_type));
 			} break;
 
 			case Texture_Type::Depth: {
@@ -2373,20 +2355,20 @@ static void platform_Init_Uniforms(Bytecode const & bc) {
 	ogl.uniform_names.set_capacity(count * name_capacity); ogl.uniform_names.count = 0;
 	ogl.uniform_names_lengths.set_capacity(count); ogl.uniform_names_lengths.count = 0;
 	for (u32 i = 0; i < count; ++i) {
-		Inline_String name = read_cstring(bc);
-		ogl.uniform_names.push_range(name.data, name.count);
-		ogl.uniform_names_lengths.push(name.count);
+		C_String value = read_cstring(bc);
+		ogl.uniform_names.push_range(value.data, value.count);
+		ogl.uniform_names_lengths.push(value.count);
 	}
 }
 
 static void platform_Message_Pointer(Bytecode const & bc) {
-	cstring message = *bc.read<cstring>();
-	CUSTOM_TRACE("OpenGL VM: %s", message);
+	cstring value = *bc.read<cstring>();
+	CUSTOM_TRACE("OpenGL VM: %s", value);
 }
 
 static void platform_Message_Inline(Bytecode const & bc) {
-	Inline_String message = read_cstring(bc);
-	CUSTOM_TRACE("OpenGL VM: %s", message.data);
+	C_String value = read_cstring(bc);
+	CUSTOM_TRACE("OpenGL VM: %s", value.data);
 }
 
 }}

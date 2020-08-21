@@ -22,12 +22,12 @@ void init(Bytecode * bytecode);
 void set_shader(RefT<Shader_Asset> const & asset);
 void set_mesh(RefT<Mesh_Asset> const & asset);
 void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_Asset> const & texture);
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat4 const & matrix);
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & matrix);
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, ivec2 const & value);
+void set_uniform_bytes(RefT<Shader_Asset> const & shader, u32 uniform, u8 const * data, u32 count, graphics::Data_Type type);
 
 void viewport(ivec2 const & position, ivec2 const & size);
 void clear(graphics::Clear_Flag flags);
 void draw(void);
+
+template<typename T> void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, T const & value);
 
 }}

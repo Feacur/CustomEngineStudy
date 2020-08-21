@@ -58,6 +58,8 @@ rem -consoleLoggerParameters:PerformanceSummary
 rem ... verbosity: quiet, minimal, normal, detailed, diagnostic
 rem -target:Clean,Build,Rebuild,sandbox:Run,...
 
+call GenerateProjects.bat
+
 echo ---- BUILD SOLUTION: START ---- %time%
 msbuild %solution% -property:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
 echo ---- BUILD SOLUTION: DONE  ---- %time%

@@ -33,6 +33,15 @@ void init(Bytecode * bytecode) {
 
 }}
 
+// namespace custom {
+// namespace graphics {
+// 
+// template<typename T> constexpr static inline Data_Type get_data_type(void) { return Data_Type::None; }
+// #define DATA_TYPE_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>(void) { return Data_Type::T; }
+// #include "engine/registry_impl/data_type.h"
+// 
+// }}
+
 //
 // Shader_Asset
 //
@@ -96,7 +105,8 @@ void uniforms() {
 	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
 		cstring name = custom::uniform_names[i];
 		u32 length = (u32)strlen(name);
-		bc->write_sized_array(name, length);
+		bc->write(length);
+		bc->write(name, length);
 	}
 }
 
