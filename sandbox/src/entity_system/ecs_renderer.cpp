@@ -130,7 +130,9 @@ void update() {
 				custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
 			}
 
-			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, renderable.visual.texture);
+			
+			custom::graphics::unit_id unit = custom::renderer::make_unit(renderable.visual.texture);
+			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, unit);
 			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Transform, transform_matrix);
 			custom::renderer::set_mesh(renderable.visual.mesh);
 			custom::renderer::draw();

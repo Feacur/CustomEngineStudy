@@ -48,6 +48,24 @@ extern u16 get_type_size(Data_Type value);
 namespace custom {
 namespace renderer {
 
+graphics::unit_id make_unit(RefT<Texture_Asset> const & asset) {
+	if (!asset.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return {empty_asset_id, empty_asset_id}; }
+	// @Todo: make use of samplers; automate?
+	unit_id unit = {asset.id, empty_asset_id};
+	bc->write(custom::graphics::Instruction::Allocate_Unit);
+	bc->write(unit);
+	return unit;
+}
+
+}}
+
+//
+//
+//
+
+namespace custom {
+namespace renderer {
+
 void set_shader(RefT<Shader_Asset> const & asset) {
 	if (!asset.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Use_Shader);
@@ -58,20 +76,6 @@ void set_mesh(RefT<Mesh_Asset> const & asset) {
 	if (!asset.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Use_Mesh);
 	bc->write(asset.id);
-}
-
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_Asset> const & texture) {
-	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
-	if (!texture.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
-
-	// @Todo: make use of samplers
-	unit_id value = {texture.id, empty_asset_id};
-
-	// @Change: move out of here? automate?
-	bc->write(custom::graphics::Instruction::Allocate_Unit);
-	bc->write(value);
-
-	set_uniform_bytes(shader, uniform, (u8 *)&value, 1, graphics::Data_Type::unit_id);
 }
 
 void set_uniform_bytes(RefT<Shader_Asset> const & shader, u32 uniform, u8 const * data, u32 count, graphics::Data_Type type) {
