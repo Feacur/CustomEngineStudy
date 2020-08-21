@@ -7,6 +7,8 @@ project "sandbox"
 	cppdialect "C++17"
 	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 
+	-- filter {}
+
 	sandbox_to_root = path.getrelative(os.getcwd(), root_directory)
 	targetdir (sandbox_to_root .. "/" .. target_location .. "/%{prj.name}")
 	objdir (sandbox_to_root .. "/" .. intermediate_location .. "/%{prj.name}")
@@ -35,5 +37,3 @@ project "sandbox"
 	-- postbuildcommands {
 	-- 	("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
 	-- }
-
-	-- filter {}

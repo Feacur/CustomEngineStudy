@@ -30,6 +30,9 @@ workspace "CustomEngineStudy"
 
 	defines {
 		"_CRT_SECURE_NO_WARNINGS", -- @Note: might want to enable this only locally
+		-- "LUA_32BITS", -- @Todo: revisit this option later;
+		--                         mind that compiling Lua produces warnings in this case,
+		--                         but I've disabled fatal mode for the libs
 	}
 
 	filter "toolset:msc*"
