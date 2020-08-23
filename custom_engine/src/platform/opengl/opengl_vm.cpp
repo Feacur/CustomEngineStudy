@@ -636,37 +636,46 @@ struct Shader_Props
 
 static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 {
+	s32 glsl_version;
+	switch (ogl.version)
+	{
+		// @Note: otherwise code should request some extensions enabled
+		case 20: glsl_version = 330; /*actually 110*/ break;
+		case 21: glsl_version = 330; /*actually 120*/ break;
+		case 30: glsl_version = 330; /*actually 130*/ break;
+		case 31: glsl_version = 330; /*actually 140*/ break;
+		case 32: glsl_version = 330; /*actually 150*/ break;
+		default: glsl_version = ogl.version * 10; break;
+	}
+
+	static GLchar version[20];
+	sprintf(version, "#version %d core\n", glsl_version);
+	GLint version_length = (GLint)strlen(version);
+
 	u8 count = 0;
 
 	if (strstr(source.data, "VERTEX_SECTION")) {
-		constexpr static GLchar const version[] = "#version 330 core\n";
-		constexpr static GLchar const defines[] = "#define VERTEX_SECTION";
-		props[count++] = { GL_VERTEX_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
+		CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(2, 0), "vertex shaders are not supported");
+		constexpr static GLchar const defines[] = "#define VERTEX_SECTION\n";
+		props[count++] = { GL_VERTEX_SHADER, {version_length, version}, {C_ARRAY_LENGTH(defines) - 1, defines} };
 	}
 
 	if (strstr(source.data, "FRAGMENT_SECTION")) {
-		constexpr static GLchar const version[] = "#version 330 core\n";
+		CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(2, 0), "fragment shaders are not supported");
 		constexpr static GLchar const defines[] = "#define FRAGMENT_SECTION\n";
-		props[count++] = { GL_FRAGMENT_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
+		props[count++] = { GL_FRAGMENT_SHADER, {version_length, version}, {C_ARRAY_LENGTH(defines) - 1, defines} };
 	}
 
 	if (strstr(source.data, "GEOMETRY_SECTION")) {
-		constexpr static GLchar const version[] = "#version 330 core\n";
+		CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 2), "geometry shaders are not supported");
 		constexpr static GLchar const defines[] = "#define GEOMETRY_SECTION\n";
-		props[count++] = { GL_GEOMETRY_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
+		props[count++] = { GL_GEOMETRY_SHADER, {version_length, version}, {C_ARRAY_LENGTH(defines) - 1, defines} };
 	}
 
 	if (strstr(source.data, "COMPUTE_SECTION")) {
-		constexpr static GLchar const version[] = "#version 430 core\n";
+		CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(4, 3), "compute shaders are not supported");
 		constexpr static GLchar const defines[] = "#define COMPUTE_SECTION\n";
-		props[count++] = { GL_COMPUTE_SHADER, {C_ARRAY_LENGTH(version), version}, {C_ARRAY_LENGTH(defines), defines} };
-	}
-
-	// @Note: exclude `\0` from the length
-	//        alternative is to call `strlen` instead of `C_ARRAY_LENGTH`
-	for (u8 i = 0; i < count; ++i) {
-		--props[i].version.count;
-		--props[i].defines.count;
+		props[count++] = { GL_COMPUTE_SHADER, {version_length, version}, {C_ARRAY_LENGTH(defines) - 1, defines} };
 	}
 
 	return count;
@@ -1888,6 +1897,8 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		return;
 	}
 	resource->ready_state = RS_LOADED;
+
+	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(2, 0), "shader programs are not supported");
 
 	platform_link_program(resource->id, {(GLint)asset->source.count, (glstring)asset->source.data});
 

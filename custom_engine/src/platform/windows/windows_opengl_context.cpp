@@ -462,7 +462,7 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		pf_list[pf_count++] = pf;
 
 		/*
-		Pixel_Format_Aux pfa; // = {};
+		custom::Pixel_Format_Aux pfa; // = {};
 		ZeroMemory(&pfa, sizeof(pfa));
 		pfa.red_shift   = GET_ATTRIBUTE_VALUE(WGL_RED_SHIFT_ARB);
 		pfa.green_shift = GET_ATTRIBUTE_VALUE(WGL_GREEN_SHIFT_ARB);
@@ -529,7 +529,7 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		pf_list[pf_count++] = pf;
 
 		/*
-		Pixel_Format_Aux pfa; // = {};
+		custom::Pixel_Format_Aux pfa; // = {};
 		ZeroMemory(&pfa, sizeof(pfa));
 		pfa.red_shift   = pfd.cRedShift;
 		pfa.green_shift = pfd.cGreenShift;

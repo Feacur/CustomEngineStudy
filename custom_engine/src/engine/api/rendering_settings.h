@@ -15,36 +15,37 @@ IS_ENUM_META(Context_Api)
 
 struct Context_Settings
 {
-	Context_Api api;
-	int  major_version;
-	int  minor_version;
-	int  robustness; // 0 disabled, 1 enabled (no errors), 2 enabled (with errors)
+	Context_Api api = Context_Api::OpenGL;
+	int  major_version = 4;
+	int  minor_version = 6;
+	int  robustness = 0; // 0 disabled, 1 enabled (no errors), 2 enabled (with errors)
 	//
-	bool flush_on_release;
-	bool legacy_context;
-	bool legacy_profile;
-	bool debug;
-	bool opengl_no_error;
+	bool flush_on_release = false;
+	bool legacy_context = false;
+	bool legacy_profile = false;
+	bool debug = false;
+	bool opengl_no_error = false;
 };
 
 struct Pixel_Format
 {
 	int  id;
 	//
-	int  red_bits;
-	int  green_bits;
-	int  blue_bits;
-	int  alpha_bits;
+	int  red_bits = 8;
+	int  green_bits = 8;
+	int  blue_bits = 8;
+	int  alpha_bits = 8;
 	//
-	int  depth_bits;
-	int  stencil_bits;
+	int  depth_bits = 24;
+	int  stencil_bits = 8;
 	//
-	bool doublebuffer;
+	bool doublebuffer = true;
 };
 
 extern Context_Settings context_settings;
 extern Pixel_Format pixel_format_hint;
 
+/*
 struct Pixel_Format_Aux
 {
 	int  red_shift;
@@ -64,5 +65,6 @@ struct Pixel_Format_Aux
 	// bool sRGB;
 	// bool transparent;
 };
+*/
 
 }

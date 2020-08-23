@@ -45,16 +45,9 @@ static ULONGLONG platform_get_system_time(void);
 static void signal_handler(int value);
 
 namespace custom {
-namespace globals {
-	// @Forward
-	void init(void);
-}}
-
-namespace custom {
 namespace system {
 
 void init(void) {
-	globals::init();
 	platform_setup_console();
 
 	signal(SIGABRT, signal_handler);
@@ -188,7 +181,7 @@ static void signal_handler(int value) {
 // https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain
 // https://docs.microsoft.com/en-us/windows/win32/learnwin32/winmain--the-application-entry-point
 
-#include "engine/api/client/main.h"
+extern int main(int argc, char * argv[]);
 int WINAPI WinMain(
 	HINSTANCE hInstance,     // is something called a "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable (EXE) when it is loaded in memory. The instance handle is needed for certain Windows functions—for example, to load icons or bitmaps.
 	HINSTANCE hPrevInstance, // has no meaning. It was used in 16-bit Windows, but is now always zero.
