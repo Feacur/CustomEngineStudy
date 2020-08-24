@@ -36,8 +36,8 @@ void init_asset_types(void) {
 		custom::Asset::asset_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Asset::asset_destructors.push(&custom::ref_pool_destroy<T>);\
 		custom::Asset::asset_containers.push(&custom::ref_pool_contains<T>);\
-		custom::Asset::asset_loaders.push(&custom::asset_pool_load<T>);\
-		custom::Asset::asset_unloaders.push(&custom::asset_pool_unload<T>);\
+		custom::Asset::asset_loaders.push(&custom::loading::asset_pool_load<T>);\
+		custom::Asset::asset_unloaders.push(&custom::loading::asset_pool_unload<T>);\
 
 	#include "engine/registry_impl/asset_types.h"
 }

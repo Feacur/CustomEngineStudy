@@ -2,6 +2,17 @@
 #include "engine/api/internal/entity_system.h"
 
 //
+// universal access
+//
+
+namespace custom {
+namespace serialization {
+
+template<typename T> VOID_DREF_CSTR_FUNC(component_pool_serialization_read);
+
+}}
+
+//
 // entity
 //
 

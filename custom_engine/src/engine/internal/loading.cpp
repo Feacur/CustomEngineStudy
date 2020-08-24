@@ -47,6 +47,7 @@ void init(Bytecode * bytecode) {
 //
 
 namespace custom {
+namespace loading {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
@@ -91,8 +92,9 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}
 
+// @Todo: make uniforms dynamic
 namespace custom {
 namespace loader {
 
@@ -117,6 +119,7 @@ void uniforms() {
 //
 
 namespace custom {
+namespace loading {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
@@ -193,13 +196,14 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}
 
 //
 // Mesh_Asset
 //
 
 namespace custom {
+namespace loading {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
@@ -288,4 +292,4 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}

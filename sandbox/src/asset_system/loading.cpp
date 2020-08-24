@@ -29,6 +29,7 @@ void init_client_loader(lua_State * lua) {
 //
 
 namespace custom {
+namespace loading {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
@@ -71,13 +72,14 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
 	asset->~Lua_Asset();
 }
 
-}
+}}
 
 //
 // Prefab
 //
 
 namespace custom {
+namespace loading {
 
 template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
 	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
@@ -120,4 +122,4 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {
 	asset->~Prefab();
 }
 
-}
+}}

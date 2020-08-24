@@ -15,6 +15,7 @@ Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
 Array<void_u32_u32_func *> Entity::component_copiers;
+Array<void_dref_cstr_func *> Entity::component_serialization_readers;
 Array<Ref>             Entity::components;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
