@@ -116,7 +116,7 @@ void update() {
 
 		custom::renderer::clear(renderer.camera.clear);
 
-		u32 shader_id = UINT32_MAX;
+		u32 shader_id = custom::empty_ref.id;
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 

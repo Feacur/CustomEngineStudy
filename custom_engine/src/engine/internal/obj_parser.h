@@ -147,7 +147,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	u32 next_index = 0;
 	for (u32 i = 0; i < packed_tris.count; ++i) {
 		tri_index fi = packed_tris.data[i];
-		u32 index = UINT32_MAX;
+		u32 index = custom::empty_index;
 
 		// @Optimize: - suzanne.obj: 22500 ticks instead of 900 (25x slower)
 		for (u32 prev = 0; prev < i; ++prev) {
@@ -160,7 +160,7 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 			break;
 		}
 
-		if (index == UINT32_MAX) {
+		if (index == custom::empty_index) {
 			index = next_index++;
 			packed_indices.data[i] = index;
 			#define PUSH_VERTEX_IMPL(array, i)\

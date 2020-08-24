@@ -32,7 +32,7 @@ static u32 find(u32 type, Array<u32> const & types, Array<cstring> const & paths
 		if (types[i] != type) { continue; }
 		if (strcmp(paths[i], id) == 0) { return i; }
 	}
-	return UINT32_MAX;
+	return custom::empty_index;
 }
 
 static u32 find(u32 type, Array<u32> const & types, Array<Asset> const & instances, Asset const & ref) {
@@ -40,21 +40,21 @@ static u32 find(u32 type, Array<u32> const & types, Array<Asset> const & instanc
 		if (types[i] != type) { continue; }
 		if (instances[i] == ref) { return i; }
 	}
-	return UINT32_MAX;
+	return custom::empty_index;
 }
 
 Ref Asset::add(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
-	if (index == UINT32_MAX) {
+	if (index == custom::empty_index) {
 		index = Asset::paths.count;
 		Asset::paths.push(id);
-		Asset::instances.push({UINT32_MAX, 0});
+		Asset::instances.push({custom::empty_ref});
 		Asset::types.push(type);
 	}
 
 	Ref & ref = Asset::instances[index];
 
-	if (ref.id == UINT32_MAX || !(*Asset::asset_containers[type])(ref)) {
+	if (ref.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(ref)) {
 		ref = (*Asset::asset_constructors[type])();
 		(*Asset::asset_loaders[type])(ref);
 	}
@@ -65,7 +65,7 @@ Ref Asset::add(u32 type, cstring id) {
 
 void Asset::rem(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
-	if (index == UINT32_MAX) {
+	if (index == custom::empty_index) {
 		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
 	}
 
@@ -84,14 +84,14 @@ void Asset::rem(u32 type, cstring id) {
 
 Ref Asset::get(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
-	if (index == UINT32_MAX) { return {UINT32_MAX, 0}; }
+	if (index == custom::empty_index) { return custom::empty_ref; }
 
 	return Asset::instances[index];
 }
 
 bool Asset::has(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
-	if (index == UINT32_MAX) { return false; }
+	if (index == custom::empty_index) { return false; }
 
 	Ref const & ref = Asset::instances[index];
 	return (*Asset::asset_containers[type])(ref);
@@ -99,7 +99,7 @@ bool Asset::has(u32 type, cstring id) {
 
 cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
-	if (index == UINT32_MAX) { return NULL; }
+	if (index == custom::empty_index) { return NULL; }
 
 	return Asset::paths[index];
 }

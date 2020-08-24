@@ -17,6 +17,8 @@ struct Ref
 	u32 id, gen;
 };
 
+constexpr Ref const empty_ref = {UINT32_MAX, UINT32_MAX};
+
 inline bool operator==(Ref const & a, Ref const & b) {
 	return a.id == b.id && a.gen == b.gen;
 }

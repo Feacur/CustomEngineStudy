@@ -50,7 +50,6 @@ typedef custom::graphics::unit_id unit_id;
 //        - implement Texture Views?
 
 constexpr u32 const empty_gl_id = 0;
-constexpr u32 const empty_unit = UINT32_MAX;
 
 typedef GLchar const * glstring;
 
@@ -151,7 +150,7 @@ template struct custom::Array<Mesh>;
 
 struct Render_Texture
 {
-	u32 asset_id = empty_asset_id;
+	u32 asset_id = custom::empty_ref.id;
 	u8 index = 0;
 };
 
@@ -197,9 +196,9 @@ struct Data
 	custom::Array<u32>  uniform_names_lengths;
 
 	custom::Array<unit_id> unit_ids; // sparse
-	u32 active_program = empty_asset_id;
-	u32 active_mesh    = empty_asset_id;
-	u32 active_target  = empty_asset_id;
+	u32 active_program = custom::empty_ref.id;
+	u32 active_mesh    = custom::empty_ref.id;
+	u32 active_target  = custom::empty_ref.id;
 
 	custom::Array<Program> programs; // sparse
 	custom::Array<Texture> textures; // sparse
@@ -261,7 +260,7 @@ static u32 find_uniform_id(cstring value, u32 value_length) {
 		name_offset += name_length;
 	}
 	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
-	return empty_asset_id;
+	return custom::empty_ref.id;
 }
 
 static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
@@ -288,8 +287,8 @@ static u32 find_unit(u32 texture, u32 sampler, u32 default_unit) {
 static u32 find_empty_unit(u32 default_unit) {
 	for (u32 i = 0; i < ogl.unit_ids.capacity; ++i) {
 		unit_id const & it = ogl.unit_ids.get(i);
-		if (it.texture != empty_asset_id) { continue; }
-		if (it.sampler != empty_asset_id) { continue; }
+		if (it.texture != custom::empty_ref.id) { continue; }
+		if (it.sampler != custom::empty_ref.id) { continue; }
 		return i;
 	}
 	return default_unit;
@@ -327,7 +326,7 @@ void init(void) {
 	// CUSTOM_TRACE("texture units available: %d", max_combined_texture_image_units);
 	ogl.unit_ids.set_capacity(max_combined_texture_image_units);
 	for (GLint i = 0; i < max_combined_texture_image_units; ++i) {
-		ogl.unit_ids.get(i) = {empty_asset_id, empty_asset_id};
+		ogl.unit_ids.get(i) = {custom::empty_ref.id, custom::empty_ref.id};
 	}
 	// {
 	// 	GLint value;
@@ -1603,9 +1602,9 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_target != empty_asset_id) {
+		if (ogl.active_target != custom::empty_ref.id) {
 			CUSTOM_WARNING("OGL: switched to target %d (before: %d)", asset_id, ogl.active_target);
-			ogl.active_target = empty_asset_id;
+			ogl.active_target = custom::empty_ref.id;
 		}
 		glBindFramebuffer(resource->target, resource->id);
 		if (ogl.version >= COMPILE_VERSION(3, 2)) {
@@ -1659,26 +1658,26 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 
 static void platform_Allocate_Unit(Bytecode const & bc) {
 	unit_id asset_id = *bc.read<unit_id>();
-	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to use a unit");
+	CUSTOM_ASSERT(asset_id.texture != custom::empty_ref.id, "texture should be specified in order to use a unit");
 
-	u32 existing_unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
-	if (existing_unit != empty_unit) { return; }
+	u32 existing_unit = find_unit(asset_id.texture, asset_id.sampler, custom::empty_index);
+	if (existing_unit != custom::empty_index) { return; }
 
-	CUSTOM_ASSERT(asset_id.sampler == empty_asset_id || ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
+	CUSTOM_ASSERT(asset_id.sampler == custom::empty_ref.id || ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
 
 	if (!graphics::has_allocated_texture(asset_id.texture)) {
 		CUSTOM_WARNING("skipping unit (%d : %d): texture is not allocated", asset_id.texture, asset_id.sampler);
 		return;
 	}
 
-	if (asset_id.sampler != empty_asset_id && !graphics::has_allocated_sampler(asset_id.sampler)) {
+	if (asset_id.sampler != custom::empty_ref.id && !graphics::has_allocated_sampler(asset_id.sampler)) {
 		CUSTOM_WARNING("skipping unit (%d : %d): sampler is not allocated", asset_id.texture, asset_id.sampler);
 		return;
 	}
 
 	// @Todo: rebind to an occupied one?
-	u32 unit = find_empty_unit(empty_unit);
-	CUSTOM_ASSERT(unit != empty_unit, "no available texture units");
+	u32 unit = find_empty_unit(custom::empty_index);
+	CUSTOM_ASSERT(unit != custom::empty_index, "no available texture units");
 	unit_id & unit_id = ogl.unit_ids.get(unit);
 
 	unit_id.texture = asset_id.texture;
@@ -1691,7 +1690,7 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 		glBindTexture(texture->target, texture->id);
 	}
 
-	if (asset_id.sampler != empty_asset_id) {
+	if (asset_id.sampler != custom::empty_ref.id) {
 		opengl::Sampler * sampler = &ogl.samplers.get(asset_id.sampler);
 		unit_id.sampler = asset_id.sampler;
 		glBindSampler(unit, sampler->id);
@@ -1710,7 +1709,7 @@ static void platform_Free_Shader(Bytecode const & bc) {
 	glDeleteProgram(resource->id);
 	resource->~Program();
 	if (ogl.active_program == ref.id) {
-		ogl.active_program = empty_asset_id;
+		ogl.active_program = custom::empty_ref.id;
 	}
 }
 
@@ -1728,7 +1727,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 	for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
 		unit_id & it = ogl.unit_ids.get(i);
 		if (it.texture == ref.id) {
-			it.texture = empty_asset_id;
+			it.texture = custom::empty_ref.id;
 			// @Note: texture is unbound by deletion
 		}
 	}
@@ -1736,8 +1735,8 @@ static void platform_Free_Texture(Bytecode const & bc) {
 	if (ogl.version >= COMPILE_VERSION(3, 2)) {
 		for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
 			unit_id & it = ogl.unit_ids.get(i);
-			if (it.sampler != empty_asset_id) {
-				it.sampler = empty_asset_id;
+			if (it.sampler != custom::empty_ref.id) {
+				it.sampler = custom::empty_ref.id;
 				glBindSampler(i, 0);
 			}
 		}
@@ -1755,7 +1754,7 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 	for (u32 i = 0; i < ogl.unit_ids.count; ++i) {
 		unit_id & it = ogl.unit_ids.get(i);
 		if (it.sampler == asset_id) {
-			it.sampler = empty_asset_id;
+			it.sampler = custom::empty_ref.id;
 			// @Note: sampler is unbound by deletion
 		}
 	}
@@ -1778,7 +1777,7 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 	glDeleteVertexArrays(1, &resource->id);
 	resource->~Mesh();
 	if (ogl.active_mesh == ref.id) {
-		ogl.active_mesh = empty_asset_id;
+		ogl.active_mesh = custom::empty_ref.id;
 	}
 }
 
@@ -1796,20 +1795,20 @@ static void platform_Free_Target(Bytecode const & bc) {
 	glDeleteFramebuffers(1, &resource->id);
 	resource->~Target();
 	if (ogl.active_target == asset_id) {
-		ogl.active_target = empty_asset_id;
+		ogl.active_target = custom::empty_ref.id;
 	}
 }
 
 static void platform_Free_Unit(Bytecode const & bc) {
 	unit_id asset_id = *bc.read<unit_id>();
-	CUSTOM_ASSERT(asset_id.texture != empty_asset_id, "texture should be specified in order to suspend a unit");
+	CUSTOM_ASSERT(asset_id.texture != custom::empty_ref.id, "texture should be specified in order to suspend a unit");
 
-	u32 unit = find_unit(asset_id.texture, asset_id.sampler, empty_unit);
-	CUSTOM_ASSERT(unit != empty_unit, "no such texture unit available");
+	u32 unit = find_unit(asset_id.texture, asset_id.sampler, custom::empty_index);
+	CUSTOM_ASSERT(unit != custom::empty_index, "no such texture unit available");
 	unit_id & unit_id = ogl.unit_ids.get(unit);
 
-	if (asset_id.texture != empty_asset_id) {
-		unit_id.texture = empty_asset_id;
+	if (asset_id.texture != custom::empty_ref.id) {
+		unit_id.texture = custom::empty_ref.id;
 		if (ogl.version >= COMPILE_VERSION(4, 5)) {
 			glBindTextureUnit(unit, 0);
 		}
@@ -1820,9 +1819,9 @@ static void platform_Free_Unit(Bytecode const & bc) {
 		}
 	}
 
-	if (asset_id.sampler != empty_asset_id) {
+	if (asset_id.sampler != custom::empty_ref.id) {
 		CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 2), "samplers are not supported");
-		unit_id.sampler = empty_asset_id;
+		unit_id.sampler = custom::empty_ref.id;
 		glBindSampler(unit, 0);
 	}
 }
@@ -1833,7 +1832,7 @@ static void platform_Use_Shader(Bytecode const & bc) {
 		ogl.active_program = asset_id;
 	}
 
-	if (asset_id == empty_asset_id) {
+	if (asset_id == custom::empty_ref.id) {
 		glUseProgram(0);
 		return;
 	}
@@ -1852,7 +1851,7 @@ static void platform_Use_Mesh(Bytecode const & bc) {
 		ogl.active_mesh = asset_id;
 	}
 
-	if (asset_id == empty_asset_id) {
+	if (asset_id == custom::empty_ref.id) {
 		glBindVertexArray(0);
 		return;
 	}
@@ -1871,7 +1870,7 @@ static void platform_Use_Target(Bytecode const & bc) {
 		ogl.active_target = asset_id;
 	}
 
-	if (asset_id == empty_asset_id) {
+	if (asset_id == custom::empty_ref.id) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return;
 	}
@@ -1937,7 +1936,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 
 		// @Todo: make uniforms dynamic?
 		u32 uniform_id = find_uniform_id(field_buffer.name, field_buffer.name_count);
-		// if (uniform_id == empty_asset_id) {
+		// if (uniform_id == custom::empty_ref.id) {
 		// 	uniform_id = ogl.uniform_names_lengths.count;
 		// 	ogl.uniform_names.push_range(field_buffer.name, field_buffer.name_count);
 		// 	ogl.uniform_names_lengths.push(field_buffer.name_count);
@@ -2043,10 +2042,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 	}
 	else {
-		if (ogl.active_mesh != empty_asset_id && ogl.active_mesh != ref.id) {
+		if (ogl.active_mesh != custom::empty_ref.id && ogl.active_mesh != ref.id) {
 			glBindVertexArray(0);
 			CUSTOM_WARNING("OGL: disabled mesh %d (loading: %d)", ogl.active_mesh, ref.id);
-			ogl.active_mesh = empty_asset_id;
+			ogl.active_mesh = custom::empty_ref.id;
 		}
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[(u16)i];
@@ -2326,12 +2325,12 @@ static void platform_Clear_Target(Bytecode const & bc) {
 }
 
 static void platform_Draw(Bytecode const & bc) {
-	if (ogl.active_program == empty_asset_id) {
+	if (ogl.active_program == custom::empty_ref.id) {
 		CUSTOM_WARNING("skipping draw: no active program");
 		return;
 	}
 	
-	if (ogl.active_mesh == empty_asset_id) {
+	if (ogl.active_mesh == custom::empty_ref.id) {
 		CUSTOM_WARNING("skipping draw: no active mesh");
 		return;
 	}

@@ -72,7 +72,7 @@ static u32 find(u32 type, u32 entity, Array<u32> const & types, Array<u32> const
 		if (types[i] != type) { continue; }
 		if (entities[i] == entity) { return i; }
 	}
-	return UINT32_MAX;
+	return custom::empty_index;
 }
 
 Ref Entity::add_component(u32 type) {
@@ -80,9 +80,9 @@ Ref Entity::add_component(u32 type) {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) {
+	if (component_index == custom::empty_index) {
 		component_index = Entity::components.count;
-		Entity::components.push({UINT32_MAX, 0});
+		Entity::components.push(custom::empty_ref);
 		Entity::component_types.push(type);
 		Entity::component_entity_ids.push(id);
 	}
@@ -102,7 +102,7 @@ void Entity::rem_component(u32 type) {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) {
+	if (component_index == custom::empty_index) {
 		CUSTOM_ASSERT(false, "component doesn't exist"); return;
 	}
 
@@ -122,7 +122,7 @@ Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) { return {UINT32_MAX, 0}; }
+	if (component_index == custom::empty_index) { return custom::empty_ref; }
 
 	return Entity::components[component_index];
 }
@@ -131,7 +131,7 @@ bool Entity::has_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) { return false; }
+	if (component_index == custom::empty_index) { return false; }
 
 	Ref const & ref = Entity::components[component_index];
 	return (*Entity::component_containers[type])(ref);
@@ -151,7 +151,7 @@ Ref Entity::add_component(u32 type) {
 	u32 capacity_before = Entity::components.capacity;
 	Entity::components.ensure_capacity((id + 1) * Entity::component_constructors.count);
 	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
-		Entity::components.data[i] = {UINT32_MAX, UINT32_MAX};
+		Entity::components.data[i] = custom::empty_ref;
 	}
 
 	u32 component_index = id * Entity::component_constructors.count + type;
@@ -186,7 +186,7 @@ Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = id * Entity::component_containers.count + type;
-	if (component_index >= Entity::components.capacity) { return {UINT32_MAX, 0}; }
+	if (component_index >= Entity::components.capacity) { return custom::empty_ref; }
 
 	return Entity::components.get(component_index);
 }
