@@ -124,7 +124,12 @@ static int Prefab_instantiate(lua_State * L) {
 	LUA_ASSERT_USERDATA("Prefab", 1);
 
 	typedef custom::RefT<Prefab> Asset_Ref;
-	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = object->get_fast()->copy();
 
 	return 0;
 }

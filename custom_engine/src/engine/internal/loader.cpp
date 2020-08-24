@@ -215,6 +215,9 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	Array<r32> vertices;
 	Array<u32> indices;
 	obj::parse(file, attributes, vertices, indices);
+	if (!attributes.count) { CUSTOM_ASSERT(false, "mesh has no attributes '%s'", path); return; }
+	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices '%s'", path); return; }
+	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
 	Mesh_Asset * asset = refT.get_fast();
 	new (asset) Mesh_Asset;

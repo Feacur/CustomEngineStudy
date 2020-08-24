@@ -43,7 +43,7 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	custom::Asset::add<Lua_Asset>("assets/scripts/main.lua");
+	custom::Asset::add<Lua_Asset>("assets/scripts/main.lua", false);
 
 	// @Note: call Lua init
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");

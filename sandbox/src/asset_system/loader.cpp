@@ -3,6 +3,7 @@
 #include "engine/core/math_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
+#include "engine/api/internal/component_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/asset_system.h"
 
@@ -11,6 +12,7 @@
 
 #include "asset_types.h"
 #include "prefab_parser.h"
+#include "../entity_system/component_types.h"
 
 //
 //
@@ -93,8 +95,20 @@ template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
 	// @Note: parse asset
 	sandbox::prefab::parse(*asset, file);
 
-	// @Todo: implement load/unload
-	// asset->~Prefab();
+	*asset = {custom::Entity::create(false)};
+
+	RefT<Transform> transform = asset->add_component<Transform>();
+	(*transform.get_fast()) = {
+		{0,1,0}, {0,0,0,1}, {1,1,1}
+	};
+	RefT<Visual> visual = asset->add_component<Visual>();
+	(*visual.get_fast()) = {
+		Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true),
+		Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true),
+		Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true),
+	};
+	RefT<Lua_Script> lua_script = asset->add_component<Lua_Script>();
+	lua_script.get_fast()->update = "script_rotate";
 }
 
 template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {
@@ -102,6 +116,7 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	Prefab * asset = refT.get_fast();
+	asset->destroy();
 	asset->~Prefab();
 }
 

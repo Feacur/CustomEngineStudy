@@ -30,9 +30,9 @@ Array<u32>             Entity::component_entity_ids;
 
 namespace custom {
 
-Entity Entity::create(void) {
+Entity Entity::create(bool is_instance) {
 	Entity entity = {Entity::generations.create()};
-	instances.push(entity);
+	if (is_instance) { instances.push(entity); }
 	return entity;
 }
 
@@ -59,7 +59,7 @@ void Entity::destroy(void) {
 }
 
 Entity Entity::copy() const {
-	Entity entity = create();
+	Entity entity = create(true);
 
 	u32 entity_offset = id * Entity::component_destructors.count;
 	if (entity_offset < Entity::components.capacity) {

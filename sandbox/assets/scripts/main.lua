@@ -1,7 +1,7 @@
 local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
 local function create_visual(layer, tp, tr, ts, vs, vt, vm)
-	local entity = Entity.create()
+	local entity = Entity.create(true)
 
 	local transform = entity:add_component(Transform.type)
 	transform.position = tp
@@ -18,7 +18,7 @@ local function create_visual(layer, tp, tr, ts, vs, vt, vm)
 end
 
 local function create_camera(layer, clear)
-	local entity = Entity.create()
+	local entity = Entity.create(true)
 
 	local transform = entity:add_component(Transform.type)
 	transform.position = vec3.new(0, 2, -5)
@@ -39,20 +39,19 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local shader2d = Asset.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl")
-	local shader3d = Asset.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
+	local shader2d = Asset.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl", false)
+	local shader3d = Asset.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl", false)
 
-	local texture1 = Asset.add(Texture_Asset.type, "assets/textures/checkerboard.png")
-	local texture2 = Asset.add(Texture_Asset.type, "assets/textures/blue_noise.png")
-	local texture3 = Asset.add(Texture_Asset.type, "assets/textures/proto_blue.png")
+	local texture1 = Asset.add(Texture_Asset.type, "assets/textures/checkerboard.png", false)
+	local texture2 = Asset.add(Texture_Asset.type, "assets/textures/blue_noise.png", false)
+	local texture3 = Asset.add(Texture_Asset.type, "assets/textures/proto_blue.png", false)
 
-	local mesh1 = Asset.add(Mesh_Asset.type, "assets/meshes/plane_xz.obj")
-	local mesh2 = Asset.add(Mesh_Asset.type, "assets/meshes/suzanne.obj")
-
-	local prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne rotating.entity")
+	local mesh1 = Asset.add(Mesh_Asset.type, "assets/meshes/plane_xz.obj", false)
+	local mesh2 = Asset.add(Mesh_Asset.type, "assets/meshes/suzanne.obj", false)
 
 	local shader = Asset.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
-	print(Asset.get_path(Shader_Asset.type, shader))
+
+	local suzanne_rotating_prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne rotating.entity", false)
 
 	create_visual(
 		0,
@@ -66,20 +65,7 @@ function global_init()
 		shader, texture1, mesh2
 	)
 
-	Prefab.instantiate(prefab)
-	-- local some_entity = create_visual(
-	-- 	1,
-	-- 	vec3.new(0, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 1, 1),
-	-- 	shader, texture1, mesh2
-	-- )
-	-- local some_script = some_entity:add_component(Lua_Script.type)
-	-- some_script.update = "script_rotate"
-
-	-- create_visual(
-	-- 	0,
-	-- 	vec3.new(4, 2, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 2, 1),
-	-- 	shader, texture1, mesh2
-	-- )
+	Prefab.instantiate(suzanne_rotating_prefab)
 
 	local suzanne2 = Entity.copy(suzanne1)
 	local transform2 = suzanne2:get_component(Transform.type)

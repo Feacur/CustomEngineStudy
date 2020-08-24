@@ -24,7 +24,7 @@ struct Entity : public Ref
 	static Array<Entity> instances;
 
 	// API
-	static Entity create(void);
+	static Entity create(bool is_instance);
 	void destroy(void);
 	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }

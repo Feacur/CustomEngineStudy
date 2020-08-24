@@ -19,8 +19,8 @@ template<typename T> VOID_DREF_FUNC(asset_pool_unload);
 namespace custom {
 
 template<typename T>
-RefT<T> Asset::add(cstring id) {
-	return {add(Asset_Registry<T>::type, id)};
+RefT<T> Asset::add(cstring id, bool or_get) {
+	return {add(Asset_Registry<T>::type, id, or_get)};
 }
 
 template<typename T>
