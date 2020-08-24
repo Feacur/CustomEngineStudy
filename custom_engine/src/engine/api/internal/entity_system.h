@@ -33,7 +33,7 @@ struct Entity : public Ref
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
-	static Array<void_u32_u32_func *> component_copiers;
+	static Array<void_ref_dref_func *> component_copiers;
 	static Array<void_dref_cstr_func *> component_serialization_readers;
 	static Array<Ref> components;
 

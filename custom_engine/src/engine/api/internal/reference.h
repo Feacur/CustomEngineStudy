@@ -97,6 +97,7 @@ struct Ref_Pool
 // universal access
 //
 
+// @Change: use byte arrays instead?
 namespace custom {
 
 #define REF_VOID_FUNC(ROUTINE_NAME) Ref ROUTINE_NAME(void)
@@ -111,8 +112,8 @@ typedef BOOL_REF_FUNC(bool_ref_func);
 #define VOID_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
 typedef VOID_DREF_FUNC(void_dref_func);
 
-#define VOID_U32_U32_FUNC(ROUTINE_NAME) void ROUTINE_NAME(u32 from, u32 to)
-typedef VOID_U32_U32_FUNC(void_u32_u32_func);
+#define VOID_REF_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
+typedef VOID_REF_DREF_FUNC(void_ref_dref_func);
 
 #define VOID_DREF_CSTR_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring data)
 typedef VOID_DREF_CSTR_FUNC(void_dref_cstr_func);

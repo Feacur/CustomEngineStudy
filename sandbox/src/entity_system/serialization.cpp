@@ -14,6 +14,9 @@ namespace custom {
 namespace serialization {
 
 template<> VOID_DREF_CSTR_FUNC(component_pool_serialization_read<Visual>) {
+	RefT<Visual> & refT = (RefT<Visual> &)ref;
+
+	Visual * component = refT.get_fast();
 }
 
 }}
@@ -26,6 +29,9 @@ namespace custom {
 namespace serialization {
 
 template<> VOID_DREF_CSTR_FUNC(component_pool_serialization_read<Lua_Script>) {
+	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+
+	Lua_Script * component = refT.get_fast();
 }
 
 }}

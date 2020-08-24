@@ -14,7 +14,7 @@ Array<Entity>          Entity::instances;
 Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
-Array<void_u32_u32_func *> Entity::component_copiers;
+Array<void_ref_dref_func *> Entity::component_copiers;
 Array<void_dref_cstr_func *> Entity::component_serialization_readers;
 Array<Ref>             Entity::components;
 
@@ -68,7 +68,7 @@ Entity Entity::copy() const {
 			Ref const & ref = Entity::components.get(entity_offset + i);
 			if ((*Entity::component_containers[i])(ref)) {
 				Ref new_component_ref = entity.add_component(i);
-				(*Entity::component_copiers[i])(ref.id, new_component_ref.id);
+				(*Entity::component_copiers[i])(ref, new_component_ref);
 			}
 		}
 	}

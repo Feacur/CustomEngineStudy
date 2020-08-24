@@ -42,8 +42,8 @@ template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
 	return RefT<T>::pool.contains(ref);
 }
 
-template<typename T> VOID_U32_U32_FUNC(ref_pool_copy) {
-	RefT<T>::pool.instances[to] = RefT<T>::pool.instances[from];
+template<typename T> VOID_REF_DREF_FUNC(ref_pool_copy) {
+	*RefT<T>::pool.get_safe(to) = *RefT<T>::pool.get_safe(from);
 }
 
 }
