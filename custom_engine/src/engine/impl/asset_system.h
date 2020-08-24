@@ -20,8 +20,7 @@ namespace custom {
 
 template<typename T>
 RefT<T> Asset::add(cstring id) {
-	Ref const & ref = add(Asset_Registry<T>::type, id);
-	return {ref.id, ref.gen};
+	return {add(Asset_Registry<T>::type, id)};
 }
 
 template<typename T>
@@ -31,8 +30,7 @@ void Asset::rem(cstring id) {
 
 template<typename T>
 RefT<T> Asset::get(cstring id) {
-	Ref const & ref = get(Asset_Registry<T>::type, id);
-	return {ref.id, ref.gen};
+	return {get(Asset_Registry<T>::type, id)};
 }
 
 template<typename T>

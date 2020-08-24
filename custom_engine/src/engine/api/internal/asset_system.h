@@ -23,10 +23,10 @@ struct Asset : Ref
 	static Array<void_dref_func *> asset_loaders;
 	static Array<void_dref_func *> asset_unloaders;
 
-	static Ref  add(u32 type, cstring id);
-	static void rem(u32 type, cstring id);
-	static Ref  get(u32 type, cstring id);
-	static bool has(u32 type, cstring id);
+	static Asset add(u32 type, cstring id);
+	static void  rem(u32 type, cstring id);
+	static Asset get(u32 type, cstring id);
+	static bool  has(u32 type, cstring id);
 
 	static cstring get_path(u32 type, Asset const & ref);
 

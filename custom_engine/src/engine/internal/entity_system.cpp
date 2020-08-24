@@ -14,6 +14,7 @@ Array<Entity>          Entity::instances;
 Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
+Array<void_u32_u32_func *> Entity::component_copiers;
 Array<Ref>             Entity::components;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
@@ -30,9 +31,9 @@ Array<u32>             Entity::component_entity_ids;
 namespace custom {
 
 Entity Entity::create(void) {
-	Ref ref = Entity::generations.create();
-	instances.push({ref.id, ref.gen});
-	return {ref.id, ref.gen};
+	Entity entity = {Entity::generations.create()};
+	instances.push(entity);
+	return entity;
 }
 
 void Entity::destroy(void) {
@@ -55,6 +56,23 @@ void Entity::destroy(void) {
 		instances.remove_at(i);
 		break;
 	}
+}
+
+Entity Entity::copy() const {
+	Entity entity = create();
+
+	u32 entity_offset = id * Entity::component_destructors.count;
+	if (entity_offset < Entity::components.capacity) {
+		for (u32 i = 0; i < Entity::component_containers.count; ++i) {
+			Ref const & ref = Entity::components.get(entity_offset + i);
+			if ((*Entity::component_containers[i])(ref)) {
+				Ref new_component_ref = entity.add_component(i);
+				(*Entity::component_copiers[i])(ref.id, new_component_ref.id);
+			}
+		}
+	}
+
+	return entity;
 }
 
 }

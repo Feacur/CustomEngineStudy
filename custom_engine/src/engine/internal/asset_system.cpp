@@ -43,7 +43,7 @@ static u32 find(u32 type, Array<u32> const & types, Array<Asset> const & instanc
 	return custom::empty_index;
 }
 
-Ref Asset::add(u32 type, cstring id) {
+Asset Asset::add(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
 	if (index == custom::empty_index) {
 		index = Asset::paths.count;
@@ -52,10 +52,10 @@ Ref Asset::add(u32 type, cstring id) {
 		Asset::types.push(type);
 	}
 
-	Ref & ref = Asset::instances[index];
+	Asset & ref = Asset::instances[index];
 
 	if (ref.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(ref)) {
-		ref = (*Asset::asset_constructors[type])();
+		ref = {(*Asset::asset_constructors[type])()};
 		(*Asset::asset_loaders[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "asset already exists"); }
@@ -82,9 +82,9 @@ void Asset::rem(u32 type, cstring id) {
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 }
 
-Ref Asset::get(u32 type, cstring id) {
+Asset Asset::get(u32 type, cstring id) {
 	u32 index = find(type, Asset::types, Asset::paths, id);
-	if (index == custom::empty_index) { return custom::empty_ref; }
+	if (index == custom::empty_index) { return {custom::empty_ref}; }
 
 	return Asset::instances[index];
 }

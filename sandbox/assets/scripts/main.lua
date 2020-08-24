@@ -60,7 +60,7 @@ function global_init()
 		shader3d, texture3, mesh1
 	)
 
-	create_visual(
+	local suzanne1 = create_visual(
 		0,
 		vec3.new(-4, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(2, 1, 2),
 		shader, texture1, mesh2
@@ -75,17 +75,22 @@ function global_init()
 	-- local some_script = some_entity:add_component(Lua_Script.type)
 	-- some_script.update = "script_rotate"
 
-	create_visual(
-		0,
-		vec3.new(4, 2, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 2, 1),
-		shader, texture1, mesh2
-	)
+	-- create_visual(
+	-- 	0,
+	-- 	vec3.new(4, 2, 0), quat.from_radians(0, math.pi, 0), vec3.new(1, 2, 1),
+	-- 	shader, texture1, mesh2
+	-- )
+
+	local suzanne2 = Entity.copy(suzanne1)
+	local transform2 = suzanne2:get_component(Transform.type)
+	transform2.position = vec3.new(4, 2, 0)
+	transform2.scale = vec3.new(1, 2, 1)
 
 	local camera_entity = create_camera(0, Clear_Flag.Color | Clear_Flag.Depth)
 	local camera_script = camera_entity:add_component(Lua_Script.type)
 	camera_script.update = "script_fly"
 
-	create_camera(1, Clear_Flag.Depth)
+	-- create_camera(1, Clear_Flag.Depth)
 end
 
 local counter = 0

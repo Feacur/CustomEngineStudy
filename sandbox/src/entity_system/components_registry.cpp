@@ -30,10 +30,12 @@ void init_client_component_types(void) {
 	custom::Entity::component_constructors.set_capacity(custom::component_names.count);
 	custom::Entity::component_destructors.set_capacity(custom::component_names.count);
 	custom::Entity::component_containers.set_capacity(custom::component_names.count);
+	custom::Entity::component_copiers.set_capacity(custom::component_names.count);
 	#define COMPONENT_IMPL(T)\
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\
 		custom::Entity::component_containers.push(&custom::ref_pool_contains<T>);\
+		custom::Entity::component_copiers.push(&custom::ref_pool_copy<T>);\
 
 	#include "../registry_impl/component_types.h"
 }

@@ -26,12 +26,14 @@ struct Entity : public Ref
 	// API
 	static Entity create(void);
 	void destroy(void);
+	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
+	static Array<void_u32_u32_func *> component_copiers;
 	static Array<Ref> components;
 
 	#if defined(ENTITY_COMPONENTS_DENSE)

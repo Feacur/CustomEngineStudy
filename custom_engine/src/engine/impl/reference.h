@@ -13,7 +13,7 @@ template<typename T>
 RefT<T> Ref_Pool<T>::create(void) {
 	if (generations.gaps.count == 0) { instances.push(); }
 	Ref ref = generations.create();
-	return {ref.id, ref.gen};
+	return {ref};
 }
 
 template<typename T>
@@ -40,6 +40,10 @@ template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
 
 template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
 	return RefT<T>::pool.contains(ref);
+}
+
+template<typename T> VOID_U32_U32_FUNC(ref_pool_copy) {
+	RefT<T>::pool.instances[to] = RefT<T>::pool.instances[from];
 }
 
 }

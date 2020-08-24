@@ -111,4 +111,7 @@ typedef BOOL_REF_FUNC(bool_ref_func);
 #define VOID_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
 typedef VOID_DREF_FUNC(void_dref_func);
 
+#define VOID_U32_U32_FUNC(ROUTINE_NAME) void ROUTINE_NAME(u32 from, u32 to)
+typedef VOID_U32_U32_FUNC(void_u32_u32_func);
+
 }
