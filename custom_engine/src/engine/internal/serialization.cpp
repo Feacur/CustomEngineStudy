@@ -5,6 +5,7 @@
 #include "engine/api/internal/parsing.h"
 #include "engine/api/internal/component_types.h"
 #include "engine/impl/entity_system.h"
+#include "engine/impl/math_linear.h"
 
 //
 // Transform
@@ -23,7 +24,13 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 		parse_eol(source, end); parse_void(source);
 		switch (**source) {
 			case 'p': ++(*source); component->position = (parse_void(source), parse_vec3(source)); break;
-			case 'r': ++(*source); component->rotation = (parse_void(source), parse_vec4(source)); break;
+
+			case 'r': ++(*source); switch (**source) {
+				case ' ': component->rotation = (parse_void(source), parse_vec4(source)); break;
+				case 'r': component->rotation = quat_from_radians((parse_void(source), parse_vec3(source))); break;
+				case 'd': component->rotation = quat_from_radians((parse_void(source), parse_vec3(source)) * deg_to_rad); break;
+			} break;
+
 			case 's': ++(*source); component->scale    = (parse_void(source), parse_vec3(source)); break;
 			default: done = true; break;
 		}

@@ -8,6 +8,7 @@ constexpr static r32 const epsilon    = 0.00001f;
 constexpr static r32 const pi         = 3.14159265359f;
 constexpr static r32 const tau        = 6.28318530718f; // pi * 2
 constexpr static r32 const deg_to_rad = 0.01745329251f; // pi / 180
+constexpr static r32 const rad_to_deg = 57.2957795131f; // 180 / pi
 
 // with 64 bit integers compiler has no chance promoting to a larger storage type
 // thus naive "return (value * numerator) / denominator" wont't work properly
