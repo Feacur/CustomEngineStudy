@@ -46,6 +46,7 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 	cstring source = (cstring)file.data;
 	cstring const end = (cstring)file.data + file.count;
 	while (source < end) {
+		parse_void(&source);
 		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
 			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
 			Ref ref = entity.add_component(i);

@@ -2,6 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/parsing.h"
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
 
@@ -19,13 +20,17 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 
 	Visual * component = refT.get_fast();
 
-	// @Todo
-	(*component) = {
-		Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true),
-		Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true),
-		Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true),
-		0,
-	};
+	bool done = false;
+	while (!done && *source < end) {
+		parse_eol(source, end); parse_void(source);
+		switch (**source) {
+			case 's': component->shader  = Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true); break;
+			case 't': component->texture = Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true);   break;
+			case 'm': component->mesh    = Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true);             break;
+			case 'l': component->layer   = 0; break;
+			default: done = true; break;
+		}
+	}
 }
 
 }}
@@ -42,10 +47,14 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 
 	Lua_Script * component = refT.get_fast();
 
-	// @Todo
-	(*component) = {
-		"script_rotate"
-	};
+	bool done = false;
+	while (!done && *source < end) {
+		parse_eol(source, end); parse_void(source);
+		switch (**source) {
+			case 'u': component->update = "script_rotate"; break;
+			default: done = true; break;
+		}
+	}
 }
 
 }}
