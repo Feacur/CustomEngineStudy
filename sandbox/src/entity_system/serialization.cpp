@@ -46,7 +46,10 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 				component->mesh = Asset::add<Mesh_Asset>(id, true);
 			} break;
 
-			case 'l': ++(*source); component->layer = (u8)parse_u32(source); break;
+			case 'l': ++(*source); {
+				component->layer = (u8)(parse_void(source), parse_u32(source));
+			} break;
+
 			default: done = true; break;
 		}
 	}

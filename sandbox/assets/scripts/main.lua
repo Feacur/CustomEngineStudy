@@ -76,7 +76,7 @@ function global_init()
 	local camera_script = camera_entity:add_component(Lua_Script.type)
 	camera_script.update = "script_fly"
 
-	-- create_camera(1, Clear_Flag.Depth)
+	create_camera(1, Clear_Flag.Depth)
 end
 
 local counter = 0

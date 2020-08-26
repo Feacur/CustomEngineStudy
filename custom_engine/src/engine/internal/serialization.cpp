@@ -24,7 +24,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 		skip_to_eol(source); parse_eol(source);
 		parse_void(source);
 		switch (**source) {
-			case 'p': ++(*source); component->position = (parse_void(source), parse_vec3(source)); break;
+			case 'p': ++(*source); {
+				component->position = (parse_void(source), parse_vec3(source));
+			} break;
 
 			case 'r': ++(*source); switch (**source) {
 				case ' ': component->rotation = (parse_void(source), parse_vec4(source)); break;
@@ -32,7 +34,10 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 				case 'd': component->rotation = quat_from_radians((parse_void(source), parse_vec3(source)) * deg_to_rad); break;
 			} break;
 
-			case 's': ++(*source); component->scale    = (parse_void(source), parse_vec3(source)); break;
+			case 's': ++(*source); {
+				component->scale    = (parse_void(source), parse_vec3(source));
+			} break;
+
 			default: done = true; break;
 		}
 	}
@@ -52,20 +57,36 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 	Camera * component = refT.get_fast();
 
-	// @Todo
-	CUSTOM_ASSERT(false, "todo");
-
 	bool done = false;
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
 		parse_void(source);
 		switch (**source) {
-			case 'n': ++(*source); component->near  = 0.1f; break;
-			case 'f': ++(*source); component->far   = 100.0f; break;
-			case 's': ++(*source); component->scale = 1.0f; break;
-			case 'o': ++(*source); component->ortho = 0.0f; break;
-			case 'c': ++(*source); component->clear = graphics::Clear_Flag::Depth; break;
-			case 'l': ++(*source); component->layer = 0; break;
+			case 'n': ++(*source); {
+				component->near  = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 'f': ++(*source); {
+				component->far   = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 's': ++(*source); {
+				component->scale = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 'o': ++(*source); {
+				component->ortho = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 'c': ++(*source); {
+				// @Todo: parse enums
+				component->clear = (graphics::Clear_Flag)(parse_void(source), parse_u32(source));
+			} break;
+
+			case 'l': ++(*source); {
+				component->layer = (u8)(parse_void(source), parse_u32(source));
+			} break;
+
 			default: done = true; break;
 		}
 	}
