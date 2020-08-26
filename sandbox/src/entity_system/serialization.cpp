@@ -27,17 +27,23 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 		parse_void(source);
 		switch (**source) {
 			case 's': ++(*source); {
-				u32 id = custom::get_or_add_id("assets/shaders/v3_texture_tint.glsl", custom::empty_index);
+				parse_void(source);
+				cstring line_end = *source; skip_to_eol(&line_end);
+				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
 				component->shader = Asset::add<Shader_Asset>(id, true);
 			} break;
 
 			case 't': ++(*source); {
-				u32 id = custom::get_or_add_id("assets/textures/checkerboard.png", custom::empty_index);
+				parse_void(source);
+				cstring line_end = *source; skip_to_eol(&line_end);
+				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
 				component->texture = Asset::add<Texture_Asset>(id, true);
 			} break;
 
 			case 'm': ++(*source); {
-				u32 id = custom::get_or_add_id("assets/meshes/suzanne.obj", custom::empty_index);
+				parse_void(source);
+				cstring line_end = *source; skip_to_eol(&line_end);
+				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
 				component->mesh = Asset::add<Mesh_Asset>(id, true);
 			} break;
 
@@ -69,7 +75,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 			case 'u': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				// @Todo
 				component->update_todo_strings_index = custom::get_or_add_id(*source, (u32)(line_end - *source));
 			} break;
 
