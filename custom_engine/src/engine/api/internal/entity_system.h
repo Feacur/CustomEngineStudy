@@ -1,4 +1,5 @@
 #pragma once
+#include "strings_storage.h"
 #include "reference.h"
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
@@ -22,6 +23,7 @@ struct Entity : public Ref
 	// entities
 	static Gen_Pool      generations;
 	static Array<Entity> instances;
+	static Strings_Storage strings_storage;
 
 	// components
 	static Array<Ref> components;

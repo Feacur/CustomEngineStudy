@@ -11,6 +11,4 @@ struct Strings_Storage {
 	u32 get_or_add_id(cstring data, u32 length);
 };
 
-extern Strings_Storage strings_storage;
-
 }

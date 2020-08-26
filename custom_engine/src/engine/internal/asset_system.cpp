@@ -2,7 +2,6 @@
 
 #include "engine/core/code.h"
 #include "engine/api/internal/asset_system.h"
-#include "engine/api/internal/strings_storage.h"
 #include "engine/impl/array.h"
 
 

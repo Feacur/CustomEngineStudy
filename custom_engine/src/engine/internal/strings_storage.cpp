@@ -6,14 +6,6 @@
 #include <string.h>
 
 namespace custom {
-	Strings_Storage strings_storage;
-}
-
-//
-//
-//
-
-namespace custom {
 	cstring Strings_Storage::get_value(u32 id) {
 		u32 string_offset = 0;
 		for (u32 i = 0; i < id; ++i) {

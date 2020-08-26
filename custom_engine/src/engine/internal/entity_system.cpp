@@ -14,6 +14,7 @@ template struct Array<Entity>;
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
 Array<Ref>             Entity::components;
+Strings_Storage        Entity::strings_storage;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
 Array<u32>             Entity::component_types;

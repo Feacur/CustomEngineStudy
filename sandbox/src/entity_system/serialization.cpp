@@ -2,7 +2,6 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
-#include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
@@ -75,7 +74,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 			case 'u': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				component->update_string_id = custom::strings_storage.get_or_add_id(*source, (u32)(line_end - *source));
+				component->update_string_id = Entity::strings_storage.get_or_add_id(*source, (u32)(line_end - *source));
 			} break;
 
 			default: done = true; break;
