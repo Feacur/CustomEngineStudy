@@ -25,7 +25,7 @@ Array<loading_func *>  Asset::asset_unloaders;
 }
 
 //
-// API
+// strings API
 //
 
 namespace custom {

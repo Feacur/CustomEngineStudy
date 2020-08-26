@@ -33,11 +33,13 @@ struct Entity : public Ref
 	static Array<u32> component_entity_ids;
 	#endif
 
+	// strings API
+	static u32 store_string(cstring data, u32 length);
+	static cstring get_string(u32 id);
+
 	// API
 	static Entity create(bool is_instance);
 	static Entity serialization_read(Array<u8> const & file, bool is_instance);
-	static u32 store_string(cstring data, u32 length);
-	static cstring get_string(u32 id);
 	void destroy(void);
 	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }

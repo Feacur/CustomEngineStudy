@@ -47,7 +47,7 @@ static int Lua_Script_newindex(lua_State * L) {
 	if (strcmp(id, "update") == 0) {
 		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
 		cstring value = lua_tostring(L, 3);
-		object->get_fast()->update_string_id = custom::Entity::store_string(value, (u32)strlen(value));
+		object->get_fast()->update_string_id = custom::Entity::store_string(value, custom::empty_index);
 		return 0;
 	}
 

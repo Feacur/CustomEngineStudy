@@ -30,6 +30,22 @@ Array<serialization_read_func *> Entity::component_serialization_readers;
 }
 
 //
+// strings API
+//
+
+namespace custom {
+
+u32 Entity::store_string(cstring data, u32 length) {
+	return strings.store_string(data, length);
+}
+
+cstring Entity::get_string(u32 id) {
+	return strings.get_string(id);
+}
+
+}
+
+//
 // entity
 //
 
@@ -57,14 +73,6 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 	}
 
 	return entity;
-}
-
-u32 Entity::store_string(cstring data, u32 length) {
-	return strings.store_string(data, length);
-}
-
-cstring Entity::get_string(u32 id) {
-	return strings.get_string(id);
 }
 
 void Entity::destroy(void) {

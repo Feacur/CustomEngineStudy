@@ -18,7 +18,7 @@ struct Asset : Ref
 	static Array<u32>   types;
 	static Strings_Storage strings;
 
-	// API
+	// strings API
 	static u32 store_string(cstring data, u32 length);
 	static cstring get_string(u32 id);
 
