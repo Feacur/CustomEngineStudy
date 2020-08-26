@@ -11,38 +11,28 @@ namespace custom {
 namespace obj {
 
 struct face_index { s32 v, t, n; };
-static face_index parse_face_index(cstring line, cstring * next_out) {
-	s32 v = parse_s32(line, &line);
-	if (*line != '/') { // format: v
-		*next_out = line; return {v, 0, 0};
+static face_index parse_face_index(cstring * source) {
+	s32 v = parse_s32(source);
+	if (**source != '/') { // format: v
+		return {v, 0, 0};
 	}
 
-	if (*(++line) == '/') { // format: v//vn
-		s32 vn = parse_s32(line + 1, &line);
-		*next_out = line; return {v, 0, vn};
+	++(*source);
+	if (**source == '/') { // format: v//vn
+		++(*source);
+		s32 vn = parse_s32(source);
+		return {v, 0, vn};
 	}
 
-	s32 vt = parse_s32(line, &line);
-	if (*line != '/') { // format: v/vt
-		*next_out = line; return {v, vt, 0};
+	s32 vt = parse_s32(source);
+	if (**source != '/') { // format: v/vt
+		return {v, vt, 0};
 	}
 
 	// format: v/vt/vn
-	s32 vn = parse_s32(line + 1, &line);
-	*next_out = line; return {v, vt, vn};
-}
-
-static void parse_vec2_line(cstring line, Array<vec2> & array) {
-	array.push(); vec2 & item = array.data[array.count - 1];
-	item.x = parse_r32(line, &line);
-	item.y = parse_r32(line, &line);
-}
-
-static void parse_vec3_line(cstring line, Array<vec3> & array) {
-	array.push(); vec3 & item = array.data[array.count - 1];
-	item.x = parse_r32(line, &line);
-	item.y = parse_r32(line, &line);
-	item.z = parse_r32(line, &line);
+	++(*source);
+	s32 vn = parse_s32(source);
+	return {v, vt, vn};
 }
 
 inline static u32 translate_face_index(s32 value, u32 base) {
@@ -50,11 +40,12 @@ inline static u32 translate_face_index(s32 value, u32 base) {
 }
 
 struct tri_index { u32 v, t, n; };
-static void parse_face_line(cstring line, Array<tri_index> & array, u32 vcount, u32 tcount, u32 ncount) {
+static void parse_face_line(cstring source, Array<tri_index> & array, u32 vcount, u32 tcount, u32 ncount) {
 	Array_Fixed<tri_index, 4> face;
 
-	while (!IS_EOL(*line)) {
-		face_index fi = parse_face_index(line, &line);
+	while (!IS_EOL(*source)) {
+		parse_void(&source);
+		face_index fi = parse_face_index(&source);
 		face.push({
 			translate_face_index(fi.v, vcount),
 			translate_face_index(fi.t, tcount),
@@ -70,8 +61,9 @@ static void parse_face_line(cstring line, Array<tri_index> & array, u32 vcount, 
 	}
 }
 
-static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & vertices, Array<u32> & indices) {
-	u32 read_i;
+static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r32> & vertices, Array<u32> & indices) {
+	cstring source;
+	cstring const end = (cstring)file.data + file.count;
 
 	// @Note: prepare packed buffers
 	u32 count_buffer_v  = 0;
@@ -79,11 +71,10 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	u32 count_buffer_vn = 0;
 	u32 count_buffer_f  = 0;
 
-	read_i = 0;
-	while (read_i < file.count) {
-		cstring line = skip_blank((cstring)(file.data + read_i));
-		switch (*line) {
-			case 'v': switch (*(line + 1)) {
+	source = (cstring)file.data;
+	while (source < end) {
+		switch (*source) {
+			case 'v': ++source; switch (*source) {
 				case ' ': ++count_buffer_v; break;
 				case 't': ++count_buffer_vt; break;
 				case 'n': ++count_buffer_vn; break;
@@ -91,8 +82,9 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 
 			case 'f': ++count_buffer_f; break;
 		}
-		cmemory eol = memchr((cmemory)line, '\n', file.count - read_i);
-		read_i = eol ? (u32)((u8 *)eol - file.data) + 1 : file.count;
+		// cstring eol = strchr(source, '\n');
+		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
+		source = eol ? eol + 1 : end;
 	}
 
 	Array<vec3> packed_v(count_buffer_v);
@@ -101,33 +93,32 @@ static void parse(Array<u8> & file, Array<u8> & vertex_attributes, Array<r32> & 
 	Array<tri_index> packed_tris(count_buffer_f * 3 * 2);
 
 	// @Note: read packed data
-	read_i = 0;
-	while (read_i < file.count) {
-		cstring line = skip_blank((cstring)(file.data + read_i));
-		switch (*line) {
-			case 'v': switch (*(line + 1)) {
-				case ' ': parse_vec3_line(line + 2, packed_v); break;
-				case 't': parse_vec2_line(line + 3, packed_vt); break;
-				case 'n': parse_vec3_line(line + 3, packed_vn); break;
+	source = (cstring)file.data;
+	while (source < end) {
+		switch (*source) {
+			case 'v': ++source; switch (*source) {
+				case ' ':           packed_v.push(parse_vec3(&source)); break;
+				case 't': ++source; packed_vt.push(parse_vec2(&source)); break;
+				case 'n': ++source; packed_vn.push(parse_vec3(&source)); break;
 			} break;
 
 			case 'f': {
+				++source;
 				parse_face_line(
-					line + 2, packed_tris,
+					source, packed_tris,
 					packed_v.count, packed_vt.count, packed_vn.count
 				);
 			} break;
 		}
-		cmemory eol = memchr((cmemory)line, '\n', file.count - read_i);
-		read_i = eol ? (u32)((u8 *)eol - file.data) + 1 : file.count;
+		// cstring eol = strchr(source, '\n');
+		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
+		source = eol ? eol + 1 : end;
 	}
-
-	file.set_capacity(0);
 
 	// @Note: unpack vertices
 	#define PUSH_STRIDE_IMPL(array)\
 		if (array.count > 0) {\
-			u8 elements_count = (u8)C_ARRAY_LENGTH(array.data[0].data);\
+			u8 elements_count = (u8)C_ARRAY_LENGTH(array.data->data);\
 			elements_per_vertex += elements_count;\
 			vertex_attributes.push(elements_count);\
 		}\

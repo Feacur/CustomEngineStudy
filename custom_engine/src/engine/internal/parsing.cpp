@@ -1,55 +1,88 @@
 #include "custom_pch.h"
 
+#include "engine/core/code.h"
+#include "engine/debug/log.h"
 #include "engine/api/internal/parsing.h"
 #include <math.h>
 
+inline static u32 parse_u32_base(u32 value, cstring * source);
+inline static s8 parse_sign(cstring * source);
 inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10);
-inline static s8 parse_sign(cstring line, cstring * next_out);
 
 namespace custom {
 
-u32 parse_u32(u32 value, cstring line, cstring * next_out) {
-	// @Note: no overflow protection
-	while (IS_DIGIT(*line)) {
-		value = value * 10 + (*line - '0');
-		++line;
-	}
-	*next_out = line; return value;
+void parse_void(cstring * source) {
+	while (IS_BLANK(**source)) { ++(*source); }
 }
 
-s32 parse_s32(cstring line, cstring * next_out) {
-	s8 sign = parse_sign(skip_blank(line), &line);
-	u32 value = parse_u32(0u, line, next_out);
-	return sign * (s32)value;
+u32 parse_u32(cstring * source) {
+	return parse_u32_base(0u, source);
 }
 
-r32 parse_r32(cstring line, cstring * next_out) {
-	s8 sign = parse_sign(skip_blank(line), &line);
+s32 parse_s32(cstring * source) {
+	return (s32)parse_sign(source) * (s32)parse_u32_base(0u, source);
+}
+
+r32 parse_r32(cstring * source) {
+	s8 sign = parse_sign(source);
 
 	// @Note: no digits count limit
-	u32 mantissa = parse_u32(0u, line, &line);
+	u32 mantissa = parse_u32_base(0u, source);
 	s32 exponent = 0;
 
-	if (*line == '.') {
-		cstring line_before = ++line;
-		mantissa = parse_u32(mantissa, line, &line);
-		exponent -= (s32)(line - line_before);
+	if (**source == '.') {
+		cstring source_before = ++(*source);
+		mantissa = parse_u32_base(mantissa, source);
+		exponent -= (s32)(*source - source_before);
 	}
 
-	if (*line == 'e' || *line == 'E') {
-		exponent += parse_s32(line + 1, &line);
+	if (**source == 'e' || **source == 'E') {
+		++(*source);
+		exponent += parse_s32(source);
 	}
 
-	*next_out = line;
 	return construct_r32(sign, mantissa, exponent);
 }
 
+vec2 parse_vec2(cstring * source) {
+	return {
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+	};
 }
 
-inline static s8 parse_sign(cstring line, cstring * next_out) {
-	if (*line == '-') { *next_out = line + 1; return -1; }
-	if (*line == '+') { *next_out = line + 1; return  1; }
-	*next_out = line; return 1;
+vec3 parse_vec3(cstring * source) {
+	return {
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+	};
+}
+
+vec4 parse_vec4(cstring * source) {
+	return {
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+		(parse_void(source), parse_r32(source)),
+	};
+}
+
+}
+
+inline static u32 parse_u32_base(u32 value, cstring * source) {
+	// @Note: no overflow protection
+	while (IS_DIGIT(**source)) {
+		value = value * 10 + (**source - '0');
+		++(*source);
+	}
+	return value;
+}
+
+inline static s8 parse_sign(cstring * source) {
+	if (**source == '-') { ++(*source); return -1; }
+	if (**source == '+') { ++(*source); return  1; }
+	return 1;
 }
 
 inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10) {
@@ -78,5 +111,5 @@ inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10) {
 		mantissa /= 5u; ++exponent_10;
 	}
 
-	return sign * ldexpf((r32)mantissa, exponent_2);
+	return (r32)sign * ldexpf((r32)mantissa, exponent_2);
 }
