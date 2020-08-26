@@ -28,21 +28,21 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 			case 's': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				component->shader = Asset::add<Shader_Asset>(id, true);
 			} break;
 
 			case 't': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				component->texture = Asset::add<Texture_Asset>(id, true);
 			} break;
 
 			case 'm': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				component->mesh = Asset::add<Mesh_Asset>(id, true);
 			} break;
 

@@ -18,6 +18,10 @@ struct Asset : Ref
 	static Array<u32>   types;
 	static Strings_Storage strings;
 
+	// API
+	static u32 store_string(cstring data, u32 length);
+	static cstring get_string(u32 id);
+
 	// types API
 	static Array<ref_void_func *> asset_constructors;
 	static Array<void_ref_func *> asset_destructors;
@@ -30,7 +34,6 @@ struct Asset : Ref
 	static Asset get(u32 type, u32 id);
 	static bool  has(u32 type, u32 id);
 
-	static u32 store_path(cstring data, u32 length);
 	static cstring get_path(u32 type, Asset const & ref);
 
 	template<typename T> static RefT<T> add(u32 id, bool or_get);

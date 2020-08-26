@@ -43,7 +43,7 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	u32 id = custom::Asset::store_path("assets/scripts/main.lua", custom::empty_index);
+	u32 id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
 	custom::Asset::add<Lua_Asset>(id, false);
 
 	// @Note: call Lua init

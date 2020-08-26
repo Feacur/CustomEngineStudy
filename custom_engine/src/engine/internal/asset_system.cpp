@@ -25,6 +25,22 @@ Array<loading_func *>  Asset::asset_unloaders;
 }
 
 //
+// API
+//
+
+namespace custom {
+
+u32 Asset::store_string(cstring data, u32 length) {
+	return strings.store_string(data, length);
+}
+
+cstring Asset::get_string(u32 id) {
+	return strings.get_string(id);
+}
+
+}
+
+//
 // asset
 //
 
@@ -100,15 +116,11 @@ bool Asset::has(u32 type, u32 id) {
 	return (*Asset::asset_containers[type])(ref);
 }
 
-u32 Asset::store_path(cstring data, u32 length) {
-	return strings.store_string(data, length);
-}
-
 cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
 	if (index == custom::empty_index) { return NULL; }
 
-	return strings.get_string(Asset::ids[index]);
+	return get_string(Asset::ids[index]);
 }
 
 }

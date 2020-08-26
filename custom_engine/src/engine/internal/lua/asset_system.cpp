@@ -48,7 +48,7 @@ static int Asset_add(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	bool or_get = lua_toboolean(L, 3);
-	u32 id = Asset::store_path(id_string, custom::empty_index);
+	u32 id = Asset::store_string(id_string, custom::empty_index);
 	Ref const & component_ref = Asset::add(type, id, or_get);
 	
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
@@ -65,7 +65,7 @@ static int Asset_rem(lua_State * L) {
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
-	u32 id = Asset::store_path(id_string, custom::empty_index);
+	u32 id = Asset::store_string(id_string, custom::empty_index);
 	Asset::rem(type, id);
 
 	return 0;
@@ -78,7 +78,7 @@ static int Asset_has(lua_State * L) {
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
-	u32 id = Asset::store_path(id_string, custom::empty_index);
+	u32 id = Asset::store_string(id_string, custom::empty_index);
 	lua_pushboolean(L, Asset::has(type, id));
 
 	return 1;
@@ -91,7 +91,7 @@ static int Asset_get(lua_State * L) {
 
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
-	u32 id = Asset::store_path(id_string, custom::empty_index);
+	u32 id = Asset::store_string(id_string, custom::empty_index);
 	Ref component_ref = Asset::get(type, id);
 
 	bool has_asset = (*Asset::asset_containers[type])(component_ref);
