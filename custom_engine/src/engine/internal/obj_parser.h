@@ -82,9 +82,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 
 			case 'f': ++count_buffer_f; break;
 		}
-		// cstring eol = strchr(source, '\n');
-		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
-		source = eol ? eol + 1 : end;
+		parse_eol(&source, end);
 	}
 
 	Array<vec3> packed_v(count_buffer_v);
@@ -110,9 +108,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 				);
 			} break;
 		}
-		// cstring eol = strchr(source, '\n');
-		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
-		source = eol ? eol + 1 : end;
+		parse_eol(&source, end);
 	}
 
 	// @Note: unpack vertices

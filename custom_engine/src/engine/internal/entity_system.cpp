@@ -1,5 +1,6 @@
 #include "custom_pch.h"
 
+#include "engine/api/internal/parsing.h"
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/types_names_lookup.h"
 #include "engine/impl/array.h"
@@ -48,11 +49,9 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
 			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
 			Ref ref = entity.add_component(i);
-			(*Entity::component_serialization_readers[i])(ref, NULL);
+			(*Entity::component_serialization_readers[i])(ref, &source, end);
 		}
-		// cstring eol = strchr(source, '\n');
-		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
-		source = eol ? eol + 1 : end;
+		parse_eol(&source, end);
 	}
 
 	return entity;

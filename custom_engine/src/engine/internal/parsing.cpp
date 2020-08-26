@@ -15,6 +15,12 @@ void parse_void(cstring * source) {
 	while (IS_BLANK(**source)) { ++(*source); }
 }
 
+void parse_eol(cstring * source, cstring const end) {
+	// cstring eol = strchr(*source, '\n');
+	cstring eol = (cstring)memchr(*source, '\n', (u32)(end - *source));
+	*source = eol ? eol + 1 : end;
+}
+
 u32 parse_u32(cstring * source) {
 	return parse_u32_base(0u, source);
 }
