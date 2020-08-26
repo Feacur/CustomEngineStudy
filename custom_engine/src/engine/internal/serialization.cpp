@@ -22,9 +22,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	while (!done && *source < end) {
 		parse_eol(source, end); parse_void(source);
 		switch (**source) {
-			case 'p': component->position = {0,1,0};   break;
-			case 'r': component->rotation = {0,0,0,1}; break;
-			case 's': component->scale    = {1,1,1};   break;
+			case 'p': ++(*source); component->position = (parse_void(source), parse_vec3(source)); break;
+			case 'r': ++(*source); component->rotation = (parse_void(source), parse_vec4(source)); break;
+			case 's': ++(*source); component->scale    = (parse_void(source), parse_vec3(source)); break;
 			default: done = true; break;
 		}
 	}
@@ -46,11 +46,20 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 	// @Todo
 	CUSTOM_ASSERT(false, "todo");
-	// (*component) = {
-	// 	0.1f, 100.0f, 1.0f, 0.0f,
-	// 	graphics::Clear_Flag::Depth,
-	// 	2,
-	// };
+
+	bool done = false;
+	while (!done && *source < end) {
+		parse_eol(source, end); parse_void(source);
+		switch (**source) {
+			case 'n': ++(*source); component->near  = 0.1f; break;
+			case 'f': ++(*source); component->far   = 100.0f; break;
+			case 's': ++(*source); component->scale = 1.0f; break;
+			case 'o': ++(*source); component->ortho = 0.0f; break;
+			case 'c': ++(*source); component->clear = graphics::Clear_Flag::Depth; break;
+			case 'l': ++(*source); component->layer = 0; break;
+			default: done = true; break;
+		}
+	}
 }
 
 }}
