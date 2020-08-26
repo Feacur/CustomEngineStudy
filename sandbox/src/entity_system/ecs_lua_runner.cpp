@@ -3,6 +3,7 @@
 #include "engine/core/code.h"
 #include "engine/core/types.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/loader.h"
 #include "engine/impl/array.h"
 
@@ -55,8 +56,9 @@ void update(lua_State * L, r32 dt) {
 
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
-		if (!lua_script->update) { continue; }
-		lua_function(L, lua_script->update, entity, dt);
+		if (lua_script->update_string_id == custom::empty_index) { continue; }
+		cstring update_name = custom::Entity::get_string(lua_script->update_string_id);
+		lua_function(L, update_name, entity, dt);
 	}
 }
 

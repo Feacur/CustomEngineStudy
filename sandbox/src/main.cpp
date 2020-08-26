@@ -43,7 +43,8 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	custom::Asset::add<Lua_Asset>("assets/scripts/main.lua");
+	u32 id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
+	custom::Asset::add<Lua_Asset>(id, false);
 
 	// @Note: call Lua init
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");
@@ -60,7 +61,27 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_renderer::update();
 }
 
+/*
+static void hint_graphics(void) {
+	// context_settings
+	custom::context_settings = {};
+	custom::context_settings.major_version = 4;
+	custom::context_settings.minor_version = 6;
+
+	// pixel_format_hint
+	custom::pixel_format_hint = {};
+	custom::pixel_format_hint.red_bits     = 8;
+	custom::pixel_format_hint.green_bits   = 8;
+	custom::pixel_format_hint.blue_bits    = 8;
+	custom::pixel_format_hint.alpha_bits   = 8;
+	custom::pixel_format_hint.depth_bits   = 24;
+	custom::pixel_format_hint.stencil_bits = 8;
+	custom::pixel_format_hint.doublebuffer = true;
+}
+*/
+
 int main(int argc, char * argv[]) {
+	// hint_graphics();
 	custom::application::set_refresh_rate(60, 10, 1, false);
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);

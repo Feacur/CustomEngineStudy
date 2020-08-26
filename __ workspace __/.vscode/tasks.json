@@ -8,6 +8,36 @@
     },
     "tasks": [
         {
+            "label": "Clean Build Shipping",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Shipping",
+                "Clean Build"
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
+            "label": "Rebuild Shipping",
+            "group": "build",
+            "command": "${workspaceFolder}/../solution_build.bat",
+            "args": [
+                "CustomEngineStudy.sln",
+                "x64", "x64", "Shipping",
+                "Rebuild"
+            ],
+            "problemMatcher": "$msCompile",
+            "type": "shell",
+            "options": {
+                "cwd": ".."
+            },
+        },
+        {
             "label": "Build Shipping",
             "group": "build",
             "command": "${workspaceFolder}/../solution_build.bat",

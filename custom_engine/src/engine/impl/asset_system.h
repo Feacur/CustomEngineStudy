@@ -6,11 +6,12 @@
 //
 
 namespace custom {
+namespace loading {
 
-template<typename T> VOID_DREF_FUNC(asset_pool_load);
-template<typename T> VOID_DREF_FUNC(asset_pool_unload);
+template<typename T> LOADING_FUNC(asset_pool_load);
+template<typename T> LOADING_FUNC(asset_pool_unload);
 
-}
+}}
 
 //
 // asset
@@ -19,24 +20,22 @@ template<typename T> VOID_DREF_FUNC(asset_pool_unload);
 namespace custom {
 
 template<typename T>
-RefT<T> Asset::add(cstring id) {
-	Ref const & ref = add(Asset_Registry<T>::type, id);
-	return {ref.id, ref.gen};
+RefT<T> Asset::add(u32 id, bool or_get) {
+	return {add(Asset_Registry<T>::type, id, or_get)};
 }
 
 template<typename T>
-void Asset::rem(cstring id) {
+void Asset::rem(u32 id) {
 	rem(Asset_Registry<T>::type, id);
 }
 
 template<typename T>
-RefT<T> Asset::get(cstring id) {
-	Ref const & ref = get(Asset_Registry<T>::type, id);
-	return {ref.id, ref.gen};
+RefT<T> Asset::get(u32 id) {
+	return {get(Asset_Registry<T>::type, id)};
 }
 
 template<typename T>
-bool Asset::has(cstring id) {
+bool Asset::has(u32 id) {
 	return has(Asset_Registry<T>::type, id);
 }
 

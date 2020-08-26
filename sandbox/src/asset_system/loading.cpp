@@ -3,12 +3,15 @@
 #include "engine/core/math_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
+#include "engine/api/internal/component_types.h"
+#include "engine/impl/array.h"
 #include "engine/impl/asset_system.h"
 
 #include <new>
 #include <lua.hpp>
 
 #include "asset_types.h"
+#include "../entity_system/component_types.h"
 
 //
 //
@@ -25,8 +28,9 @@ void init_client_loader(lua_State * lua) {
 //
 
 namespace custom {
+namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
@@ -35,6 +39,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
+	// file.push('\0');
 
 	Lua_Asset * asset = refT.get_fast();
 	new (asset) Lua_Asset;
@@ -59,12 +64,47 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	asset->~Lua_Asset();
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	Lua_Asset * asset = refT.get_fast();
-	asset->source.set_capacity(0);
+	asset->~Lua_Asset();
 }
 
+}}
+
+//
+// Prefab
+//
+
+namespace custom {
+namespace loading {
+
+template<> LOADING_FUNC(asset_pool_load<Prefab>) {
+	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+
+	cstring path = Asset::get_path(refT);
+	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+
+	Array<u8> file; file::read(path, file);
+	if (!file.count) { return; }
+	file.push('\0');
+
+	Prefab * asset = refT.get_fast();
+	new (asset) Prefab;
+
+	*asset = {custom::Entity::serialization_read(file, false)};
 }
+
+template<> LOADING_FUNC(asset_pool_unload<Prefab>) {
+	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+
+	Prefab * asset = refT.get_fast();
+	asset->destroy();
+	asset->~Prefab();
+}
+
+}}

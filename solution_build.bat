@@ -16,6 +16,7 @@ set solution=%1
 set architecture_compiler=%2
 set architecture_target=%3
 set configuration=%4
+set actions=%5
 
 if [%solution%] == [] (
 	echo provide a solution
@@ -37,11 +38,18 @@ if [%configuration%] == [] (
 	exit /b 0
 )
 
+if [%actions%] == [] (
+	rem echo provide actions [Clean, Build, Rebuild]
+	set actions="Build"
+)
+
 rem clean batch file arguments
 set solution=%solution:"=%
 set architecture_compiler=%architecture_compiler:"=%
 set architecture_target=%architecture_target:"=%
 set configuration=%configuration:"=%
+set actions=%actions:"=%
+set actions=%actions: =,%
 
 rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
@@ -56,10 +64,12 @@ set log_file=-fileLogger -fileLoggerParameters:Verbosity=normal;LogFile=bin-int/
 set log_console=-noLogo -consoleLoggerParameters:Verbosity=quiet;Summary;ErrorsOnly;WarningsOnly
 rem -consoleLoggerParameters:PerformanceSummary
 rem ... verbosity: quiet, minimal, normal, detailed, diagnostic
-rem -target:Clean,Build,Rebuild,sandbox:Run,...
+rem -target:sandbox:Run,...
+
+call GenerateProjects.bat "vs2019"
 
 echo ---- BUILD SOLUTION: START ---- %time%
-msbuild %solution% -property:Configuration=%configuration% -maxCpuCount %log_console% %log_file%
+msbuild %solution% -property:Configuration=%configuration% -target:%actions% -maxCpuCount %log_console% %log_file%
 echo ---- BUILD SOLUTION: DONE  ---- %time%
 
 rem @Note: testing custom xcopy calls instead

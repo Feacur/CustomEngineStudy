@@ -33,13 +33,23 @@ void init(Bytecode * bytecode) {
 
 }}
 
+// namespace custom {
+// namespace graphics {
+// 
+// template<typename T> constexpr static inline Data_Type get_data_type(void) { return Data_Type::None; }
+// #define DATA_TYPE_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>(void) { return Data_Type::T; }
+// #include "engine/registry_impl/data_type.h"
+// 
+// }}
+
 //
 // Shader_Asset
 //
 
 namespace custom {
+namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
@@ -70,7 +80,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
@@ -82,8 +92,9 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}
 
+// @Todo: make uniforms dynamic
 namespace custom {
 namespace loader {
 
@@ -96,7 +107,8 @@ void uniforms() {
 	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
 		cstring name = custom::uniform_names[i];
 		u32 length = (u32)strlen(name);
-		bc->write_sized_array(name, length);
+		bc->write(length);
+		bc->write(name, length);
 	}
 }
 
@@ -107,8 +119,9 @@ void uniforms() {
 //
 
 namespace custom {
+namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
@@ -171,7 +184,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
@@ -183,15 +196,16 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}
 
 //
 // Mesh_Asset
 //
 
 namespace custom {
+namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
@@ -200,11 +214,15 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
+	file.push('\0');
 
 	Array<u8> attributes;
 	Array<r32> vertices;
 	Array<u32> indices;
 	obj::parse(file, attributes, vertices, indices);
+	if (!attributes.count) { CUSTOM_ASSERT(false, "mesh has no attributes '%s'", path); return; }
+	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices '%s'", path); return; }
+	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
 	Mesh_Asset * asset = refT.get_fast();
 	new (asset) Mesh_Asset;
@@ -263,7 +281,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
@@ -275,4 +293,4 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-}
+}}

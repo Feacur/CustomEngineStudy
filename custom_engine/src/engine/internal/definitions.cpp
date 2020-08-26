@@ -51,9 +51,6 @@ namespace custom {
 
 #define BYTECODE_IMPL(T)\
 	template void Bytecode::write<T>(T const * data, u32 count);\
-	template void Bytecode::write<T>(T const & datum);\
-	template void Bytecode::write_sized_array<T>(T const * data, u32 count);\
-	template void Bytecode::write_sized_array<T>(Array<T> const & data);\
 	template T const * Bytecode::read<T>(u32 count) const;\
 	template void Bytecode::copy<T>(T * out, u32 count) const;\
 
@@ -69,3 +66,17 @@ BYTECODE_IMPL(cstring)
 #undef BYTECODE_IMPL
 
 }
+
+namespace custom {
+namespace graphics {
+
+u16 get_type_size(Data_Type value) {
+	switch (value) {
+		#define DATA_TYPE_IMPL(T) case Data_Type::T: return sizeof(T);
+		#include "engine/registry_impl/data_type.h"
+	}
+	CUSTOM_ASSERT(false, "unknown data type %d", value);
+	return 0;
+}
+
+}}

@@ -3,6 +3,8 @@
 #include "engine/api/lua.h"
 #include "engine/impl/asset_system.h"
 
+#include "engine/api/internal/entity_system.h"
+
 #include "../entity_system/component_types.h"
 
 #include <lua.hpp>
@@ -24,7 +26,10 @@ static int Lua_Script_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "update") == 0) { lua_pushstring(L, object->get_fast()->update); return 1; }
+	if (strcmp(id, "update") == 0) {
+		cstring value = custom::Entity::get_string(object->get_fast()->update_string_id);
+		lua_pushstring(L, value); return 1;
+	}
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -41,7 +46,9 @@ static int Lua_Script_newindex(lua_State * L) {
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
 		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
-		object->get_fast()->update = lua_tostring(L, 3); return 0;
+		cstring value = lua_tostring(L, 3);
+		object->get_fast()->update_string_id = custom::Entity::store_string(value, custom::empty_index);
+		return 0;
 	}
 
 	LUA_REPORT_INDEX();

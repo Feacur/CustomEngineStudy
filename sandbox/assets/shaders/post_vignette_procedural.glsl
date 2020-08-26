@@ -1,6 +1,3 @@
-// name: post_vignette_procedural
-// version: 330 core
-
 // section: VERTEX_SECTION
 #if defined(VERTEX_SECTION)
 // https://en.wikipedia.org/wiki/Stippling

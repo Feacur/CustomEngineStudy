@@ -1,4 +1,5 @@
 #pragma once
+#include "strings_storage.h"
 #include "reference.h"
 
 // https://github.com/etodd/lasercrabs/blob/master/src/data/entity.h
@@ -20,24 +21,35 @@ template<typename T> struct Component_Registry { static u32 type; };
 struct Entity : public Ref
 {
 	// entities
-	static Gen_Pool generations;
+	static Gen_Pool      generations;
 	static Array<Entity> instances;
+	static Strings_Storage strings;
 
-	// API
-	static Entity create(void);
-	void destroy(void);
-	inline bool exists(void) const { return generations.contains(*this); }
-
-	// components API
-	static Array<ref_void_func *> component_constructors;
-	static Array<void_ref_func *> component_destructors;
-	static Array<bool_ref_func *> component_containers;
+	// components
 	static Array<Ref> components;
 
 	#if defined(ENTITY_COMPONENTS_DENSE)
 	static Array<u32> component_types;
 	static Array<u32> component_entity_ids;
 	#endif
+
+	// strings API
+	static u32 store_string(cstring data, u32 length);
+	static cstring get_string(u32 id);
+
+	// API
+	static Entity create(bool is_instance);
+	static Entity serialization_read(Array<u8> const & file, bool is_instance);
+	void destroy(void);
+	Entity copy() const;
+	inline bool exists(void) const { return generations.contains(*this); }
+
+	// components API
+	static Array<ref_void_func *> component_constructors;
+	static Array<void_ref_func *> component_destructors;
+	static Array<bool_ref_func *> component_containers;
+	static Array<from_to_func *>  component_copiers;
+	static Array<serialization_read_func *> component_serialization_readers;
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);

@@ -1,6 +1,3 @@
-// name: v2_texture_tint
-// version: 330 core
-
 // section: VERTEX_SECTION
 #if defined(VERTEX_SECTION)
 layout(location = 0) in vec2 a_Position;

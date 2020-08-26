@@ -1,6 +1,8 @@
 #include "custom_pch.h"
 
+#include "engine/api/internal/parsing.h"
 #include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/types_names_lookup.h"
 #include "engine/impl/array.h"
 
 namespace custom {
@@ -11,15 +13,35 @@ template struct Array<Entity>;
 //  @Note: initialize compile-time statics:
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
-Array<ref_void_func *> Entity::component_constructors;
-Array<void_ref_func *> Entity::component_destructors;
-Array<bool_ref_func *> Entity::component_containers;
 Array<Ref>             Entity::components;
+Strings_Storage        Entity::strings;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
 Array<u32>             Entity::component_types;
 Array<u32>             Entity::component_entity_ids;
 #endif
+
+Array<ref_void_func *> Entity::component_constructors;
+Array<void_ref_func *> Entity::component_destructors;
+Array<bool_ref_func *> Entity::component_containers;
+Array<from_to_func *>  Entity::component_copiers;
+Array<serialization_read_func *> Entity::component_serialization_readers;
+
+}
+
+//
+// strings API
+//
+
+namespace custom {
+
+u32 Entity::store_string(cstring data, u32 length) {
+	return strings.store_string(data, length);
+}
+
+cstring Entity::get_string(u32 id) {
+	return strings.get_string(id);
+}
 
 }
 
@@ -29,10 +51,28 @@ Array<u32>             Entity::component_entity_ids;
 
 namespace custom {
 
-Entity Entity::create(void) {
-	Ref ref = Entity::generations.create();
-	instances.push({ref.id, ref.gen});
-	return {ref.id, ref.gen};
+Entity Entity::create(bool is_instance) {
+	Entity entity = {Entity::generations.create()};
+	if (is_instance) { instances.push(entity); }
+	return entity;
+}
+
+Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
+	Entity entity = create(is_instance);
+
+	cstring source = (cstring)file.data;
+	cstring const end = (cstring)file.data + file.count;
+	while (source < end) {
+		parse_void(&source);
+		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
+			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
+			Ref ref = entity.add_component(i);
+			(*Entity::component_serialization_readers[i])(ref, &source, end);
+		}
+		skip_to_eol(&source); parse_eol(&source);
+	}
+
+	return entity;
 }
 
 void Entity::destroy(void) {
@@ -57,6 +97,25 @@ void Entity::destroy(void) {
 	}
 }
 
+Entity Entity::copy() const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
+	Entity entity = create(true);
+
+	u32 entity_offset = id * Entity::component_destructors.count;
+	if (entity_offset < Entity::components.capacity) {
+		for (u32 i = 0; i < Entity::component_containers.count; ++i) {
+			Ref const & ref = Entity::components.get(entity_offset + i);
+			if ((*Entity::component_containers[i])(ref)) {
+				Ref new_component_ref = entity.add_component(i);
+				(*Entity::component_copiers[i])(ref, new_component_ref);
+			}
+		}
+	}
+
+	return entity;
+}
+
 }
 
 //
@@ -72,7 +131,7 @@ static u32 find(u32 type, u32 entity, Array<u32> const & types, Array<u32> const
 		if (types[i] != type) { continue; }
 		if (entities[i] == entity) { return i; }
 	}
-	return UINT32_MAX;
+	return custom::empty_index;
 }
 
 Ref Entity::add_component(u32 type) {
@@ -80,9 +139,9 @@ Ref Entity::add_component(u32 type) {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) {
+	if (component_index == custom::empty_index) {
 		component_index = Entity::components.count;
-		Entity::components.push({UINT32_MAX, 0});
+		Entity::components.push(custom::empty_ref);
 		Entity::component_types.push(type);
 		Entity::component_entity_ids.push(id);
 	}
@@ -102,7 +161,7 @@ void Entity::rem_component(u32 type) {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) {
+	if (component_index == custom::empty_index) {
 		CUSTOM_ASSERT(false, "component doesn't exist"); return;
 	}
 
@@ -122,7 +181,7 @@ Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) { return {UINT32_MAX, 0}; }
+	if (component_index == custom::empty_index) { return custom::empty_ref; }
 
 	return Entity::components[component_index];
 }
@@ -131,7 +190,7 @@ bool Entity::has_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = find(type, id, component_types, component_entity_ids);
-	if (component_index == UINT32_MAX) { return false; }
+	if (component_index == custom::empty_index) { return false; }
 
 	Ref const & ref = Entity::components[component_index];
 	return (*Entity::component_containers[type])(ref);
@@ -151,7 +210,7 @@ Ref Entity::add_component(u32 type) {
 	u32 capacity_before = Entity::components.capacity;
 	Entity::components.ensure_capacity((id + 1) * Entity::component_constructors.count);
 	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
-		Entity::components.data[i] = {UINT32_MAX, UINT32_MAX};
+		Entity::components.data[i] = custom::empty_ref;
 	}
 
 	u32 component_index = id * Entity::component_constructors.count + type;
@@ -186,7 +245,7 @@ Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
 	u32 component_index = id * Entity::component_containers.count + type;
-	if (component_index >= Entity::components.capacity) { return {UINT32_MAX, 0}; }
+	if (component_index >= Entity::components.capacity) { return custom::empty_ref; }
 
 	return Entity::components.get(component_index);
 }

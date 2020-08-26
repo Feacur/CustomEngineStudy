@@ -10,6 +10,8 @@
 
 namespace custom {
 
+constexpr u32 const empty_index = UINT32_MAX;
+
 template<typename T>
 struct Array
 {

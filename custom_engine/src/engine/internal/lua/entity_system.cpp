@@ -113,11 +113,27 @@ static int Entity_get_component(lua_State * L) {
 }
 
 static int Entity_create(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_TYPE(LUA_TBOOLEAN, 1);
 
-	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(Entity), 0);
+	bool is_instance = lua_toboolean(L, 1);
+
+	Entity * udata = (Entity *)lua_newuserdatauv(L, sizeof(Entity), 0);
 	luaL_setmetatable(L, "Entity");
-	*udata = custom::Entity::create();
+	*udata = Entity::create(is_instance);
+
+	return 1;
+}
+
+static int Entity_copy(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_USERDATA("Entity", 1);
+
+	Entity * object = (Entity *)lua_touserdata(L, 1);
+
+	Entity * udata = (Entity *)lua_newuserdatauv(L, sizeof(Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = object->copy();
 
 	return 1;
 }
@@ -143,6 +159,7 @@ static luaL_Reg const Entity_meta[] = {
 	{"get_component", Entity_get_component},
 	// Type.###
 	{"create", Entity_create},
+	{"copy", Entity_copy},
 	{"destroy", Entity_destroy},
 	//
 	{NULL, NULL},

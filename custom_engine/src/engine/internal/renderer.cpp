@@ -28,6 +28,44 @@ void init(Bytecode * bytecode) {
 	init_defaults();
 }
 
+}}
+
+namespace custom {
+namespace graphics {
+
+template<typename T> constexpr static inline Data_Type get_data_type(void) { return Data_Type::None; }
+#define DATA_TYPE_IMPL(T) template<> constexpr inline Data_Type get_data_type<T>(void) { return Data_Type::T; }
+#include "engine/registry_impl/data_type.h"
+
+extern u16 get_type_size(Data_Type value);
+
+}}
+
+//
+//
+//
+
+namespace custom {
+namespace renderer {
+
+graphics::unit_id make_unit(RefT<Texture_Asset> const & asset) {
+	if (!asset.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return {custom::empty_ref.id, custom::empty_ref.id}; }
+	// @Todo: make use of samplers; automate?
+	unit_id unit = {asset.id, custom::empty_ref.id};
+	bc->write(custom::graphics::Instruction::Allocate_Unit);
+	bc->write(unit);
+	return unit;
+}
+
+}}
+
+//
+//
+//
+
+namespace custom {
+namespace renderer {
+
 void set_shader(RefT<Shader_Asset> const & asset) {
 	if (!asset.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Use_Shader);
@@ -40,40 +78,12 @@ void set_mesh(RefT<Mesh_Asset> const & asset) {
 	bc->write(asset.id);
 }
 
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, RefT<Texture_Asset> const & texture) {
-	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
-	if (!texture.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
-	bc->write(custom::graphics::Instruction::Allocate_Unit);
-	bc->write(unit_id{texture.id, empty_asset_id});
-
-	bc->write(custom::graphics::Instruction::Set_Uniform);
-	bc->write(shader.id); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::unit_id);
-	bc->write((u32)1); bc->write(unit_id{texture.id, empty_asset_id});
-}
-
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat4 const & matrix) {
+void set_uniform_bytes(RefT<Shader_Asset> const & shader, u32 uniform, u8 const * data, u32 count, graphics::Data_Type type) {
 	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 	bc->write(custom::graphics::Instruction::Set_Uniform);
 	bc->write(shader.id); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::mat4);
-	bc->write((u32)1); bc->write(matrix);
-}
-
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, mat3 const & matrix) {
-	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
-	bc->write(custom::graphics::Instruction::Set_Uniform);
-	bc->write(shader.id); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::mat3);
-	bc->write((u32)1); bc->write(matrix);
-}
-
-void set_uniform(RefT<Shader_Asset> const & shader, u32 uniform, ivec2 const & value) {
-	if (!shader.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
-	bc->write(custom::graphics::Instruction::Set_Uniform);
-	bc->write(shader.id); bc->write(uniform);
-	bc->write(custom::graphics::Data_Type::ivec2);
-	bc->write((u32)1); bc->write(value);
+	bc->write(type); bc->write(count);
+	bc->write(data, count * custom::graphics::get_type_size(type));
 }
 
 void viewport(ivec2 const & position, ivec2 const & size) {
@@ -90,6 +100,24 @@ void clear(graphics::Clear_Flag flags) {
 void draw(void) {
 	bc->write(graphics::Instruction::Draw);
 }
+
+}}
+
+//
+//
+//
+
+namespace custom {
+namespace renderer {
+
+#define DATA_TYPE_IMPL(T) template<> void set_uniform<T>(RefT<Shader_Asset> const & shader, u32 uniform, T const & value) {\
+	set_uniform_bytes(\
+		shader, uniform,\
+		(u8 *)&value, 1, graphics::get_data_type<T>()\
+	);\
+}\
+
+#include "engine/registry_impl/data_type.h"
 
 }}
 

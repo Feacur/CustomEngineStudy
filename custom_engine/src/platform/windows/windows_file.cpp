@@ -53,11 +53,12 @@ void read(cstring path, Array<u8> & buffer) {
 		return;
 	}
 
+	// @Note: allocate an additional byte for potential '\0'
 	LONGLONG file_size = platform_get_file_size(handle);
-	buffer.set_capacity((u32)file_size);
+	buffer.set_capacity((u32)file_size + 1);
 	if (buffer.data) {
 		buffer.count = (u32)platform_read_file(handle, buffer.data, file_size);
-		if (buffer.count != buffer.capacity) {
+		if (buffer.count != file_size) {
 			buffer.set_capacity(0);
 			CUSTOM_ASSERT(false, "failed to read file: %s;\n    read %d out of %d bytes", path, buffer.count, buffer.capacity);
 		}

@@ -70,6 +70,82 @@ static luaL_Reg const Lua_Asset_meta[] = {
 };
 
 //
+// Prefab
+//
+
+static int Prefab_index(lua_State * L) {
+	typedef custom::RefT<Prefab> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Prefab);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Prefab_newindex(lua_State * L) {
+	typedef custom::RefT<Prefab> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Prefab_eq(lua_State * L) {
+	typedef custom::RefT<Prefab> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Prefab", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static int Prefab_instantiate(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_USERDATA("Prefab", 1);
+
+	typedef custom::RefT<Prefab> Asset_Ref;
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = object->get_fast()->copy();
+
+	return 0;
+}
+
+static luaL_Reg const Prefab_meta[] = {
+	{"__index", Prefab_index},
+	{"__newindex", Prefab_newindex},
+	{"__eq", Prefab_eq},
+	// instance:###
+	// Type.###
+	{"instantiate", Prefab_instantiate},
+	//
+	{NULL, NULL},
+};
+
+//
 //
 //
 

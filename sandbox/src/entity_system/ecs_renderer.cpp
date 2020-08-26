@@ -116,7 +116,7 @@ void update() {
 
 		custom::renderer::clear(renderer.camera.clear);
 
-		u32 shader_id = UINT32_MAX;
+		u32 shader_id = custom::empty_ref.id;
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
@@ -130,7 +130,9 @@ void update() {
 				custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
 			}
 
-			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, renderable.visual.texture);
+			
+			custom::graphics::unit_id unit = custom::renderer::make_unit(renderable.visual.texture);
+			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, unit);
 			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Transform, transform_matrix);
 			custom::renderer::set_mesh(renderable.visual.mesh);
 			custom::renderer::draw();
