@@ -24,6 +24,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 		Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true),
 		Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true),
 		Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true),
+		0,
 	};
 }
 

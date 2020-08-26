@@ -36,6 +36,12 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 
 	Camera * component = refT.get_fast();
+
+	// (*component) = {
+	// 	0.1f, 100.0f, 1.0f, 0.0f,
+	// 	graphics::Clear_Flag::Depth,
+	// 	2,
+	// };
 }
 
 }}
