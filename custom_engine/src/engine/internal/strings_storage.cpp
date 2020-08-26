@@ -6,7 +6,7 @@
 #include <string.h>
 
 namespace custom {
-	cstring Strings_Storage::get_value(u32 id) {
+	cstring Strings_Storage::get_string(u32 id) {
 		u32 string_offset = 0;
 		for (u32 i = 0; i < id; ++i) {
 			string_offset += values_lengths[i];
@@ -14,7 +14,7 @@ namespace custom {
 		return &values.data[string_offset];
 	}
 
-	u32 Strings_Storage::get_or_add_id(cstring data, u32 length) {
+	u32 Strings_Storage::store_string(cstring data, u32 length) {
 		if (length == custom::empty_index) {
 			length = (u32)strlen(data);
 		}

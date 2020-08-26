@@ -101,14 +101,14 @@ bool Asset::has(u32 type, u32 id) {
 }
 
 u32 Asset::store_path(cstring data, u32 length) {
-	return strings.get_or_add_id(data, length);
+	return strings.store_string(data, length);
 }
 
 cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
 	if (index == custom::empty_index) { return NULL; }
 
-	return strings.get_value(Asset::ids[index]);
+	return strings.get_string(Asset::ids[index]);
 }
 
 }
