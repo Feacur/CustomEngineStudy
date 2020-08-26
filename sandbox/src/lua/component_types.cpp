@@ -26,7 +26,7 @@ static int Lua_Script_index(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
-		cstring value = custom::get(object->get_fast()->update_todo_strings_index);
+		cstring value = custom::get_value(object->get_fast()->update_todo_strings_index);
 		lua_pushstring(L, value); return 1;
 	}
 

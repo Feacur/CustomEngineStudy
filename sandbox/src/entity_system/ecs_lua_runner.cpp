@@ -57,7 +57,7 @@ void update(lua_State * L, r32 dt) {
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
 		if (lua_script->update_todo_strings_index == custom::empty_index) { continue; }
-		cstring update_name = custom::get(lua_script->update_todo_strings_index);
+		cstring update_name = custom::get_value(lua_script->update_todo_strings_index);
 		lua_function(L, update_name, entity, dt);
 	}
 }

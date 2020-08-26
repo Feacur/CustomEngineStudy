@@ -104,7 +104,7 @@ cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
 	if (index == custom::empty_index) { return NULL; }
 
-	return custom::get(Asset::paths_todo_strings_index[index]);
+	return custom::get_value(Asset::paths_todo_strings_index[index]);
 }
 
 }

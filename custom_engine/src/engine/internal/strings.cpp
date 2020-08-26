@@ -11,7 +11,7 @@ namespace custom {
 	static Array<char> todo_strings;
 	static Array<u32> todo_strings_lengths;
 
-	cstring get(u32 id) {
+	cstring get_value(u32 id) {
 		u32 string_offset = 0;
 		for (u32 i = 0; i < id; ++i) {
 			string_offset += todo_strings_lengths[i];
