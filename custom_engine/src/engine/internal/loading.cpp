@@ -49,7 +49,7 @@ void init(Bytecode * bytecode) {
 namespace custom {
 namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
@@ -80,7 +80,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Shader_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Shader_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
@@ -121,7 +121,7 @@ void uniforms() {
 namespace custom {
 namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
@@ -184,7 +184,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Texture_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
@@ -205,7 +205,7 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Texture_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
@@ -280,7 +280,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Mesh_Asset>) {
 	custom::loader::bc->write((Ref const &)ref);
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Mesh_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 

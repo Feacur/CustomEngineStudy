@@ -8,8 +8,8 @@
 namespace custom {
 namespace loading {
 
-template<typename T> VOID_DREF_FUNC(asset_pool_load);
-template<typename T> VOID_DREF_FUNC(asset_pool_unload);
+template<typename T> LOADING_FUNC(asset_pool_load);
+template<typename T> LOADING_FUNC(asset_pool_unload);
 
 }}
 

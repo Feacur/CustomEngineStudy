@@ -31,7 +31,7 @@ void init_client_loader(lua_State * lua) {
 namespace custom {
 namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
+template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
@@ -64,7 +64,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Lua_Asset>) {
 	asset->~Lua_Asset();
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
+template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
@@ -81,7 +81,7 @@ template<> VOID_DREF_FUNC(asset_pool_unload<Lua_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
+template<> LOADING_FUNC(asset_pool_load<Prefab>) {
 	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
@@ -113,7 +113,7 @@ template<> VOID_DREF_FUNC(asset_pool_load<Prefab>) {
 	lua_script.get_fast()->update = "script_rotate";
 }
 
-template<> VOID_DREF_FUNC(asset_pool_unload<Prefab>) {
+template<> LOADING_FUNC(asset_pool_unload<Prefab>) {
 	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 

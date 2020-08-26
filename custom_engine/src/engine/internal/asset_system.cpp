@@ -10,15 +10,15 @@ namespace custom {
 template struct Array<Asset>;
 
 //  @Note: initialize compile-time statics:
-Array<Asset>            Asset::instances;
-Array<cstring>          Asset::paths;
-Array<u32>              Asset::types;
+Array<Asset>           Asset::instances;
+Array<cstring>         Asset::paths;
+Array<u32>             Asset::types;
 
-Array<ref_void_func *>  Asset::asset_constructors;
-Array<void_ref_func *>  Asset::asset_destructors;
-Array<bool_ref_func *>  Asset::asset_containers;
-Array<void_dref_func *> Asset::asset_loaders;
-Array<void_dref_func *> Asset::asset_unloaders;
+Array<ref_void_func *> Asset::asset_constructors;
+Array<void_ref_func *> Asset::asset_destructors;
+Array<bool_ref_func *> Asset::asset_containers;
+Array<loading_func *>  Asset::asset_loaders;
+Array<loading_func *>  Asset::asset_unloaders;
 
 }
 

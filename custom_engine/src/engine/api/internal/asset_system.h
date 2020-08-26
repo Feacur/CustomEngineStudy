@@ -17,11 +17,11 @@ struct Asset : Ref
 	static Array<u32>     types;
 
 	// types API
-	static Array<ref_void_func *>  asset_constructors;
-	static Array<void_ref_func *>  asset_destructors;
-	static Array<bool_ref_func *>  asset_containers;
-	static Array<void_dref_func *> asset_loaders;
-	static Array<void_dref_func *> asset_unloaders;
+	static Array<ref_void_func *> asset_constructors;
+	static Array<void_ref_func *> asset_destructors;
+	static Array<bool_ref_func *> asset_containers;
+	static Array<loading_func *>  asset_loaders;
+	static Array<loading_func *>  asset_unloaders;
 
 	static Asset add(u32 type, cstring id, bool or_get);
 	static void  rem(u32 type, cstring id);
