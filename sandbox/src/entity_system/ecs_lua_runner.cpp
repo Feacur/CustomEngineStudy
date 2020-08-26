@@ -3,7 +3,7 @@
 #include "engine/core/code.h"
 #include "engine/core/types.h"
 #include "engine/debug/log.h"
-#include "engine/api/internal/strings.h"
+#include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/loader.h"
 #include "engine/impl/array.h"
 
@@ -57,7 +57,7 @@ void update(lua_State * L, r32 dt) {
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
 		if (lua_script->update_string_id == custom::empty_index) { continue; }
-		cstring update_name = custom::get_value(lua_script->update_string_id);
+		cstring update_name = custom::strings_storage.get_value(lua_script->update_string_id);
 		lua_function(L, update_name, entity, dt);
 	}
 }

@@ -14,7 +14,7 @@
 #include "engine/api/platform/window.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/graphics_vm.h"
-#include "engine/api/internal/strings.h"
+#include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"

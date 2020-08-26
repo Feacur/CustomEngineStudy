@@ -2,7 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
-#include "engine/api/internal/strings.h"
+#include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
@@ -29,21 +29,21 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 			case 's': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
 				component->shader = Asset::add<Shader_Asset>(id, true);
 			} break;
 
 			case 't': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
 				component->texture = Asset::add<Texture_Asset>(id, true);
 			} break;
 
 			case 'm': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				u32 id = custom::get_or_add_id(*source, (u32)(line_end - *source));
+				u32 id = Asset::store_path(*source, (u32)(line_end - *source));
 				component->mesh = Asset::add<Mesh_Asset>(id, true);
 			} break;
 
@@ -75,7 +75,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 			case 'u': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				component->update_string_id = custom::get_or_add_id(*source, (u32)(line_end - *source));
+				component->update_string_id = custom::strings_storage.get_or_add_id(*source, (u32)(line_end - *source));
 			} break;
 
 			default: done = true; break;

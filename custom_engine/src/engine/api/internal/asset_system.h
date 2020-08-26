@@ -1,5 +1,6 @@
 #pragma once
 #include "reference.h"
+#include "strings_storage.h"
 
 //
 // asset
@@ -15,6 +16,7 @@ struct Asset : Ref
 	static Array<Asset> instances;
 	static Array<u32>   ids;
 	static Array<u32>   types;
+	static Strings_Storage paths;
 
 	// types API
 	static Array<ref_void_func *> asset_constructors;
@@ -28,6 +30,7 @@ struct Asset : Ref
 	static Asset get(u32 type, u32 id);
 	static bool  has(u32 type, u32 id);
 
+	static u32 store_path(cstring data, u32 length);
 	static cstring get_path(u32 type, Asset const & ref);
 
 	template<typename T> static RefT<T> add(u32 id, bool or_get);
