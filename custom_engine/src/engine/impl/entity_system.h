@@ -8,7 +8,7 @@
 namespace custom {
 namespace serialization {
 
-template<typename T> VOID_DREF_CSTR_FUNC(component_pool_serialization_read);
+template<typename T> SERIALIZATION_READ_FUNC(component_pool_serialization_read);
 
 }}
 

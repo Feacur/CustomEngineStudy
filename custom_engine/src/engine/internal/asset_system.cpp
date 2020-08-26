@@ -13,6 +13,7 @@ template struct Array<Asset>;
 Array<Asset>           Asset::instances;
 Array<cstring>         Asset::paths;
 Array<u32>             Asset::types;
+
 Array<ref_void_func *> Asset::asset_constructors;
 Array<void_ref_func *> Asset::asset_destructors;
 Array<bool_ref_func *> Asset::asset_containers;

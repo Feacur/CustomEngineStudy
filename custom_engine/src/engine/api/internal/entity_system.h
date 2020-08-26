@@ -23,6 +23,14 @@ struct Entity : public Ref
 	static Gen_Pool generations;
 	static Array<Entity> instances;
 
+	// components
+	static Array<Ref> components;
+
+	#if defined(ENTITY_COMPONENTS_DENSE)
+	static Array<u32> component_types;
+	static Array<u32> component_entity_ids;
+	#endif
+
 	// API
 	static Entity create(bool is_instance);
 	void destroy(void);
@@ -33,14 +41,8 @@ struct Entity : public Ref
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
-	static Array<void_ref_dref_func *> component_copiers;
-	static Array<void_dref_cstr_func *> component_serialization_readers;
-	static Array<Ref> components;
-
-	#if defined(ENTITY_COMPONENTS_DENSE)
-	static Array<u32> component_types;
-	static Array<u32> component_entity_ids;
-	#endif
+	static Array<from_to_func *>  component_copiers;
+	static Array<serialization_read_func *> component_serialization_readers;
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);

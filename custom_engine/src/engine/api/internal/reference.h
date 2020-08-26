@@ -112,10 +112,10 @@ typedef BOOL_REF_FUNC(bool_ref_func);
 #define VOID_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
 typedef VOID_DREF_FUNC(void_dref_func);
 
-#define VOID_REF_DREF_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
-typedef VOID_REF_DREF_FUNC(void_ref_dref_func);
+#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
+typedef FROM_TO_FUNC(from_to_func);
 
-#define VOID_DREF_CSTR_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring data)
-typedef VOID_DREF_CSTR_FUNC(void_dref_cstr_func);
+#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring * source)
+typedef SERIALIZATION_READ_FUNC(serialization_read_func);
 
 }

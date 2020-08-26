@@ -11,17 +11,18 @@ template struct Array<Entity>;
 //  @Note: initialize compile-time statics:
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
-Array<ref_void_func *> Entity::component_constructors;
-Array<void_ref_func *> Entity::component_destructors;
-Array<bool_ref_func *> Entity::component_containers;
-Array<void_ref_dref_func *> Entity::component_copiers;
-Array<void_dref_cstr_func *> Entity::component_serialization_readers;
 Array<Ref>             Entity::components;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
 Array<u32>             Entity::component_types;
 Array<u32>             Entity::component_entity_ids;
 #endif
+
+Array<ref_void_func *> Entity::component_constructors;
+Array<void_ref_func *> Entity::component_destructors;
+Array<bool_ref_func *> Entity::component_containers;
+Array<from_to_func *>  Entity::component_copiers;
+Array<serialization_read_func *> Entity::component_serialization_readers;
 
 }
 
