@@ -4,6 +4,7 @@
 #include "engine/api/platform/graphics_vm.h"
 #include "engine/api/platform/graphics_resource.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
@@ -192,8 +193,7 @@ struct Data
 
 	// @Note: might store offsets for random search
 	u32                 uniform_ready_state = RS_NONE;
-	custom::Array<char> uniform_names;
-	custom::Array<u32>  uniform_names_lengths;
+	custom::Strings_Storage strings;
 
 	custom::Array<unit_id> unit_ids; // sparse
 	u32 active_program = custom::empty_ref.id;
@@ -250,18 +250,6 @@ struct Data
 }
 
 static opengl::Data ogl;
-
-static u32 find_uniform_id(cstring value, u32 value_length) {
-	u32 name_offset = 0;
-	for (u32 i = 0; i < ogl.uniform_names_lengths.count; ++i) {
-		u32 name_length = ogl.uniform_names_lengths[i];
-		cstring name = &ogl.uniform_names[name_offset];
-		if (strncmp(value, name, value_length) == 0) { return i; }
-		name_offset += name_length;
-	}
-	CUSTOM_ASSERT(false, "failed to find uniform '%s'", value);
-	return custom::empty_ref.id;
-}
 
 static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
 	opengl::Program const * program = &ogl.programs.get(program_id);
@@ -1935,12 +1923,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// );
 
 		// @Todo: make uniforms dynamic?
-		u32 uniform_id = find_uniform_id(field_buffer.name, field_buffer.name_count);
-		// if (uniform_id == custom::empty_ref.id) {
-		// 	uniform_id = ogl.uniform_names_lengths.count;
-		// 	ogl.uniform_names.push_range(field_buffer.name, field_buffer.name_count);
-		// 	ogl.uniform_names_lengths.push(field_buffer.name_count);
-		// }
+		u32 uniform_id = ogl.strings.store_string(field_buffer.name, field_buffer.name_count);
 
 		field->id = uniform_id;
 		field->location = field_buffer.location;
@@ -2362,12 +2345,10 @@ static void platform_Overlay(Bytecode const & bc) {
 static void platform_Init_Uniforms(Bytecode const & bc) {
 	u32 const name_capacity = C_ARRAY_LENGTH(Program_Field::name);
 	u32 count = *bc.read<u32>();
-	ogl.uniform_names.set_capacity(count * name_capacity); ogl.uniform_names.count = 0;
-	ogl.uniform_names_lengths.set_capacity(count); ogl.uniform_names_lengths.count = 0;
+	ogl.strings.ensure_capacity(count * name_capacity, count);
 	for (u32 i = 0; i < count; ++i) {
 		C_String value = read_cstring(bc);
-		ogl.uniform_names.push_range(value.data, value.count);
-		ogl.uniform_names_lengths.push(value.count);
+		ogl.strings.store_string(value.data, value.count);
 	}
 }
 
