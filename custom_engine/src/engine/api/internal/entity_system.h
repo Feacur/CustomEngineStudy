@@ -20,7 +20,7 @@ template<typename T> struct Component_Registry { static u32 type; };
 struct Entity : public Ref
 {
 	// entities
-	static Gen_Pool generations;
+	static Gen_Pool      generations;
 	static Array<Entity> instances;
 
 	// components

@@ -12,14 +12,14 @@ template<typename T> struct Asset_Registry { static u32 type; };
 struct Asset : Ref
 {
 	// instances
-	static Array<Asset> instances;
+	static Array<Asset>   instances;
 	static Array<cstring> paths;
-	static Array<u32> types;
+	static Array<u32>     types;
 
 	// types API
-	static Array<ref_void_func *> asset_constructors;
-	static Array<void_ref_func *> asset_destructors;
-	static Array<bool_ref_func *> asset_containers;
+	static Array<ref_void_func *>  asset_constructors;
+	static Array<void_ref_func *>  asset_destructors;
+	static Array<bool_ref_func *>  asset_containers;
 	static Array<void_dref_func *> asset_loaders;
 	static Array<void_dref_func *> asset_unloaders;
 
