@@ -45,16 +45,14 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 	cstring source = (cstring)file.data;
 	cstring const end = (cstring)file.data + file.count;
 	while (source < end) {
+		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
+			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
+			Ref ref = entity.add_component(i);
+			(*Entity::component_serialization_readers[i])(ref, NULL);
+		}
 		// cstring eol = strchr(source, '\n');
 		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
 		source = eol ? eol + 1 : end;
-	}
-
-	// @Todo
-	for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
-		if (strcmp(custom::component_names[i], "Camera") == 0) { continue; }
-		Ref ref = entity.add_component(i);
-		(*Entity::component_serialization_readers[i])(ref, NULL);
 	}
 
 	return entity;
