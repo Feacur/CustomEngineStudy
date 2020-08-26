@@ -146,10 +146,11 @@ Ref Entity::add_component(u32 type) {
 		Entity::component_entity_ids.push(id);
 	}
 
-	Ref & ref = Entity::components[component_index];
+	Ref ref = Entity::components[component_index];
 
 	if (!(*Entity::component_containers[type])(ref)) {
 		ref = (*Entity::component_constructors[type])();
+		Entity::components[component_index] = ref;
 	}
 	else { CUSTOM_ASSERT(false, "component already exists"); }
 
@@ -214,10 +215,11 @@ Ref Entity::add_component(u32 type) {
 	}
 
 	u32 component_index = id * Entity::component_constructors.count + type;
-	Ref & ref = Entity::components.get(component_index);
+	Ref ref = Entity::components.get(component_index);
 
 	if (!(*Entity::component_containers[type])(ref)) {
 		ref = (*Entity::component_constructors[type])();
+		Entity::components.get(component_index) = ref;
 	}
 	else { CUSTOM_ASSERT(false, "component already exists"); }
 

@@ -7,7 +7,7 @@
 #include "engine/impl/array.h"
 #include "engine/impl/asset_system.h"
 
-#include <new>
+// #include <new>
 #include <lua.hpp>
 
 #include "asset_types.h"
@@ -42,7 +42,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	// file.push('\0');
 
 	Lua_Asset * asset = refT.get_fast();
-	new (asset) Lua_Asset;
+	// new (asset) Lua_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
 	asset->source.count    = file.count;    file.count    = 0;
@@ -93,7 +93,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab>) {
 	file.push('\0');
 
 	Prefab * asset = refT.get_fast();
-	new (asset) Prefab;
+	// new (asset) Prefab;
 
 	*asset = {custom::Entity::serialization_read(file, false)};
 }
@@ -104,7 +104,6 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab>) {
 
 	Prefab * asset = refT.get_fast();
 	asset->destroy();
-	asset->~Prefab();
 }
 
 }}

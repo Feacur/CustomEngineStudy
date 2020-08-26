@@ -20,8 +20,7 @@ namespace custom {
 
 template<typename T>
 RefT<T> Entity::add_component(void) {
-	Ref const & ref = add_component(Component_Registry<T>::type);
-	return {ref};
+	return {add_component(Component_Registry<T>::type)};
 }
 
 template<typename T>
@@ -31,8 +30,7 @@ void Entity::rem_component(void) {
 
 template<typename T>
 RefT<T> Entity::get_component(void) const {
-	Ref const & ref = get_component(Component_Registry<T>::type);
-	return {ref};
+	return {get_component(Component_Registry<T>::type)};
 }
 
 template<typename T>

@@ -4,7 +4,6 @@
 #include "engine/api/internal/asset_system.h"
 #include "engine/impl/array.h"
 
-
 namespace custom {
 
 //  @Note: initialize compile-time structs:
@@ -71,10 +70,11 @@ Asset Asset::add(u32 type, u32 id, bool or_get) {
 		Asset::types.push(type);
 	}
 
-	Asset & ref = Asset::instances[index];
+	Asset ref = Asset::instances[index];
 
 	if (ref.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(ref)) {
 		ref = {(*Asset::asset_constructors[type])()};
+		Asset::instances[index] = ref;
 		(*Asset::asset_loaders[type])(ref);
 	}
 	else { CUSTOM_ASSERT(or_get, "asset already exists"); }
@@ -88,7 +88,7 @@ void Asset::rem(u32 type, u32 id) {
 		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
 	}
 
-	Ref ref = Asset::instances[index];
+	Asset ref = Asset::instances[index];
 
 	Asset::ids.remove_at(index);
 	Asset::instances.remove_at(index);

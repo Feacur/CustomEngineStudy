@@ -120,18 +120,22 @@ static int Prefab_eq(lua_State * L) {
 }
 
 static int Prefab_instantiate(lua_State * L) {
+	typedef custom::RefT<Prefab> Asset_Ref;
+	
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	LUA_ASSERT_USERDATA("Prefab", 1);
 
-	typedef custom::RefT<Prefab> Asset_Ref;
 	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
+	Prefab const * prefab = object->get_fast();
+	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
+
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
-	*udata = object->get_fast()->copy();
+	*udata = prefab->copy();
 
-	return 0;
+	return 1;
 }
 
 static luaL_Reg const Prefab_meta[] = {

@@ -1,0 +1,9 @@
+Transform
+	p 0 0 0
+	r 0 0 0 1
+	s 10 10 10
+Visual
+	s assets/shaders/v3_texture_tint.glsl
+	t assets/textures/proto_blue.png
+	m assets/meshes/plane_xz.obj
+	l 0

@@ -1,22 +1,5 @@
 local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
-local function create_visual(layer, tp, tr, ts, vs, vt, vm)
-	local entity = Entity.create(true)
-
-	local transform = entity:add_component(Transform.type)
-	transform.position = tp
-	transform.rotation = tr
-	transform.scale = ts
-
-	local visual = entity:add_component(Visual.type)
-	visual.shader = vs;
-	visual.texture = vt;
-	visual.mesh = vm;
-	visual.layer = layer;
-
-	return entity
-end
-
 local function create_camera(layer, clear)
 	local entity = Entity.create(true)
 
@@ -39,32 +22,16 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local shader2d = Asset.add(Shader_Asset.type, "assets/shaders/v2_texture_tint.glsl", false)
-	local shader3d = Asset.add(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl", false)
-
-	local texture1 = Asset.add(Texture_Asset.type, "assets/textures/checkerboard.png", false)
-	local texture2 = Asset.add(Texture_Asset.type, "assets/textures/blue_noise.png", false)
-	local texture3 = Asset.add(Texture_Asset.type, "assets/textures/proto_blue.png", false)
-
-	local mesh1 = Asset.add(Mesh_Asset.type, "assets/meshes/plane_xz.obj", false)
-	local mesh2 = Asset.add(Mesh_Asset.type, "assets/meshes/suzanne.obj", false)
-
-	local shader = Asset.get(Shader_Asset.type, "assets/shaders/v3_texture_tint.glsl")
-
+	local floor_prefab = Asset.add(Prefab.type, "assets/prefabs/floor.entity", false)
+	local suzanne_prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne.entity", false)
 	local suzanne_rotating_prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne rotating.entity", false)
 
-	create_visual(
-		0,
-		vec3.new(0, 0, 0), vec4.new(0, 0, 0, 1), vec3.new(10, 10, 10),
-		shader3d, texture3, mesh1
-	)
+	local suzanne1 = Prefab.instantiate(suzanne_prefab)
+	local transform1 = suzanne1:get_component(Transform.type)
+	transform1.position = vec3.new(-4, 1, 0)
+	transform1.scale = vec3.new(2, 1, 2)
 
-	local suzanne1 = create_visual(
-		0,
-		vec3.new(-4, 1, 0), quat.from_radians(0, math.pi, 0), vec3.new(2, 1, 2),
-		shader, texture1, mesh2
-	)
-
+	Prefab.instantiate(floor_prefab)
 	Prefab.instantiate(suzanne_rotating_prefab)
 
 	local suzanne2 = Entity.copy(suzanne1)

@@ -49,11 +49,11 @@ static int Asset_add(lua_State * L) {
 	cstring id_string = lua_tostring(L, 2);
 	bool or_get = lua_toboolean(L, 3);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Ref const & component_ref = Asset::add(type, id, or_get);
+	Asset asset_ref = Asset::add(type, id, or_get);
 	
-	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
+	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = component_ref;
+	*udata = asset_ref;
 
 	return 1;
 }
@@ -92,14 +92,14 @@ static int Asset_get(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Ref component_ref = Asset::get(type, id);
+	Asset asset_ref = Asset::get(type, id);
 
-	bool has_asset = (*Asset::asset_containers[type])(component_ref);
+	bool has_asset = (*Asset::asset_containers[type])(asset_ref);
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
-	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
+	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = component_ref;
+	*udata = asset_ref;
 
 	return 1;
 }

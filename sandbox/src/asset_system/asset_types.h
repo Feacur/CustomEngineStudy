@@ -8,6 +8,4 @@ struct Lua_Asset {
 	~Lua_Asset() = default;
 };
 
-struct Prefab : public custom::Entity {
-	~Prefab() = default;
-};
+struct Prefab : public custom::Entity { };

@@ -13,7 +13,6 @@
 #include "engine/impl/asset_system.h"
 
 #include <new>
-
 #include <stb_image.h>
 
 #include "obj_parser.h"
@@ -60,7 +59,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!file.count) { return; }
 
 	Shader_Asset * asset = refT.get_fast();
-	new (asset) Shader_Asset;
+	// new (asset) Shader_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
 	asset->source.capacity = file.capacity; file.capacity = 0;
@@ -132,7 +131,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!file.count) { return; }
 
 	Texture_Asset * asset = refT.get_fast();
-	new (asset) Texture_Asset;
+	// new (asset) Texture_Asset;
 
 	// @Todo: read meta or provide these otherwise
 	asset->is_dynamic = false;
@@ -232,7 +231,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	{
 		asset->buffers.push();
 		Mesh_Asset::Buffer & buffer = asset->buffers[0];
-		new (&buffer) Mesh_Asset::Buffer;
+		// new (&buffer) Mesh_Asset::Buffer;
 	
 		buffer.attributes.data     = attributes.data;     attributes.data     = NULL;
 		buffer.attributes.capacity = attributes.capacity; attributes.capacity = 0;
