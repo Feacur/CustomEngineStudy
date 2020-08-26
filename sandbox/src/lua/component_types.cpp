@@ -27,7 +27,7 @@ static int Lua_Script_index(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
-		cstring value = custom::Entity::strings_storage.get_value(object->get_fast()->update_string_id);
+		cstring value = custom::Entity::get_string(object->get_fast()->update_string_id);
 		lua_pushstring(L, value); return 1;
 	}
 
@@ -47,7 +47,7 @@ static int Lua_Script_newindex(lua_State * L) {
 	if (strcmp(id, "update") == 0) {
 		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
 		cstring value = lua_tostring(L, 3);
-		object->get_fast()->update_string_id = custom::Entity::strings_storage.get_or_add_id(value, (u32)strlen(value));
+		object->get_fast()->update_string_id = custom::Entity::store_string(value, (u32)strlen(value));
 		return 0;
 	}
 

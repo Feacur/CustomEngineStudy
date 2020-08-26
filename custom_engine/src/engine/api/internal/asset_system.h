@@ -16,7 +16,7 @@ struct Asset : Ref
 	static Array<Asset> instances;
 	static Array<u32>   ids;
 	static Array<u32>   types;
-	static Strings_Storage paths;
+	static Strings_Storage strings;
 
 	// types API
 	static Array<ref_void_func *> asset_constructors;

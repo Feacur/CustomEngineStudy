@@ -23,7 +23,7 @@ struct Entity : public Ref
 	// entities
 	static Gen_Pool      generations;
 	static Array<Entity> instances;
-	static Strings_Storage strings_storage;
+	static Strings_Storage strings;
 
 	// components
 	static Array<Ref> components;
@@ -36,6 +36,8 @@ struct Entity : public Ref
 	// API
 	static Entity create(bool is_instance);
 	static Entity serialization_read(Array<u8> const & file, bool is_instance);
+	static u32 store_string(cstring data, u32 length);
+	static cstring get_string(u32 id);
 	void destroy(void);
 	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }

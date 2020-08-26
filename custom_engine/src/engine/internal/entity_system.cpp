@@ -14,7 +14,7 @@ template struct Array<Entity>;
 Gen_Pool               Entity::generations;
 Array<Entity>          Entity::instances;
 Array<Ref>             Entity::components;
-Strings_Storage        Entity::strings_storage;
+Strings_Storage        Entity::strings;
 
 #if defined(ENTITY_COMPONENTS_DENSE)
 Array<u32>             Entity::component_types;
@@ -57,6 +57,14 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 	}
 
 	return entity;
+}
+
+u32 Entity::store_string(cstring data, u32 length) {
+	return strings.get_or_add_id(data, length);
+}
+
+cstring Entity::get_string(u32 id) {
+	return strings.get_value(id);
 }
 
 void Entity::destroy(void) {

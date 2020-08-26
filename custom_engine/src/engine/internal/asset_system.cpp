@@ -14,7 +14,7 @@ template struct Array<Asset>;
 Array<Asset>           Asset::instances;
 Array<u32>             Asset::ids;
 Array<u32>             Asset::types;
-Strings_Storage        Asset::paths;
+Strings_Storage        Asset::strings;
 
 Array<ref_void_func *> Asset::asset_constructors;
 Array<void_ref_func *> Asset::asset_destructors;
@@ -101,14 +101,14 @@ bool Asset::has(u32 type, u32 id) {
 }
 
 u32 Asset::store_path(cstring data, u32 length) {
-	return paths.get_or_add_id(data, length);
+	return strings.get_or_add_id(data, length);
 }
 
 cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
 	if (index == custom::empty_index) { return NULL; }
 
-	return paths.get_value(Asset::ids[index]);
+	return strings.get_value(Asset::ids[index]);
 }
 
 }

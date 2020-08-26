@@ -74,7 +74,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 			case 'u': ++(*source); {
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
-				component->update_string_id = Entity::strings_storage.get_or_add_id(*source, (u32)(line_end - *source));
+				component->update_string_id = Entity::store_string(*source, (u32)(line_end - *source));
 			} break;
 
 			default: done = true; break;
