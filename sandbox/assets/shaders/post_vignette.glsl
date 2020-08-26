@@ -1,6 +1,3 @@
-// name: post_vignette
-// version: 330 core
-
 // section: VERTEX_SECTION
 #if defined(VERTEX_SECTION)
 // https://twitter.com/_kzr/status/829621272757755905

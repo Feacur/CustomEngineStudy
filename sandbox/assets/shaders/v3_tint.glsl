@@ -1,6 +1,3 @@
-// name: v3_tint
-// version: 330 core
-
 // section: VERTEX_SECTION
 #if defined(VERTEX_SECTION)
 layout(location = 0) in vec3 a_Position;

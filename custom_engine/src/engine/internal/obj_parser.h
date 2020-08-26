@@ -140,8 +140,8 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 		tri_index fi = packed_tris.data[i];
 		u32 index = custom::empty_index;
 
-		// @Optimize: - suzanne.obj: 22500 ticks instead of 900 (25x slower)
 		for (u32 prev = 0; prev < i; ++prev) {
+			// @Optimize
 			tri_index prev_fi = packed_tris.data[prev];
 			if (fi.v != prev_fi.v) { continue; }
 			if (fi.t != prev_fi.t) { continue; }

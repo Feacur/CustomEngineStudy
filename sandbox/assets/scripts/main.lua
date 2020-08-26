@@ -27,7 +27,7 @@ local function create_camera(layer, clear)
 
 	local camera = entity:add_component(Camera.type)
 	camera.near = 0.1
-	camera.far = 20 -- math.huge
+	camera.far = 100 -- math.huge
 	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
 	camera.ortho = 0
 	camera.clear = clear
