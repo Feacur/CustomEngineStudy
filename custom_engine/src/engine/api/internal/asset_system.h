@@ -13,7 +13,7 @@ struct Asset : Ref
 {
 	// instances
 	static Array<Asset> instances;
-	static Array<u32>   paths_todo_strings_index;
+	static Array<u32>   ids;
 	static Array<u32>   types;
 
 	// types API

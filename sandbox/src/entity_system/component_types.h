@@ -11,7 +11,7 @@ namespace custom {
 
 struct Lua_Script
 {
-	u32 update_todo_strings_index = custom::empty_index;
+	u32 update_string_id = custom::empty_index;
 };
 
 struct Visual
