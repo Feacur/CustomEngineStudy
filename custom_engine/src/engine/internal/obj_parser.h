@@ -63,7 +63,6 @@ static void parse_face_line(cstring source, Array<tri_index> & array, u32 vcount
 
 static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r32> & vertices, Array<u32> & indices) {
 	cstring source;
-	cstring const end = (cstring)file.data + file.count;
 
 	// @Note: prepare packed buffers
 	u32 count_buffer_v  = 0;
@@ -72,7 +71,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 	u32 count_buffer_f  = 0;
 
 	source = (cstring)file.data;
-	while (source < end) {
+	while (*source) {
 		switch (*source) {
 			case 'v': ++source; switch (*source) {
 				case ' ': ++count_buffer_v; break;
@@ -82,7 +81,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 
 			case 'f': ++count_buffer_f; break;
 		}
-		parse_eol(&source, end);
+		skip_to_eol(&source); parse_eol(&source);
 	}
 
 	Array<vec3> packed_v(count_buffer_v);
@@ -92,7 +91,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 
 	// @Note: read packed data
 	source = (cstring)file.data;
-	while (source < end) {
+	while (*source) {
 		switch (*source) {
 			case 'v': ++source; switch (*source) {
 				case ' ':           packed_v.push(parse_vec3(&source)); break;
@@ -108,7 +107,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 				);
 			} break;
 		}
-		parse_eol(&source, end);
+		skip_to_eol(&source); parse_eol(&source);
 	}
 
 	// @Note: unpack vertices

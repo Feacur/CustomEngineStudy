@@ -214,6 +214,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
+	file.push('\0');
 
 	Array<u8> attributes;
 	Array<r32> vertices;

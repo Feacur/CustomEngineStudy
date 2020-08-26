@@ -52,7 +52,7 @@ Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
 			Ref ref = entity.add_component(i);
 			(*Entity::component_serialization_readers[i])(ref, &source, end);
 		}
-		parse_eol(&source, end);
+		skip_to_eol(&source); parse_eol(&source);
 	}
 
 	return entity;

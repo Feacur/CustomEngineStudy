@@ -11,7 +11,6 @@
 #include <lua.hpp>
 
 #include "asset_types.h"
-#include "prefab_parser.h"
 #include "../entity_system/component_types.h"
 
 //
@@ -40,6 +39,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
+	// file.push('\0');
 
 	Lua_Asset * asset = refT.get_fast();
 	new (asset) Lua_Asset;
@@ -90,12 +90,10 @@ template<> LOADING_FUNC(asset_pool_load<Prefab>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
+	file.push('\0');
 
 	Prefab * asset = refT.get_fast();
 	new (asset) Prefab;
-
-	// @Note: parse asset
-	sandbox::prefab::parse(*asset, file);
 
 	*asset = {custom::Entity::serialization_read(file, false)};
 }

@@ -20,8 +20,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	Transform * component = refT.get_fast();
 
 	bool done = false;
-	while (!done && *source < end) {
-		parse_eol(source, end); parse_void(source);
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		parse_void(source);
 		switch (**source) {
 			case 'p': ++(*source); component->position = (parse_void(source), parse_vec3(source)); break;
 
@@ -55,8 +56,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 	CUSTOM_ASSERT(false, "todo");
 
 	bool done = false;
-	while (!done && *source < end) {
-		parse_eol(source, end); parse_void(source);
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		parse_void(source);
 		switch (**source) {
 			case 'n': ++(*source); component->near  = 0.1f; break;
 			case 'f': ++(*source); component->far   = 100.0f; break;

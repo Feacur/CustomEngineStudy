@@ -24,3 +24,8 @@ namespace custom {
 	Array<cstring> asset_names;
 	Array<cstring> uniform_names;
 }
+
+namespace custom {
+	// @Todo: store strings
+	Array<char> todo_strings;
+}

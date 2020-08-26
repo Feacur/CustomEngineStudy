@@ -10,6 +10,10 @@
 
 #include <lua.hpp>
 
+namespace custom {
+	extern Array<char> todo_strings;
+}
+
 namespace sandbox {
 namespace ecs_lua_runner {
 
@@ -55,8 +59,9 @@ void update(lua_State * L, r32 dt) {
 
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
-		if (!lua_script->update) { continue; }
-		lua_function(L, lua_script->update, entity, dt);
+		if (lua_script->update_todo_strings_index == custom::empty_index) { continue; }
+		cstring update_name = custom::todo_strings.data + lua_script->update_todo_strings_index;
+		lua_function(L, update_name, entity, dt);
 	}
 }
 

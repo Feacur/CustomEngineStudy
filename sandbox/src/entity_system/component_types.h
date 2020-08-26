@@ -11,7 +11,7 @@ namespace custom {
 
 struct Lua_Script
 {
-	cstring update;
+	u32 update_todo_strings_index = custom::empty_index;
 };
 
 struct Visual
@@ -19,5 +19,5 @@ struct Visual
 	custom::RefT<custom::Shader_Asset> shader = {custom::empty_ref};
 	custom::RefT<custom::Texture_Asset> texture = {custom::empty_ref};
 	custom::RefT<custom::Mesh_Asset> mesh = {custom::empty_ref};
-	u8 layer;
+	u8 layer = 0;
 };

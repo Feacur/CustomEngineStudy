@@ -8,6 +8,10 @@
 
 #include "component_types.h"
 
+namespace custom {
+	extern Array<char> todo_strings;
+}
+
 //
 // Visual
 //
@@ -21,8 +25,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 	Visual * component = refT.get_fast();
 
 	bool done = false;
-	while (!done && *source < end) {
-		parse_eol(source, end); parse_void(source);
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		parse_void(source);
 		switch (**source) {
 			case 's': component->shader  = Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true); break;
 			case 't': component->texture = Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true);   break;
@@ -48,10 +53,19 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 	Lua_Script * component = refT.get_fast();
 
 	bool done = false;
-	while (!done && *source < end) {
-		parse_eol(source, end); parse_void(source);
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		parse_void(source);
 		switch (**source) {
-			case 'u': component->update = "script_rotate"; break;
+			case 'u': ++(*source); {
+				parse_void(source);
+				cstring line_end = *source; skip_to_eol(&line_end);
+				// @Todo
+				component->update_todo_strings_index = todo_strings.count;
+				todo_strings.push_range(*source, (u32)(line_end - *source));
+				custom::todo_strings.push('\0');
+			} break;
+
 			default: done = true; break;
 		}
 	}

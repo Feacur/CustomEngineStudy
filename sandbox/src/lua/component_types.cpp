@@ -9,6 +9,10 @@
 
 // @Todo: reuse userdata?
 
+namespace custom {
+	extern Array<char> todo_strings;
+}
+
 //
 // Lua_Script
 //
@@ -24,7 +28,10 @@ static int Lua_Script_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "update") == 0) { lua_pushstring(L, object->get_fast()->update); return 1; }
+	if (strcmp(id, "update") == 0) {
+		cstring value = custom::todo_strings.data + object->get_fast()->update_todo_strings_index;
+		lua_pushstring(L, value); return 1;
+	}
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -41,7 +48,12 @@ static int Lua_Script_newindex(lua_State * L) {
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
 		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
-		object->get_fast()->update = lua_tostring(L, 3); return 0;
+		cstring value = lua_tostring(L, 3);
+		// @Todo
+		object->get_fast()->update_todo_strings_index = custom::todo_strings.count;
+		custom::todo_strings.push_range(value, (u32)strlen(value));
+		custom::todo_strings.push('\0');
+		return 0;
 	}
 
 	LUA_REPORT_INDEX();
