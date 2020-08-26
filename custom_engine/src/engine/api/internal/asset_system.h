@@ -12,9 +12,9 @@ template<typename T> struct Asset_Registry { static u32 type; };
 struct Asset : Ref
 {
 	// instances
-	static Array<Asset>   instances;
-	static Array<cstring> paths;
-	static Array<u32>     types;
+	static Array<Asset> instances;
+	static Array<u32>   paths_todo_strings_index;
+	static Array<u32>   types;
 
 	// types API
 	static Array<ref_void_func *> asset_constructors;
@@ -23,17 +23,17 @@ struct Asset : Ref
 	static Array<loading_func *>  asset_loaders;
 	static Array<loading_func *>  asset_unloaders;
 
-	static Asset add(u32 type, cstring id, bool or_get);
-	static void  rem(u32 type, cstring id);
-	static Asset get(u32 type, cstring id);
-	static bool  has(u32 type, cstring id);
+	static Asset add(u32 type, u32 id, bool or_get);
+	static void  rem(u32 type, u32 id);
+	static Asset get(u32 type, u32 id);
+	static bool  has(u32 type, u32 id);
 
 	static cstring get_path(u32 type, Asset const & ref);
 
-	template<typename T> static RefT<T> add(cstring id, bool or_get);
-	template<typename T> static void    rem(cstring id);
-	template<typename T> static RefT<T> get(cstring id);
-	template<typename T> static bool    has(cstring id);
+	template<typename T> static RefT<T> add(u32 id, bool or_get);
+	template<typename T> static void    rem(u32 id);
+	template<typename T> static RefT<T> get(u32 id);
+	template<typename T> static bool    has(u32 id);
 
 	template<typename T> static cstring get_path(RefT<T> const & ref);
 };

@@ -2,15 +2,12 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/strings.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
 
 #include "component_types.h"
-
-namespace custom {
-	extern Array<char> todo_strings;
-}
 
 //
 // Visual
@@ -29,10 +26,22 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 		skip_to_eol(source); parse_eol(source);
 		parse_void(source);
 		switch (**source) {
-			case 's': component->shader  = Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true); break;
-			case 't': component->texture = Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true);   break;
-			case 'm': component->mesh    = Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true);             break;
-			case 'l': component->layer   = 0; break;
+			case 's': ++(*source); {
+				u32 id = custom::get_or_add_id("assets/shaders/v3_texture_tint.glsl", custom::empty_index);
+				component->shader = Asset::add<Shader_Asset>(id, true);
+			} break;
+
+			case 't': ++(*source); {
+				u32 id = custom::get_or_add_id("assets/textures/checkerboard.png", custom::empty_index);
+				component->texture = Asset::add<Texture_Asset>(id, true);
+			} break;
+
+			case 'm': ++(*source); {
+				u32 id = custom::get_or_add_id("assets/meshes/suzanne.obj", custom::empty_index);
+				component->mesh = Asset::add<Mesh_Asset>(id, true);
+			} break;
+
+			case 'l': ++(*source); component->layer = (u8)parse_u32(source); break;
 			default: done = true; break;
 		}
 	}
@@ -61,9 +70,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 				parse_void(source);
 				cstring line_end = *source; skip_to_eol(&line_end);
 				// @Todo
-				component->update_todo_strings_index = todo_strings.count;
-				todo_strings.push_range(*source, (u32)(line_end - *source));
-				custom::todo_strings.push('\0');
+				component->update_todo_strings_index = custom::get_or_add_id(*source, (u32)(line_end - *source));
 			} break;
 
 			default: done = true; break;

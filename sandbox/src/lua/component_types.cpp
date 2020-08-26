@@ -1,5 +1,6 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/strings.h"
 #include "engine/api/lua.h"
 #include "engine/impl/asset_system.h"
 
@@ -8,10 +9,6 @@
 #include <lua.hpp>
 
 // @Todo: reuse userdata?
-
-namespace custom {
-	extern Array<char> todo_strings;
-}
 
 //
 // Lua_Script
@@ -29,7 +26,7 @@ static int Lua_Script_index(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "update") == 0) {
-		cstring value = custom::todo_strings.data + object->get_fast()->update_todo_strings_index;
+		cstring value = custom::get(object->get_fast()->update_todo_strings_index);
 		lua_pushstring(L, value); return 1;
 	}
 
@@ -49,10 +46,7 @@ static int Lua_Script_newindex(lua_State * L) {
 	if (strcmp(id, "update") == 0) {
 		LUA_ASSERT_TYPE(LUA_TSTRING, 3);
 		cstring value = lua_tostring(L, 3);
-		// @Todo
-		object->get_fast()->update_todo_strings_index = custom::todo_strings.count;
-		custom::todo_strings.push_range(value, (u32)strlen(value));
-		custom::todo_strings.push('\0');
+		object->get_fast()->update_todo_strings_index = custom::get_or_add_id(value, (u32)strlen(value));
 		return 0;
 	}
 

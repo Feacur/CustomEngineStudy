@@ -3,16 +3,13 @@
 #include "engine/core/code.h"
 #include "engine/core/types.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/strings.h"
 #include "engine/api/internal/loader.h"
 #include "engine/impl/array.h"
 
 #include "component_types.h"
 
 #include <lua.hpp>
-
-namespace custom {
-	extern Array<char> todo_strings;
-}
 
 namespace sandbox {
 namespace ecs_lua_runner {
@@ -60,7 +57,7 @@ void update(lua_State * L, r32 dt) {
 		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
 		if (!lua_script) { continue; }
 		if (lua_script->update_todo_strings_index == custom::empty_index) { continue; }
-		cstring update_name = custom::todo_strings.data + lua_script->update_todo_strings_index;
+		cstring update_name = custom::get(lua_script->update_todo_strings_index);
 		lua_function(L, update_name, entity, dt);
 	}
 }
