@@ -33,6 +33,7 @@ struct Entity : public Ref
 
 	// API
 	static Entity create(bool is_instance);
+	static Entity serialization_read(Array<u8> const & file, bool is_instance);
 	void destroy(void);
 	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }

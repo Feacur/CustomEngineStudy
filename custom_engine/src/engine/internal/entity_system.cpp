@@ -1,6 +1,7 @@
 #include "custom_pch.h"
 
 #include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/types_names_lookup.h"
 #include "engine/impl/array.h"
 
 namespace custom {
@@ -38,6 +39,27 @@ Entity Entity::create(bool is_instance) {
 	return entity;
 }
 
+Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
+	Entity entity = create(is_instance);
+
+	cstring source = (cstring)file.data;
+	cstring const end = (cstring)file.data + file.count;
+	while (source < end) {
+		// cstring eol = strchr(source, '\n');
+		cstring eol = (cstring)memchr(source, '\n', (u32)(end - source));
+		source = eol ? eol + 1 : end;
+	}
+
+	// @Todo
+	for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
+		if (strcmp(custom::component_names[i], "Camera") == 0) { continue; }
+		Ref ref = entity.add_component(i);
+		(*Entity::component_serialization_readers[i])(ref, NULL);
+	}
+
+	return entity;
+}
+
 void Entity::destroy(void) {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
@@ -61,6 +83,8 @@ void Entity::destroy(void) {
 }
 
 Entity Entity::copy() const {
+	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+
 	Entity entity = create(true);
 
 	u32 entity_offset = id * Entity::component_destructors.count;

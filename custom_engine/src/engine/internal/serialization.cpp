@@ -16,6 +16,11 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 
 	Transform * component = refT.get_fast();
+
+	// @Todo
+	(*component) = {
+		{0,1,0}, {0,0,0,1}, {1,1,1}
+	};
 }
 
 }}

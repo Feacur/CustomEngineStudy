@@ -97,20 +97,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab>) {
 	// @Note: parse asset
 	sandbox::prefab::parse(*asset, file);
 
-	*asset = {custom::Entity::create(false)};
-
-	RefT<Transform> transform = asset->add_component<Transform>();
-	(*transform.get_fast()) = {
-		{0,1,0}, {0,0,0,1}, {1,1,1}
-	};
-	RefT<Visual> visual = asset->add_component<Visual>();
-	(*visual.get_fast()) = {
-		Asset::add<Shader_Asset>("assets/shaders/v3_texture_tint.glsl", true),
-		Asset::add<Texture_Asset>("assets/textures/checkerboard.png", true),
-		Asset::add<Mesh_Asset>("assets/meshes/suzanne.obj", true),
-	};
-	RefT<Lua_Script> lua_script = asset->add_component<Lua_Script>();
-	lua_script.get_fast()->update = "script_rotate";
+	*asset = {custom::Entity::serialization_read(file, false)};
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab>) {
