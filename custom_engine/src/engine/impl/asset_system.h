@@ -41,7 +41,7 @@ bool Asset::has(u32 id) {
 
 template<typename T>
 cstring Asset::get_path(RefT<T> const & ref) {
-	return get_path(Asset_Registry<T>::type, (Asset const &)ref);
+	return get_path({ref, Asset_Registry<T>::type});
 }
 
 }

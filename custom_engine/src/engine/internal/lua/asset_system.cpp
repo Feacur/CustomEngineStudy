@@ -13,6 +13,25 @@
 typedef custom::Asset Asset;
 typedef custom::Ref Ref;
 
+#define LUA_ASSERT_ASSET_TYPE(index) do {\
+	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
+	if (lua_getmetatable(L, index)) {\
+		bool is_an_asset = false;\
+		for (u32 i = 0; !is_an_asset && i < custom::asset_names.count; ++i) {\
+			if (luaL_getmetatable(L, custom::asset_names[i]) != LUA_TTABLE) {\
+				CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", custom::asset_names[i]);\
+			}\
+			is_an_asset = lua_rawequal(L, -1, -2);\
+			lua_pop(L, 1);\
+		}\
+		lua_pop(L, 1);\
+		CUSTOM_LUA_ASSERT(is_an_asset, "expected an asset at index %d", index);\
+	}\
+	else {\
+		CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);\
+	}\
+} while (0)\
+
 static int Asset_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Asset);
 
@@ -47,11 +66,11 @@ static int Asset_add(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Asset asset_ref = Asset::add(type, id);
+	Ref asset_ref = Asset::add(type, id);
 	
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = asset_ref;
+	*udata = {asset_ref, type};
 
 	return 1;
 }
@@ -90,27 +109,24 @@ static int Asset_get(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Asset asset_ref = Asset::get(type, id);
+	Ref asset_ref = Asset::get(type, id);
 
 	bool has_asset = (*Asset::asset_containers[type])(asset_ref);
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = asset_ref;
+	*udata = {asset_ref, type};
 
 	return 1;
 }
 
 static int Asset_get_path(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_ASSET_TYPE(1);
 
-	u32 type = (u32)lua_tointeger(L, 1);
-	LUA_ASSERT_USERDATA(custom::asset_names[type], 2);
-
-	Asset const * object = (Asset const *)lua_touserdata(L, 2);
-	cstring path = Asset::get_path(type, *object);
+	Asset const * object = (Asset const *)lua_touserdata(L, 1);
+	cstring path = Asset::get_path(*object);
 
 	if (!path) { lua_pushnil(L); return 1; }
 

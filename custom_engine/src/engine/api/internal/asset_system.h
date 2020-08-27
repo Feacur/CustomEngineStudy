@@ -12,10 +12,12 @@ template<typename T> struct Asset_Registry { static u32 type; };
 
 struct Asset : Ref
 {
+	u32 type;
+
 	// instances
-	static Array<Asset> instances;
-	static Array<u32>   ids;
-	static Array<u32>   types;
+	static Array<Ref> instance_refs;
+	static Array<u32> ids;
+	static Array<u32> types;
 	static Strings_Storage strings;
 
 	// strings API
@@ -29,12 +31,12 @@ struct Asset : Ref
 	static Array<loading_func *>  asset_loaders;
 	static Array<loading_func *>  asset_unloaders;
 
-	static Asset add(u32 type, u32 id);
-	static void  rem(u32 type, u32 id);
-	static Asset get(u32 type, u32 id);
-	static bool  has(u32 type, u32 id);
+	static Ref  add(u32 type, u32 id);
+	static void rem(u32 type, u32 id);
+	static Ref  get(u32 type, u32 id);
+	static bool has(u32 type, u32 id);
 
-	static cstring get_path(u32 type, Asset const & ref);
+	static cstring get_path(Asset const & asset);
 
 	template<typename T> static RefT<T> add(u32 id);
 	template<typename T> static void    rem(u32 id);

@@ -41,7 +41,6 @@
 	else {\
 		CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);\
 	}\
-\
 } while (0)\
 
 #else
