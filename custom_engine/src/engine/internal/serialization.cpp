@@ -35,7 +35,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 			} break;
 
 			case 's': ++(*source); {
-				component->scale    = (parse_void(source), parse_vec3(source));
+				component->scale = (parse_void(source), parse_vec3(source));
 			} break;
 
 			default: done = true; break;
@@ -63,11 +63,11 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 		parse_void(source);
 		switch (**source) {
 			case 'n': ++(*source); {
-				component->near  = (parse_void(source), parse_r32(source));
+				component->near = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 'f': ++(*source); {
-				component->far   = (parse_void(source), parse_r32(source));
+				component->far = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 's': ++(*source); {

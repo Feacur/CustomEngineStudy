@@ -14,6 +14,7 @@
 typedef custom::Shader_Asset Shader_Asset;
 typedef custom::Texture_Asset Texture_Asset;
 typedef custom::Mesh_Asset Mesh_Asset;
+typedef custom::Prefab_Asset Prefab_Asset;
 
 //
 // Shader_Asset
@@ -191,6 +192,86 @@ static luaL_Reg const Mesh_Asset_meta[] = {
 	{"__eq", Mesh_Asset_eq},
 	// instance:###
 	// Type.###
+	//
+	{NULL, NULL},
+};
+
+//
+// Prefab_Asset
+//
+
+static int Prefab_Asset_index(lua_State * L) {
+	typedef custom::RefT<Prefab_Asset> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Prefab_Asset);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Prefab_Asset_newindex(lua_State * L) {
+	typedef custom::RefT<Prefab_Asset> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Prefab_Asset_eq(lua_State * L) {
+	typedef custom::RefT<Prefab_Asset> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Prefab_Asset", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static int Prefab_Asset_instantiate(lua_State * L) {
+	typedef custom::RefT<Prefab_Asset> Asset_Ref;
+	
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_USERDATA("Prefab_Asset", 1);
+
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	Prefab_Asset const * prefab = object->get_fast();
+	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
+
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = prefab->copy();
+
+	return 1;
+}
+
+static luaL_Reg const Prefab_Asset_meta[] = {
+	{"__index", Prefab_Asset_index},
+	{"__newindex", Prefab_Asset_newindex},
+	{"__eq", Prefab_Asset_eq},
+	// instance:###
+	// Type.###
+	{"instantiate", Prefab_Asset_instantiate},
 	//
 	{NULL, NULL},
 };

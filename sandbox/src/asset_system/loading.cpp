@@ -73,37 +73,3 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 }
 
 }}
-
-//
-// Prefab
-//
-
-namespace custom {
-namespace loading {
-
-template<> LOADING_FUNC(asset_pool_load<Prefab>) {
-	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
-
-	cstring path = Asset::get_path(refT);
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
-	Array<u8> file; file::read(path, file);
-	if (!file.count) { return; }
-	file.push('\0');
-
-	Prefab * asset = refT.get_fast();
-	// new (asset) Prefab;
-
-	*asset = {custom::Entity::serialization_read(file, false)};
-}
-
-template<> LOADING_FUNC(asset_pool_unload<Prefab>) {
-	RefT<Prefab> & refT = (RefT<Prefab> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
-
-	Prefab * asset = refT.get_fast();
-	asset->destroy();
-}
-
-}}

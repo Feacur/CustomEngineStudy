@@ -4,5 +4,6 @@
 ASSET_IMPL(Shader_Asset)
 ASSET_IMPL(Texture_Asset)
 ASSET_IMPL(Mesh_Asset)
+ASSET_IMPL(Prefab_Asset)
 //
 #undef ASSET_IMPL

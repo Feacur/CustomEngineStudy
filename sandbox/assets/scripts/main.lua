@@ -22,17 +22,17 @@ end
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local floor_prefab = Asset.add(Prefab.type, "assets/prefabs/floor.entity", false)
-	local suzanne_prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne.entity", false)
-	local suzanne_rotating_prefab = Asset.add(Prefab.type, "assets/prefabs/suzanne rotating.entity", false)
+	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/floor.entity", false)
+	local suzanne_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne.entity", false)
+	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne rotating.entity", false)
 
-	local suzanne1 = Prefab.instantiate(suzanne_prefab)
+	local suzanne1 = Prefab_Asset.instantiate(suzanne_prefab)
 	local transform1 = suzanne1:get_component(Transform.type)
 	transform1.position = vec3.new(-4, 1, 0)
 	transform1.scale = vec3.new(2, 1, 2)
 
-	Prefab.instantiate(floor_prefab)
-	Prefab.instantiate(suzanne_rotating_prefab)
+	Prefab_Asset.instantiate(floor_prefab)
+	Prefab_Asset.instantiate(suzanne_rotating_prefab)
 
 	local suzanne2 = Entity.copy(suzanne1)
 	local transform2 = suzanne2:get_component(Transform.type)

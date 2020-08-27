@@ -2,6 +2,7 @@
 #include "engine/core/types.h"
 #include "engine/core/math_types.h"
 #include "engine/core/collection_types.h"
+#include "engine/api/internal/entity_system.h"
 #include "engine/api/graphics_params.h"
 
 namespace custom {
@@ -47,5 +48,7 @@ struct Mesh_Asset {
 		buffers.~Array();
 	}
 };
+
+struct Prefab_Asset : public Entity { };
 
 }
