@@ -1,0 +1,14 @@
+Transform
+	p 0 2 -5
+	r 0 0 0 1
+	s 1 1 1
+Camera
+	n 1
+	f 100
+	s 1
+	o 0
+	# clear flags: color | depth == 1 | 2
+	c 3
+	l 0
+Lua_Script
+	u script_fly

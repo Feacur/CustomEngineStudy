@@ -50,6 +50,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 				component->layer = (u8)(parse_void(source), parse_u32(source));
 			} break;
 
+			case '#': break;
 			default: done = true; break;
 		}
 	}
@@ -80,6 +81,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 				component->update_string_id = Entity::store_string(*source, (u32)(line_end - *source));
 			} break;
 
+			case '#': break;
 			default: done = true; break;
 		}
 	}

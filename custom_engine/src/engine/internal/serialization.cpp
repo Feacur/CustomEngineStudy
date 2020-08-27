@@ -38,6 +38,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 				component->scale = (parse_void(source), parse_vec3(source));
 			} break;
 
+			case '#': break;
 			default: done = true; break;
 		}
 	}
@@ -87,6 +88,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 				component->layer = (u8)(parse_void(source), parse_u32(source));
 			} break;
 
+			case '#': break;
 			default: done = true; break;
 		}
 	}

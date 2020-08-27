@@ -1,27 +1,10 @@
 local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 
-local function create_camera(layer, clear)
-	local entity = Entity.create(true)
-
-	local transform = entity:add_component(Transform.type)
-	transform.position = vec3.new(0, 2, -5)
-	transform.rotation = vec4.new(0, 0, 0, 1)
-	transform.scale    = vec3.new(1, 1, 1)
-
-	local camera = entity:add_component(Camera.type)
-	camera.near = 0.1
-	camera.far = 100 -- math.huge
-	camera.scale = 1 -- 1 / math.tan((math.pi / 2) / 2)
-	camera.ortho = 0
-	camera.clear = clear
-	camera.layer = layer;
-
-	return entity
-end
-
 function global_init()
 	print(lua_tag .. "global_init")
 
+	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
+	local camera_flying_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
 	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/floor.entity")
 	local suzanne_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne.entity")
 	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne rotating.entity")
@@ -39,11 +22,8 @@ function global_init()
 	transform2.position = vec3.new(4, 2, 0)
 	transform2.scale = vec3.new(1, 2, 1)
 
-	local camera_entity = create_camera(0, Clear_Flag.Color | Clear_Flag.Depth)
-	local camera_script = camera_entity:add_component(Lua_Script.type)
-	camera_script.update = "script_fly"
-
-	create_camera(1, Clear_Flag.Depth)
+	Prefab_Asset.instantiate(camera_prefab)
+	Prefab_Asset.instantiate(camera_flying_prefab)
 end
 
 local counter = 0
