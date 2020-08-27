@@ -22,8 +22,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	bool done = false;
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
-		parse_void(source);
-		switch (**source) {
+		switch ((parse_void(source), **source)) {
 			case 'p': ++(*source); {
 				component->position = (parse_void(source), parse_vec3(source));
 			} break;
@@ -61,8 +60,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 	bool done = false;
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
-		parse_void(source);
-		switch (**source) {
+		switch ((parse_void(source), **source)) {
 			case 'n': ++(*source); {
 				component->near = (parse_void(source), parse_r32(source));
 			} break;

@@ -303,7 +303,7 @@ namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	cstring path = Asset::get_path(refT);
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
@@ -320,9 +320,10 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	Prefab_Asset * asset = refT.get_fast();
+	CUSTOM_ASSERT(asset->exists(), "prefab instance doesn't exist");
 	asset->destroy();
 }
 

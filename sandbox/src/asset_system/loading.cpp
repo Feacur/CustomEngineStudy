@@ -1,9 +1,7 @@
 #include "engine/core/code.h"
 #include "engine/core/collection_types.h"
-#include "engine/core/math_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
-#include "engine/api/internal/component_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/asset_system.h"
 
