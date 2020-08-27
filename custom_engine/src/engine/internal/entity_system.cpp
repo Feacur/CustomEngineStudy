@@ -81,7 +81,7 @@ void Entity::destroy(void) {
 	u32 entity_offset = id * Entity::component_destructors.count;
 	if (entity_offset < Entity::components.capacity) {
 		for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
-			Ref const & ref = Entity::components.get(entity_offset + i);
+			Ref ref = Entity::components.get(entity_offset + i);
 			if ((*Entity::component_containers[i])(ref)) {
 				(*Entity::component_destructors[i])(ref);
 			}
@@ -105,7 +105,7 @@ Entity Entity::copy() const {
 	u32 entity_offset = id * Entity::component_destructors.count;
 	if (entity_offset < Entity::components.capacity) {
 		for (u32 i = 0; i < Entity::component_containers.count; ++i) {
-			Ref const & ref = Entity::components.get(entity_offset + i);
+			Ref ref = Entity::components.get(entity_offset + i);
 			if ((*Entity::component_containers[i])(ref)) {
 				Ref new_component_ref = entity.add_component(i);
 				(*Entity::component_copiers[i])(ref, new_component_ref);
@@ -193,7 +193,7 @@ bool Entity::has_component(u32 type) const {
 	u32 component_index = find(type, id, component_types, component_entity_ids);
 	if (component_index == custom::empty_index) { return false; }
 
-	Ref const & ref = Entity::components[component_index];
+	Ref ref = Entity::components[component_index];
 	return (*Entity::component_containers[type])(ref);
 }
 
@@ -235,7 +235,7 @@ void Entity::rem_component(u32 type) {
 		CUSTOM_ASSERT(false, "component doesn't exist"); return;
 	}
 
-	Ref const & ref = Entity::components.get(component_index);
+	Ref ref = Entity::components.get(component_index);
 
 	if ((*Entity::component_containers[type])(ref)) {
 		(*Entity::component_destructors[type])(ref);
@@ -258,7 +258,7 @@ bool Entity::has_component(u32 type) const {
 	u32 component_index = id * Entity::component_containers.count + type;
 	if (component_index >= Entity::components.capacity) { return false; }
 
-	Ref const & ref = Entity::components.get(component_index);
+	Ref ref = Entity::components.get(component_index);
 	return (*Entity::component_containers[type])(ref);
 }
 

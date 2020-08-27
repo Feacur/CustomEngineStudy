@@ -1,6 +1,7 @@
 #include "custom_pch.h"
 
 #include "engine/core/code.h"
+#include "engine/debug/log.h"
 #include "engine/api/internal/asset_system.h"
 #include "engine/impl/array.h"
 
@@ -111,14 +112,13 @@ bool Asset::has(u32 type, u32 id) {
 	u32 index = find(type, Asset::types, Asset::ids, id);
 	if (index == custom::empty_index) { return false; }
 
-	Ref const & ref = Asset::instances[index];
+	Ref ref = Asset::instances[index];
 	return (*Asset::asset_containers[type])(ref);
 }
 
 cstring Asset::get_path(u32 type, Asset const & ref) {
 	u32 index = find(type, Asset::types, Asset::instances, ref);
-	if (index == custom::empty_index) { return NULL; }
-
+	CUSTOM_ASSERT(index != custom::empty_index, "asset doesn't exist");
 	return get_string(Asset::ids[index]);
 }
 

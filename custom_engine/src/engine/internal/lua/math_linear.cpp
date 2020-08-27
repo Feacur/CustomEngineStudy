@@ -710,14 +710,14 @@ static int quat_get_forward(lua_State * L) {
 
 static luaL_Reg const quat_aux[] = {
 	// Lib_instance.###
-	{"product",       quat_product},
-	{"rotate", quat_rotate},
-	{"get_right",     quat_get_right},
-	{"get_up",        quat_get_up},
-	{"get_forward",   quat_get_forward},
+	{"product",      quat_product},
+	{"rotate",       quat_rotate},
+	{"get_right",    quat_get_right},
+	{"get_up",       quat_get_up},
+	{"get_forward",  quat_get_forward},
 	// Lib_Type.###
-	{"from_axis",     quat_from_axis},
-	{"from_radians",  quat_from_radians},
+	{"from_axis",    quat_from_axis},
+	{"from_radians", quat_from_radians},
 	{NULL, NULL},
 };
 

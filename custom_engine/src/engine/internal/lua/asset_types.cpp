@@ -279,7 +279,11 @@ static int Prefab_Asset_promote_to_instance(lua_State * L) {
 
 	prefab->promote_to_instance();
 
-	return 0;
+	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	luaL_setmetatable(L, "Entity");
+	*udata = *prefab;
+
+	return 1;
 }
 
 static luaL_Reg const Prefab_Asset_meta[] = {
@@ -287,9 +291,9 @@ static luaL_Reg const Prefab_Asset_meta[] = {
 	{"__newindex", Prefab_Asset_newindex},
 	{"__eq", Prefab_Asset_eq},
 	// instance:###
-	// Type.###
 	{"instantiate", Prefab_Asset_instantiate},
 	{"promote_to_instance", Prefab_Asset_promote_to_instance},
+	// Type.###
 	//
 	{NULL, NULL},
 };

@@ -109,8 +109,8 @@ static int Asset_get_path(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	LUA_ASSERT_USERDATA(custom::asset_names[type], 2);
 
-	Asset const * ref = (Asset const *)lua_touserdata(L, 2);
-	cstring path = Asset::get_path(type, *ref);
+	Asset const * object = (Asset const *)lua_touserdata(L, 2);
+	cstring path = Asset::get_path(type, *object);
 
 	if (!path) { lua_pushnil(L); return 1; }
 
