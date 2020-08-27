@@ -20,8 +20,8 @@ template<typename T> LOADING_FUNC(asset_pool_unload);
 namespace custom {
 
 template<typename T>
-RefT<T> Asset::add(u32 id, bool or_get) {
-	return {add(Asset_Registry<T>::type, id, or_get)};
+RefT<T> Asset::add(u32 id) {
+	return {add(Asset_Registry<T>::type, id)};
 }
 
 template<typename T>

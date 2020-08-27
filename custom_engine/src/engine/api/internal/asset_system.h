@@ -29,14 +29,14 @@ struct Asset : Ref
 	static Array<loading_func *>  asset_loaders;
 	static Array<loading_func *>  asset_unloaders;
 
-	static Asset add(u32 type, u32 id, bool or_get);
+	static Asset add(u32 type, u32 id);
 	static void  rem(u32 type, u32 id);
 	static Asset get(u32 type, u32 id);
 	static bool  has(u32 type, u32 id);
 
 	static cstring get_path(u32 type, Asset const & ref);
 
-	template<typename T> static RefT<T> add(u32 id, bool or_get);
+	template<typename T> static RefT<T> add(u32 id);
 	template<typename T> static void    rem(u32 id);
 	template<typename T> static RefT<T> get(u32 id);
 	template<typename T> static bool    has(u32 id);

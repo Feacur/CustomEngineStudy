@@ -44,7 +44,7 @@ static void on_app_init() {
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
 	u32 id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
-	custom::Asset::add<Lua_Asset>(id, false);
+	custom::Asset::add<Lua_Asset>(id);
 
 	// @Note: call Lua init
 	sandbox::ecs_lua_runner::lua_function(L, "global_init");

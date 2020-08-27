@@ -37,19 +37,17 @@ static int Asset_newindex(lua_State * L) {
 }
 
 static int Asset_add(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 3, "expected 3 arguments");
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
-	LUA_ASSERT_TYPE(LUA_TBOOLEAN, 3);
 
 	// @Todo: protect strings so that they wouldn't be garbage-collected
 	//        - either by storing them at the engine side
 	//        - or by marking them as such at the Lua side
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
-	bool or_get = lua_toboolean(L, 3);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Asset asset_ref = Asset::add(type, id, or_get);
+	Asset asset_ref = Asset::add(type, id);
 	
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
