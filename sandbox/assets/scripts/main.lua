@@ -14,16 +14,16 @@ function global_init()
 	transform1.position = vec3.new(-4, 1, 0)
 	transform1.scale = vec3.new(2, 1, 2)
 
-	Prefab_Asset.instantiate(floor_prefab)
-	Prefab_Asset.instantiate(suzanne_rotating_prefab)
+	floor_prefab:promote_to_instance()
+	suzanne_rotating_prefab:promote_to_instance()
 
 	local suzanne2 = Entity.copy(suzanne1)
 	local transform2 = suzanne2:get_component(Transform.type)
 	transform2.position = vec3.new(4, 2, 0)
 	transform2.scale = vec3.new(1, 2, 1)
 
-	Prefab_Asset.instantiate(camera_prefab)
-	Prefab_Asset.instantiate(camera_flying_prefab)
+	camera_prefab:promote_to_instance()
+	camera_flying_prefab:promote_to_instance()
 end
 
 local counter = 0

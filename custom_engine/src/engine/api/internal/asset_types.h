@@ -49,6 +49,8 @@ struct Mesh_Asset {
 	}
 };
 
-struct Prefab_Asset : public Entity { };
+struct Prefab_Asset : public Entity {
+	void promote_to_instance(void);
+};
 
 }

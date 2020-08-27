@@ -265,6 +265,23 @@ static int Prefab_Asset_instantiate(lua_State * L) {
 	return 1;
 }
 
+static int Prefab_Asset_promote_to_instance(lua_State * L) {
+	typedef custom::RefT<Prefab_Asset> Asset_Ref;
+	
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_USERDATA("Prefab_Asset", 1);
+
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	Prefab_Asset * prefab = object->get_fast();
+	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
+
+	prefab->promote_to_instance();
+
+	return 0;
+}
+
 static luaL_Reg const Prefab_Asset_meta[] = {
 	{"__index", Prefab_Asset_index},
 	{"__newindex", Prefab_Asset_newindex},
@@ -272,6 +289,7 @@ static luaL_Reg const Prefab_Asset_meta[] = {
 	// instance:###
 	// Type.###
 	{"instantiate", Prefab_Asset_instantiate},
+	{"promote_to_instance", Prefab_Asset_promote_to_instance},
 	//
 	{NULL, NULL},
 };
