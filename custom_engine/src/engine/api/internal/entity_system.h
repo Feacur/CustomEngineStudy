@@ -41,8 +41,11 @@ namespace custom {
 template<typename T> struct Component_Registry { static u32 type; };
 
 // @Todo: separate Entity_System container from Entity? and make the system container an instance?
-struct Entity : public Ref
+struct Entity
 {
+	Ref ref;
+	bool is_instance;
+
 	// entities
 	static Gen_Pool      generations;
 	static Array<Entity> instances;
@@ -64,9 +67,9 @@ struct Entity : public Ref
 	static Entity create(bool is_instance);
 	static Entity serialization_read(cstring * source);
 	void destroy(void);
-	Entity copy() const;
+	Entity copy(bool force_instance) const;
 	void promote_to_instance(void);
-	inline bool exists(void) const { return generations.contains(*this); }
+	inline bool exists(void) const { return generations.contains(ref); }
 
 	// components API
 	static Array<ref_void_func *> component_constructors;

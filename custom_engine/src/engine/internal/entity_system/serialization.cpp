@@ -4,7 +4,9 @@
 #include "engine/debug/log.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/api/internal/component_types.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/entity_system.h"
+#include "engine/impl/asset_system.h"
 #include "engine/impl/math_linear.h"
 
 #include <new>
@@ -142,16 +144,16 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 		switch ((parse_void(source), **source)) {
 			case 'e': ++(*source); {
 				Entity child = Entity::serialization_read(source);
-				refT.get_fast()->children.push(child);
+				refT.get_fast()->link(entity, child);
+			} break;
 
-				RefT<Hierarchy> child_hierarchy_ref = child.get_component<Hierarchy>();
-				if (!child_hierarchy_ref.exists()) {
-					child_hierarchy_ref = child.add_component<Hierarchy>();
-				}
-
-				Hierarchy * child_hierarchy = child_hierarchy_ref.get_fast();
-				new (child_hierarchy) Hierarchy;
-				child_hierarchy->parent = entity;
+			case 'p': ++(*source); {
+				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
+				Asset_RefT<Prefab_Asset> prefab = Asset::add<Prefab_Asset>(id);
+				
+				Entity child = prefab.ref.get_fast()->copy(false);
+				refT.get_fast()->link(entity, child);
 			} break;
 
 			case '#': break;

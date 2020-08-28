@@ -65,7 +65,7 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	}
 
 	for (u32 i = 0; i < to_component->children.count; ++i) {
-		to_component->children[i] = to_component->children[i].copy();
+		to_component->children[i] = to_component->children[i].copy(entity.is_instance);
 	}
 
 	for (u32 i = 0; i < to_component->children.count; ++i) {
@@ -85,7 +85,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 		RefT<Hierarchy>   parent_hierarchy_ref = component->parent.get_component<Hierarchy>();
 		Hierarchy       * parent_hierarchy     = parent_hierarchy_ref.get_fast();
 		for (u32 i = 0; i < parent_hierarchy->children.count; ++i) {
-			if (parent_hierarchy->children[i] == entity) {
+			if (parent_hierarchy->children[i].ref == entity.ref) {
 				parent_hierarchy->children.remove_at(i);
 				break;
 			}

@@ -27,6 +27,8 @@ struct Camera
 struct Hierarchy {
 	custom::Entity parent = {custom::empty_ref};
 	custom::Array<custom::Entity> children;
+
+	void link(custom::Entity entity, custom::Entity child);
 };
 
 // struct Transform2d

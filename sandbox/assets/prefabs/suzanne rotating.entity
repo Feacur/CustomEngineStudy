@@ -24,3 +24,4 @@ Hierarchy
 		m assets/meshes/suzanne.obj
 		l 1
 	~
+	p assets/prefabs/suzanne.entity

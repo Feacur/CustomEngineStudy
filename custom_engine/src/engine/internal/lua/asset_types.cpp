@@ -260,7 +260,7 @@ static int Prefab_Asset_instantiate(lua_State * L) {
 
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
-	*udata = prefab->copy();
+	*udata = prefab->copy(true);
 
 	return 1;
 }

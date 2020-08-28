@@ -59,8 +59,8 @@ void update() {
 	custom::Array<mat4> renderer_locals;
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob & renderer = renderers[i];
-		renderer_locals.ensure_capacity(renderer.entity.id);
-		renderer_locals.get(renderer.entity.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
+		renderer_locals.ensure_capacity(renderer.entity.ref.id + 1);
+		renderer_locals.get(renderer.entity.ref.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
 	}
 
 	for (u32 i = 0; i < renderers.count; ++i) {
@@ -69,10 +69,10 @@ void update() {
 		Hierarchy const * hierarchy = renderer.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
 
-		mat4 const & renderer_local = renderer_locals.get(renderer.entity.id);
+		mat4 const & renderer_local = renderer_locals.get(renderer.entity.ref.id);
 		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
 			custom::Entity child = hierarchy->children[ci];
-			renderer_locals.get(child.id) = mat_product(renderer_locals.get(child.id), renderer_local);
+			renderer_locals.get(child.ref.id) = mat_product(renderer_locals.get(child.ref.id), renderer_local);
 		}
 	}
 
@@ -102,8 +102,8 @@ void update() {
 	custom::Array<mat4> renderable_locals;
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob & renderable = renderables[i];
-		renderable_locals.ensure_capacity(renderable.entity.id);
-		renderable_locals.get(renderable.entity.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
+		renderable_locals.ensure_capacity(renderable.entity.ref.id + 1);
+		renderable_locals.get(renderable.entity.ref.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
 	}
 
 	for (u32 i = 0; i < renderables.count; ++i) {
@@ -112,10 +112,10 @@ void update() {
 		Hierarchy const * hierarchy = renderable.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
 
-		mat4 const & renderable_local = renderable_locals.get(renderable.entity.id);
+		mat4 const & renderable_local = renderable_locals.get(renderable.entity.ref.id);
 		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
 			custom::Entity child = hierarchy->children[ci];
-			renderable_locals.get(child.id) = mat_product(renderable_locals.get(child.id), renderable_local);
+			renderable_locals.get(child.ref.id) = mat_product(renderable_locals.get(child.ref.id), renderable_local);
 		}
 	}
 
@@ -133,7 +133,7 @@ void update() {
 		Renderer_Blob const & renderer = renderers[camera_i];
 
 		mat4 const camera_matrix = mat_product(
-			mat_inverse_transform(renderer_locals.get(renderer.entity.id)),
+			mat_inverse_transform(renderer_locals.get(renderer.entity.ref.id)),
 			interpolate(
 				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
 				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
@@ -162,7 +162,7 @@ void update() {
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
-			mat4 const transform_matrix = renderable_locals.get(renderable.entity.id);
+			mat4 const transform_matrix = renderable_locals.get(renderable.entity.ref.id);
 
 			if (shader_id != renderable.visual->shader.ref.id) {
 				shader_id = renderable.visual->shader.ref.id;
