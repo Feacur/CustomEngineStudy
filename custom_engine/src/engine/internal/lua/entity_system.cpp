@@ -63,7 +63,7 @@ static int Entity_add_component(lua_State * L) {
 	Ref component_ref = object->add_component(type);
 	
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::component_names[type]);
+	luaL_setmetatable(L, custom::component_names.get_string(type));
 	*udata = component_ref;
 
 	return 1;
@@ -106,7 +106,7 @@ static int Entity_get_component(lua_State * L) {
 	if (!has_component) { lua_pushnil(L); return 1; }
 
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);
-	luaL_setmetatable(L, custom::component_names[type]);
+	luaL_setmetatable(L, custom::component_names.get_string(type));
 	*udata = component_ref;
 
 	return 1;
@@ -193,9 +193,9 @@ void init_entity_system(lua_State * L) {
 	LUA_META_IMPL(Entity)
 	custom::lua::init_component_types(L);
 	custom::lua::init_client_component_types(L);
-	for (u32 i = 0; i < custom::component_names.count; ++i) {
-		lua_getglobal(L, custom::component_names[i]);
-		lua_pushinteger(L, i);
+	for (u32 type = 0; type < custom::component_names.get_count(); ++type) {
+		lua_getglobal(L, custom::component_names.get_string(type));
+		lua_pushinteger(L, type);
 		lua_setfield(L, -2, "type");
 		lua_pop(L, 1);
 	}

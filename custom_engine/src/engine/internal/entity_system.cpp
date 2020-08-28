@@ -25,6 +25,7 @@ Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
 Array<from_to_func *>  Entity::component_copiers;
+Array<component_loading_func *>  Entity::component_cleaners;
 Array<serialization_read_func *> Entity::component_serialization_readers;
 
 }
@@ -64,30 +65,37 @@ Entity Entity::create(bool is_instance) {
 	return entity;
 }
 
-Entity Entity::serialization_read(Array<u8> const & file) {
+Entity Entity::serialization_read(cstring * source) {
 	Entity entity = create(false);
 
 	// @Note: component readers are assumed to early out upon discovery of
 	//        any unrecognized non-whitespace sequence
 	constexpr static char const entity_type_name[] = "Entity";
 
-	cstring source = (cstring)file.data;
-	while (*source) {
-		parse_void(&source);
+	while (**source) {
+		parse_void(source);
+		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+
+		if (**source == '~') {
+			CUSTOM_TRACE("entity end");
+			break;
+		};
 
 		// @Change: process this block only as the firstmost?
-		if (strncmp(source, entity_type_name, C_ARRAY_LENGTH(entity_type_name) - 1) == 0) {
-			serialization::serialization_read_Entity_block(entity, &source);
+		if (strncmp(*source, entity_type_name, C_ARRAY_LENGTH(entity_type_name) - 1) == 0) {
+			serialization::serialization_read_Entity_block(entity, source);
+			continue;
 		}
 
-		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
-			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
-			Ref ref = entity.add_component(i);
-			(*Entity::component_serialization_readers[i])(ref, &source);
+		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
+		if (type != custom::empty_index) {
+			Ref ref = entity.add_component(type);
+			(*Entity::component_serialization_readers[type])(entity, ref, source);
+			continue;
 		}
 
 		// @Note: any unrecognized line is silently skipped
-		skip_to_eol(&source); parse_eol(&source);
+		skip_to_eol(source); parse_eol(source);
 	}
 
 	return entity;
@@ -98,10 +106,11 @@ void Entity::destroy(void) {
 
 	u32 entity_offset = id * Entity::component_destructors.count;
 	if (entity_offset < Entity::components.capacity) {
-		for (u32 i = 0; i < Entity::component_destructors.count; ++i) {
-			Ref ref = Entity::components.get(entity_offset + i);
-			if ((*Entity::component_containers[i])(ref)) {
-				(*Entity::component_destructors[i])(ref);
+		for (u32 type = 0; type < Entity::component_destructors.count; ++type) {
+			Ref ref = Entity::components.get(entity_offset + type);
+			if ((*Entity::component_containers[type])(ref)) {
+				(*Entity::component_cleaners[type])(*this, ref);
+				(*Entity::component_destructors[type])(ref);
 			}
 		}
 	}
@@ -124,11 +133,22 @@ Entity Entity::copy() const {
 		Ref ref = get_component(i);
 		if ((*Entity::component_containers[i])(ref)) {
 			Ref new_component_ref = entity.add_component(i);
-			(*Entity::component_copiers[i])(ref, new_component_ref);
+			(*Entity::component_copiers[i])(entity, ref, new_component_ref);
 		}
 	}
 
 	return entity;
+}
+
+void Entity::promote_to_instance(void) {
+	// @Todo: optimize or modify this check?
+	for (u32 i = 0; i < Entity::instances.count; ++i) {
+		if (Entity::instances[i] != *this) { continue; }
+		CUSTOM_ASSERT(false, "prefab is an instance already");
+		return;
+	}
+
+	Entity::instances.push(*this);
 }
 
 }
@@ -185,6 +205,7 @@ void Entity::rem_component(u32 type) {
 	Ref ref = Entity::components[component_index];
 
 	if ((*Entity::component_containers[type])(ref)) {
+		(*Entity::component_cleaners[type])(*this, ref);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -254,6 +275,7 @@ void Entity::rem_component(u32 type) {
 	Ref ref = Entity::components.get(component_index);
 
 	if ((*Entity::component_containers[type])(ref)) {
+		(*Entity::component_cleaners[type])(*this, ref);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -303,6 +325,7 @@ void Component::destroy(void) {
 	// @Note: duplicates `Entity::rem_component` code
 	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
 	if ((*Entity::component_containers[type])(ref)) {
+		(*Entity::component_cleaners[type])(entity, ref);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }

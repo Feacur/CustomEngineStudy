@@ -1923,7 +1923,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// );
 
 		// @Todo: make uniforms dynamic?
-		u32 uniform_id = ogl.strings.store_string(field_buffer.name, field_buffer.name_count);
+		u32 uniform_id = ogl.strings.get_id(field_buffer.name, field_buffer.name_count);
 
 		field->id = uniform_id;
 		field->location = field_buffer.location;

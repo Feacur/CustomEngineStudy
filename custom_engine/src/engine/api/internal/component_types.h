@@ -1,7 +1,7 @@
 #pragma once
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_params.h"
-// #include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/entity_system.h"
 
 namespace custom {
 
@@ -24,10 +24,10 @@ struct Camera
 	u8 layer;
 };
 
-// struct Hierarchy : public custom::Ref
-// {
-// 	// @Note: another entity reference
-// };
+struct Hierarchy {
+	custom::Entity parent = {custom::empty_ref};
+	custom::Array<custom::Entity> children;
+};
 
 // struct Transform2d
 // {
