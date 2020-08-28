@@ -8,6 +8,12 @@
 	#include <Windows.h>
 #endif
 
+#define CONSOLE_ENABLED
+
+#if defined(CUSTOM_SHIPPING)
+	// #undef CONSOLE_ENABLED
+#endif
+
 #if defined(CUSTOM_SHARED_LIBRARY)
 	#pragma message("engine is being built as a shared library")
 	#pragma message("and won't export performance variables")
@@ -76,7 +82,7 @@ u64 get_time(void)
 // platform implementation
 //
 
-#if !defined(CUSTOM_SHIPPING)
+#if defined(CONSOLE_ENABLED)
 static void PLATFORM_WINMAIN_SHOW_CONSOLE(void) {
 	if (AllocConsole()) {
 		FILE * file_stdout = NULL;

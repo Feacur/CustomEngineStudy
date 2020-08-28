@@ -1,10 +1,11 @@
 #pragma once
 
 #define LUA_REPORT_ENABLED
+// #define CUSTOM_LUA_BREAK() (void)0
 
 // @Note: fallback for shipping mode errors
 #if defined(CUSTOM_SHIPPING)
-	// #define CUSTOM_LUA_BREAK() (void)0
+	#undef CUSTOM_LUA_BREAK
 	#define CUSTOM_LUA_BREAK() lua_error(L)
 #endif
 

@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-// @Note: undef if want shipping mode logs and assertions
 #define LOG_MESSAGE_ENABLED
 #define LOG_ASSERT_ENABLED
 
