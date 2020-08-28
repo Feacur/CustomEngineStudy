@@ -31,7 +31,10 @@ void Bytecode::write_bytes(u8 alignment, u8 const * data, u32 count) {
 
 u8 const * Bytecode::read_bytes(u8 alignment, u32 count) const {
 	CUSTOM_ALIGN(read_offset, alignment);
-	CUSTOM_ASSERT(read_offset + count <= buffer.count, "reading past written instructions");
+	if (read_offset + count > buffer.count) {
+		CUSTOM_ASSERT(false, "reading past written instructions");
+		return NULL;
+	}
 	u8 const * data = buffer.data + read_offset;
 	read_offset += count;
 	return data;
@@ -39,7 +42,10 @@ u8 const * Bytecode::read_bytes(u8 alignment, u32 count) const {
 
 void Bytecode::copy_bytes(u8 alignment, u8 * out, u32 count) const {
 	CUSTOM_ALIGN(read_offset, alignment);
-	CUSTOM_ASSERT(read_offset + count <= buffer.count, "reading past written instructions");
+	if (read_offset + count > buffer.count) {
+		CUSTOM_ASSERT(false, "reading past written instructions");
+		return;
+	}
 	memcpy(out, buffer.data + read_offset, count);
 	read_offset += count;
 }

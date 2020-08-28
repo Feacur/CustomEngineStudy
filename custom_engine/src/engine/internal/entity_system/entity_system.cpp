@@ -142,7 +142,7 @@ void Entity::override(Entity const & entity) {
 }
 
 void Entity::destroy(void) {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return; }
 
 	u32 entity_offset = ref.id * Entity::component_destructors.count;
 	if (entity_offset < Entity::components.capacity) {
@@ -165,7 +165,7 @@ void Entity::destroy(void) {
 }
 
 Entity Entity::copy(bool force_instance) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return {custom::empty_ref}; }
 
 	Entity entity = create(is_instance || force_instance);
 
@@ -205,8 +205,7 @@ static u32 find(u32 type, u32 entity) {
 }
 
 Ref Entity::add_component(u32 type) {
-	// @Change: ignore, but warn, if component exists?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) {
@@ -229,8 +228,7 @@ Ref Entity::add_component(u32 type) {
 
 void Entity::rem_component(u32 type) {
 	// @Note: duplicates `Component::destroy` code
-	// @Change: ignore, but warn, if component doesn't exist?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) {
@@ -251,7 +249,7 @@ void Entity::rem_component(u32 type) {
 }
 
 Ref Entity::get_component(u32 type) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return custom::empty_ref; }
@@ -260,7 +258,7 @@ Ref Entity::get_component(u32 type) const {
 }
 
 bool Entity::has_component(u32 type) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return false; }
 
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return false; }
@@ -276,8 +274,7 @@ bool Entity::has_component(u32 type) const {
 namespace custom {
 
 Ref Entity::add_component(u32 type) {
-	// @Change: ignore, but warn, if component exists?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	// entity_components_ensure_capacity
 	u32 capacity_before = Entity::components.capacity;
@@ -299,8 +296,7 @@ Ref Entity::add_component(u32 type) {
 }
 
 void Entity::rem_component(u32 type) {
-	// @Change: ignore, but warn, if component doesn't exist?
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return; }
 
 	u32 component_index = ref.id * Entity::component_destructors.count + type;
 	if (component_index >= Entity::components.capacity) {
@@ -317,7 +313,7 @@ void Entity::rem_component(u32 type) {
 }
 
 Ref Entity::get_component(u32 type) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	u32 component_index = ref.id * Entity::component_containers.count + type;
 	if (component_index >= Entity::components.capacity) { return custom::empty_ref; }
@@ -326,7 +322,7 @@ Ref Entity::get_component(u32 type) const {
 }
 
 bool Entity::has_component(u32 type) const {
-	CUSTOM_ASSERT(exists(), "entity doesn't exist");
+	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return false; }
 
 	u32 component_index = ref.id * Entity::component_containers.count + type;
 	if (component_index >= Entity::components.capacity) { return false; }

@@ -49,7 +49,10 @@ namespace custom {
 namespace renderer {
 
 graphics::unit_id make_unit(RefT<Texture_Asset> const & asset) {
-	if (!asset.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return {custom::empty_ref.id, custom::empty_ref.id}; }
+	if (!asset.exists()) {
+		CUSTOM_ASSERT(false, "texture asset doesn't exist");
+		return {custom::empty_ref.id, custom::empty_ref.id};
+	}
 	// @Todo: make use of samplers; automate?
 	unit_id unit = {asset.id, custom::empty_ref.id};
 	bc->write(custom::graphics::Instruction::Allocate_Unit);

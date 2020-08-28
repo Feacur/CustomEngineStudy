@@ -27,7 +27,10 @@ Ref Gen_Pool::create(void) {
 
 void Gen_Pool::destroy(Ref const & ref) {
 	// @Change: ignore, but warn, if data doesn't exist?
-	CUSTOM_ASSERT(ref.gen == gens.get(ref.id), "destroying null data");
+	if (ref.gen != gens.get(ref.id)) {
+		CUSTOM_ASSERT(false, "destroying null data");
+		return;
+	}
 	++gens[ref.id];
 	if (ref.id == gens.count - 1) {
 		gens.pop();

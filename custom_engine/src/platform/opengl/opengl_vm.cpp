@@ -1240,7 +1240,10 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 
 	resource->gen = ref.gen;
 
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "shader %d wasn't marked as pending", ref.id);
+	if (resource->ready_state != RS_PENDING) {
+		CUSTOM_ASSERT(false, "shader %d wasn't marked as pending", ref.id);
+		return;
+	}
 	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
 }
@@ -1275,7 +1278,10 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 
 	resource->gen = ref.gen;
 
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "texture %d wasn't marked as pending", ref.id);
+	if (resource->ready_state != RS_PENDING) {
+		CUSTOM_ASSERT(false, "texture %d wasn't marked as pending", ref.id);
+		return;
+	}
 	platform_consume_texture_params(asset, resource);
 
 	// -- allocate memory --
@@ -1391,7 +1397,10 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		CUSTOM_TRACE("mesh %d already exists", ref.id);
 		return;
 	}
-	CUSTOM_ASSERT(resource->ready_state == RS_PENDING, "mesh %d wasn't marked as pending", ref.id);
+	if (resource->ready_state != RS_PENDING) {
+		CUSTOM_ASSERT(false, "mesh %d wasn't marked as pending", ref.id);
+		return;
+	}
 	platform_consume_mesh_params(asset, resource);
 
 	resource->gen = ref.gen;
