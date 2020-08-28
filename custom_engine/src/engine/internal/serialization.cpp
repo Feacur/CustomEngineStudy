@@ -141,8 +141,17 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case 'e': ++(*source); {
-				CUSTOM_TRACE("hierarchy entity");
-				refT.get_fast()->children.push(Entity::serialization_read(source));
+				Entity child = Entity::serialization_read(source);
+				refT.get_fast()->children.push(child);
+
+				RefT<Hierarchy> child_hierarchy_ref = child.get_component<Hierarchy>();
+				if (!child_hierarchy_ref.exists()) {
+					child_hierarchy_ref = child.add_component<Hierarchy>();
+				}
+
+				Hierarchy * child_hierarchy = child_hierarchy_ref.get_fast();
+				new (child_hierarchy) Hierarchy;
+				child_hierarchy->parent = entity;
 			} break;
 
 			case '#': break;

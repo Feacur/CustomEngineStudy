@@ -74,6 +74,16 @@ template<> COMPONENT_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 
 	Hierarchy * component = refT.get_fast();
 
+	if (component->parent.exists()) {
+		RefT<Hierarchy> parent_hierarchy_ref = component->parent.get_component<Hierarchy>();
+		Hierarchy * parent_hierarchy = parent_hierarchy_ref.get_fast();
+		for (u32 i = 0; i < parent_hierarchy->children.count; ++i) {
+			if (parent_hierarchy->children[i] == entity) {
+				component->children[i].destroy();
+			}
+		}
+	}
+
 	for (u32 i = 0; i < component->children.count; ++i) {
 		component->children[i].destroy();
 	}

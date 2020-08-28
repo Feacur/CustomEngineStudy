@@ -24,7 +24,7 @@ namespace custom {
 #define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
 typedef FROM_TO_FUNC(from_to_func);
 
-#define COMPONENT_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
+#define COMPONENT_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref)
 typedef COMPONENT_LOADING_FUNC(component_loading_func);
 
 #define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)
