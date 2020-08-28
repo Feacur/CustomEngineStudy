@@ -6,21 +6,11 @@ function global_init()
 	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
 	local camera_flying_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
 	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/floor.entity")
-	local suzanne_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne.entity")
 	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne rotating.entity")
 
-	local suzanne1 = Prefab_Asset.instantiate(suzanne_prefab)
-	local transform1 = suzanne1:get_component(Transform.type)
-	transform1.position = vec3.new(-4, 1, 0)
-	transform1.scale = vec3.new(2, 1, 2)
-
-	floor_prefab:promote_to_instance()
+	-- floor_prefab:promote_to_instance()
+	Prefab_Asset.instantiate(floor_prefab)
 	Prefab_Asset.instantiate(suzanne_rotating_prefab)
-
-	local suzanne2 = Entity.copy(suzanne1, false)
-	local transform2 = suzanne2:get_component(Transform.type)
-	transform2.position = vec3.new(4, 2, 0)
-	transform2.scale = vec3.new(1, 2, 1)
 
 	camera_prefab:promote_to_instance()
 end

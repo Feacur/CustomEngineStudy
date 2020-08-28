@@ -39,6 +39,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	// file.push('\0');
 
 	Asset_RefT<Lua_Asset> & refT = (Asset_RefT<Lua_Asset> &)asset_ref;
+
 	Lua_Asset * asset = refT.ref.get_fast();
 	// new (asset) Lua_Asset;
 
@@ -59,6 +60,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	}
 
 	// @Todo: implement load/unload
+	asset = refT.ref.get_fast();
 	asset->~Lua_Asset();
 }
 
@@ -66,6 +68,7 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
+
 	Lua_Asset * asset = refT.get_fast();
 	asset->~Lua_Asset();
 }

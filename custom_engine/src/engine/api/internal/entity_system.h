@@ -66,6 +66,8 @@ struct Entity
 	// API
 	static Entity create(bool is_instance);
 	static Entity serialization_read(cstring * source);
+	void override(cstring * source);
+	void override(Entity const & entity);
 	void destroy(void);
 	Entity copy(bool force_instance) const;
 	void promote_to_instance(void);

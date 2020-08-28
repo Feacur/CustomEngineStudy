@@ -11,6 +11,9 @@ namespace custom {
 
 template<typename T>
 RefT<T> Ref_Pool<T>::create(void) {
+	CUSTOM_ASSERT(generations.gens.capacity < 100, "");
+	CUSTOM_ASSERT(generations.gaps.capacity < 100, "");
+	CUSTOM_ASSERT(instances.capacity < 100, "");
 	if (generations.gaps.count == 0) { instances.push(); }
 	Ref ref = generations.create();
 	return {ref};

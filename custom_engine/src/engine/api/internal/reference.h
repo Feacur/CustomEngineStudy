@@ -1,4 +1,6 @@
 #pragma once
+#include "engine/core/code.h"
+#include "engine/debug/log.h"
 #include "engine/core/collection_types.h"
 
 namespace custom {
@@ -84,10 +86,23 @@ struct Ref_Pool
 	// RefT API
 	inline bool contains(Ref const & ref) const { return generations.contains(ref); };
 
-	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
+	inline T * get_fast(Ref const & ref) {
+		
+		
+	CUSTOM_ASSERT(generations.gens.capacity < 100, "");
+	CUSTOM_ASSERT(generations.gaps.capacity < 100, "");
+	CUSTOM_ASSERT(instances.capacity < 100, "");
+		return &instances[ref.id]; }
 	inline T * get_safe(Ref const & ref) { return generations.contains(ref) ? &instances[ref.id] : NULL; }
 
-	inline T const * get_fast(Ref const & ref) const { return &instances[ref.id]; }
+	inline T const * get_fast(Ref const & ref) const {
+		
+		
+	CUSTOM_ASSERT(generations.gens.capacity < 100, "");
+	CUSTOM_ASSERT(generations.gaps.capacity < 100, "");
+	CUSTOM_ASSERT(instances.capacity < 100, "");
+		
+		return &instances[ref.id]; }
 	inline T const * get_safe(Ref const & ref) const { return generations.contains(ref) ? &instances[ref.id] : NULL; }
 };
 

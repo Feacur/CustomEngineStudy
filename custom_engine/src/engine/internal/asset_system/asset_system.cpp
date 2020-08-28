@@ -102,19 +102,23 @@ static u32 find(u32 type, u32 resource) {
 }
 
 Asset Asset::add(u32 type, u32 resource) {
-	u32 index = find(type, resource);
-	if (index == custom::empty_index) {
-		index = Asset::resources.count;
-		Asset::instance_refs.push({custom::empty_ref});
-		Asset::resources.push(resource);
-		Asset::types.push(type);
-	}
+	Asset asset = {custom::empty_ref, resource, type};
 
-	Asset asset = {Asset::instance_refs[index], resource, type};
+	u32 index = find(type, resource);
+	if (index != custom::empty_index) { asset.ref = Asset::instance_refs[index]; }
 
 	if (asset.ref.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(asset.ref)) {
+		if (index != custom::empty_index) {
+			Asset::instance_refs.remove_at(index);
+			Asset::resources.remove_at(index);
+			Asset::types.remove_at(index);
+		}
+
 		asset.ref = {(*Asset::asset_constructors[type])()};
-		Asset::instance_refs[index] = asset.ref;
+		Asset::instance_refs.push(asset.ref);
+		Asset::resources.push(resource);
+		Asset::types.push(type);
+
 		(*Asset::asset_loaders[type])(asset);
 	}
 

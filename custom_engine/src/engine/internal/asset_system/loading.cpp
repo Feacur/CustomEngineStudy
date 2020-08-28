@@ -58,6 +58,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!file.count) { return; }
 
 	Asset_RefT<Shader_Asset> & refT = (Asset_RefT<Shader_Asset> &)asset_ref;
+
 	Shader_Asset * asset = refT.ref.get_fast();
 	// new (asset) Shader_Asset;
 
@@ -83,6 +84,7 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
+
 	Shader_Asset * asset = refT.get_fast();
 	asset->~Shader_Asset();
 
@@ -130,6 +132,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!file.count) { return; }
 
 	Asset_RefT<Texture_Asset> & refT = (Asset_RefT<Texture_Asset> &)asset_ref;
+
 	Texture_Asset * asset = refT.ref.get_fast();
 	// new (asset) Texture_Asset;
 
@@ -187,6 +190,7 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
+
 	Texture_Asset * asset = refT.get_fast();
 	asset->~Texture_Asset();
 
@@ -223,6 +227,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
 	Asset_RefT<Mesh_Asset> & refT = (Asset_RefT<Mesh_Asset> &)asset_ref;
+
 	Mesh_Asset * asset = refT.ref.get_fast();
 	new (asset) Mesh_Asset;
 
@@ -284,6 +289,7 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
+
 	Mesh_Asset * asset = refT.get_fast();
 	asset->~Mesh_Asset();
 
@@ -312,19 +318,26 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	file.push('\0');
 
 	Asset_RefT<Prefab_Asset> & refT = (Asset_RefT<Prefab_Asset> &)asset_ref;
+
+	CUSTOM_TRACE("load asset: '%s'", path);
+
+	// @Note: can and will reallocate entity data and asset data
+	cstring source = (cstring)file.data;
+	custom::Entity prefab = custom::Entity::serialization_read(&source);
+
+	// @Note: that's why memory instance is being fetched later
 	Prefab_Asset * asset = refT.ref.get_fast();
 	// new (asset) Prefab_Asset;
 
-	cstring source = (cstring)file.data;
-	*asset = {custom::Entity::serialization_read(&source)};
+	*asset = {prefab};
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
+
 	Prefab_Asset * asset = refT.get_fast();
-	CUSTOM_ASSERT(asset->exists(), "prefab instance doesn't exist");
 	asset->destroy();
 }
 

@@ -60,9 +60,6 @@ static int Asset_add(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
 
-	// @Todo: protect strings so that they wouldn't be garbage-collected
-	//        - either by storing them at the engine side
-	//        - or by marking them as such at the Lua side
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);

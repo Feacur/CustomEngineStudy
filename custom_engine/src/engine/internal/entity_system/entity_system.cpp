@@ -66,6 +66,7 @@ Entity Entity::create(bool is_instance) {
 }
 
 Entity Entity::serialization_read(cstring * source) {
+	CUSTOM_TRACE("serialization read start");
 	Entity entity = create(false);
 
 	// @Note: component readers are assumed to early out upon discovery of
@@ -77,7 +78,6 @@ Entity Entity::serialization_read(cstring * source) {
 		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 
 		if (**source == '~') {
-			CUSTOM_TRACE("entity end");
 			break;
 		};
 
@@ -98,7 +98,47 @@ Entity Entity::serialization_read(cstring * source) {
 		skip_to_eol(source); parse_eol(source);
 	}
 
+	CUSTOM_TRACE("serialization read end");
 	return entity;
+}
+
+void Entity::override(cstring * source) {
+	CUSTOM_TRACE("override start");
+
+	while (**source) {
+		parse_void(source);
+		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+
+		if (**source == '~') {
+			break;
+		};
+
+		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
+		if (type != custom::empty_index) {
+			Ref component_ref = has_component(type) ? get_component(type) : add_component(type);
+			(*Entity::component_serialization_readers[type])(*this, component_ref, source);
+			continue;
+		}
+
+		// @Note: any unrecognized line is silently skipped
+		skip_to_eol(source); parse_eol(source);
+	}
+
+	CUSTOM_TRACE("override end");
+}
+
+void Entity::override(Entity const & entity) {
+	CUSTOM_TRACE("override start");
+
+	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
+		Ref const from_component_ref = entity.get_component(type);
+		if ((*Entity::component_containers[type])(from_component_ref)) {
+			Ref to_component_ref = has_component(type) ? get_component(type) : add_component(type);
+			(*Entity::component_copiers[type])(*this, from_component_ref, to_component_ref);
+		}
+	}
+
+	CUSTOM_TRACE("override end");
 }
 
 void Entity::destroy(void) {
@@ -129,11 +169,11 @@ Entity Entity::copy(bool force_instance) const {
 
 	Entity entity = create(is_instance || force_instance);
 
-	for (u32 i = 0; i < Entity::component_containers.count; ++i) {
-		Ref component_ref = get_component(i);
-		if ((*Entity::component_containers[i])(component_ref)) {
-			Ref new_component_ref = entity.add_component(i);
-			(*Entity::component_copiers[i])(entity, component_ref, new_component_ref);
+	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
+		Ref const from_component_ref = get_component(type);
+		if ((*Entity::component_containers[type])(from_component_ref)) {
+			Ref to_component_ref = entity.add_component(type);
+			(*Entity::component_copiers[type])(entity, from_component_ref, to_component_ref);
 		}
 	}
 
@@ -141,7 +181,7 @@ Entity Entity::copy(bool force_instance) const {
 }
 
 void Entity::promote_to_instance(void) {
-	if (is_instance) { CUSTOM_ASSERT(!is_instance, "prefab is an instance already"); return; }
+	if (is_instance) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
 	is_instance = true;
 	Entity::instances.push(*this);
 }
