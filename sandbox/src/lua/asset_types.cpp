@@ -14,11 +14,11 @@
 //
 
 static int Lua_Asset_index(lua_State * L) {
-	typedef custom::RefT<Lua_Asset> Ref;
+	typedef custom::Asset_RefT<Lua_Asset> Asset_Ref;
 
 	LUA_INDEX_RAWGET_IMPL(Lua_Asset);
 
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -31,9 +31,9 @@ static int Lua_Asset_index(lua_State * L) {
 }
 
 static int Lua_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<Lua_Asset> Ref;
+	typedef custom::Asset_RefT<Lua_Asset> Asset_Ref;
 
-	Ref * object = (Ref *)lua_touserdata(L, 1);
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -46,15 +46,15 @@ static int Lua_Asset_newindex(lua_State * L) {
 }
 
 static int Lua_Asset_eq(lua_State * L) {
-	typedef custom::RefT<Lua_Asset> Ref;
+	typedef custom::Asset_RefT<Lua_Asset> Asset_Ref;
 
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("Lua_Asset", 2);
 
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, *object1 == *object2);
+	lua_pushboolean(L, object1->ref == object2->ref);
 
 	return 1;
 }

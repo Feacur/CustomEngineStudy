@@ -7,9 +7,7 @@
 
 namespace custom {
 
-template<typename T> FROM_TO_FUNC(ref_pool_copy) {
-	*RefT<T>::pool.get_safe(to) = *RefT<T>::pool.get_safe(from);
-}
+template<typename T> FROM_TO_FUNC(ref_pool_copy);
 
 }
 

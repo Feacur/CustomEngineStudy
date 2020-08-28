@@ -15,7 +15,7 @@ function global_init()
 	transform1.scale = vec3.new(2, 1, 2)
 
 	floor_prefab:promote_to_instance()
-	suzanne_rotating_prefab:promote_to_instance()
+	Prefab_Asset.instantiate(suzanne_rotating_prefab)
 
 	local suzanne2 = Entity.copy(suzanne1)
 	local transform2 = suzanne2:get_component(Transform.type)

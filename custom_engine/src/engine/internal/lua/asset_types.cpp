@@ -21,11 +21,11 @@ typedef custom::Prefab_Asset Prefab_Asset;
 //
 
 static int Shader_Asset_index(lua_State * L) {
-	typedef custom::RefT<custom::Shader_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Shader_Asset> Asset_Ref;
 
 	LUA_INDEX_RAWGET_IMPL(Shader_Asset);
 
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -38,9 +38,9 @@ static int Shader_Asset_index(lua_State * L) {
 }
 
 static int Shader_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<custom::Shader_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Shader_Asset> Asset_Ref;
 
-	Ref * object = (Ref *)lua_touserdata(L, 1);
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -53,15 +53,15 @@ static int Shader_Asset_newindex(lua_State * L) {
 }
 
 static int Shader_Asset_eq(lua_State * L) {
-	typedef custom::RefT<custom::Shader_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Shader_Asset> Asset_Ref;
 
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("Shader_Asset", 2);
 
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, *object1 == *object2);
+	lua_pushboolean(L, object1->ref == object2->ref);
 
 	return 1;
 }
@@ -81,11 +81,11 @@ static luaL_Reg const Shader_Asset_meta[] = {
 //
 
 static int Texture_Asset_index(lua_State * L) {
-	typedef custom::RefT<custom::Texture_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Texture_Asset> Asset_Ref;
 
 	LUA_INDEX_RAWGET_IMPL(Texture_Asset);
 
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -98,9 +98,9 @@ static int Texture_Asset_index(lua_State * L) {
 }
 
 static int Texture_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<custom::Texture_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Texture_Asset> Asset_Ref;
 
-	Ref * object = (Ref *)lua_touserdata(L, 1);
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -113,15 +113,15 @@ static int Texture_Asset_newindex(lua_State * L) {
 }
 
 static int Texture_Asset_eq(lua_State * L) {
-	typedef custom::RefT<custom::Texture_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Texture_Asset> Asset_Ref;
 
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("Texture_Asset", 2);
 
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, *object1 == *object2);
+	lua_pushboolean(L, object1->ref == object2->ref);
 
 	return 1;
 }
@@ -141,11 +141,11 @@ static luaL_Reg const Texture_Asset_meta[] = {
 //
 
 static int Mesh_Asset_index(lua_State * L) {
-	typedef custom::RefT<custom::Mesh_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Mesh_Asset> Asset_Ref;
 
 	LUA_INDEX_RAWGET_IMPL(Mesh_Asset);
 
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -158,9 +158,9 @@ static int Mesh_Asset_index(lua_State * L) {
 }
 
 static int Mesh_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<custom::Mesh_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Mesh_Asset> Asset_Ref;
 
-	Ref * object = (Ref *)lua_touserdata(L, 1);
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -173,15 +173,15 @@ static int Mesh_Asset_newindex(lua_State * L) {
 }
 
 static int Mesh_Asset_eq(lua_State * L) {
-	typedef custom::RefT<custom::Mesh_Asset> Ref;
+	typedef custom::Asset_RefT<custom::Mesh_Asset> Asset_Ref;
 
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("Mesh_Asset", 2);
 
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, *object1 == *object2);
+	lua_pushboolean(L, object1->ref == object2->ref);
 
 	return 1;
 }
@@ -201,11 +201,11 @@ static luaL_Reg const Mesh_Asset_meta[] = {
 //
 
 static int Prefab_Asset_index(lua_State * L) {
-	typedef custom::RefT<Prefab_Asset> Ref;
+	typedef custom::Asset_RefT<Prefab_Asset> Asset_Ref;
 
 	LUA_INDEX_RAWGET_IMPL(Prefab_Asset);
 
-	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -218,9 +218,9 @@ static int Prefab_Asset_index(lua_State * L) {
 }
 
 static int Prefab_Asset_newindex(lua_State * L) {
-	typedef custom::RefT<Prefab_Asset> Ref;
+	typedef custom::Asset_RefT<Prefab_Asset> Asset_Ref;
 
-	Ref * object = (Ref *)lua_touserdata(L, 1);
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	cstring id = lua_tostring(L, 2);
@@ -233,21 +233,21 @@ static int Prefab_Asset_newindex(lua_State * L) {
 }
 
 static int Prefab_Asset_eq(lua_State * L) {
-	typedef custom::RefT<Prefab_Asset> Ref;
+	typedef custom::Asset_RefT<Prefab_Asset> Asset_Ref;
 
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("Prefab_Asset", 2);
 
-	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
-	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, *object1 == *object2);
+	lua_pushboolean(L, object1->ref == object2->ref);
 
 	return 1;
 }
 
 static int Prefab_Asset_instantiate(lua_State * L) {
-	typedef custom::RefT<Prefab_Asset> Asset_Ref;
+	typedef custom::Asset_RefT<Prefab_Asset> Asset_Ref;
 	
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	LUA_ASSERT_USERDATA("Prefab_Asset", 1);
@@ -255,7 +255,7 @@ static int Prefab_Asset_instantiate(lua_State * L) {
 	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
-	Prefab_Asset const * prefab = object->get_fast();
+	Prefab_Asset const * prefab = object->ref.get_fast();
 	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
 
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
@@ -266,7 +266,7 @@ static int Prefab_Asset_instantiate(lua_State * L) {
 }
 
 static int Prefab_Asset_promote_to_instance(lua_State * L) {
-	typedef custom::RefT<Prefab_Asset> Asset_Ref;
+	typedef custom::Asset_RefT<Prefab_Asset> Asset_Ref;
 	
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	LUA_ASSERT_USERDATA("Prefab_Asset", 1);
@@ -274,7 +274,7 @@ static int Prefab_Asset_promote_to_instance(lua_State * L) {
 	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
-	Prefab_Asset * prefab = object->get_fast();
+	Prefab_Asset * prefab = object->ref.get_fast();
 	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
 
 	prefab->promote_to_instance();
