@@ -36,7 +36,7 @@
 			header_text,
 			"custom engine"
 			"- %.1f ms (%.1f FPS)"
-			"---> l:%.1f ms | r:%.1f ms | w:%.1f ms"
+			"---> system: %.1f ms | logic: %.1f ms | render: %.1f ms"
 			"---> dt %.1f ms",
 			debug_ms, debug_fps,
 			system_ms, logic_ms, render_ms,

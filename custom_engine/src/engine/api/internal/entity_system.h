@@ -22,7 +22,7 @@ namespace custom {
 namespace custom {
 
 #define ENTITY_FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
-typedef ENTITY_FROM_TO_FUNC(ENTITY_FROM_TO_FUNC);
+typedef ENTITY_FROM_TO_FUNC(entity_from_to_func);
 
 #define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, bool entity_will_be_destroyed)
 typedef ENTITY_LOADING_FUNC(entity_loading_func);
@@ -77,7 +77,7 @@ struct Entity
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
-	static Array<ENTITY_FROM_TO_FUNC *> component_copiers;
+	static Array<entity_from_to_func *> component_copiers;
 	static Array<entity_loading_func *> component_cleaners;
 	static Array<serialization_read_func *> component_serialization_readers;
 
