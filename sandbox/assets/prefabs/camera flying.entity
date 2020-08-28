@@ -1,5 +1,6 @@
 Entity
-	#
+	# automatically promote to an instance
+	i 1
 Transform
 	p 0 2 -5
 	r 0 0 0 1

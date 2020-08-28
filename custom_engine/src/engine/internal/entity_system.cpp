@@ -50,6 +50,13 @@ cstring Entity::get_string(u32 id) {
 //
 
 namespace custom {
+namespace serialization {
+
+void serialization_read_Entity_block(Entity & entity, cstring * source);
+
+}}
+
+namespace custom {
 
 Entity Entity::create(bool is_instance) {
 	Entity entity = {Entity::generations.create()};
@@ -57,18 +64,29 @@ Entity Entity::create(bool is_instance) {
 	return entity;
 }
 
-Entity Entity::serialization_read(Array<u8> const & file, bool is_instance) {
-	Entity entity = create(is_instance);
+Entity Entity::serialization_read(Array<u8> const & file) {
+	Entity entity = create(false);
+
+	// @Note: component readers are assumed to early out upon discovery of
+	//        any unrecognized non-whitespace sequence
+	constexpr static char const entity_type_name[] = "Entity";
 
 	cstring source = (cstring)file.data;
-	cstring const end = (cstring)file.data + file.count;
-	while (source < end) {
+	while (*source) {
 		parse_void(&source);
+
+		// @Change: process this block only as the firstmost?
+		if (strncmp(source, entity_type_name, C_ARRAY_LENGTH(entity_type_name) - 1) == 0) {
+			serialization::serialization_read_Entity_block(entity, &source);
+		}
+
 		for (u32 i = 0; i < Entity::component_constructors.count; ++i) {
 			if (strncmp(source, custom::component_names[i], strlen(custom::component_names[i])) != 0) { continue; }
 			Ref ref = entity.add_component(i);
-			(*Entity::component_serialization_readers[i])(ref, &source, end);
+			(*Entity::component_serialization_readers[i])(ref, &source);
 		}
+
+		// @Note: any unrecognized line is silently skipped
 		skip_to_eol(&source); parse_eol(&source);
 	}
 

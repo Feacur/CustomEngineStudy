@@ -315,7 +315,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Prefab_Asset * asset = refT.ref.get_fast();
 	// new (asset) Prefab_Asset;
 
-	*asset = {custom::Entity::serialization_read(file, false)};
+	*asset = {custom::Entity::serialization_read(file)};
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {

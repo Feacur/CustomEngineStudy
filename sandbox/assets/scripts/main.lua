@@ -23,7 +23,6 @@ function global_init()
 	transform2.scale = vec3.new(1, 2, 1)
 
 	camera_prefab:promote_to_instance()
-	camera_flying_prefab:promote_to_instance()
 end
 
 local counter = 0

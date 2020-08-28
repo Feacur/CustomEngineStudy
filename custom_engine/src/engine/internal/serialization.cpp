@@ -8,6 +8,31 @@
 #include "engine/impl/math_linear.h"
 
 //
+// Entity
+//
+
+namespace custom {
+namespace serialization {
+
+void serialization_read_Entity_block(Entity & entity, cstring * source) {
+	bool done = false;
+	while (!done && *source) {
+		skip_to_eol(source); parse_eol(source);
+		switch ((parse_void(source), **source)) {
+			case 'i': ++(*source); {
+				bool is_instance = (parse_void(source), (bool)parse_u32(source));
+				if (is_instance) { Entity::instances.push(entity); }
+			} break;
+
+			case '#': break;
+			default: done = true; break;
+		}
+	}
+}
+
+}}
+
+//
 // Transform
 //
 

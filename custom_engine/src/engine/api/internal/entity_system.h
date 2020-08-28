@@ -24,7 +24,7 @@ namespace custom {
 #define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
 typedef FROM_TO_FUNC(from_to_func);
 
-#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring * source, cstring const end)
+#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring * source)
 typedef SERIALIZATION_READ_FUNC(serialization_read_func);
 
 }
@@ -59,7 +59,7 @@ struct Entity : public Ref
 
 	// API
 	static Entity create(bool is_instance);
-	static Entity serialization_read(Array<u8> const & file, bool is_instance);
+	static Entity serialization_read(Array<u8> const & file);
 	void destroy(void);
 	Entity copy() const;
 	inline bool exists(void) const { return generations.contains(*this); }
