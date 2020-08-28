@@ -41,21 +41,68 @@ cstring Asset::get_string(u32 id) {
 }
 
 //
+// asset ref
+//
+
+namespace custom {
+
+inline static u32 is_correct(Asset const & asset) {
+	for (u32 i = 0; i < Asset::types.count; ++i) {
+		if (Asset::types[i] != asset.type) { continue; }
+		if (Asset::resources[i] != asset.resource) { continue; }
+		if (Asset::instance_refs[i] == asset.ref) { return true; }
+	}
+	return false;
+}
+
+cstring Asset::get_path(void) const {
+	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
+	return get_string(resource);
+}
+
+bool Asset::exists(void) const {
+	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
+	return (*Asset::asset_containers[type])(ref);
+}
+
+void Asset::destroy(void) {
+	// @Note: duplicates `Asset::rem` code
+	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
+	if ((*Asset::asset_containers[type])(ref)) {
+		(*Asset::asset_unloaders[type])(*this);
+		(*Asset::asset_destructors[type])(ref);
+	}
+	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
+
+	for (u32 i = 0; i < instance_refs.count; ++i) {
+		if (types[i] != type) { continue; }
+		if (resources[i] != resource) { continue; }
+		if (instance_refs[i] != ref) { continue; }
+		Asset::instance_refs.remove_at(i);
+		Asset::resources.remove_at(i);
+		Asset::types.remove_at(i);
+		break;
+	}
+}
+
+}
+
+//
 // asset
 //
 
 namespace custom {
 
-static u32 find(Array<u32> const & types, Array<u32> const & resources, u32 type, u32 resource) {
-	for (u32 i = 0; i < resources.count; ++i) {
-		if (types[i] != type) { continue; }
-		if (resources[i] == resource) { return i; }
+static u32 find(u32 type, u32 resource) {
+	for (u32 i = 0; i < Asset::types.count; ++i) {
+		if (Asset::types[i] != type) { continue; }
+		if (Asset::resources[i] == resource) { return i; }
 	}
 	return custom::empty_index;
 }
 
 Asset Asset::add(u32 type, u32 resource) {
-	u32 index = find(Asset::types, Asset::resources, type, resource);
+	u32 index = find(type, resource);
 	if (index == custom::empty_index) {
 		index = Asset::resources.count;
 		Asset::instance_refs.push({custom::empty_ref});
@@ -74,46 +121,39 @@ Asset Asset::add(u32 type, u32 resource) {
 	return asset;
 }
 
+void Asset::rem(u32 type, u32 resource) {
+	// @Note: duplicates `Asset::destroy` code
+	u32 index = find(type, resource);
+	if (index == custom::empty_index) {
+		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
+	}
+
+	Asset asset = {Asset::instance_refs[index], resource, type};
+
+	if ((*Asset::asset_containers[type])(asset.ref)) {
+		(*Asset::asset_unloaders[type])(asset);
+		(*Asset::asset_destructors[type])(asset.ref);
+	}
+	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
+
+	Asset::instance_refs.remove_at(index);
+	Asset::resources.remove_at(index);
+	Asset::types.remove_at(index);
+}
+
 Asset Asset::get(u32 type, u32 resource) {
-	u32 index = find(Asset::types, Asset::resources, type, resource);
+	u32 index = find(type, resource);
 	if (index == custom::empty_index) { return {custom::empty_ref}; }
 
 	return {Asset::instance_refs[index], resource, type};
 }
 
 bool Asset::has(u32 type, u32 resource) {
-	u32 index = find(Asset::types, Asset::resources, type, resource);
+	u32 index = find(type, resource);
 	if (index == custom::empty_index) { return false; }
 
 	Ref ref = Asset::instance_refs[index];
 	return (*Asset::asset_containers[type])(ref);
-}
-
-cstring Asset::get_path(void) const {
-	CUSTOM_ASSERT(exists(), "asset doesn't exist");
-
-	return get_string(resource);
-}
-
-bool Asset::exists(void) const {
-	return (*Asset::asset_containers[type])(ref);
-}
-
-void Asset::unload(void) {
-	CUSTOM_ASSERT(exists(), "asset doesn't exist");
-
-	(*Asset::asset_unloaders[type])(*this);
-	(*Asset::asset_destructors[type])(ref);
-
-	for (u32 i = 0; i < instance_refs.count; ++i) {
-		if (instance_refs[i] != ref) { continue; }
-		if (resources[i] != resource) { continue; }
-		if (types[i] != type) { continue; }
-		Asset::instance_refs.remove_at(i);
-		Asset::resources.remove_at(i);
-		Asset::types.remove_at(i);
-		break;
-	}
 }
 
 }

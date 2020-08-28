@@ -102,14 +102,11 @@ Entity Entity::copy() const {
 
 	Entity entity = create(true);
 
-	u32 entity_offset = id * Entity::component_destructors.count;
-	if (entity_offset < Entity::components.capacity) {
-		for (u32 i = 0; i < Entity::component_containers.count; ++i) {
-			Ref ref = Entity::components.get(entity_offset + i);
-			if ((*Entity::component_containers[i])(ref)) {
-				Ref new_component_ref = entity.add_component(i);
-				(*Entity::component_copiers[i])(ref, new_component_ref);
-			}
+	for (u32 i = 0; i < Entity::component_containers.count; ++i) {
+		Ref ref = get_component(i);
+		if ((*Entity::component_containers[i])(ref)) {
+			Ref new_component_ref = entity.add_component(i);
+			(*Entity::component_copiers[i])(ref, new_component_ref);
 		}
 	}
 
@@ -126,10 +123,10 @@ Entity Entity::copy() const {
 
 namespace custom {
 
-static u32 find(u32 type, u32 entity, Array<u32> const & types, Array<u32> const & entities) {
-	for (u32 i = 0; i < entities.count; ++i) {
-		if (types[i] != type) { continue; }
-		if (entities[i] == entity) { return i; }
+static u32 find(u32 type, u32 entity) {
+	for (u32 i = 0; i < Entity::component_types.count; ++i) {
+		if (Entity::component_types[i] != type) { continue; }
+		if (Entity::component_entity_ids[i] == entity) { return i; }
 	}
 	return custom::empty_index;
 }
@@ -138,17 +135,17 @@ Ref Entity::add_component(u32 type) {
 	// @Change: ignore, but warn, if component exists?
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = find(type, id, component_types, component_entity_ids);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) {
 		component_index = Entity::components.count;
 		Entity::components.push(custom::empty_ref);
-		Entity::component_types.push(type);
 		Entity::component_entity_ids.push(id);
+		Entity::component_types.push(type);
 	}
 
 	Ref ref = Entity::components[component_index];
 
-	if (!(*Entity::component_containers[type])(ref)) {
+	if (ref.id == custom::empty_ref.id || !(*Entity::component_containers[type])(ref)) {
 		ref = (*Entity::component_constructors[type])();
 		Entity::components[component_index] = ref;
 	}
@@ -158,30 +155,31 @@ Ref Entity::add_component(u32 type) {
 }
 
 void Entity::rem_component(u32 type) {
+	// @Note: duplicates `Component::destroy` code
 	// @Change: ignore, but warn, if component doesn't exist?
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = find(type, id, component_types, component_entity_ids);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) {
 		CUSTOM_ASSERT(false, "component doesn't exist"); return;
 	}
 
 	Ref ref = Entity::components[component_index];
 
-	Entity::components.remove_at(component_index);
-	Entity::component_types.remove_at(component_index);
-	Entity::component_entity_ids.remove_at(component_index);
-
 	if ((*Entity::component_containers[type])(ref)) {
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
+
+	Entity::components.remove_at(component_index);
+	Entity::component_types.remove_at(component_index);
+	Entity::component_entity_ids.remove_at(component_index);
 }
 
 Ref Entity::get_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = find(type, id, component_types, component_entity_ids);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return custom::empty_ref; }
 
 	return Entity::components[component_index];
@@ -190,7 +188,7 @@ Ref Entity::get_component(u32 type) const {
 bool Entity::has_component(u32 type) const {
 	CUSTOM_ASSERT(exists(), "entity doesn't exist");
 
-	u32 component_index = find(type, id, component_types, component_entity_ids);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return false; }
 
 	Ref ref = Entity::components[component_index];
@@ -265,3 +263,43 @@ bool Entity::has_component(u32 type) const {
 }
 
 #endif
+
+//
+// component ref
+//
+
+// @Note: experimental, mimics Asset; in case one needs fully self-contained ref
+namespace custom {
+
+Ref Component::get(void) {
+	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
+	return ref;
+}
+
+bool Component::exists(void) const {
+	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
+	return (*Entity::component_containers[type])(ref);
+}
+
+void Component::destroy(void) {
+	// @Note: duplicates `Entity::rem_component` code
+	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
+	if ((*Entity::component_containers[type])(ref)) {
+		(*Entity::component_destructors[type])(ref);
+	}
+	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
+
+	#if defined(ENTITY_COMPONENTS_DENSE)
+	for (u32 i = 0; i < Entity::components.count; ++i) {
+		if (Entity::component_types[i] != type) { continue; }
+		if (Entity::component_entity_ids[i] != entity.id) { continue; }
+		if (Entity::components[i] != ref) { continue; }
+		Entity::components.remove_at(i);
+		Entity::component_entity_ids.remove_at(i);
+		Entity::component_types.remove_at(i);
+		break;
+	}
+	#endif
+}
+
+}

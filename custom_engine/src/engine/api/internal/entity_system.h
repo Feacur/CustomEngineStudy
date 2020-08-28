@@ -10,6 +10,11 @@
 //          packed into blocks inside `components` array
 // #define ENTITY_COMPONENTS_DENSE
 
+namespace custom {
+	// @Forward
+	struct Entity;
+}
+
 //
 //
 //
@@ -32,6 +37,7 @@ namespace custom {
 
 template<typename T> struct Component_Registry { static u32 type; };
 
+// @Todo: separate Entity_System container from Entity? and make the system container an instance?
 struct Entity : public Ref
 {
 	// entities
@@ -74,6 +80,29 @@ struct Entity : public Ref
 	template<typename T> void    rem_component(void);
 	template<typename T> RefT<T> get_component(void) const;
 	template<typename T> bool    has_component(void) const;
+};
+
+// @Note: experimental, mimics Asset; in case one needs fully self-contained ref
+struct Component
+{
+	Ref ref;
+	Entity entity;
+	u32 type;
+
+	Ref get(void);
+	bool exists(void) const;
+	void destroy(void);
+};
+
+// @Note: experimental, mimics Asset_RefT; in case one needs fully self-contained ref
+template<typename T> struct Component_RefT
+{
+	RefT<T> ref;
+	Entity entity;
+
+	RefT<T> get(void);
+	bool exists(void) const;
+	void destroy(void);
 };
 
 }

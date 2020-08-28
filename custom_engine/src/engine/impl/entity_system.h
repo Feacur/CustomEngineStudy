@@ -47,3 +47,27 @@ bool Entity::has_component(void) const {
 }
 
 }
+
+//
+// component ref
+//
+
+// @Note: experimental, mimics Asset_RefT; in case one needs fully self-contained ref
+namespace custom {
+
+template<typename T>
+RefT<T> Component_RefT<T>::get(void) {
+	return {Component{ref, entity, Component_Registry<T>::type}.get()};
+}
+
+template<typename T>
+bool Component_RefT<T>::exists(void) const {
+	return Component{ref, entity, Component_Registry<T>::type}.exists();
+}
+
+template<typename T>
+void Component_RefT<T>::destroy(void) {
+	Component{ref, entity, Component_Registry<T>::type}.destroy();
+}
+
+}

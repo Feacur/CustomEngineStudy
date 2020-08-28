@@ -24,9 +24,18 @@ typedef LOADING_FUNC(loading_func);
 
 namespace custom {
 
-template<typename T> struct Asset_RefT { RefT<T> ref; u32 resource; };
+template<typename T> struct Asset_RefT
+{
+	RefT<T> ref; u32 resource;
+
+	cstring get_path(void) const;
+	bool exists(void) const;
+	void destroy(void);
+};
+
 template<typename T> struct Asset_Registry { static u32 type; };
 
+// @Todo: separate Asset_System container from Asset? and make the system container an instance?
 struct Asset
 {
 	Ref ref;
@@ -51,20 +60,18 @@ struct Asset
 	static Array<loading_func *>  asset_unloaders;
 
 	static Asset add(u32 type, u32 resource);
+	static void  rem(u32 type, u32 resource);
 	static Asset get(u32 type, u32 resource);
 	static bool  has(u32 type, u32 resource);
 
 	cstring get_path(void) const;
 	bool exists(void) const;
-	void unload(void);
+	void destroy(void);
 
 	template<typename T> static Asset_RefT<T> add(u32 resource);
+	template<typename T> static void          rem(u32 resource);
 	template<typename T> static Asset_RefT<T> get(u32 resource);
 	template<typename T> static bool          has(u32 resource);
-
-	template<typename T> static cstring get_path(Asset_RefT<T> const & ref);
-	template<typename T> static bool exists(Asset_RefT<T> const & ref);
-	template<typename T> static void unload(Asset_RefT<T> & ref);
 };
 
 }
