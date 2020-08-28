@@ -17,16 +17,33 @@
 #endif
 
 #if defined(APP_DISPLAY_PERFORMANCE)
-	static void DISPLAY_PERFORMANCE(custom::window::Internal_Data * window, u64 duration, u64 precision, r32 dt) {
-		float debug_ms = duration * custom::timer::millisecond / (float)precision;
-		float debug_fps = precision / (float)duration;
-		float debug_dt = dt * custom::timer::millisecond;
-		static char header_text[64];
-		sprintf(header_text, "custom engine - %.1f ms (%.1f FPS) ---> dt %.1f ms", debug_ms, debug_fps, debug_dt);
+	static void DISPLAY_PERFORMANCE(
+		custom::window::Internal_Data * window,
+		u64 time_logic, u64 time_window, u64 time_render, u64 precision,
+		r32 dt
+	) {
+		u64 const duration = (time_logic + time_window + time_render);
+		float const logic_ms  = time_logic  * custom::timer::millisecond / (float)precision;
+		float const window_ms = time_window * custom::timer::millisecond / (float)precision;
+		float const render_ms = time_render * custom::timer::millisecond / (float)precision;
+		float const debug_ms  = duration * custom::timer::millisecond / (float)precision;
+		float const debug_fps = precision / (float)duration;
+		float const debug_dt  = dt * custom::timer::millisecond;
+		static char header_text[128];
+		sprintf(
+			header_text,
+			"custom engine"
+			"- %.1f ms (%.1f FPS)"
+			"---> l:%.1f ms | w:%.1f ms | r:%.1f ms"
+			"---> dt %.1f ms",
+			debug_ms, debug_fps,
+			logic_ms, window_ms, render_ms,
+			debug_dt
+		);
 		custom::window::set_header(window, header_text);
 	}
 #else
-	#define DISPLAY_PERFORMANCE(window, duration, precision, dt) (void)0
+	#define DISPLAY_PERFORMANCE(window, time_logic, time_window, time_render, precision, dt) (void)0
 #endif
 
 static u64 get_last_frame_ticks(bool vsync, u16 refresh_rate) {
@@ -85,7 +102,7 @@ static void init(void) {
 	ivec2 size = custom::window::get_size(app.window);
 
 	// @Todo: expose vsync setting
-	custom::window::set_vsync(app.window, 1);
+	custom::window::set_vsync(app.window, app.refresh_rate.vsync);
 	custom::window::set_viewport_callback(app.window, &update_viewport_safely);
 
 	update_viewport_safely(app.window, size);
@@ -110,17 +127,30 @@ void run(void) {
 
 		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
 		if (dt > (r32)app.refresh_rate.failsafe / refresh_rate) { dt = 1.0f / refresh_rate; }
-		DISPLAY_PERFORMANCE(app.window, last_frame_ticks, custom::timer::ticks_per_second, dt);
 
 		// process the frame
+		u64 time_logic = custom::timer::get_ticks();
 		custom::system::update();
 		CALL_SAFELY(app.callbacks.update, dt);
-		custom::window::after_update(app.window);
+		time_logic = custom::timer::get_ticks() - time_logic;
 
+		u64 time_window = custom::timer::get_ticks();
+		custom::window::after_update(app.window);
+		time_window = custom::timer::get_ticks() - time_window;
+
+		u64 time_render = custom::timer::get_ticks();
 		custom::graphics::consume(app.bytecode_loader);
 		custom::graphics::consume(app.bytecode_renderer);
 		app.bytecode_loader.reset();
 		app.bytecode_renderer.reset();
+		time_render = custom::timer::get_ticks() - time_render;
+
+		DISPLAY_PERFORMANCE(
+			app.window,
+			time_logic, time_window, time_render,
+			custom::timer::ticks_per_second,
+			dt
+		);
 	}
 
 	custom::timer::shutdown();
@@ -130,6 +160,7 @@ void run(void) {
 
 void set_refresh_rate(u16 target, u8 failsafe, u8 vsync, b8 force) {
 	app.refresh_rate = {target, failsafe, vsync, force};
+	if (app.window) { custom::window::set_vsync(app.window, app.refresh_rate.vsync); }
 }
 
 // data

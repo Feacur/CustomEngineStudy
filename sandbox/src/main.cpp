@@ -61,27 +61,26 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_renderer::update();
 }
 
-/*
 static void hint_graphics(void) {
 	// context_settings
-	custom::context_settings = {};
-	custom::context_settings.major_version = 4;
-	custom::context_settings.minor_version = 6;
+	// custom::context_settings = {};
+	// custom::context_settings.major_version = 4;
+	// custom::context_settings.minor_version = 6;
 
 	// pixel_format_hint
-	custom::pixel_format_hint = {};
-	custom::pixel_format_hint.red_bits     = 8;
-	custom::pixel_format_hint.green_bits   = 8;
-	custom::pixel_format_hint.blue_bits    = 8;
-	custom::pixel_format_hint.alpha_bits   = 8;
-	custom::pixel_format_hint.depth_bits   = 24;
-	custom::pixel_format_hint.stencil_bits = 8;
-	custom::pixel_format_hint.doublebuffer = true;
+	// custom::pixel_format_hint = {};
+	// custom::pixel_format_hint.red_bits     = 8;
+	// custom::pixel_format_hint.green_bits   = 8;
+	// custom::pixel_format_hint.blue_bits    = 8;
+	// custom::pixel_format_hint.alpha_bits   = 8;
+	// custom::pixel_format_hint.depth_bits   = 24;
+	// custom::pixel_format_hint.stencil_bits = 8;
+	// custom::pixel_format_hint.doublebuffer = false;
+	// @Note: double buffer performance on ma machine, without powering it from the grid, is horrible
 }
-*/
 
 int main(int argc, char * argv[]) {
-	// hint_graphics();
+	hint_graphics();
 	custom::application::set_refresh_rate(60, 10, 1, false);
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
