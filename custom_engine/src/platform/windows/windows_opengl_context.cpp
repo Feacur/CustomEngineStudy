@@ -55,6 +55,7 @@ static struct {
 	GetProcAddress_func    * GetProcAddress;
 	MakeCurrent_func       * MakeCurrent;
 	ShareLists_func        * ShareLists;
+	// SwapLayerBuffers_func  * SwapLayerBuffers;
 	// GetCurrentDC_func      * GetCurrentDC;
 	// GetCurrentContext_func * GetCurrentContext;
 
@@ -206,8 +207,13 @@ void swap_buffers(Internal_Data * data)
 {
 	if (wgl.pixel_format.doublebuffer) {
 		if (SwapBuffers(data->hdc)) { return; }
+		// if (wgl.SwapLayerBuffers(data->hdc, WGL_SWAP_MAIN_PLANE)) { return; }
 	}
-	// @Todo: whether `flush` is even required?
+
+	// @Todo: whether `glFinish` might be helpful?
+	// glFinish();
+
+	// @Todo: whether `glFlush` is even required?
 	glFlush();
 }
 
@@ -238,6 +244,7 @@ static void load_wgl_simple_functions(void) {
 	LOAD_FUNCTION(GetProcAddress, true);
 	LOAD_FUNCTION(MakeCurrent,    true);
 	LOAD_FUNCTION(ShareLists,     true);
+	// LOAD_FUNCTION(SwapLayerBuffers, true);
 	// LOAD_FUNCTION(GetCurrentDC,   true);
 	// LOAD_FUNCTION(GetCurrentContext, true);
 }

@@ -21,6 +21,7 @@ typedef BOOL  (WINAPI DeleteContext_func)(HGLRC oldContext);
 typedef PROC  (WINAPI GetProcAddress_func)(LPCSTR lpszProc);
 typedef BOOL  (WINAPI MakeCurrent_func)(HDC hDc, HGLRC newContext);
 typedef BOOL  (WINAPI ShareLists_func)(HGLRC hrcSrvShare, HGLRC hrcSrvSource);
+// typedef BOOL  (WINAPI SwapLayerBuffers_func)(HDC hDc, UINT plane);
 // typedef HDC   (WINAPI GetCurrentDC_func)(void);
 // typedef HGLRC (WINAPI GetCurrentContext_func)(void);
 
