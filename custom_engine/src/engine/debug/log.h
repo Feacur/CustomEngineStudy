@@ -3,9 +3,12 @@
 #include <stdio.h>
 
 // @Note: undef if want shipping mode logs and assertions
-#if !defined(CUSTOM_SHIPPING)
-	#define LOG_MESSAGE_ENABLED
-	#define LOG_ASSERT_ENABLED
+#define LOG_MESSAGE_ENABLED
+#define LOG_ASSERT_ENABLED
+
+#if defined(CUSTOM_SHIPPING)
+	#undef LOG_MESSAGE_ENABLED
+	#undef LOG_ASSERT_ENABLED
 #endif
 
 // enable ANSI escape codes for CMD: set `HKEY_CURRENT_USER\Console\VirtualTerminalLevel` to `0x00000001`

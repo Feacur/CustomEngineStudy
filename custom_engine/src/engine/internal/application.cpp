@@ -12,8 +12,10 @@
 #include "engine/api/internal/renderer.h"
 #include "engine/impl/math_linear.h"
 
-#if !defined(CUSTOM_SHIPPING)
-	#define APP_DISPLAY_PERFORMANCE
+#define APP_DISPLAY_PERFORMANCE
+
+#if defined(CUSTOM_SHIPPING)
+	// #undef APP_DISPLAY_PERFORMANCE
 #endif
 
 #if defined(APP_DISPLAY_PERFORMANCE)

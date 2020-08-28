@@ -1,8 +1,10 @@
 #pragma once
 #include "engine/core/types.h"
 
-#if !defined(CUSTOM_SHIPPING)
-	#define COLLECTION_COPY_WARNING
+#define COLLECTION_COPY_WARNING
+
+#if defined(CUSTOM_SHIPPING)
+	#undef COLLECTION_COPY_WARNING
 #endif
 
 // @Note: this code implies POD types
