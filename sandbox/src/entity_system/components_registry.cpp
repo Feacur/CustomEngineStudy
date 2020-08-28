@@ -37,7 +37,7 @@ void init_client_component_types(void) {
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\
 		custom::Entity::component_containers.push(&custom::ref_pool_contains<T>);\
-		custom::Entity::component_copiers.push(&custom::ref_pool_copy<T>);\
+		custom::Entity::component_copiers.push(&custom::component_pool_copy<T>);\
 		custom::Entity::component_cleaners.push(&custom::component_pool_clean<T>);\
 		custom::Entity::component_serialization_readers.push(&custom::serialization::component_pool_serialization_read<T>);\
 

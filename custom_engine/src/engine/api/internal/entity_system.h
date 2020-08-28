@@ -21,11 +21,11 @@ namespace custom {
 
 namespace custom {
 
-#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
-typedef FROM_TO_FUNC(from_to_func);
+#define ENTITY_FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
+typedef ENTITY_FROM_TO_FUNC(ENTITY_FROM_TO_FUNC);
 
-#define COMPONENT_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref)
-typedef COMPONENT_LOADING_FUNC(component_loading_func);
+#define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref)
+typedef ENTITY_LOADING_FUNC(entity_loading_func);
 
 #define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)
 typedef SERIALIZATION_READ_FUNC(serialization_read_func);
@@ -72,8 +72,8 @@ struct Entity : public Ref
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
-	static Array<from_to_func *>  component_copiers;
-	static Array<component_loading_func *>  component_cleaners;
+	static Array<ENTITY_FROM_TO_FUNC *> component_copiers;
+	static Array<entity_loading_func *> component_cleaners;
 	static Array<serialization_read_func *> component_serialization_readers;
 
 	Ref  add_component(u32 type);

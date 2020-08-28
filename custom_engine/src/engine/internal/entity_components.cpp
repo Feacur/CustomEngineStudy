@@ -13,14 +13,14 @@
 
 namespace custom {
 
-template<> FROM_TO_FUNC(ref_pool_copy<Transform>) {
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Transform>) {
 	RefT<Transform> const & fromT = (RefT<Transform> const &)from;
 	RefT<Transform> & toT = (RefT<Transform> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> COMPONENT_LOADING_FUNC(component_pool_clean<Transform>) {
+template<> ENTITY_LOADING_FUNC(component_pool_clean<Transform>) {
 	// RefT<Transform> & refT = (RefT<Transform> &)ref;
 }
 
@@ -32,14 +32,14 @@ template<> COMPONENT_LOADING_FUNC(component_pool_clean<Transform>) {
 
 namespace custom {
 
-template<> FROM_TO_FUNC(ref_pool_copy<Camera>) {
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Camera>) {
 	RefT<Camera> const & fromT = (RefT<Camera> const &)from;
 	RefT<Camera> & toT = (RefT<Camera> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> COMPONENT_LOADING_FUNC(component_pool_clean<Camera>) {
+template<> ENTITY_LOADING_FUNC(component_pool_clean<Camera>) {
 	// RefT<Camera> & refT = (RefT<Camera> &)ref;
 }
 
@@ -51,7 +51,7 @@ template<> COMPONENT_LOADING_FUNC(component_pool_clean<Camera>) {
 
 namespace custom {
 
-template<> FROM_TO_FUNC(ref_pool_copy<Hierarchy>) {
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
 	RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
 
@@ -76,7 +76,7 @@ template<> FROM_TO_FUNC(ref_pool_copy<Hierarchy>) {
 	}
 }
 
-template<> COMPONENT_LOADING_FUNC(component_pool_clean<Hierarchy>) {
+template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();

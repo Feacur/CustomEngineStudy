@@ -14,14 +14,14 @@
 
 namespace custom {
 
-template<> FROM_TO_FUNC(ref_pool_copy<Visual>) {
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Visual>) {
 	RefT<Visual> const & fromT = (RefT<Visual> const &)from;
 	RefT<Visual> & toT = (RefT<Visual> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> COMPONENT_LOADING_FUNC(component_pool_clean<Visual>) {
+template<> ENTITY_LOADING_FUNC(component_pool_clean<Visual>) {
 	// RefT<Visual> & refT = (RefT<Visual> &)ref;
 }
 
@@ -33,14 +33,14 @@ template<> COMPONENT_LOADING_FUNC(component_pool_clean<Visual>) {
 
 namespace custom {
 
-template<> FROM_TO_FUNC(ref_pool_copy<Lua_Script>) {
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Lua_Script>) {
 	RefT<Lua_Script> const & fromT = (RefT<Lua_Script> const &)from;
 	RefT<Lua_Script> & toT = (RefT<Lua_Script> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> COMPONENT_LOADING_FUNC(component_pool_clean<Lua_Script>) {
+template<> ENTITY_LOADING_FUNC(component_pool_clean<Lua_Script>) {
 	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 }
 

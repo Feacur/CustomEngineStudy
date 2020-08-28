@@ -24,8 +24,8 @@ Array<u32>             Entity::component_entity_ids;
 Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
-Array<from_to_func *>  Entity::component_copiers;
-Array<component_loading_func *>  Entity::component_cleaners;
+Array<ENTITY_FROM_TO_FUNC *> Entity::component_copiers;
+Array<entity_loading_func *> Entity::component_cleaners;
 Array<serialization_read_func *> Entity::component_serialization_readers;
 
 }
