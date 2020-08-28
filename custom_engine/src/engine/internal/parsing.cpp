@@ -16,7 +16,7 @@ void parse_void(cstring * source) {
 }
 
 void skip_to_eol(cstring * source) {
-	while (!IS_EOL(**source)) { ++(*source); }
+	while (**source && !IS_EOL(**source)) { ++(*source); }
 }
 
 void parse_eol(cstring * source) {

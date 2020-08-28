@@ -11,3 +11,16 @@ Visual
 	l 1
 Lua_Script
 	u script_rotate
+Hierarchy
+	e Entity
+		#
+	Transform
+		p 0 2.5 0
+		r 0 0 0 1
+		s 0.25 0.25 0.25
+	Visual
+		s assets/shaders/v3_texture_tint.glsl
+		t assets/textures/checkerboard.png
+		m assets/meshes/suzanne.obj
+		l 1
+	~

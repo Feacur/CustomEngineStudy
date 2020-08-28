@@ -7,6 +7,8 @@
 #include "engine/impl/entity_system.h"
 #include "engine/impl/math_linear.h"
 
+#include <new>
+
 //
 // Entity
 //
@@ -20,8 +22,8 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case 'i': ++(*source); {
-				bool is_instance = (parse_void(source), (bool)parse_u32(source));
-				if (is_instance) { Entity::instances.push(entity); }
+				bool is_instance = (bool)(parse_void(source), parse_u32(source));
+				if (is_instance) { entity.promote_to_instance(); }
 			} break;
 
 			case '#': break;
@@ -43,6 +45,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 
 	Transform * component = refT.get_fast();
+	// new (component) Transform;
 
 	bool done = false;
 	while (!done && **source) {
@@ -81,6 +84,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 
 	Camera * component = refT.get_fast();
+	// new (component) Camera;
 
 	bool done = false;
 	while (!done && **source) {
@@ -109,6 +113,36 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 			case 'l': ++(*source); {
 				component->layer = (u8)(parse_void(source), parse_u32(source));
+			} break;
+
+			case '#': break;
+			default: done = true; break;
+		}
+	}
+}
+
+}}
+
+//
+// Hierarchy
+//
+
+namespace custom {
+namespace serialization {
+
+template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>) {
+	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
+
+	Hierarchy * component = refT.get_fast();
+	new (component) Hierarchy;
+
+	bool done = false;
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		switch ((parse_void(source), **source)) {
+			case 'e': ++(*source); {
+				CUSTOM_TRACE("hierarchy entity");
+				refT.get_fast()->children.push(Entity::serialization_read(source));
 			} break;
 
 			case '#': break;

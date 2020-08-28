@@ -8,6 +8,8 @@
 
 #include "component_types.h"
 
+// #include <new>
+
 //
 // Visual
 //
@@ -19,6 +21,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 
 	Visual * component = refT.get_fast();
+	// new (component) Visual;
 
 	bool done = false;
 	while (!done && **source) {
@@ -65,6 +68,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 
 	Lua_Script * component = refT.get_fast();
+	// new (component) Lua_Script;
 
 	bool done = false;
 	while (!done && **source) {

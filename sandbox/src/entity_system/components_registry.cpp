@@ -22,16 +22,16 @@
 void init_client_component_types(void) {
 	// @Note: initialize runtime components' data:
 	#define COMPONENT_IMPL(T)\
-		custom::Component_Registry<T>::type = custom::component_names.count;\
-		custom::component_names.push(#T);\
+		custom::Component_Registry<T>::type = custom::component_names.get_count();\
+		custom::component_names.store_string(#T, custom::empty_index);\
 
 	#include "../registry_impl/component_types.h"
 
-	custom::Entity::component_constructors.set_capacity(custom::component_names.count);
-	custom::Entity::component_destructors.set_capacity(custom::component_names.count);
-	custom::Entity::component_containers.set_capacity(custom::component_names.count);
-	custom::Entity::component_copiers.set_capacity(custom::component_names.count);
-	custom::Entity::component_serialization_readers.set_capacity(custom::component_names.count);
+	custom::Entity::component_constructors.set_capacity(custom::component_names.get_count());
+	custom::Entity::component_destructors.set_capacity(custom::component_names.get_count());
+	custom::Entity::component_containers.set_capacity(custom::component_names.get_count());
+	custom::Entity::component_copiers.set_capacity(custom::component_names.get_count());
+	custom::Entity::component_serialization_readers.set_capacity(custom::component_names.get_count());
 	#define COMPONENT_IMPL(T)\
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\

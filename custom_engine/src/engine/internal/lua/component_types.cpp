@@ -174,6 +174,73 @@ static luaL_Reg const Camera_meta[] = {
 };
 
 //
+// Hierarchy
+//
+
+static int Hierarchy_index(lua_State * L) {
+	typedef custom::RefT<Hierarchy> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Hierarchy);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "entity")  == 0) {
+	// 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+	// 	luaL_setmetatable(L, "Entity");
+	// 	*udata = *object->get_fast();
+	// 	return 1;
+	// }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Hierarchy_newindex(lua_State * L) {
+	typedef custom::RefT<Hierarchy> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "entity") == 0) {
+	// 	LUA_ASSERT_USERDATA("Entity", 3);
+	// 	*object->get_fast() = {*(custom::Entity *)lua_touserdata(L, 3)};
+	// 	return 0;
+	// }
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Hierarchy_eq(lua_State * L) {
+	typedef custom::RefT<Hierarchy> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Hierarchy", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static luaL_Reg const Hierarchy_meta[] = {
+	{"__index", Hierarchy_index},
+	{"__newindex", Hierarchy_newindex},
+	{"__eq", Hierarchy_eq},
+	//
+	{NULL, NULL},
+};
+
+//
 //
 //
 
