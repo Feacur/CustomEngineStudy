@@ -49,16 +49,16 @@ namespace custom {
 namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
-	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
-	cstring path = Asset::get_path(refT);
+	cstring path = asset_ref.get_path();
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	Shader_Asset * asset = refT.get_fast();
+	Asset_RefT<Shader_Asset> & refT = (Asset_RefT<Shader_Asset> &)asset_ref;
+	Shader_Asset * asset = refT.ref.get_fast();
 	// new (asset) Shader_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
@@ -66,29 +66,29 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	asset->source.count    = file.count;    file.count    = 0;
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_shader(ref.id)) {
+	if (graphics::mark_pending_shader(asset_ref.ref.id)) {
 		CUSTOM_ASSERT(false, "shader resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Shader);
-		custom::loader::bc->write((Ref const &)ref);
+		custom::loader::bc->write(asset_ref.ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Shader);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 	
 	custom::loader::bc->write(graphics::Instruction::Load_Shader);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
-	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
+	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
 	Shader_Asset * asset = refT.get_fast();
 	asset->~Shader_Asset();
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Shader);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 }}
@@ -121,16 +121,16 @@ namespace custom {
 namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
-	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
-	cstring path = Asset::get_path(refT);
+	cstring path = asset_ref.get_path();
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	Texture_Asset * asset = refT.get_fast();
+	Asset_RefT<Texture_Asset> & refT = (Asset_RefT<Texture_Asset> &)asset_ref;
+	Texture_Asset * asset = refT.ref.get_fast();
 	// new (asset) Texture_Asset;
 
 	// @Todo: read meta or provide these otherwise
@@ -170,29 +170,29 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	asset->data.count = asset->data.capacity;
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_texture(ref.id)) {
+	if (graphics::mark_pending_texture(asset_ref.ref.id)) {
 		CUSTOM_ASSERT(false, "texture resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Texture);
-		custom::loader::bc->write((Ref const &)ref);
+		custom::loader::bc->write(asset_ref.ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Texture);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 
 	custom::loader::bc->write(graphics::Instruction::Load_Texture);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
-	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
+	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
 	Texture_Asset * asset = refT.get_fast();
 	asset->~Texture_Asset();
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Texture);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 }}
@@ -205,10 +205,9 @@ namespace custom {
 namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
-	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
-	cstring path = Asset::get_path(refT);
+	cstring path = asset_ref.get_path();
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
@@ -223,7 +222,8 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices '%s'", path); return; }
 	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
-	Mesh_Asset * asset = refT.get_fast();
+	Asset_RefT<Mesh_Asset> & refT = (Asset_RefT<Mesh_Asset> &)asset_ref;
+	Mesh_Asset * asset = refT.ref.get_fast();
 	new (asset) Mesh_Asset;
 
 	asset->buffers.set_capacity(2);
@@ -267,29 +267,29 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	}
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_mesh(ref.id)) {
+	if (graphics::mark_pending_mesh(asset_ref.ref.id)) {
 		CUSTOM_ASSERT(false, "mesh resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Mesh);
-		custom::loader::bc->write((Ref const &)ref);
+		custom::loader::bc->write(asset_ref.ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Mesh);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 
 	custom::loader::bc->write(graphics::Instruction::Load_Mesh);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
-	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
+	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
 	Mesh_Asset * asset = refT.get_fast();
 	asset->~Mesh_Asset();
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Mesh);
-	custom::loader::bc->write((Ref const &)ref);
+	custom::loader::bc->write(asset_ref.ref);
 }
 
 }}
@@ -302,26 +302,26 @@ namespace custom {
 namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
-	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
-	cstring path = Asset::get_path(refT);
+	cstring path = asset_ref.get_path();
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 	file.push('\0');
 
-	Prefab_Asset * asset = refT.get_fast();
+	Asset_RefT<Prefab_Asset> & refT = (Asset_RefT<Prefab_Asset> &)asset_ref;
+	Prefab_Asset * asset = refT.ref.get_fast();
 	// new (asset) Prefab_Asset;
 
 	*asset = {custom::Entity::serialization_read(file, false)};
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
-	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
+	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	Prefab_Asset * asset = refT.get_fast();
 	CUSTOM_ASSERT(asset->exists(), "prefab instance doesn't exist");
 	asset->destroy();

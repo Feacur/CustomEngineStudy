@@ -66,26 +66,13 @@ static int Asset_add(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Ref asset_ref = Asset::add(type, id);
+	Asset asset = Asset::add(type, id);
 	
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = {asset_ref, type};
+	*udata = asset;
 
 	return 1;
-}
-
-static int Asset_rem(lua_State * L) {
-	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
-	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
-	LUA_ASSERT_TYPE(LUA_TSTRING, 2);
-
-	u32 type = (u32)lua_tointeger(L, 1);
-	cstring id_string = lua_tostring(L, 2);
-	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Asset::rem(type, id);
-
-	return 0;
 }
 
 static int Asset_has(lua_State * L) {
@@ -109,14 +96,14 @@ static int Asset_get(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 1);
 	cstring id_string = lua_tostring(L, 2);
 	u32 id = Asset::store_string(id_string, custom::empty_index);
-	Ref asset_ref = Asset::get(type, id);
+	Asset asset = Asset::get(type, id);
 
-	bool has_asset = (*Asset::asset_containers[type])(asset_ref);
+	bool has_asset = (*Asset::asset_containers[type])(asset.ref);
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
 	luaL_setmetatable(L, custom::asset_names[type]);
-	*udata = {asset_ref, type};
+	*udata = asset;
 
 	return 1;
 }
@@ -126,25 +113,44 @@ static int Asset_get_path(lua_State * L) {
 	LUA_ASSERT_ASSET_TYPE(1);
 
 	Asset const * object = (Asset const *)lua_touserdata(L, 1);
-	cstring path = Asset::get_path(*object);
 
-	if (!path) { lua_pushnil(L); return 1; }
-
-	lua_pushstring(L, path);
+	lua_pushstring(L, object->get_path());
 
 	return 1;
+}
+
+static int Asset_exists(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_ASSET_TYPE(1);
+
+	Asset const * object = (Asset const *)lua_touserdata(L, 1);
+
+	lua_pushboolean(L, object->exists());
+
+	return 1;
+}
+
+static int Asset_unload(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_ASSET_TYPE(1);
+
+	Asset * object = (Asset *)lua_touserdata(L, 1);
+	object->unload();
+
+	return 0;
 }
 
 static luaL_Reg const Asset_meta[] = {
 	{"__index", Asset_index},
 	{"__newindex", Asset_newindex},
 	// instance:###
+	{"get_path", Asset_get_path},
+	{"exists", Asset_exists},
+	{"unload", Asset_unload},
 	// Type.###
 	{"add", Asset_add},
-	{"rem", Asset_rem},
 	{"has", Asset_has},
 	{"get", Asset_get},
-	{"get_path", Asset_get_path},
 	//
 	{NULL, NULL},
 };

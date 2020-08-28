@@ -20,28 +20,33 @@ template<typename T> LOADING_FUNC(asset_pool_unload);
 namespace custom {
 
 template<typename T>
-RefT<T> Asset::add(u32 id) {
-	return {add(Asset_Registry<T>::type, id)};
+Asset_RefT<T> Asset::add(u32 resource) {
+	return {add(Asset_Registry<T>::type, resource).ref, resource};
 }
 
 template<typename T>
-void Asset::rem(u32 id) {
-	rem(Asset_Registry<T>::type, id);
+Asset_RefT<T> Asset::get(u32 resource) {
+	return {get(Asset_Registry<T>::type, resource).ref, resource};
 }
 
 template<typename T>
-RefT<T> Asset::get(u32 id) {
-	return {get(Asset_Registry<T>::type, id)};
+bool Asset::has(u32 resource) {
+	return has(Asset_Registry<T>::type, resource);
 }
 
 template<typename T>
-bool Asset::has(u32 id) {
-	return has(Asset_Registry<T>::type, id);
+cstring Asset::get_path(Asset_RefT<T> const & ref) {
+	return Asset{ref.ref, ref.resource, Asset_Registry<T>::type}.get_path();
 }
 
 template<typename T>
-cstring Asset::get_path(RefT<T> const & ref) {
-	return get_path({ref, Asset_Registry<T>::type});
+bool Asset::exists(Asset_RefT<T> const & ref) {
+	return Asset{ref.ref, ref.resource, Asset_Registry<T>::type}.exists();
+}
+
+template<typename T>
+void Asset::unload(Asset_RefT<T> & ref) {
+	return Asset{ref.ref, ref.resource, Asset_Registry<T>::type}.unload();
 }
 
 }

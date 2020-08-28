@@ -93,7 +93,7 @@ static int Visual_index(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		typedef custom::RefT<custom::Shader_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Shader_Asset> Asset_Ref;
 		Asset_Ref * udata = (Asset_Ref *)lua_newuserdatauv(L, sizeof(Asset_Ref), 0);
 		luaL_setmetatable(L, "Shader_Asset");
 		*udata = object->get_fast()->shader;
@@ -101,7 +101,7 @@ static int Visual_index(lua_State * L) {
 	}
 	
 	if (strcmp(id, "texture") == 0) {
-		typedef custom::RefT<custom::Texture_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Texture_Asset> Asset_Ref;
 		Asset_Ref * udata = (Asset_Ref *)lua_newuserdatauv(L, sizeof(Asset_Ref), 0);
 		luaL_setmetatable(L, "Texture_Asset");
 		*udata = object->get_fast()->texture;
@@ -109,7 +109,7 @@ static int Visual_index(lua_State * L) {
 	}
 	
 	if (strcmp(id, "mesh") == 0) {
-		typedef custom::RefT<custom::Mesh_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Mesh_Asset> Asset_Ref;
 		Asset_Ref * udata = (Asset_Ref *)lua_newuserdatauv(L, sizeof(Asset_Ref), 0);
 		luaL_setmetatable(L, "Mesh_Asset");
 		*udata = object->get_fast()->mesh;
@@ -135,21 +135,21 @@ static int Visual_newindex(lua_State * L) {
 
 	// @Optimize?
 	if (strcmp(id, "shader") == 0) {
-		typedef custom::RefT<custom::Shader_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Shader_Asset> Asset_Ref;
 		LUA_ASSERT_USERDATA("Shader_Asset", 3);
 		Asset_Ref const * value = (Asset_Ref const *)lua_touserdata(L, 3);
 		object->get_fast()->shader = *value; return 0;
 	}
 
 	if (strcmp(id, "texture") == 0) {
-		typedef custom::RefT<custom::Texture_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Texture_Asset> Asset_Ref;
 		LUA_ASSERT_USERDATA("Texture_Asset", 3);
 		Asset_Ref const * value = (Asset_Ref const *)lua_touserdata(L, 3);
 		object->get_fast()->texture = *value; return 0;
 	}
 
 	if (strcmp(id, "mesh") == 0) {
-		typedef custom::RefT<custom::Mesh_Asset> Asset_Ref;
+		typedef custom::Asset_RefT<custom::Mesh_Asset> Asset_Ref;
 		LUA_ASSERT_USERDATA("Mesh_Asset", 3);
 		Asset_Ref const * value = (Asset_Ref const *)lua_touserdata(L, 3);
 		object->get_fast()->mesh = *value; return 0;

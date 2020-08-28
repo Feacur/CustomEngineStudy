@@ -29,17 +29,17 @@ namespace custom {
 namespace loading {
 
 template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
-	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
-	cstring path = Asset::get_path(refT);
+	cstring path = asset_ref.get_path();
 	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 	// file.push('\0');
 
-	Lua_Asset * asset = refT.get_fast();
+	Asset_RefT<Lua_Asset> & refT = (Asset_RefT<Lua_Asset> &)asset_ref;
+	Lua_Asset * asset = refT.ref.get_fast();
 	// new (asset) Lua_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
@@ -63,9 +63,9 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
-	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)ref;
-	if (!refT.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
+	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 	Lua_Asset * asset = refT.get_fast();
 	asset->~Lua_Asset();
 }

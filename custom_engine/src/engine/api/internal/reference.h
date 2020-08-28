@@ -109,13 +109,4 @@ typedef VOID_REF_FUNC(void_ref_func);
 #define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
 typedef BOOL_REF_FUNC(bool_ref_func);
 
-#define LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
-typedef LOADING_FUNC(loading_func);
-
-#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
-typedef FROM_TO_FUNC(from_to_func);
-
-#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring * source, cstring const end)
-typedef SERIALIZATION_READ_FUNC(serialization_read_func);
-
 }

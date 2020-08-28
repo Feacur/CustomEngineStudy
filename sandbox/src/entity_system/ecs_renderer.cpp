@@ -111,7 +111,7 @@ void update() {
 		qsort(renderables.data + renderable_i, (last_renderable_i - renderable_i), sizeof(*renderables.data), [](void const * va, void const * vb) {
 			Renderable_Blob const * a = (Renderable_Blob const *)va;
 			Renderable_Blob const * b = (Renderable_Blob const *)vb;
-			return (a->visual.shader.id > b->visual.shader.id) - (a->visual.shader.id < b->visual.shader.id);
+			return (a->visual.shader.ref.id > b->visual.shader.ref.id) - (a->visual.shader.ref.id < b->visual.shader.ref.id);
 		});
 
 		custom::renderer::clear(renderer.camera.clear);
@@ -124,17 +124,16 @@ void update() {
 				renderable.transform.position, renderable.transform.rotation, renderable.transform.scale
 			);
 
-			if (shader_id != renderable.visual.shader.id) {
-				shader_id = renderable.visual.shader.id;
-				custom::renderer::set_shader(renderable.visual.shader);
-				custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::View_Projection, camera_matrix);
+			if (shader_id != renderable.visual.shader.ref.id) {
+				shader_id = renderable.visual.shader.ref.id;
+				custom::renderer::set_shader(renderable.visual.shader.ref);
+				custom::renderer::set_uniform(renderable.visual.shader.ref, (u32)sandbox::Uniform::View_Projection, camera_matrix);
 			}
 
-			
-			custom::graphics::unit_id unit = custom::renderer::make_unit(renderable.visual.texture);
-			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Texture, unit);
-			custom::renderer::set_uniform(renderable.visual.shader, (u32)sandbox::Uniform::Transform, transform_matrix);
-			custom::renderer::set_mesh(renderable.visual.mesh);
+			custom::graphics::unit_id unit = custom::renderer::make_unit(renderable.visual.texture.ref);
+			custom::renderer::set_uniform(renderable.visual.shader.ref, (u32)sandbox::Uniform::Texture, unit);
+			custom::renderer::set_uniform(renderable.visual.shader.ref, (u32)sandbox::Uniform::Transform, transform_matrix);
+			custom::renderer::set_mesh(renderable.visual.mesh.ref);
 			custom::renderer::draw();
 		}
 	}

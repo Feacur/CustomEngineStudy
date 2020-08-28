@@ -11,6 +11,20 @@
 // #define ENTITY_COMPONENTS_DENSE
 
 //
+//
+//
+
+namespace custom {
+
+#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
+typedef FROM_TO_FUNC(from_to_func);
+
+#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref, cstring * source, cstring const end)
+typedef SERIALIZATION_READ_FUNC(serialization_read_func);
+
+}
+
+//
 // entity
 //
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "engine/core/types.h"
-#include "engine/api/internal/reference.h"
+#include "engine/api/internal/asset_system.h"
 
 namespace custom {
 	// @Forward
@@ -16,8 +16,8 @@ struct Lua_Script
 
 struct Visual
 {
-	custom::RefT<custom::Shader_Asset> shader = {custom::empty_ref};
-	custom::RefT<custom::Texture_Asset> texture = {custom::empty_ref};
-	custom::RefT<custom::Mesh_Asset> mesh = {custom::empty_ref};
+	custom::Asset_RefT<custom::Shader_Asset> shader = {custom::empty_ref, custom::empty_index};
+	custom::Asset_RefT<custom::Texture_Asset> texture = {custom::empty_ref, custom::empty_index};
+	custom::Asset_RefT<custom::Mesh_Asset> mesh = {custom::empty_ref, custom::empty_index};
 	u8 layer = 0;
 };
