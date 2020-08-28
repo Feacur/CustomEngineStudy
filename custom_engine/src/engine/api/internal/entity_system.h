@@ -21,7 +21,7 @@ namespace custom {
 
 namespace custom {
 
-#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
+#define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
 typedef FROM_TO_FUNC(from_to_func);
 
 #define COMPONENT_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref)

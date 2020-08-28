@@ -67,6 +67,13 @@ template<> FROM_TO_FUNC(ref_pool_copy<Hierarchy>) {
 	for (u32 i = 0; i < to_component->children.count; ++i) {
 		to_component->children[i] = to_component->children[i].copy();
 	}
+
+	for (u32 i = 0; i < to_component->children.count; ++i) {
+		custom::Entity child = to_component->children[i];
+		RefT<Hierarchy> child_hierarchy_ref = child.get_component<Hierarchy>();
+		Hierarchy * child_hierarchy = child_hierarchy_ref.get_fast();
+		child_hierarchy->parent = entity;
+	}
 }
 
 template<> COMPONENT_LOADING_FUNC(component_pool_clean<Hierarchy>) {

@@ -133,7 +133,7 @@ Entity Entity::copy() const {
 		Ref ref = get_component(i);
 		if ((*Entity::component_containers[i])(ref)) {
 			Ref new_component_ref = entity.add_component(i);
-			(*Entity::component_copiers[i])(ref, new_component_ref);
+			(*Entity::component_copiers[i])(entity, ref, new_component_ref);
 		}
 	}
 
