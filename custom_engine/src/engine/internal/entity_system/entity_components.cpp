@@ -69,9 +69,9 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	}
 
 	for (u32 i = 0; i < to_component->children.count; ++i) {
-		custom::Entity child = to_component->children[i];
-		RefT<Hierarchy> child_hierarchy_ref = child.get_component<Hierarchy>();
-		Hierarchy * child_hierarchy = child_hierarchy_ref.get_fast();
+		custom::Entity    child               = to_component->children[i];
+		RefT<Hierarchy>   child_hierarchy_ref = child.get_component<Hierarchy>();
+		Hierarchy       * child_hierarchy     = child_hierarchy_ref.get_fast();
 		child_hierarchy->parent = entity;
 	}
 }
@@ -82,8 +82,8 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 	Hierarchy * component = refT.get_fast();
 
 	if (component->parent.exists()) {
-		RefT<Hierarchy> parent_hierarchy_ref = component->parent.get_component<Hierarchy>();
-		Hierarchy * parent_hierarchy = parent_hierarchy_ref.get_fast();
+		RefT<Hierarchy>   parent_hierarchy_ref = component->parent.get_component<Hierarchy>();
+		Hierarchy       * parent_hierarchy     = parent_hierarchy_ref.get_fast();
 		for (u32 i = 0; i < parent_hierarchy->children.count; ++i) {
 			if (parent_hierarchy->children[i] == entity) {
 				parent_hierarchy->children.remove_at(i);
@@ -95,6 +95,13 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 	if (entity_will_be_destroyed) {
 		for (u32 i = 0; i < component->children.count; ++i) {
 			component->children[i].destroy();
+		}
+	}
+	else {
+		for (u32 i = 0; i < component->children.count; ++i) {
+			RefT<Hierarchy>   child_hierarchy_ref = component->children[i].get_component<Hierarchy>();
+			Hierarchy       * child_hierarchy     = child_hierarchy_ref.get_fast();
+			child_hierarchy->parent = {custom::empty_ref};
 		}
 	}
 	component->children.~Array();
