@@ -15,7 +15,7 @@ Hierarchy
 	e Entity
 		#
 	Transform
-		p 0 2.5 0
+		p 1 1.5 1
 		r 0 0 0 1
 		s 0.25 0.25 0.25
 	Visual

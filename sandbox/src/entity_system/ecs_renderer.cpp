@@ -22,16 +22,14 @@ namespace sandbox {
 namespace ecs_renderer {
 
 struct Renderer_Blob {
-	custom::Entity entity;
+	custom::Entity    entity;
 	Transform const * transform;
-	Hierarchy const * hierarchy;
 	Camera const    * camera;
 };
 
 struct Renderable_Blob {
-	custom::Entity entity;
+	custom::Entity    entity;
 	Transform const * transform;
-	Hierarchy const * hierarchy;
 	Visual const    * visual;
 };
 
@@ -42,7 +40,7 @@ void update() {
 	ivec2 viewport_size = custom::application::get_viewport_size();
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
 
-	// @Todo: sort renderers by depth
+	// @Note: fetch renderers
 	custom::Array<Renderer_Blob> renderers;
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -54,9 +52,28 @@ void update() {
 		Camera const * camera = entity.get_component<Camera>().get_safe();
 		if (!camera) { continue; }
 
-		Hierarchy const * hierarchy = entity.get_component<Hierarchy>().get_safe();
+		renderers.push({entity, transform, camera});
+	}
 
-		renderers.push({entity, transform, hierarchy, camera});
+	// @Todo: revisit nesting
+	custom::Array<mat4> renderer_locals;
+	for (u32 i = 0; i < renderers.count; ++i) {
+		Renderer_Blob & renderer = renderers[i];
+		renderer_locals.ensure_capacity(renderer.entity.id);
+		renderer_locals.get(renderer.entity.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
+	}
+
+	for (u32 i = 0; i < renderers.count; ++i) {
+		Renderer_Blob const & renderer = renderers[i];
+
+		Hierarchy const * hierarchy = renderer.entity.get_component<Hierarchy>().get_safe();
+		if (!hierarchy) { continue; }
+
+		mat4 const & renderer_local = renderer_locals.get(renderer.entity.id);
+		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
+			custom::Entity child = hierarchy->children[ci];
+			renderer_locals.get(child.id) = mat_product(renderer_locals.get(child.id), renderer_local);
+		}
 	}
 
 	// @Todo: revisit sorting
@@ -66,7 +83,7 @@ void update() {
 		return (a->camera->layer > b->camera->layer) - (a->camera->layer < b->camera->layer);
 	});
 
-	// @Change: sort renderables by layer instead of prefetching them into an array of relevant ones?
+	// @Note: fetch renderables
 	custom::Array<Renderable_Blob> renderables;
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -78,9 +95,28 @@ void update() {
 		Visual const * visual = entity.get_component<Visual>().get_safe();
 		if (!visual) { continue; }
 
-		Hierarchy const * hierarchy = entity.get_component<Hierarchy>().get_safe();
+		renderables.push({entity, transform, visual});
+	}
 
-		renderables.push({entity, transform, hierarchy, visual});
+	// @Todo: revisit nesting
+	custom::Array<mat4> renderable_locals;
+	for (u32 i = 0; i < renderables.count; ++i) {
+		Renderable_Blob & renderable = renderables[i];
+		renderable_locals.ensure_capacity(renderable.entity.id);
+		renderable_locals.get(renderable.entity.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
+	}
+
+	for (u32 i = 0; i < renderables.count; ++i) {
+		Renderable_Blob const & renderable = renderables[i];
+
+		Hierarchy const * hierarchy = renderable.entity.get_component<Hierarchy>().get_safe();
+		if (!hierarchy) { continue; }
+
+		mat4 const & renderable_local = renderable_locals.get(renderable.entity.id);
+		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
+			custom::Entity child = hierarchy->children[ci];
+			renderable_locals.get(child.id) = mat_product(renderable_locals.get(child.id), renderable_local);
+		}
 	}
 
 	// @Todo: revisit sorting
@@ -90,14 +126,14 @@ void update() {
 		return (a->visual->layer > b->visual->layer) - (a->visual->layer < b->visual->layer);
 	});
 
+	// @Note: iterate renderers and renderables
 	u32 renderable_i = 0;
 	custom::Array<Renderable_Blob> relevant_renderables(renderables.count);
 	for (u32 camera_i = 0; camera_i < renderers.count; ++camera_i) {
 		Renderer_Blob const & renderer = renderers[camera_i];
 
-		mat4 camera_matrix = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
-		camera_matrix = mat_product(
-			mat_inverse_transform(camera_matrix),
+		mat4 const camera_matrix = mat_product(
+			mat_inverse_transform(renderer_locals.get(renderer.entity.id)),
 			interpolate(
 				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
 				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
@@ -126,13 +162,7 @@ void update() {
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
-			if (renderable.hierarchy && renderable.hierarchy->parent.exists()) {
-				continue;
-			}
-
-			mat4 transform_matrix = to_matrix(
-				renderable.transform->position, renderable.transform->rotation, renderable.transform->scale
-			);
+			mat4 const transform_matrix = renderable_locals.get(renderable.entity.id);
 
 			if (shader_id != renderable.visual->shader.ref.id) {
 				shader_id = renderable.visual->shader.ref.id;
