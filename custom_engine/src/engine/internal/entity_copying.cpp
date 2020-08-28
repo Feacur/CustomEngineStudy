@@ -86,7 +86,8 @@ template<> COMPONENT_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 		Hierarchy * parent_hierarchy = parent_hierarchy_ref.get_fast();
 		for (u32 i = 0; i < parent_hierarchy->children.count; ++i) {
 			if (parent_hierarchy->children[i] == entity) {
-				component->children[i].destroy();
+				parent_hierarchy->children.remove_at(i);
+				break;
 			}
 		}
 	}
