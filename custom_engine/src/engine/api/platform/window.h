@@ -12,7 +12,7 @@ void destroy(Internal_Data * data);
 
 void init_context(Internal_Data * data);
 
-void after_update(Internal_Data * data);
+void update(Internal_Data * data);
 
 void set_vsync(Internal_Data * data, u8 value);
 bool check_vsync(Internal_Data * data);

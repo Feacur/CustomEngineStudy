@@ -19,12 +19,12 @@
 #if defined(APP_DISPLAY_PERFORMANCE)
 	static void DISPLAY_PERFORMANCE(
 		custom::window::Internal_Data * window,
-		u64 time_logic, u64 time_window, u64 time_render, u64 precision,
+		u64 time_system, u64 time_logic, u64 time_render, u64 precision,
 		r32 dt
 	) {
-		u64 const duration = (time_logic + time_window + time_render);
+		u64 const duration = (time_system + time_logic + time_render);
+		float const system_ms = time_system * custom::timer::millisecond / (float)precision;
 		float const logic_ms  = time_logic  * custom::timer::millisecond / (float)precision;
-		float const window_ms = time_window * custom::timer::millisecond / (float)precision;
 		float const render_ms = time_render * custom::timer::millisecond / (float)precision;
 		float const debug_ms  = duration * custom::timer::millisecond / (float)precision;
 		float const debug_fps = precision / (float)duration;
@@ -34,16 +34,16 @@
 			header_text,
 			"custom engine"
 			"- %.1f ms (%.1f FPS)"
-			"---> l:%.1f ms | w:%.1f ms | r:%.1f ms"
+			"---> l:%.1f ms | r:%.1f ms | w:%.1f ms"
 			"---> dt %.1f ms",
 			debug_ms, debug_fps,
-			logic_ms, window_ms, render_ms,
+			system_ms, logic_ms, render_ms,
 			debug_dt
 		);
 		custom::window::set_header(window, header_text);
 	}
 #else
-	#define DISPLAY_PERFORMANCE(window, time_logic, time_window, time_render, precision, dt) (void)0
+	#define DISPLAY_PERFORMANCE(window, time_system, time_logic, time_render, precision, dt) (void)0
 #endif
 
 static u64 get_last_frame_ticks(bool vsync, u16 refresh_rate) {
@@ -112,9 +112,16 @@ static void init(void) {
 void run(void) {
 	init();
 
+	custom::timer::snapshot();
+
 	while (true) {
 		if (custom::system::should_close) { break; }
 		if (custom::window::get_should_close(app.window)) { break; }
+
+		u64 time_system = custom::timer::get_ticks();
+		custom::window::update(app.window);
+		custom::system::update();
+		time_system = custom::timer::get_ticks() - time_system;
 
 		// prepare for a frame
 		u16 refresh_rate = app.refresh_rate.force
@@ -130,13 +137,8 @@ void run(void) {
 
 		// process the frame
 		u64 time_logic = custom::timer::get_ticks();
-		custom::system::update();
 		CALL_SAFELY(app.callbacks.update, dt);
 		time_logic = custom::timer::get_ticks() - time_logic;
-
-		u64 time_window = custom::timer::get_ticks();
-		custom::window::after_update(app.window);
-		time_window = custom::timer::get_ticks() - time_window;
 
 		u64 time_render = custom::timer::get_ticks();
 		custom::graphics::consume(app.bytecode_loader);
@@ -147,7 +149,7 @@ void run(void) {
 
 		DISPLAY_PERFORMANCE(
 			app.window,
-			time_logic, time_window, time_render,
+			time_system, time_logic, time_render,
 			custom::timer::ticks_per_second,
 			dt
 		);

@@ -96,7 +96,7 @@ void init_context(Internal_Data * data) {
 	graphics::init();
 }
 
-void after_update(Internal_Data * data) {
+void update(Internal_Data * data) {
 	// @Todo: split into input consumption and buffer output?
 	keyboard_update(data);
 	mouse_update(data);
