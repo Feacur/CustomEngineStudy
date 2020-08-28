@@ -92,8 +92,10 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 		}
 	}
 
-	for (u32 i = 0; i < component->children.count; ++i) {
-		component->children[i].destroy();
+	if (entity_will_be_destroyed) {
+		for (u32 i = 0; i < component->children.count; ++i) {
+			component->children[i].destroy();
+		}
 	}
 	component->children.~Array();
 }

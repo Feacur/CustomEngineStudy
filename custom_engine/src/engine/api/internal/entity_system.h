@@ -24,7 +24,7 @@ namespace custom {
 #define ENTITY_FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
 typedef ENTITY_FROM_TO_FUNC(ENTITY_FROM_TO_FUNC);
 
-#define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref)
+#define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, bool entity_will_be_destroyed)
 typedef ENTITY_LOADING_FUNC(entity_loading_func);
 
 #define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)

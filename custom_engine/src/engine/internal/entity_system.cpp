@@ -109,7 +109,7 @@ void Entity::destroy(void) {
 		for (u32 type = 0; type < Entity::component_destructors.count; ++type) {
 			Ref ref = Entity::components.get(entity_offset + type);
 			if ((*Entity::component_containers[type])(ref)) {
-				(*Entity::component_cleaners[type])(*this, ref);
+				(*Entity::component_cleaners[type])(*this, ref, true);
 				(*Entity::component_destructors[type])(ref);
 			}
 		}
@@ -275,7 +275,7 @@ void Entity::rem_component(u32 type) {
 	Ref ref = Entity::components.get(component_index);
 
 	if ((*Entity::component_containers[type])(ref)) {
-		(*Entity::component_cleaners[type])(*this, ref);
+		(*Entity::component_cleaners[type])(*this, ref, false);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -325,7 +325,7 @@ void Component::destroy(void) {
 	// @Note: duplicates `Entity::rem_component` code
 	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
 	if ((*Entity::component_containers[type])(ref)) {
-		(*Entity::component_cleaners[type])(entity, ref);
+		(*Entity::component_cleaners[type])(entity, ref, false);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
