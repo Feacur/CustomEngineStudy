@@ -8,6 +8,7 @@
 namespace custom {
 
 template<typename T> FROM_TO_FUNC(ref_pool_copy);
+template<typename T> COMPONENT_LOADING_FUNC(component_pool_clean);
 
 }
 

@@ -20,6 +20,10 @@ template<> FROM_TO_FUNC(ref_pool_copy<Transform>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
+template<> COMPONENT_LOADING_FUNC(component_pool_clean<Transform>) {
+	// RefT<Transform> & refT = (RefT<Transform> &)ref;
+}
+
 }
 
 //
@@ -33,6 +37,10 @@ template<> FROM_TO_FUNC(ref_pool_copy<Camera>) {
 	RefT<Camera> & toT = (RefT<Camera> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
+}
+
+template<> COMPONENT_LOADING_FUNC(component_pool_clean<Camera>) {
+	// RefT<Camera> & refT = (RefT<Camera> &)ref;
 }
 
 }
@@ -59,6 +67,17 @@ template<> FROM_TO_FUNC(ref_pool_copy<Hierarchy>) {
 	for (u32 i = 0; i < to_component->children.count; ++i) {
 		to_component->children[i] = to_component->children[i].copy();
 	}
+}
+
+template<> COMPONENT_LOADING_FUNC(component_pool_clean<Hierarchy>) {
+	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
+
+	Hierarchy * component = refT.get_fast();
+
+	for (u32 i = 0; i < component->children.count; ++i) {
+		component->children[i].destroy();
+	}
+	component->children.~Array();
 }
 
 }

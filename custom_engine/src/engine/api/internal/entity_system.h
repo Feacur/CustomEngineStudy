@@ -16,13 +16,16 @@ namespace custom {
 }
 
 //
-//
+// universal access
 //
 
 namespace custom {
 
 #define FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref const & from, Ref & to)
 typedef FROM_TO_FUNC(from_to_func);
+
+#define COMPONENT_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Ref & ref)
+typedef COMPONENT_LOADING_FUNC(component_loading_func);
 
 #define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)
 typedef SERIALIZATION_READ_FUNC(serialization_read_func);
@@ -70,6 +73,7 @@ struct Entity : public Ref
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
 	static Array<from_to_func *>  component_copiers;
+	static Array<component_loading_func *>  component_cleaners;
 	static Array<serialization_read_func *> component_serialization_readers;
 
 	Ref  add_component(u32 type);

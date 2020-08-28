@@ -21,6 +21,10 @@ template<> FROM_TO_FUNC(ref_pool_copy<Visual>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
+template<> COMPONENT_LOADING_FUNC(component_pool_clean<Visual>) {
+	// RefT<Visual> & refT = (RefT<Visual> &)ref;
+}
+
 }
 
 //
@@ -34,6 +38,10 @@ template<> FROM_TO_FUNC(ref_pool_copy<Lua_Script>) {
 	RefT<Lua_Script> & toT = (RefT<Lua_Script> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
+}
+
+template<> COMPONENT_LOADING_FUNC(component_pool_clean<Lua_Script>) {
+	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 }
 
 }
