@@ -204,13 +204,11 @@ bool check_vsync(Internal_Data * data) {
 
 void swap_buffers(Internal_Data * data)
 {
-	// @Todo: whether `flush` is even required?
 	if (wgl.pixel_format.doublebuffer) {
-		SwapBuffers(data->hdc);
+		if (SwapBuffers(data->hdc)) { return; }
 	}
-	else {
-		glFlush();
-	}
+	// @Todo: whether `flush` is even required?
+	glFlush();
 }
 
 }}
@@ -382,6 +380,10 @@ static int add_atribute_keys(int * keys, int cap) {
 		}
 	}
 
+	if (custom::pixel_format_hint.doublebuffer) {
+		ADD_ATTRIBUTE_KEY(WGL_SWAP_METHOD_ARB);
+	}
+
 	return count;
 }
 #undef ADD_ATTRIBUTE
@@ -458,6 +460,10 @@ static custom::Pixel_Format * allocate_pixel_formats_arb(HDC hdc) {
 		pf.depth_bits   = GET_ATTRIBUTE_VALUE(WGL_DEPTH_BITS_ARB);
 		pf.stencil_bits = GET_ATTRIBUTE_VALUE(WGL_STENCIL_BITS_ARB);
 		pf.doublebuffer = GET_ATTRIBUTE_VALUE(WGL_DOUBLE_BUFFER_ARB);
+		pf.swap = !pf.doublebuffer ? 0
+			: (GET_ATTRIBUTE_VALUE(WGL_SWAP_METHOD_ARB) != WGL_SWAP_EXCHANGE_ARB) ? 1
+			: (GET_ATTRIBUTE_VALUE(WGL_SWAP_METHOD_ARB) != WGL_SWAP_COPY_ARB)     ? 2
+			: 0;
 
 		pf_list[pf_count++] = pf;
 
@@ -525,6 +531,10 @@ static custom::Pixel_Format * allocate_pixel_formats_legacy(HDC hdc) {
 		pf.depth_bits   = pfd.cDepthBits;
 		pf.stencil_bits = pfd.cStencilBits;
 		pf.doublebuffer = bits_are_set(pfd.dwFlags, PFD_DOUBLEBUFFER);
+		pf.swap = !pf.doublebuffer ? 0
+			: bits_are_set(pfd.dwFlags, PFD_SWAP_EXCHANGE) ? 1
+			: bits_are_set(pfd.dwFlags, PFD_SWAP_COPY)     ? 2
+			: 0;
 
 		pf_list[pf_count++] = pf;
 
@@ -576,6 +586,7 @@ static custom::Pixel_Format * find_best_pixel_format(custom::Pixel_Format * list
 	{
 		// @Note: should satisfy minimal requirements
 		if (pf->doublebuffer != custom::pixel_format_hint.doublebuffer) { continue; }
+		if (custom::pixel_format_hint.swap && pf->swap != custom::pixel_format_hint.swap) { continue; }
 
 		// @Note: might loosen this restrictions
 		//        GLFW deems hint as a vague target

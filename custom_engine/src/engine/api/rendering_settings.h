@@ -40,6 +40,7 @@ struct Pixel_Format
 	int  stencil_bits = 8;
 	//
 	bool doublebuffer = true;
+	int  swap = 1; // 0 any, 1 exchange, 2 copy
 };
 
 extern Context_Settings context_settings;
