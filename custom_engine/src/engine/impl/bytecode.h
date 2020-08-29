@@ -1,8 +1,5 @@
 #pragma once
-#include "engine/core/code.h"
-#include "engine/debug/log.h"
 #include "engine/api/internal/bytecode.h"
-#include "engine/impl/array.h"
 
 // https://en.cppreference.com/w/c/memory/malloc
 // https://en.cppreference.com/w/c/language/object#Alignment

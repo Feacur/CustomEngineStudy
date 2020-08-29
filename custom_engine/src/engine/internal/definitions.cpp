@@ -2,6 +2,7 @@
 
 #include "engine/core/math_types.h"
 #include "engine/api/graphics_params.h"
+#include "engine/api/internal/component_types.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/bytecode.h"
@@ -37,6 +38,12 @@ template struct Array<cstring>;
 
 #define GRAPHICS_PARAM_IMPL(T) template struct Array<graphics::T>;
 #include "engine/registry_impl/graphics_params.h"
+
+#define COMPONENT_IMPL(T) template struct Array<T>;
+#include "engine/registry_impl/component_types.h"
+
+#define ASSET_IMPL(T) template struct Array<T>;
+#include "engine/registry_impl/asset_types.h"
 
 template struct Array<Ref>;
 

@@ -16,6 +16,7 @@ struct Lua_Script
 
 struct Visual
 {
+	// @Change: use resource ids instead?
 	custom::Asset_RefT<custom::Shader_Asset> shader = {custom::empty_ref, custom::empty_index};
 	custom::Asset_RefT<custom::Texture_Asset> texture = {custom::empty_ref, custom::empty_index};
 	custom::Asset_RefT<custom::Mesh_Asset> mesh = {custom::empty_ref, custom::empty_index};

@@ -7,7 +7,7 @@
 #include "engine/impl/array.h"
 
 //
-//
+// Hierarchy
 //
 
 template struct custom::Array<Hierarchy::Link>;

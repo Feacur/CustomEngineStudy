@@ -1,5 +1,7 @@
 #include "custom_pch.h"
 
+#include "engine/core/code.h"
+#include "engine/debug/log.h"
 #include "engine/impl/bytecode.h"
 
 // @Note: it might be beneficial to align written data for future reads
