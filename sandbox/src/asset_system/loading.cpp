@@ -38,9 +38,8 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	if (!file.count) { return; }
 	// file.push('\0');
 
-	Asset_RefT<Lua_Asset> & refT = (Asset_RefT<Lua_Asset> &)asset_ref;
-
-	Lua_Asset * asset = refT.ref.get_fast();
+	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
+	Lua_Asset * asset = refT.get_fast();
 	// new (asset) Lua_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
@@ -60,7 +59,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	}
 
 	// @Todo: implement load/unload
-	asset = refT.ref.get_fast();
+	asset = refT.get_fast();
 	asset->~Lua_Asset();
 }
 
@@ -69,7 +68,7 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 
-	Lua_Asset * asset = refT.get_fast();
+	Lua_Asset * asset = refT.get_safe();
 	asset->~Lua_Asset();
 }
 

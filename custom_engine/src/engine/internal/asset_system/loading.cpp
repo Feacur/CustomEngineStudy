@@ -57,9 +57,9 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	Asset_RefT<Shader_Asset> & refT = (Asset_RefT<Shader_Asset> &)asset_ref;
+	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
 
-	Shader_Asset * asset = refT.ref.get_fast();
+	Shader_Asset * asset = refT.get_fast();
 	// new (asset) Shader_Asset;
 
 	asset->source.data     = file.data;     file.data     = NULL;
@@ -131,9 +131,9 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	Asset_RefT<Texture_Asset> & refT = (Asset_RefT<Texture_Asset> &)asset_ref;
+	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
 
-	Texture_Asset * asset = refT.ref.get_fast();
+	Texture_Asset * asset = refT.get_fast();
 	// new (asset) Texture_Asset;
 
 	// @Todo: read meta or provide these otherwise
@@ -226,9 +226,9 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices '%s'", path); return; }
 	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
-	Asset_RefT<Mesh_Asset> & refT = (Asset_RefT<Mesh_Asset> &)asset_ref;
+	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
 
-	Mesh_Asset * asset = refT.ref.get_fast();
+	Mesh_Asset * asset = refT.get_fast();
 	new (asset) Mesh_Asset;
 
 	asset->buffers.set_capacity(2);
