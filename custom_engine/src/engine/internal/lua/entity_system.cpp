@@ -48,7 +48,7 @@ static int Entity_eq(lua_State * L) {
 	Entity const * object1 = (Entity const *)lua_touserdata(L, 1);
 	Entity const * object2 = (Entity const *)lua_touserdata(L, 2);
 
-	lua_pushboolean(L, object1->ref == object2->ref);
+	lua_pushboolean(L, *object1 == *object2);
 
 	return 1;
 }
