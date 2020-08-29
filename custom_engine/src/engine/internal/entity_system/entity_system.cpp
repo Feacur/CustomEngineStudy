@@ -54,6 +54,7 @@ namespace custom {
 namespace serialization {
 
 void serialization_read_Entity_block(Entity & entity, cstring * source);
+void serialization_read_Child_block(Entity & entity, cstring * source);
 
 }}
 
@@ -71,20 +72,21 @@ Entity Entity::serialization_read(cstring * source) {
 
 	// @Note: component readers are assumed to early out upon discovery of
 	//        any unrecognized non-whitespace sequence
-	constexpr static char const entity_type_name[] = "Entity";
 
 	while (**source) {
 		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 
-		if (**source == '~') {
-			break;
-		};
+		if (**source == '~') { break; };
 
-		// @Change: process this block only as the firstmost?
-		if (strncmp(*source, entity_type_name, C_ARRAY_LENGTH(entity_type_name) - 1) == 0) {
+		if (**source == '!') {
 			serialization::serialization_read_Entity_block(entity, source);
 			continue;
 		}
+
+		if (**source == '>') {
+			serialization::serialization_read_Child_block(entity, source);
+			continue;
+		};
 
 		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
 		if (type != custom::empty_index) {
@@ -107,8 +109,16 @@ void Entity::override(cstring * source) {
 	while (**source) {
 		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 
-		if (**source == '~') {
-			break;
+		if (**source == '~') { break; };
+
+		if (**source == '!') {
+			serialization::serialization_read_Entity_block(*this, source);
+			continue;
+		}
+
+		if (**source == '>') {
+			serialization::serialization_read_Child_block(*this, source);
+			continue;
 		};
 
 		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
@@ -222,7 +232,8 @@ Ref Entity::add_component(u32 type) {
 		Entity::component_entity_ids.push(ref.id);
 		Entity::component_types.push(type);
 	}
-	else { CUSTOM_ASSERT(false, "component already exists"); }
+	// @Todo: check explicitly?
+	//else { CUSTOM_ASSERT(false, "component already exists"); }
 
 	return component_ref;
 }

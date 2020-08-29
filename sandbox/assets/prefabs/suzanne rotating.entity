@@ -1,3 +1,15 @@
+! # entity
+	# this prefab is a copy with some changes and additions
+	p assets/prefabs/suzanne.entity
+		# override the entity
+		o Visual
+			l 1
+		~ # terminate the corresponding 'o' entry
+Lua_Script
+	u script_rotate
+
+~ # skip the rest
+
 Entity
 	# this prefab is a copy with some changes and additions
 	p assets/prefabs/suzanne.entity

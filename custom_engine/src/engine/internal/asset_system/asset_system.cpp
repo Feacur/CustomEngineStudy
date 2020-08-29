@@ -121,6 +121,8 @@ Asset Asset::add(u32 type, u32 resource) {
 
 		(*Asset::asset_loaders[type])(asset);
 	}
+	// @Todo: check explicitly?
+	//else { CUSTOM_ASSERT(false, "asset already exists"); }
 
 	return asset;
 }

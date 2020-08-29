@@ -71,10 +71,11 @@ void update() {
 		if (!hierarchy) { continue; }
 
 		mat4 const & renderer_local = renderer_locals.get(renderer.entity.ref.id);
-		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
-			custom::Entity child = hierarchy->children[ci];
-			renderer_locals.get(child.ref.id) = mat_product(renderer_locals.get(child.ref.id), renderer_local);
-		}
+		// @Todo: applu transforms
+		// for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
+		// 	custom::Entity child = hierarchy->children[ci];
+		// 	renderer_locals.get(child.ref.id) = mat_product(renderer_locals.get(child.ref.id), renderer_local);
+		// }
 	}
 
 	// @Todo: revisit sorting
@@ -115,10 +116,11 @@ void update() {
 		if (!hierarchy) { continue; }
 
 		mat4 const & renderable_local = renderable_locals.get(renderable.entity.ref.id);
-		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
-			custom::Entity child = hierarchy->children[ci];
-			renderable_locals.get(child.ref.id) = mat_product(renderable_locals.get(child.ref.id), renderable_local);
-		}
+		// @Todo: applu transforms
+		// for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
+		// 	custom::Entity child = hierarchy->children[ci];
+		// 	renderable_locals.get(child.ref.id) = mat_product(renderable_locals.get(child.ref.id), renderable_local);
+		// }
 	}
 
 	// @Todo: revisit sorting

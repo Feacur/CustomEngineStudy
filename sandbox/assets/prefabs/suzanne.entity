@@ -1,5 +1,4 @@
-Entity
-	#
+! # entity
 Transform
 	p 0 1 0
 	r 0 0 0 1
