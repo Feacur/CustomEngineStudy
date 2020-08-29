@@ -50,12 +50,15 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 void serialization_read_Child_block(Entity & entity, cstring * source) {
 	bool done = false;
 
+	Entity last_child = {custom::empty_ref};
+
 	while (!done && *source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
 				Entity child = Entity::serialization_read(source);
 				Hierarchy::set_parent(child, entity);
+				last_child = child;
 			} break;
 
 			case 'p': ++(*source); {
@@ -65,6 +68,12 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 
 				Entity child = prefab_asset.ref.get_fast()->copy(entity.is_instance());
 				Hierarchy::set_parent(child, entity);
+				last_child = child;
+			} break;
+
+			case 'o': ++(*source); {
+				Entity child = last_child;
+				child.override(source);
 			} break;
 
 			case '#': break;
