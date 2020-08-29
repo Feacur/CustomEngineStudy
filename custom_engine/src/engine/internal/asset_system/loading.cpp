@@ -323,15 +323,17 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
-	asset->id  = prefab.id;
-	asset->gen = prefab.gen;
+	*asset = {prefab};
 	
-	// @Bug: some weird behaviour occured here, 29 August 2020;
+	// @Note: some weird behaviour occured here, 29 August 2020;
 	//       optimization related or memory related or something else, I don't grasp currently?
 	//       loading partially and sporadically fails if you first store
 	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
 	//       everything's fine, however if you do as it's done above
 	//       the notorious printf()-"fix" works, too
+	//       ...
+	//       although, if Ref is inherited, everything seems to bee alright
+	//       just be aware
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
