@@ -322,14 +322,18 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	cstring source = (cstring)file.data;
 	custom::Entity prefab = custom::Entity::serialization_read(&source);
 
-	// @Fix: hidden bug
-	printf("");
-
-	Asset_RefT<Prefab_Asset> & refT  = (Asset_RefT<Prefab_Asset> &)asset_ref;
-	Prefab_Asset             * asset = refT.ref.get_fast();
+	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
+	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
-	*asset = {prefab};
+	asset->ref         = prefab.ref;
+	asset->is_instance = prefab.is_instance;
+	
+	// @Bug: some weird behaviour occured here, 29 August 2020;
+	//       optimization related or memory related or something else, I don't grasp currently?
+	//       loading partially and sporadically fails if you first store
+	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
+	//       everything's fine, however if you do as it's done above
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
