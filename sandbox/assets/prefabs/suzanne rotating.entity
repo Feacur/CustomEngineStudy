@@ -2,7 +2,7 @@
 	p assets/prefabs/suzanne.entity
 		o Visual
 			l 1
-		~
+		~ # stop parsing override
 Lua_Script
 	u script_rotate
 > # child
@@ -12,7 +12,7 @@ Lua_Script
 			s 0.25 0.25 0.25
 		Visual
 			l 1
-		~
+		~ # stop parsing override
 	p assets/prefabs/suzanne.entity
 		o Transform
 			p -1 1.5 1
@@ -23,4 +23,4 @@ Lua_Script
 			p assets/prefabs/suzanne.entity
 				o Transform
 					p 2 1.5 1
-				~
+				~ # stop parsing override
