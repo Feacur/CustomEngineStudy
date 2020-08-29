@@ -25,9 +25,10 @@ struct Camera
 };
 
 struct Hierarchy {
+	custom::Entity parent = {custom::empty_ref};
+
 	struct Link { u32 id; custom::Entity entity; };
 	static custom::Array<Link> links;
-	custom::Entity parent = {custom::empty_ref};
 
 	static void fetch_children(custom::Entity const & entity, custom::Array<Hierarchy::Link> & buffer);
 	static void set_parent(custom::Entity & child, custom::Entity const & entity);
