@@ -60,8 +60,16 @@ void serialization_read_Child_block(Entity & entity, cstring * source);
 
 namespace custom {
 
+static u32 find_instance(u32 entity) {
+	for (u32 i = 0; i < Entity::instances.count; ++i) {
+		if (Entity::instances[i].ref.id != entity) { continue; }
+		return i;
+	}
+	return custom::empty_index;
+}
+
 Entity Entity::create(bool is_instance) {
-	Entity entity = {Entity::generations.create(), is_instance};
+	Entity entity = {Entity::generations.create()};
 	if (is_instance) { instances.push(entity); }
 	return entity;
 }
@@ -172,10 +180,14 @@ void Entity::destroy(void) {
 	}
 }
 
+bool Entity::is_instance() const {
+	return find_instance(ref.id) != custom::empty_index;
+}
+
 Entity Entity::copy(bool force_instance) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return {custom::empty_ref}; }
 
-	Entity entity = create(is_instance || force_instance);
+	Entity entity = create(is_instance() || force_instance);
 
 	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
 		Ref const from_component_ref = get_component(type);
@@ -189,9 +201,8 @@ Entity Entity::copy(bool force_instance) const {
 }
 
 void Entity::promote_to_instance(void) {
-	if (is_instance) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
-	is_instance = true;
-	Entity::instances.push(*this);
+	if (is_instance()) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
+	instances.push(*this);
 }
 
 }

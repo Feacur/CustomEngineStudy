@@ -44,7 +44,6 @@ template<typename T> struct Component_Registry { static u32 type; };
 struct Entity
 {
 	Ref ref;
-	bool is_instance;
 
 	// entities
 	static Gen_Pool      generations;
@@ -69,6 +68,7 @@ struct Entity
 	void override(cstring * source);
 	void override(Entity const & entity);
 	void destroy(void);
+	bool is_instance() const;
 	Entity copy(bool force_instance) const;
 	void promote_to_instance(void);
 	inline bool exists(void) const { return generations.contains(ref); }

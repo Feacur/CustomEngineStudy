@@ -25,7 +25,7 @@ struct Camera
 };
 
 struct Hierarchy {
-	custom::Entity parent = {custom::empty_ref, false};
+	custom::Entity parent = {custom::empty_ref};
 };
 
 // struct Transform2d

@@ -323,8 +323,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
-	asset->ref         = prefab.ref;
-	asset->is_instance = prefab.is_instance;
+	asset->ref = prefab.ref;
 	
 	// @Bug: some weird behaviour occured here, 29 August 2020;
 	//       optimization related or memory related or something else, I don't grasp currently?

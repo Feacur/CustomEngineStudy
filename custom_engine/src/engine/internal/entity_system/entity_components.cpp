@@ -63,7 +63,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();
-	component->parent = {custom::empty_ref, false};
+	component->parent = {custom::empty_ref};
 
 	// @Todo: destroy child entities
 }

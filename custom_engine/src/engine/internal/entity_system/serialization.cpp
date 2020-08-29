@@ -65,7 +65,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				Asset_RefT<Prefab_Asset> prefab_asset = Asset::add<Prefab_Asset>(id);
 
-				Entity child = prefab_asset.ref.get_fast()->copy(entity.is_instance);
+				Entity child = prefab_asset.ref.get_fast()->copy(entity.is_instance());
 
 				RefT<Hierarchy> hierarchy_refT = child.add_component<Hierarchy>();
 				Hierarchy * hierarchy = hierarchy_refT.get_fast();
