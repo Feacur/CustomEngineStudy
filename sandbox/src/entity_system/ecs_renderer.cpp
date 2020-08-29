@@ -85,6 +85,7 @@ void update() {
 
 		Hierarchy const * hierarchy = renderer.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
+		if (!hierarchy->parent.exists()) { continue; }
 		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
 		mat4 & renderer_local = renderer_locals.get(renderer.entity.id);
@@ -142,6 +143,7 @@ void update() {
 
 		Hierarchy const * hierarchy = renderable.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
+		if (!hierarchy->parent.exists()) { continue; }
 		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
 		mat4 & renderable_local = renderable_locals.get(renderable.entity.id);

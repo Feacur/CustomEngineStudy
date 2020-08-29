@@ -86,11 +86,15 @@ namespace custom {
 
 template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	/*pass the responsibility to `entity_do_after_copy`*/
-
 	// RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
-	// RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
+	RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
 
-	// *toT.get_fast() = *fromT.get_fast();
+	// @Todo: is this needs an implementation whatsoever?
+	//        for now, just drop the parent reference.
+	//        - removing the component is possible, but isn't necessary
+	//        - might keep it in case it's an instance
+	//        - ... but prefab is a no go here definitely
+	toT.get_fast()->parent = {custom::empty_ref};
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {

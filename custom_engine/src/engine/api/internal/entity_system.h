@@ -21,7 +21,7 @@ namespace custom {
 
 namespace custom {
 
-#define ENTITY_FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity const & entity_from, Entity & entity_to, Ref const & from, Ref & to)
+#define ENTITY_FROM_TO_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref const & from, Ref & to)
 typedef ENTITY_FROM_TO_FUNC(entity_from_to_func);
 
 #define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, bool entity_will_be_destroyed)
