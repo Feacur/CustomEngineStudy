@@ -84,8 +84,7 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
-
-	Shader_Asset * asset = refT.get_fast();
+	Shader_Asset * asset = refT.get_safe();
 	asset->~Shader_Asset();
 
 	// @Note: remove asset from the GVM
@@ -190,8 +189,7 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
-
-	Texture_Asset * asset = refT.get_fast();
+	Texture_Asset * asset = refT.get_safe();
 	asset->~Texture_Asset();
 
 	// @Note: remove asset from the GVM
@@ -289,8 +287,7 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
-
-	Mesh_Asset * asset = refT.get_fast();
+	Mesh_Asset * asset = refT.get_safe();
 	asset->~Mesh_Asset();
 
 	// @Note: remove asset from the GVM
@@ -334,13 +331,14 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	//       loading partially and sporadically fails if you first store
 	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
 	//       everything's fine, however if you do as it's done above
+	//       the notorious printf()-"fix" works, too
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
-	Prefab_Asset * asset = refT.get_fast();
+	Prefab_Asset * asset = refT.get_safe();
 	asset->destroy();
 }
 

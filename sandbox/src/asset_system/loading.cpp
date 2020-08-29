@@ -67,7 +67,6 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
-
 	Lua_Asset * asset = refT.get_safe();
 	asset->~Lua_Asset();
 }

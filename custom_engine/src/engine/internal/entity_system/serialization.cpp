@@ -176,8 +176,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 				Entity child = prefab.ref.get_fast()->copy(false);
 				component = refT.get_fast();
 
-				component = refT.get_fast();
+				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
 				component->link(entity, child);
+				component = refT.get_fast();
 			} break;
 
 			case 'o': ++(*source); {
