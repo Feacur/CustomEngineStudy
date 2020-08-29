@@ -6,6 +6,7 @@
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
 
+#include "../asset_system/asset_types.h"
 #include "component_types.h"
 
 // #include <new>
@@ -74,6 +75,12 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
+			case 'a': ++(*source); {
+				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
+				Asset::add<Lua_Asset>(id);
+			} break;
+
 			case 'u': ++(*source); {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				component->update_string_id = Entity::store_string(*source, (u32)(line_end - *source));

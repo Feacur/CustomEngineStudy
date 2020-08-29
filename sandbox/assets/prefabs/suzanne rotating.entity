@@ -4,6 +4,7 @@
 			l 1
 		~ # stop parsing override
 Lua_Script
+	a assets/scripts/script_rotate.lua
 	u script_rotate
 > # child
 	p assets/prefabs/suzanne.entity
