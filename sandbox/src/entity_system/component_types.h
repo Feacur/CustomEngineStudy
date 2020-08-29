@@ -22,3 +22,8 @@ struct Visual
 	custom::Asset_RefT<custom::Mesh_Asset> mesh = {custom::empty_ref, custom::empty_index};
 	u8 layer = 0;
 };
+
+struct Physical
+{
+	u8 dummy;
+};

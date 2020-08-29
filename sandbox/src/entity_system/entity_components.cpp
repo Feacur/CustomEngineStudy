@@ -36,7 +36,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
 }
 
 //
-// Camera
+// Lua_Script
 //
 
 namespace custom {
@@ -54,6 +54,29 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Lua_Script>) {
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
 	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+}
+
+}
+
+//
+// Physical
+//
+
+namespace custom {
+
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Physical>) {
+	RefT<Physical> const & fromT = (RefT<Physical> const &)from;
+	RefT<Physical> & toT = (RefT<Physical> &)to;
+
+	*toT.get_fast() = *fromT.get_fast();
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_load<Physical>) {
+	// RefT<Physical> & refT = (RefT<Physical> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Physical>) {
+	// RefT<Physical> & refT = (RefT<Physical> &)ref;
 }
 
 }

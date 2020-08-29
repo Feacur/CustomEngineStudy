@@ -86,3 +86,29 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 }
 
 }}
+
+//
+// Physical
+//
+
+namespace custom {
+namespace serialization {
+
+template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) {
+	RefT<Physical> & refT = (RefT<Physical> &)ref;
+
+	Physical * component = refT.get_fast();
+	// new (component) Physical;
+
+	bool done = false;
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		switch ((parse_void(source), **source)) {
+
+			case '#': break;
+			default: done = true; break;
+		}
+	}
+}
+
+}}
