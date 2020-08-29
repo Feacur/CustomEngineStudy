@@ -25,7 +25,8 @@ Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
 Array<bool_ref_func *> Entity::component_containers;
 Array<entity_from_to_func *> Entity::component_copiers;
-Array<entity_loading_func *> Entity::component_cleaners;
+Array<entity_loading_func *> Entity::component_loaders;
+Array<entity_loading_func *> Entity::component_unloaders;
 Array<serialization_read_func *> Entity::component_serialization_readers;
 
 }
@@ -172,7 +173,7 @@ void Entity::destroy(void) {
 		for (u32 type = 0; type < Entity::component_destructors.count; ++type) {
 			Ref component_ref = Entity::components.get(entity_offset + type);
 			if ((*Entity::component_containers[type])(component_ref)) {
-				(*Entity::component_cleaners[type])(*this, component_ref, true);
+				(*Entity::component_unloaders[type])(*this, component_ref, true);
 				(*Entity::component_destructors[type])(component_ref);
 			}
 		}
@@ -239,7 +240,7 @@ Ref Entity::add_component(u32 type) {
 
 	Ref component_ref = custom::empty_ref;
 
-	u32 component_index = find(type, ref.id);
+	u32 component_index = find(type, id);
 	if (component_index != custom::empty_index) { component_ref = Entity::components[component_index]; }
 
 	if (component_ref.id == custom::empty_ref.id || !(*Entity::component_containers[type])(component_ref)) {
@@ -251,8 +252,10 @@ Ref Entity::add_component(u32 type) {
 
 		component_ref= (*Entity::component_constructors[type])();
 		Entity::components.push(component_ref);
-		Entity::component_entity_ids.push(ref.id);
+		Entity::component_entity_ids.push(id);
 		Entity::component_types.push(type);
+
+		(*Entity::component_loaders[type])(*this, component_ref, false);
 	}
 	// @Todo: check explicitly?
 	//else { CUSTOM_ASSERT(false, "component already exists"); }
@@ -264,7 +267,7 @@ void Entity::rem_component(u32 type) {
 	// @Note: duplicates `Component::destroy` code
 	Ref component_ref = custom::empty_ref;
 
-	u32 component_index = find(type, ref.id);
+	u32 component_index = find(type, id);
 	if (component_index != custom::empty_index) {
 		component_ref = Entity::components[component_index];
 		Entity::components.remove_at(component_index);
@@ -273,7 +276,7 @@ void Entity::rem_component(u32 type) {
 	}
 
 	if ((*Entity::component_containers[type])(component_ref)) {
-		(*Entity::component_cleaners[type])(*this, component_ref, false);
+		(*Entity::component_unloaders[type])(*this, component_ref, false);
 		(*Entity::component_destructors[type])(component_ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -282,7 +285,7 @@ void Entity::rem_component(u32 type) {
 Ref Entity::get_component(u32 type) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
-	u32 component_index = find(type, ref.id);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return custom::empty_ref; }
 
 	return Entity::components[component_index];
@@ -291,7 +294,7 @@ Ref Entity::get_component(u32 type) const {
 bool Entity::has_component(u32 type) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return false; }
 
-	u32 component_index = find(type, ref.id);
+	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return false; }
 
 	Ref component_ref = Entity::components[component_index];
@@ -320,6 +323,8 @@ Ref Entity::add_component(u32 type) {
 	if (!(*Entity::component_containers[type])(component_ref)) {
 		component_ref = (*Entity::component_constructors[type])();
 		Entity::components.get(component_index) = component_ref;
+
+		(*Entity::component_loaders[type])(*this, component_ref, false);
 	}
 	// @Todo: check explicitly?
 	// else { CUSTOM_ASSERT(false, "component already exists"); }
@@ -338,7 +343,7 @@ void Entity::rem_component(u32 type) {
 	Ref component_ref = Entity::components.get(component_index);
 
 	if ((*Entity::component_containers[type])(component_ref)) {
-		(*Entity::component_cleaners[type])(*this, component_ref, false);
+		(*Entity::component_unloaders[type])(*this, component_ref, false);
 		(*Entity::component_destructors[type])(component_ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -388,7 +393,7 @@ void Component::destroy(void) {
 	// @Note: duplicates `Entity::rem_component` code
 	CUSTOM_ASSERT(entity.get_component(type) == ref, "component ref is corrupted");
 	if ((*Entity::component_containers[type])(ref)) {
-		(*Entity::component_cleaners[type])(entity, ref, false);
+		(*Entity::component_unloaders[type])(entity, ref, false);
 		(*Entity::component_destructors[type])(ref);
 	}
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
@@ -396,7 +401,7 @@ void Component::destroy(void) {
 	#if defined(ENTITY_COMPONENTS_DENSE)
 	for (u32 i = 0; i < Entity::components.count; ++i) {
 		if (Entity::component_types[i] != type) { continue; }
-		if (Entity::component_entity_ids[i] != entity.ref.id) { continue; }
+		if (Entity::component_entity_ids[i] != entity.id) { continue; }
 		if (Entity::components[i] != ref) { continue; }
 		Entity::components.remove_at(i);
 		Entity::component_entity_ids.remove_at(i);

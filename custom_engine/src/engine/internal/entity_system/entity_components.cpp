@@ -53,7 +53,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Transform>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_clean<Transform>) {
+template<> ENTITY_LOADING_FUNC(component_pool_load<Transform>) {
+	// RefT<Transform> & refT = (RefT<Transform> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Transform>) {
 	// RefT<Transform> & refT = (RefT<Transform> &)ref;
 }
 
@@ -72,7 +76,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Camera>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_clean<Camera>) {
+template<> ENTITY_LOADING_FUNC(component_pool_load<Camera>) {
+	// RefT<Camera> & refT = (RefT<Camera> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Camera>) {
 	// RefT<Camera> & refT = (RefT<Camera> &)ref;
 }
 
@@ -97,7 +105,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	toT.get_fast()->parent = {custom::empty_ref};
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
+template<> ENTITY_LOADING_FUNC(component_pool_load<Hierarchy>) {
+	// RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Hierarchy>) {
 	if (entity_will_be_destroyed) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 

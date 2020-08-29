@@ -21,7 +21,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Visual>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_clean<Visual>) {
+template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
+	// RefT<Visual> & refT = (RefT<Visual> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 	Visual * visual = refT.get_fast();
 	visual->shader  = {custom::empty_ref, custom::empty_index};
@@ -44,7 +48,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Lua_Script>) {
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_clean<Lua_Script>) {
+template<> ENTITY_LOADING_FUNC(component_pool_load<Lua_Script>) {
+	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
 	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 }
 

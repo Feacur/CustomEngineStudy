@@ -76,7 +76,8 @@ struct Entity : public Ref
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
 	static Array<entity_from_to_func *> component_copiers;
-	static Array<entity_loading_func *> component_cleaners;
+	static Array<entity_loading_func *> component_loaders;
+	static Array<entity_loading_func *> component_unloaders;
 	static Array<serialization_read_func *> component_serialization_readers;
 
 	Ref  add_component(u32 type);

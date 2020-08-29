@@ -8,7 +8,8 @@
 namespace custom {
 
 template<typename T> ENTITY_FROM_TO_FUNC(component_pool_copy);
-template<typename T> ENTITY_LOADING_FUNC(component_pool_clean);
+template<typename T> ENTITY_LOADING_FUNC(component_pool_load);
+template<typename T> ENTITY_LOADING_FUNC(component_pool_unload);
 
 }
 
