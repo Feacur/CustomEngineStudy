@@ -41,7 +41,8 @@ void update() {
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
 
 	// @Note: fetch renderers
-	custom::Array<Renderer_Blob> renderers;
+	u32 renderer_ids_limit = 0;
+	custom::Array<Renderer_Blob> renderers(8);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
@@ -53,13 +54,13 @@ void update() {
 		if (!camera) { continue; }
 
 		renderers.push({entity, transform, camera});
+		renderer_ids_limit = max(renderer_ids_limit, entity.ref.id);
 	}
 
-	// @Todo: revisit nesting
-	custom::Array<mat4> renderer_locals;
+	// @Todo: revisit nesting; optimize matrices cache
+	custom::Array<mat4> renderer_locals(renderer_ids_limit + 1);
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob & renderer = renderers[i];
-		renderer_locals.ensure_capacity(renderer.entity.ref.id + 1);
 		renderer_locals.get(renderer.entity.ref.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
 	}
 
@@ -84,7 +85,8 @@ void update() {
 	});
 
 	// @Note: fetch renderables
-	custom::Array<Renderable_Blob> renderables;
+	u32 renderable_ids_limit = 0;
+	custom::Array<Renderable_Blob> renderables(custom::Entity::instances.count);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
@@ -96,13 +98,13 @@ void update() {
 		if (!visual) { continue; }
 
 		renderables.push({entity, transform, visual});
+		renderable_ids_limit = max(renderable_ids_limit, entity.ref.id);
 	}
 
-	// @Todo: revisit nesting
-	custom::Array<mat4> renderable_locals;
+	// @Todo: revisit nesting; optimize matrices cache
+	custom::Array<mat4> renderable_locals(renderable_ids_limit + 1);
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob & renderable = renderables[i];
-		renderable_locals.ensure_capacity(renderable.entity.ref.id + 1);
 		renderable_locals.get(renderable.entity.ref.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
 	}
 
