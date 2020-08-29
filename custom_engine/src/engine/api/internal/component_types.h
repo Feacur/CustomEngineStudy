@@ -31,6 +31,7 @@ struct Hierarchy {
 
 	static void fetch_children(custom::Entity const & entity, custom::Array<Hierarchy::Link> & buffer);
 	static void set_parent(custom::Entity & child, custom::Entity const & entity);
+	static void rem_parent(custom::Entity & child, custom::Entity const & entity);
 	static void remove_at(u32 id);
 };
 

@@ -14,6 +14,7 @@
 namespace custom {
 
 void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance) {
+	// @Todo: estimate if capacity reservation is better here
 	Array<Hierarchy::Link> children;
 	Hierarchy::fetch_children(from, children);
 
@@ -24,11 +25,12 @@ void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance)
 }
 
 void entity_do_before_destroy(Entity & entity) {
+	// @Todo: estimate if capacity reservation is better here
 	Array<Hierarchy::Link> children;
 	Hierarchy::fetch_children(entity, children);
 
-	for (u32 i = 0; i < children.count; ++i) {
-		Hierarchy::remove_at(children[i].id);
+	for (u32 i = children.count; i > 0; --i) {
+		Hierarchy::remove_at(children[i - 1].id);
 	}
 
 	for (u32 i = 0; i < children.count; ++i) {
@@ -83,20 +85,23 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Camera>) {
 namespace custom {
 
 template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
-	RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
-	RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
+	/*pass the responsibility to `entity_do_after_copy`*/
 
-	// @Todo: reparenting
-	*toT.get_fast() = *fromT.get_fast();
+	// RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
+	// RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
+
+	// *toT.get_fast() = *fromT.get_fast();
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
+	if (entity_will_be_destroyed) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();
+	Entity parent = component->parent;
 	component->parent = {custom::empty_ref};
 
-	// @Todo: destroy child entities
+	Hierarchy::rem_parent(entity, parent);
 }
 
 }

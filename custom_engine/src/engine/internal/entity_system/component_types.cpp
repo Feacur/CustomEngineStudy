@@ -28,6 +28,15 @@ void Hierarchy::set_parent(custom::Entity & child, custom::Entity const & entity
 	hierarchy->parent = entity;
 }
 
+void Hierarchy::rem_parent(custom::Entity & child, custom::Entity const & entity) {
+	for (u32 i = 0; i < Hierarchy::links.count; ++i) {
+		if (Hierarchy::links[i].id != entity.id) { continue; }
+		if (Hierarchy::links[i].entity != child) { continue; }
+		Hierarchy::links.remove_at(i);
+		break;
+	}
+}
+
 void Hierarchy::remove_at(u32 id) {
 	Hierarchy::links.remove_at(id);
 }

@@ -157,7 +157,7 @@ void Entity::override(Entity const & entity) {
 		Ref const from_component_ref = entity.get_component(type);
 		if ((*Entity::component_containers[type])(from_component_ref)) {
 			Ref to_component_ref = has_component(type) ? get_component(type) : add_component(type);
-			(*Entity::component_copiers[type])(*this, from_component_ref, to_component_ref);
+			(*Entity::component_copiers[type])(entity, *this, from_component_ref, to_component_ref);
 		}
 	}
 
@@ -202,7 +202,7 @@ Entity Entity::copy(bool force_instance) const {
 		Ref const from_component_ref = get_component(type);
 		if ((*Entity::component_containers[type])(from_component_ref)) {
 			Ref to_component_ref = entity.add_component(type);
-			(*Entity::component_copiers[type])(entity, from_component_ref, to_component_ref);
+			(*Entity::component_copiers[type])(*this, entity, from_component_ref, to_component_ref);
 		}
 	}
 
