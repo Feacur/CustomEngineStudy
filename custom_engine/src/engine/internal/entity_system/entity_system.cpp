@@ -52,7 +52,7 @@ cstring Entity::get_string(u32 id) {
 
 namespace custom {
 
-void entity_do_after_copy(Entity const & entity, bool force_instance);
+void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance);
 void entity_do_before_destroy(Entity & entity);
 
 }
@@ -206,7 +206,7 @@ Entity Entity::copy(bool force_instance) const {
 		}
 	}
 
-	custom::entity_do_after_copy(*this, force_instance);
+	custom::entity_do_after_copy(*this, entity, force_instance);
 
 	return entity;
 }

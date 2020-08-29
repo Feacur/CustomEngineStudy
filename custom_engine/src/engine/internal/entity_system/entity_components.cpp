@@ -13,13 +13,13 @@
 
 namespace custom {
 
-void entity_do_after_copy(Entity const & entity, bool force_instance) {
+void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance) {
 	Array<Hierarchy::Link> children;
-	Hierarchy::fetch_children(entity, children);
+	Hierarchy::fetch_children(from, children);
 
 	for (u32 i = 0; i < children.count; ++i) {
 		Entity child = children[i].entity.copy(force_instance);
-		Hierarchy::set_parent(child, entity);
+		Hierarchy::set_parent(child, to);
 	}
 }
 
