@@ -164,6 +164,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 				component = refT.get_fast();
 
 				component->link(entity, child);
+				component = refT.get_fast();
 			} break;
 
 			case 'p': ++(*source); {

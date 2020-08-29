@@ -1,22 +1,32 @@
 Entity
-	#
+	# this prefab is a copy with some changes and additions
 	p assets/prefabs/suzanne.entity
+		# override the entity
 		o Visual
 			l 1
-		~
+		~ # terminate the corresponding 'o' entry
 Lua_Script
 	u script_rotate
 Hierarchy
 	p assets/prefabs/suzanne.entity
+		# override the previous 'p' entry (a child)
 		o Transform
 			p 1 1.5 1
 			s 0.25 0.25 0.25
 		Visual
 			l 1
-		~
+		~ # terminate the corresponding 'o' entry
 	p assets/prefabs/suzanne.entity
+		# override the previous 'p' entry (a child)
 		o Transform
 			p -1 1.5 1
 			s 0.25 0.25 0.25
-		~
-
+		Lua_Script
+			u script_rotate
+		Hierarchy
+			p assets/prefabs/suzanne.entity
+				# override the previous 'p' entry (a child)
+				o Transform
+					p 2 1.5 1
+				~ # terminate the corresponding 'o' entry
+		~ # terminate the corresponding 'o' entry

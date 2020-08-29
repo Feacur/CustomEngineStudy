@@ -1,9 +1,10 @@
 Entity
-	#
-Transform
-	p 0 0 0
-	r 0 0 0 1
-	s 1 1 1
+	# without transform the root entity becomes an aggregator;
+	# I believe prefabs now can be conveniently used to create entire scenes
+# Transform
+# 	p 0 0 0
+# 	r 0 0 0 1
+# 	s 1 1 1
 Hierarchy
 	e Entity
 			#
@@ -16,14 +17,18 @@ Hierarchy
 			t assets/textures/proto_blue.png
 			m assets/meshes/plane_xz.obj
 			l 0
-		~
+		Hierarchy
+			p assets/prefabs/suzanne.entity
+	~ # terminate the corresponding 'e' entry
 	p assets/prefabs/suzanne.entity
+		# override the previous 'p' entry (a child)
 		o Transform
 			p -4 1 0
 			s 2 1 2
-		~
+		~ # terminate the corresponding 'o' entry
 	p assets/prefabs/suzanne.entity
+		# override the previous 'p' entry (a child)
 		o Transform
 			p 4 2 0
 			s 1 2 1
-		~
+		~ # terminate the corresponding 'o' entry
