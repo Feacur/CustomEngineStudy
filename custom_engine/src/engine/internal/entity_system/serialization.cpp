@@ -28,6 +28,10 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 				if (is_instance) { entity.promote_to_instance(); }
 			} break;
 
+			case 'o': ++(*source); {
+				entity.override(source);
+			} break;
+
 			case 'p': ++(*source); {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
@@ -35,10 +39,6 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 
 				custom::Entity const prefab = *prefab_asset.ref.get_fast();
 				entity.override(prefab);
-			} break;
-
-			case 'o': ++(*source); {
-				entity.override(source);
 			} break;
 
 			case '#': break;
@@ -183,59 +183,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 	new (component) Hierarchy;
 
 	// @Todo: read direct parent reference
-
-	bool done = false;
-	while (!done && **source) {
-		skip_to_eol(source); parse_eol(source);
-		switch ((parse_void(source), **source)) {
-			case 'e': ++(*source); {
-				CUSTOM_TRACE("> inline prefab");
-
-				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-				Entity child = Entity::serialization_read(source);
-				component = refT.get_fast();
-
-				// component->link(entity, child);
-				// component = refT.get_fast();
-			} break;
-
-			case 'p': ++(*source); {
-				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
-				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-				CUSTOM_TRACE("> nested prefab: '%s'", Asset::get_string(id));
-				Asset_RefT<Prefab_Asset> prefab = Asset::add<Prefab_Asset>(id);
-
-				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-				Entity child = prefab.ref.get_fast()->copy(false);
-				component = refT.get_fast();
-
-				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-				// component->link(entity, child);
-				// component = refT.get_fast();
-			} break;
-
-			case 'o': ++(*source); {
-				// Entity child = component->children[component->children.count - 1];
-
-				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-				// child.override(source);
-				// component = refT.get_fast();
-			} break;
-
-			case '#': break;
-			default: done = true; break;
-		}
-	}
+	CUSTOM_ASSERT(false, "is not implemented");
 }
 
 }}
-
-	// custom::RefT<Hierarchy>   child_hierarchy_ref = child.get_component<Hierarchy>();
-	// Hierarchy               * child_hierarchy     = child_hierarchy_ref.get_safe();
-	// if (!child_hierarchy) {
-	// 	child_hierarchy_ref = child.add_component<Hierarchy>();
-	// 	child_hierarchy     = child_hierarchy_ref.get_safe();
-	// 	new (child_hierarchy) Hierarchy;
-	// }
-
-	// child_hierarchy->parent = entity;
