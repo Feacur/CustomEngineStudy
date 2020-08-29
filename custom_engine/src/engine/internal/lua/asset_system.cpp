@@ -17,9 +17,9 @@ typedef custom::Ref Ref;
 	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
 	if (lua_getmetatable(L, index)) {\
 		bool is_an_asset = false;\
-		for (u32 i = 0; !is_an_asset && i < custom::asset_names.count; ++i) {\
-			if (luaL_getmetatable(L, custom::asset_names[i]) != LUA_TTABLE) {\
-				CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", custom::asset_names[i]);\
+		for (u32 type = 0; !is_an_asset && type < custom::asset_names.get_count(); ++type) {\
+			if (luaL_getmetatable(L, custom::asset_names.get_string(type)) != LUA_TTABLE) {\
+				CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", custom::asset_names.get_string(type));\
 			}\
 			is_an_asset = lua_rawequal(L, -1, -2);\
 			lua_pop(L, 1);\
@@ -66,7 +66,7 @@ static int Asset_add(lua_State * L) {
 	Asset asset = Asset::add(type, id);
 	
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
-	luaL_setmetatable(L, custom::asset_names[type]);
+	luaL_setmetatable(L, custom::asset_names.get_string(type));
 	*udata = asset;
 
 	return 1;
@@ -112,7 +112,7 @@ static int Asset_get(lua_State * L) {
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);
-	luaL_setmetatable(L, custom::asset_names[type]);
+	luaL_setmetatable(L, custom::asset_names.get_string(type));
 	*udata = asset;
 
 	return 1;
@@ -182,9 +182,9 @@ void init_asset_system(lua_State * L) {
 	LUA_META_IMPL(Asset)
 	custom::lua::init_asset_types(L);
 	custom::lua::init_client_asset_types(L);
-	for (u32 i = 0; i < custom::asset_names.count; ++i) {
-		lua_getglobal(L, custom::asset_names[i]);
-		lua_pushinteger(L, i);
+	for (u32 type = 0; type < custom::asset_names.get_count(); ++type) {
+		lua_getglobal(L, custom::asset_names.get_string(type));
+		lua_pushinteger(L, type);
 		lua_setfield(L, -2, "type");
 		lua_pop(L, 1);
 	}

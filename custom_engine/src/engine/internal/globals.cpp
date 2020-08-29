@@ -22,6 +22,6 @@ namespace custom {
 
 namespace custom {
 	Strings_Storage component_names;
-	Array<cstring> asset_names;
+	Strings_Storage asset_names;
 	Array<cstring> uniform_names;
 }
