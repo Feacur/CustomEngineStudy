@@ -8,6 +8,39 @@
 #include <new>
 
 //
+// Entity
+//
+
+namespace custom {
+
+void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance) {
+	// @Todo: estimate if capacity reservation is better here
+	Array<Hierarchy::Link> children;
+	Hierarchy::fetch_children(from, children);
+
+	for (u32 i = 0; i < children.count; ++i) {
+		Entity child = children[i].entity.copy(force_instance);
+		Hierarchy::set_parent(child, to);
+	}
+}
+
+void entity_do_before_destroy(Entity & entity) {
+	// @Todo: estimate if capacity reservation is better here
+	Array<Hierarchy::Link> children;
+	Hierarchy::fetch_children(entity, children);
+
+	for (u32 i = children.count; i > 0; --i) {
+		Hierarchy::remove_at(children[i - 1].id);
+	}
+
+	for (u32 i = 0; i < children.count; ++i) {
+		children[i].entity.destroy();
+	}
+}
+
+}
+
+//
 // Transform
 //
 
@@ -52,67 +85,27 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Camera>) {
 namespace custom {
 
 template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
-	RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
+	/*pass the responsibility to `entity_do_after_copy`*/
+	// RefT<Hierarchy> const & fromT = (RefT<Hierarchy> const &)from;
 	RefT<Hierarchy> & toT = (RefT<Hierarchy> &)to;
 
-	Hierarchy const * from_component = fromT.get_fast();
-	Hierarchy * to_component = toT.get_fast();
-
-	new (to_component) Hierarchy;
-
-	for (u32 i = 0; i < from_component->children.count; ++i) {
-		to_component->children.push(from_component->children[i]);
-	}
-
-	for (u32 i = 0; i < to_component->children.count; ++i) {
-		custom::Entity child = to_component->children[i];
-		// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-		child = child.copy(entity.is_instance);
-		to_component = toT.get_fast();
-		to_component->children[i] = child;
-	}
-
-	for (u32 i = 0; i < to_component->children.count; ++i) {
-		custom::Entity    child               = to_component->children[i];
-		RefT<Hierarchy>   child_hierarchy_ref = child.get_component<Hierarchy>();
-		Hierarchy       * child_hierarchy     = child_hierarchy_ref.get_fast();
-		child_hierarchy->parent = entity;
-	}
+	// @Todo: is this needs an implementation whatsoever?
+	//        for now, just drop the parent reference.
+	//        - removing the component is possible, but isn't necessary
+	//        - might keep it in case it's an instance
+	//        - ... but prefab is a no go here definitely
+	toT.get_fast()->parent = {custom::empty_ref};
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
+	if (entity_will_be_destroyed) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();
+	Entity parent = component->parent;
+	component->parent = {custom::empty_ref};
 
-	if (component->parent.exists()) {
-		RefT<Hierarchy>   parent_hierarchy_ref = component->parent.get_component<Hierarchy>();
-		Hierarchy       * parent_hierarchy     = parent_hierarchy_ref.get_fast();
-		for (u32 i = 0; i < parent_hierarchy->children.count; ++i) {
-			if (parent_hierarchy->children[i].ref == entity.ref) {
-				parent_hierarchy->children.remove_at(i);
-				break;
-			}
-		}
-	}
-
-	if (entity_will_be_destroyed) {
-		for (u32 i = 0; i < component->children.count; ++i) {
-			// @Note: can potentially reallocate memory; ping ref pool once more afterwards
-			component->children[i].destroy();
-			component = refT.get_fast();
-		}
-	}
-	else {
-		for (u32 i = 0; i < component->children.count; ++i) {
-			RefT<Hierarchy>   child_hierarchy_ref = component->children[i].get_component<Hierarchy>();
-			Hierarchy       * child_hierarchy     = child_hierarchy_ref.get_fast();
-			child_hierarchy->parent = {custom::empty_ref, false};
-		}
-	}
-
-	component->parent = {custom::empty_ref, false};
-	component->children.~Array();
+	Hierarchy::rem_parent(entity, parent);
 }
 
 }

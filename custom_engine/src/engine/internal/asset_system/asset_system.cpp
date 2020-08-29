@@ -50,7 +50,7 @@ inline static u32 is_correct(Asset const & asset) {
 	for (u32 i = 0; i < Asset::types.count; ++i) {
 		if (Asset::types[i] != asset.type) { continue; }
 		if (Asset::resources[i] != asset.resource) { continue; }
-		if (Asset::instance_refs[i] == asset.ref) { return true; }
+		if (Asset::instance_refs[i] == asset) { return true; }
 	}
 	return false;
 }
@@ -62,22 +62,22 @@ cstring Asset::get_path(void) const {
 
 bool Asset::exists(void) const {
 	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
-	return (*Asset::asset_containers[type])(ref);
+	return (*Asset::asset_containers[type])(*this);
 }
 
 void Asset::destroy(void) {
 	// @Note: duplicates `Asset::rem` code
 	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
-	if ((*Asset::asset_containers[type])(ref)) {
+	if ((*Asset::asset_containers[type])(*this)) {
 		(*Asset::asset_unloaders[type])(*this);
-		(*Asset::asset_destructors[type])(ref);
+		(*Asset::asset_destructors[type])(*this);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 
 	for (u32 i = 0; i < instance_refs.count; ++i) {
 		if (types[i] != type) { continue; }
 		if (resources[i] != resource) { continue; }
-		if (instance_refs[i] != ref) { continue; }
+		if (instance_refs[i] != *this) { continue; }
 		Asset::instance_refs.remove_at(i);
 		Asset::resources.remove_at(i);
 		Asset::types.remove_at(i);
@@ -105,22 +105,30 @@ Asset Asset::add(u32 type, u32 resource) {
 	Asset asset = {custom::empty_ref, resource, type};
 
 	u32 index = find(type, resource);
-	if (index != custom::empty_index) { asset.ref = Asset::instance_refs[index]; }
+	if (index != custom::empty_index) {
+		Ref asset_ref = Asset::instance_refs[index];
+		asset.id  = asset_ref.id;
+		asset.gen = asset_ref.gen;
+	}
 
-	if (asset.ref.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(asset.ref)) {
+	if (asset.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(asset)) {
 		if (index != custom::empty_index) {
 			Asset::instance_refs.remove_at(index);
 			Asset::resources.remove_at(index);
 			Asset::types.remove_at(index);
 		}
 
-		asset.ref = {(*Asset::asset_constructors[type])()};
-		Asset::instance_refs.push(asset.ref);
+		Ref asset_ref = (*Asset::asset_constructors[type])();
+		asset.id  = asset_ref.id;
+		asset.gen = asset_ref.gen;
+		Asset::instance_refs.push(asset);
 		Asset::resources.push(resource);
 		Asset::types.push(type);
 
 		(*Asset::asset_loaders[type])(asset);
 	}
+	// @Todo: check explicitly?
+	//else { CUSTOM_ASSERT(false, "asset already exists"); }
 
 	return asset;
 }
@@ -131,15 +139,17 @@ void Asset::rem(u32 type, u32 resource) {
 
 	u32 index = find(type, resource);
 	if (index != custom::empty_index) {
-		asset.ref = Asset::instance_refs[index];
+		Ref asset_ref = Asset::instance_refs[index];
+		asset.id  = asset_ref.id;
+		asset.gen = asset_ref.gen;
 		Asset::instance_refs.remove_at(index);
 		Asset::resources.remove_at(index);
 		Asset::types.remove_at(index);
 	}
 
-	if ((*Asset::asset_containers[type])(asset.ref)) {
+	if ((*Asset::asset_containers[type])(asset)) {
 		(*Asset::asset_unloaders[type])(asset);
-		(*Asset::asset_destructors[type])(asset.ref);
+		(*Asset::asset_destructors[type])(asset);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 }

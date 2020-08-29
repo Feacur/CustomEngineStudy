@@ -40,6 +40,8 @@ void update() {
 	ivec2 viewport_size = custom::application::get_viewport_size();
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
 
+	// custom::Array<Hierarchy::Link> children(4);
+
 	// @Note: fetch renderers
 	u32 renderer_ids_limit = 0;
 	custom::Array<Renderer_Blob> renderers(8);
@@ -54,27 +56,41 @@ void update() {
 		if (!camera) { continue; }
 
 		renderers.push({entity, transform, camera});
-		renderer_ids_limit = max(renderer_ids_limit, entity.ref.id);
+		renderer_ids_limit = max(renderer_ids_limit, entity.id);
 	}
 
 	// @Todo: revisit nesting; optimize matrices cache
 	custom::Array<mat4> renderer_locals(renderer_ids_limit + 1);
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob & renderer = renderers[i];
-		renderer_locals.get(renderer.entity.ref.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
+		renderer_locals.get(renderer.entity.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
 	}
+
+	// for (u32 i = 0; i < renderers.count; ++i) {
+	// 	Renderer_Blob & renderer = renderers[i];
+	//
+	// 	children.count = 0;
+	// 	Hierarchy::fetch_children(renderer.entity, children);
+	// 	if (children.count == 0) { continue; }
+	//
+	// 	mat4 const & mat4_parent = renderer_locals.get(renderer.entity.id);
+	// 	for (u32 ci = 0; ci < children.count; ++ci) {
+	// 		custom::Entity child = children[ci].entity;
+	// 		renderer_locals.get(child.id) = mat_product(renderer_locals.get(child.id), mat4_parent);
+	// 	}
+	// }
 
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob const & renderer = renderers[i];
 
 		Hierarchy const * hierarchy = renderer.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
+		if (!hierarchy->parent.exists()) { continue; }
+		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
-		mat4 const & renderer_local = renderer_locals.get(renderer.entity.ref.id);
-		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
-			custom::Entity child = hierarchy->children[ci];
-			renderer_locals.get(child.ref.id) = mat_product(renderer_locals.get(child.ref.id), renderer_local);
-		}
+		mat4 & renderer_local = renderer_locals.get(renderer.entity.id);
+		mat4 const & renderer_parent = renderer_locals.get(hierarchy->parent.id);
+		renderer_local = mat_product(renderer_local, renderer_parent);
 	}
 
 	// @Todo: revisit sorting
@@ -98,27 +114,41 @@ void update() {
 		if (!visual) { continue; }
 
 		renderables.push({entity, transform, visual});
-		renderable_ids_limit = max(renderable_ids_limit, entity.ref.id);
+		renderable_ids_limit = max(renderable_ids_limit, entity.id);
 	}
 
 	// @Todo: revisit nesting; optimize matrices cache
 	custom::Array<mat4> renderable_locals(renderable_ids_limit + 1);
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob & renderable = renderables[i];
-		renderable_locals.get(renderable.entity.ref.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
+		renderable_locals.get(renderable.entity.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
 	}
+
+	// for (u32 i = 0; i < renderables.count; ++i) {
+	// 	Renderable_Blob & renderable = renderables[i];
+	//
+	// 	children.count = 0;
+	// 	Hierarchy::fetch_children(renderable.entity, children);
+	// 	if (children.count == 0) { continue; }
+	//
+	// 	mat4 const & mat4_parent = renderable_locals.get(renderable.entity.id);
+	// 	for (u32 ci = 0; ci < children.count; ++ci) {
+	// 		custom::Entity child = children[ci].entity;
+	// 		renderable_locals.get(child.id) = mat_product(renderable_locals.get(child.id), mat4_parent);
+	// 	}
+	// }
 
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob const & renderable = renderables[i];
 
 		Hierarchy const * hierarchy = renderable.entity.get_component<Hierarchy>().get_safe();
 		if (!hierarchy) { continue; }
+		if (!hierarchy->parent.exists()) { continue; }
+		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
-		mat4 const & renderable_local = renderable_locals.get(renderable.entity.ref.id);
-		for (u32 ci = 0; ci < hierarchy->children.count; ++ci) {
-			custom::Entity child = hierarchy->children[ci];
-			renderable_locals.get(child.ref.id) = mat_product(renderable_locals.get(child.ref.id), renderable_local);
-		}
+		mat4 & renderable_local = renderable_locals.get(renderable.entity.id);
+		mat4 const & renderable_parent = renderable_locals.get(hierarchy->parent.id);
+		renderable_local = mat_product(renderable_local, renderable_parent);
 	}
 
 	// @Todo: revisit sorting
@@ -135,7 +165,7 @@ void update() {
 		Renderer_Blob const & renderer = renderers[camera_i];
 
 		mat4 const camera_matrix = mat_product(
-			mat_inverse_transform(renderer_locals.get(renderer.entity.ref.id)),
+			mat_inverse_transform(renderer_locals.get(renderer.entity.id)),
 			interpolate(
 				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
 				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
@@ -164,7 +194,7 @@ void update() {
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
-			mat4 const transform_matrix = renderable_locals.get(renderable.entity.ref.id);
+			mat4 const transform_matrix = renderable_locals.get(renderable.entity.id);
 
 			if (shader_id != renderable.visual->shader.ref.id) {
 				shader_id = renderable.visual->shader.ref.id;

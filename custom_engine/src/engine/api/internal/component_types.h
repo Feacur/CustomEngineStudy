@@ -25,10 +25,14 @@ struct Camera
 };
 
 struct Hierarchy {
-	custom::Entity parent = {custom::empty_ref, false};
-	custom::Array<custom::Entity> children;
+	struct Link { u32 id; custom::Entity entity; };
+	static custom::Array<Link> links;
+	custom::Entity parent = {custom::empty_ref};
 
-	void link(custom::Entity & entity, custom::Entity & child);
+	static void fetch_children(custom::Entity const & entity, custom::Array<Hierarchy::Link> & buffer);
+	static void set_parent(custom::Entity & child, custom::Entity const & entity);
+	static void rem_parent(custom::Entity & child, custom::Entity const & entity);
+	static void remove_at(u32 id);
 };
 
 // struct Transform2d

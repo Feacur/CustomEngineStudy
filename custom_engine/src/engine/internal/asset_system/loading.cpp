@@ -67,17 +67,17 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	asset->source.count    = file.count;    file.count    = 0;
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_shader(asset_ref.ref.id)) {
+	if (graphics::mark_pending_shader(asset_ref.id)) {
 		CUSTOM_ASSERT(false, "shader resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Shader);
-		custom::loader::bc->write(asset_ref.ref);
+		custom::loader::bc->write((Ref &)asset_ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Shader);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 	
 	custom::loader::bc->write(graphics::Instruction::Load_Shader);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
@@ -89,7 +89,7 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Shader);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 }}
@@ -172,17 +172,17 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	asset->data.count = asset->data.capacity;
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_texture(asset_ref.ref.id)) {
+	if (graphics::mark_pending_texture(asset_ref.id)) {
 		CUSTOM_ASSERT(false, "texture resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Texture);
-		custom::loader::bc->write(asset_ref.ref);
+		custom::loader::bc->write((Ref &)asset_ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Texture);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 
 	custom::loader::bc->write(graphics::Instruction::Load_Texture);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
@@ -194,7 +194,7 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Texture);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 }}
@@ -270,17 +270,17 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	}
 
 	// @Note: direct asset to the GVM
-	if (graphics::mark_pending_mesh(asset_ref.ref.id)) {
+	if (graphics::mark_pending_mesh(asset_ref.id)) {
 		CUSTOM_ASSERT(false, "mesh resource already exists");
 		custom::loader::bc->write(graphics::Instruction::Free_Mesh);
-		custom::loader::bc->write(asset_ref.ref);
+		custom::loader::bc->write((Ref &)asset_ref);
 	}
 
 	custom::loader::bc->write(graphics::Instruction::Allocate_Mesh);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 
 	custom::loader::bc->write(graphics::Instruction::Load_Mesh);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
@@ -292,7 +292,7 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Mesh);
-	custom::loader::bc->write(asset_ref.ref);
+	custom::loader::bc->write((Ref &)asset_ref);
 }
 
 }}
@@ -323,8 +323,8 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
-	asset->ref         = prefab.ref;
-	asset->is_instance = prefab.is_instance;
+	asset->id  = prefab.id;
+	asset->gen = prefab.gen;
 	
 	// @Bug: some weird behaviour occured here, 29 August 2020;
 	//       optimization related or memory related or something else, I don't grasp currently?

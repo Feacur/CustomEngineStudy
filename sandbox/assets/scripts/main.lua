@@ -3,16 +3,15 @@ local lua_tag = "\x1b[38;5;202m" .. "[lua]" .. "\x1b[0m" .. " "
 function global_init()
 	print(lua_tag .. "global_init")
 
-	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
-	local camera_flying_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
+	-- these cameras are expected to be instanced automatically
+	Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
+	Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
+
 	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/floor.entity")
 	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne rotating.entity")
 
-	-- floor_prefab:promote_to_instance()
 	Prefab_Asset.instantiate(floor_prefab)
 	Prefab_Asset.instantiate(suzanne_rotating_prefab)
-
-	camera_prefab:promote_to_instance()
 end
 
 local counter = 0

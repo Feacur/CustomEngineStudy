@@ -1,5 +1,5 @@
-Entity
-	#
+! # entity
+	i 1 # is instance
 Transform
 	p 0 2 -5
 	r 0 0 0 1
