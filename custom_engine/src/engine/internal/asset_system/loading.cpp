@@ -322,6 +322,9 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	cstring source = (cstring)file.data;
 	custom::Entity prefab = custom::Entity::serialization_read(&source);
 
+	// @Fix: hidden bug
+	printf("");
+
 	Asset_RefT<Prefab_Asset> & refT  = (Asset_RefT<Prefab_Asset> &)asset_ref;
 	Prefab_Asset             * asset = refT.ref.get_fast();
 	// new (asset) Prefab_Asset;
