@@ -12,7 +12,7 @@
 //
 
 // @Todo: this looks error-prone; needs more design
-void Hierarchy::link(custom::Entity entity, custom::Entity child) {
+void Hierarchy::link(custom::Entity & entity, custom::Entity & child) {
 	children.push(child);
 
 	custom::RefT<Hierarchy> child_hierarchy_ref = child.get_component<Hierarchy>();

@@ -317,16 +317,13 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!file.count) { return; }
 	file.push('\0');
 
-	Asset_RefT<Prefab_Asset> & refT = (Asset_RefT<Prefab_Asset> &)asset_ref;
-
 	CUSTOM_TRACE("load asset: '%s'", path);
 
-	// @Note: can and will reallocate entity data and asset data
 	cstring source = (cstring)file.data;
 	custom::Entity prefab = custom::Entity::serialization_read(&source);
 
-	// @Note: that's why memory instance is being fetched later
-	Prefab_Asset * asset = refT.ref.get_fast();
+	Asset_RefT<Prefab_Asset> & refT  = (Asset_RefT<Prefab_Asset> &)asset_ref;
+	Prefab_Asset             * asset = refT.ref.get_fast();
 	// new (asset) Prefab_Asset;
 
 	*asset = {prefab};
@@ -336,7 +333,6 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
-
 	Prefab_Asset * asset = refT.get_fast();
 	asset->destroy();
 }

@@ -65,7 +65,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	}
 
 	for (u32 i = 0; i < to_component->children.count; ++i) {
-		to_component->children[i] = to_component->children[i].copy(entity.is_instance);
+		custom::Entity child = to_component->children[i];
+		// @Note: can potentially reallocate memory; ping ref pool once more afterwards
+		child = child.copy(entity.is_instance);
+		to_component = toT.get_fast();
+		to_component->children[i] = child;
 	}
 
 	for (u32 i = 0; i < to_component->children.count; ++i) {
@@ -94,16 +98,21 @@ template<> ENTITY_LOADING_FUNC(component_pool_clean<Hierarchy>) {
 
 	if (entity_will_be_destroyed) {
 		for (u32 i = 0; i < component->children.count; ++i) {
+			// @Note: can potentially reallocate memory; ping ref pool once more afterwards
 			component->children[i].destroy();
+			component = refT.get_fast();
 		}
 	}
 	else {
 		for (u32 i = 0; i < component->children.count; ++i) {
 			RefT<Hierarchy>   child_hierarchy_ref = component->children[i].get_component<Hierarchy>();
 			Hierarchy       * child_hierarchy     = child_hierarchy_ref.get_fast();
-			child_hierarchy->parent = {custom::empty_ref};
+			child_hierarchy->parent = {custom::empty_ref, false};
 		}
 	}
+
+	component = refT.get_fast();
+	component->parent = {custom::empty_ref, false};
 	component->children.~Array();
 }
 

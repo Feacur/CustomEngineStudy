@@ -22,7 +22,11 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Visual>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_clean<Visual>) {
-	// RefT<Visual> & refT = (RefT<Visual> &)ref;
+	RefT<Visual> & refT = (RefT<Visual> &)ref;
+	Visual * visual = refT.get_fast();
+	visual->shader  = {custom::empty_ref, custom::empty_index};
+	visual->texture = {custom::empty_ref, custom::empty_index};
+	visual->mesh    = {custom::empty_ref, custom::empty_index};
 }
 
 }

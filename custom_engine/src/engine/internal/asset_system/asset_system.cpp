@@ -127,22 +127,21 @@ Asset Asset::add(u32 type, u32 resource) {
 
 void Asset::rem(u32 type, u32 resource) {
 	// @Note: duplicates `Asset::destroy` code
-	u32 index = find(type, resource);
-	if (index == custom::empty_index) {
-		CUSTOM_ASSERT(false, "asset doesn't exist"); return;
-	}
+	Asset asset = {custom::empty_ref, resource, type};
 
-	Asset asset = {Asset::instance_refs[index], resource, type};
+	u32 index = find(type, resource);
+	if (index != custom::empty_index) {
+		asset.ref = Asset::instance_refs[index];
+		Asset::instance_refs.remove_at(index);
+		Asset::resources.remove_at(index);
+		Asset::types.remove_at(index);
+	}
 
 	if ((*Asset::asset_containers[type])(asset.ref)) {
 		(*Asset::asset_unloaders[type])(asset);
 		(*Asset::asset_destructors[type])(asset.ref);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
-
-	Asset::instance_refs.remove_at(index);
-	Asset::resources.remove_at(index);
-	Asset::types.remove_at(index);
 }
 
 Asset Asset::get(u32 type, u32 resource) {

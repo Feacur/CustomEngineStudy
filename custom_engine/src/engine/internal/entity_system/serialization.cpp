@@ -32,9 +32,10 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				CUSTOM_TRACE("> nested prefab: '%s'", Asset::get_string(id));
-				Asset_RefT<Prefab_Asset> prefab = Asset::add<Prefab_Asset>(id);
+				Asset_RefT<Prefab_Asset> prefab_asset = Asset::add<Prefab_Asset>(id);
 
-				entity.override(*prefab.ref.get_fast());
+				custom::Entity const prefab = *prefab_asset.ref.get_fast();
+				entity.override(prefab);
 			} break;
 
 			case 'o': ++(*source); {
@@ -157,8 +158,12 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 		switch ((parse_void(source), **source)) {
 			case 'e': ++(*source); {
 				CUSTOM_TRACE("> inline prefab");
+
+				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
 				Entity child = Entity::serialization_read(source);
-				refT.get_fast()->link(entity, child);
+				component = refT.get_fast();
+
+				component->link(entity, child);
 			} break;
 
 			case 'p': ++(*source); {
@@ -166,14 +171,21 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				CUSTOM_TRACE("> nested prefab: '%s'", Asset::get_string(id));
 				Asset_RefT<Prefab_Asset> prefab = Asset::add<Prefab_Asset>(id);
-				
+
+				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
 				Entity child = prefab.ref.get_fast()->copy(false);
-				refT.get_fast()->link(entity, child);
+				component = refT.get_fast();
+
+				component = refT.get_fast();
+				component->link(entity, child);
 			} break;
 
 			case 'o': ++(*source); {
 				Entity child = component->children[component->children.count - 1];
+
+				// @Note: can potentially reallocate memory; ping ref pool once more afterwards
 				child.override(source);
+				component = refT.get_fast();
 			} break;
 
 			case '#': break;

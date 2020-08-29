@@ -255,12 +255,16 @@ static int Prefab_Asset_instantiate(lua_State * L) {
 	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
-	Prefab_Asset const * prefab = object->ref.get_fast();
+	custom::Prefab_Asset const * prefab = object->ref.get_fast();
 	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
+
+	// @Note: can potentially reallocate memory; ping ref pool once more afterwards
+	custom::Entity instance = prefab->copy(true);
+	// prefab = object->ref.get_fast();
 
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
-	*udata = prefab->copy(true);
+	*udata = instance;
 
 	return 1;
 }
@@ -274,14 +278,15 @@ static int Prefab_Asset_promote_to_instance(lua_State * L) {
 	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
-	Prefab_Asset * prefab = object->ref.get_fast();
+	custom::Prefab_Asset * prefab = object->ref.get_fast();
 	CUSTOM_LUA_ASSERT(prefab->exists(), "prefab doesn't exist");
 
-	prefab->promote_to_instance();
+	custom::Entity instance = *prefab;
+	instance.promote_to_instance();
 
 	custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
 	luaL_setmetatable(L, "Entity");
-	*udata = *prefab;
+	*udata = instance;
 
 	return 1;
 }
