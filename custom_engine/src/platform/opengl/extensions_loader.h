@@ -1,7 +1,7 @@
 #include "engine/core/code.h"
 #include "engine/core/types.h"
+#include "engine/core/collection_types.h"
 #include "engine/debug/log.h"
-#include "engine/impl/array.h"
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_clip_control.txt
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_direct_state_access.txt

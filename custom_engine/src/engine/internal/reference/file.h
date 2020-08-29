@@ -2,7 +2,6 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
-// #include "engine/impl/array.h"
 
 #include <stdio.h>
 
