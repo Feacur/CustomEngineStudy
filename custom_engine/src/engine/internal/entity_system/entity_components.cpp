@@ -29,6 +29,11 @@ void entity_do_before_destroy(Entity & entity) {
 	Array<Hierarchy::Link> children;
 	Hierarchy::fetch_children(entity, children);
 
+	// @Note: might be passed to `component_pool_unload<Hierarchy>`,
+	//        but now for now it's batch-processed here;
+	//        it's not pretty, but for this purpose unloaders
+	//        recieve a flag `only_component`, which tells, if a component
+	//        is being removed alone or as a part of entity destruction
 	for (u32 i = children.count; i > 0; --i) {
 		Hierarchy::remove_at(children[i - 1].id);
 	}
@@ -110,7 +115,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Hierarchy>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Hierarchy>) {
-	if (entity_will_be_destroyed) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
+	if (!only_component) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();
