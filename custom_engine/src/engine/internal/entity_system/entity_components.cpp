@@ -8,6 +8,27 @@
 #include <new>
 
 //
+// Entity
+//
+
+namespace custom {
+
+void entity_do_after_copy(Entity const & entity, bool force_instance) {
+	Array<Entity> children;
+	for (u32 i = 0; i < Hierarchy::links.count; ++i) {
+		if (Hierarchy::links[i].parent != entity.id) { continue; }
+		children.push(Hierarchy::links[i].child);
+	}
+
+	for (u32 i = 0; i < children.count; ++i) {
+		Entity child = children[i].copy(force_instance);
+		Hierarchy::set_parent(child, entity);
+	}
+}
+
+}
+
+//
 // Transform
 //
 

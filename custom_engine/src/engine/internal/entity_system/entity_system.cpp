@@ -51,6 +51,12 @@ cstring Entity::get_string(u32 id) {
 //
 
 namespace custom {
+
+void entity_do_after_copy(Entity const & entity, bool force_instance);
+
+}
+
+namespace custom {
 namespace serialization {
 
 void serialization_read_Entity_block(Entity & entity, cstring * source);
@@ -187,7 +193,8 @@ bool Entity::is_instance() const {
 Entity Entity::copy(bool force_instance) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return {custom::empty_ref}; }
 
-	Entity entity = create(is_instance() || force_instance);
+	force_instance = force_instance || is_instance();
+	Entity entity = create(force_instance);
 
 	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
 		Ref const from_component_ref = get_component(type);
@@ -196,6 +203,8 @@ Entity Entity::copy(bool force_instance) const {
 			(*Entity::component_copiers[type])(entity, from_component_ref, to_component_ref);
 		}
 	}
+
+	custom::entity_do_after_copy(*this, force_instance);
 
 	return entity;
 }
@@ -310,7 +319,8 @@ Ref Entity::add_component(u32 type) {
 		component_ref = (*Entity::component_constructors[type])();
 		Entity::components.get(component_index) = component_ref;
 	}
-	else { CUSTOM_ASSERT(false, "component already exists"); }
+	// @Todo: check explicitly?
+	// else { CUSTOM_ASSERT(false, "component already exists"); }
 
 	return component_ref;
 }

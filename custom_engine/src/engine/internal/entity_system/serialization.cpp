@@ -49,15 +49,13 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 
 void serialization_read_Child_block(Entity & entity, cstring * source) {
 	bool done = false;
+
 	while (!done && *source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
 				Entity child = Entity::serialization_read(source);
-
-				RefT<Hierarchy> hierarchy_refT = child.add_component<Hierarchy>();
-				Hierarchy * hierarchy = hierarchy_refT.get_fast();
-				hierarchy->parent = entity;
+				Hierarchy::set_parent(child, entity);
 			} break;
 
 			case 'p': ++(*source); {
@@ -66,10 +64,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 				Asset_RefT<Prefab_Asset> prefab_asset = Asset::add<Prefab_Asset>(id);
 
 				Entity child = prefab_asset.ref.get_fast()->copy(entity.is_instance());
-
-				RefT<Hierarchy> hierarchy_refT = child.add_component<Hierarchy>();
-				Hierarchy * hierarchy = hierarchy_refT.get_fast();
-				hierarchy->parent = entity;
+				Hierarchy::set_parent(child, entity);
 			} break;
 
 			case '#': break;
