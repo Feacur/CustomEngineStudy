@@ -36,9 +36,8 @@ template<typename T> struct Asset_RefT
 template<typename T> struct Asset_Registry { static u32 type; };
 
 // @Todo: separate Asset_System container from Asset? and make the system container an instance?
-struct Asset
+struct Asset : public Ref
 {
-	Ref ref;
 	u32 resource;
 	u32 type;
 
