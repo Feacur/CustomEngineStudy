@@ -53,6 +53,7 @@ cstring Entity::get_string(u32 id) {
 namespace custom {
 
 void entity_do_after_copy(Entity const & entity, bool force_instance);
+void entity_do_before_destroy(Entity & entity);
 
 }
 
@@ -177,6 +178,7 @@ void Entity::destroy(void) {
 		}
 	}
 
+	entity_do_before_destroy(*this);
 	Entity::generations.destroy(*this);
 
 	for (u32 i = 0; i < instances.count; ++i) {
