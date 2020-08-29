@@ -47,7 +47,7 @@ static void on_app_init() {
 	custom::Asset::add<Lua_Asset>(id);
 
 	// @Note: call Lua init
-	sandbox::ecs_lua_runner::lua_function(L, "global_init");
+	sandbox::lua_function(L, "global_init");
 }
 
 static void on_app_viewport(ivec2 size) {
@@ -55,10 +55,9 @@ static void on_app_viewport(ivec2 size) {
 }
 
 static void on_app_update(r32 dt) {
-	sandbox::ecs_lua_runner::lua_function(L, "global_update");
-	sandbox::ecs_lua_runner::update(L, dt);
-
-	sandbox::ecs_renderer::update();
+	sandbox::lua_function(L, "global_update");
+	sandbox::ecs_update_lua(L, dt);
+	sandbox::ecs_update_renderer();
 }
 
 static void hint_graphics(void) {

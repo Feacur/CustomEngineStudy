@@ -19,7 +19,6 @@
 //        - batch and rebind if running out of slots/units
 
 namespace sandbox {
-namespace ecs_renderer {
 
 struct Renderer_Blob {
 	custom::Entity    entity;
@@ -33,7 +32,7 @@ struct Renderable_Blob {
 	Visual const    * visual;
 };
 
-void update() {
+void ecs_update_renderer() {
 	// @Todo: global shaders data
 	// custom::renderer::set_uniform(shader, (u32)sandbox::Uniform::resolution, viewport_size);
 
@@ -211,4 +210,4 @@ void update() {
 	}
 }
 
-}}
+}

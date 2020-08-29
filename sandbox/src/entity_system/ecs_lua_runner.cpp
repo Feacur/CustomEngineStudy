@@ -12,7 +12,6 @@
 #include <lua.hpp>
 
 namespace sandbox {
-namespace ecs_lua_runner {
 
 void lua_function(lua_State * L, cstring name) {
 	if (lua_getglobal(L, name) != LUA_TFUNCTION) {
@@ -48,7 +47,7 @@ static void lua_function(lua_State * L, cstring name, custom::Entity const & ent
 	}
 }
 
-void update(lua_State * L, r32 dt) {
+void ecs_update_lua(lua_State * L, r32 dt) {
 	// @Todo: prefetch all relevant components into a contiguous array?
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -62,4 +61,4 @@ void update(lua_State * L, r32 dt) {
 	}
 }
 
-}}
+}
