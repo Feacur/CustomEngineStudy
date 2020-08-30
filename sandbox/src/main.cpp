@@ -87,6 +87,8 @@ static void hint_graphics(void) {
 }
 
 int main(int argc, char * argv[]) {
+	CUSTOM_TRACE("__cplusplus: %d", __cplusplus);
+
 	hint_graphics();
 	custom::application::set_refresh_rate(60, 10, 1, false);
 	custom::application::set_init_callback(&on_app_init);

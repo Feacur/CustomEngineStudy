@@ -1,8 +1,7 @@
 project "glad"
 	kind "StaticLib"
 	language "C"
-	cdialect "C99"
-	cppdialect "C++11"
+	cdialect "C89"
 	characterset ("ASCII") -- Default, Unicode, MBCS, ASCII
 	warnings "Default"
 	removeflags { "FatalWarnings" }

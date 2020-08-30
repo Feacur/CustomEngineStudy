@@ -46,14 +46,15 @@ workspace "CustomEngineStudy"
 			-- "4312", -- 'operation' : conversion from 'type1' to 'type2' of greater size
 			-- "4127", -- conditional expression is constant
 		}
-		-- buildoptions {
+		buildoptions {
+			"-Zc:__cplusplus"
 		-- 	"-Bt+",
 		-- 	"-d2cgsummary",
 		-- 	"-d1reportTime",
 		-- }
 		-- linkoptions {
 		-- 	"-time+",
-		-- }
+		}
 
 	filter "system:windows"
 		defines {

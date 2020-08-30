@@ -23,6 +23,7 @@ LLVM/Clang: __clang__ && __llvm__
 Links  
 * https://sourceforge.net/p/predef/wiki/Compilers/
 * https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?redirectedfrom=MSDN&view=vs-2019
+* https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=vs-2019
 * https://devblogs.microsoft.com/cppblog/side-by-side-minor-version-msvc-toolsets-in-visual-studio-2017/
 * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
 * https://gcc.gnu.org/wiki/Visibility
