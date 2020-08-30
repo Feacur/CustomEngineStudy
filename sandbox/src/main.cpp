@@ -58,6 +58,9 @@ static void on_app_viewport(ivec2 size) {
 
 static void on_app_update(r32 dt) {
 	custom::file::watch_update();
+	for (u32 i = 0; i < custom::file::modified.get_count(); ++i) {
+		CUSTOM_TRACE("changed: '%s'", custom::file::modified.get_string(i));
+	}
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
 	sandbox::ecs_update_physics();

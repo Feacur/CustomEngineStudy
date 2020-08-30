@@ -4,6 +4,7 @@
 #include "engine/core/collection_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/strings_storage.h"
+#include "engine/api/platform/file.h"
 #include "engine/api/platform/timer.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
@@ -82,7 +83,7 @@ struct Watch_Change_Data {
 	DWORD  thread_id;
 
 	Strings_Storage storage;
-	volatile u64    storage_id;
+	volatile u64 storage_id;
 
 	void shutdown(void) {
 		if (thread_handle != INVALID_HANDLE_VALUE) {
@@ -194,15 +195,14 @@ void watch_init(cstring path, bool subtree) {
 }
 
 void watch_update(void) {
-	static Strings_Storage storage;
-	static u64             storage_id;
+	static u64 storage_id;
 
-	storage.clear();
+	modified.clear();
 	if (storage_id != watch_change_data.storage_id) {
+		// @Todo: threads synchronization
 		storage_id = watch_change_data.storage_id;
-		for (u32 i = 0; i < watch_change_data.storage.get_count(); ++i) {
-			CUSTOM_TRACE("update change: '%s'", watch_change_data.storage.get_string(i));
-		}
+		modified.values.push_range(watch_change_data.storage.values.data, watch_change_data.storage.values.count);
+		modified.offsets.push_range(watch_change_data.storage.offsets.data, watch_change_data.storage.offsets.count);
 	}
 }
 

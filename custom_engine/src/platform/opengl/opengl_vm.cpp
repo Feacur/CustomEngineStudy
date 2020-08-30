@@ -2354,7 +2354,8 @@ static void platform_Overlay(Bytecode const & bc) {
 static void platform_Init_Uniforms(Bytecode const & bc) {
 	u32 const name_capacity = C_ARRAY_LENGTH(Program_Field::name);
 	u32 count = *bc.read<u32>();
-	ogl.strings.ensure_capacity(count * name_capacity, count);
+	ogl.strings.values.set_capacity(count * name_capacity);
+	ogl.strings.offsets.set_capacity(count);
 	for (u32 i = 0; i < count; ++i) {
 		C_String value = read_cstring(bc);
 		ogl.strings.store_string(value.data, value.count);

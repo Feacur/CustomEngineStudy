@@ -12,11 +12,6 @@ void Strings_Storage::clear() {
 	offsets.count = 0;
 }
 
-void Strings_Storage::ensure_capacity(u32 values_capacity, u32 lengths_capacity) {
-	values.ensure_capacity(values_capacity);
-	offsets.ensure_capacity(lengths_capacity);
-}
-
 u32 Strings_Storage::store_string(cstring value, u32 length) {
 	if (length == custom::empty_index) {
 		length = (u32)strlen(value);
