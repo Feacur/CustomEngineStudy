@@ -3,5 +3,6 @@
 //        - #include this file
 COMPONENT_IMPL(Visual)
 COMPONENT_IMPL(Lua_Script)
+COMPONENT_IMPL(Physical)
 //
 #undef COMPONENT_IMPL

@@ -25,3 +25,8 @@ namespace custom {
 	Strings_Storage asset_names;
 	Array<cstring> uniform_names;
 }
+
+namespace custom {
+namespace file {
+	Strings_Storage modified;
+}}

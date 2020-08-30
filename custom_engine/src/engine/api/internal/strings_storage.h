@@ -7,7 +7,7 @@ struct Strings_Storage {
 	Array<char> values;
 	Array<u32> offsets;
 
-	void ensure_capacity(u32 values_capacity, u32 offsets_capacity);
+	void clear(void);
 	inline u32 get_count() { return offsets.count; }
 
 	u32 store_string(cstring data, u32 length);

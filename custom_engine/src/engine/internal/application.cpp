@@ -32,7 +32,7 @@
 		float const debug_fps = precision / (float)duration;
 		float const debug_dt  = dt * custom::timer::millisecond;
 		static char header_text[128];
-		sprintf(
+		s32 header_length = sprintf(
 			header_text,
 			"custom engine"
 			"- %.1f ms (%.1f FPS)"
@@ -42,6 +42,7 @@
 			system_ms, logic_ms, render_ms,
 			debug_dt
 		);
+		CUSTOM_ASSERT(header_length >= 0 && header_length <= C_ARRAY_LENGTH(header_text), "out of bounds");
 		custom::window::set_header(window, header_text);
 	}
 #else

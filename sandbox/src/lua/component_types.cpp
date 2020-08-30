@@ -187,6 +187,64 @@ static luaL_Reg const Visual_meta[] = {
 };
 
 //
+// Physical
+//
+
+static int Physical_index(lua_State * L) {
+	typedef custom::RefT<Physical> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Physical);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { lua_pushnil(L); return 1; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Physical_newindex(lua_State * L) {
+	typedef custom::RefT<Physical> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0;}
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Physical_eq(lua_State * L) {
+	typedef custom::RefT<Physical> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Physical", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static luaL_Reg const Physical_meta[] = {
+	{"__index", Physical_index},
+	{"__newindex", Physical_newindex},
+	{"__eq", Physical_eq},
+	//
+	{NULL, NULL},
+};
+
+//
 //
 //
 
