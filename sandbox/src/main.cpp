@@ -24,6 +24,7 @@ void init_client_loader(lua_State * L);
 
 static void on_app_init() {
 	// @Note: init systems
+	custom::file::watch_init(".", true);
 	init_client_asset_types();
 	init_client_component_types();
 
@@ -56,6 +57,7 @@ static void on_app_viewport(ivec2 size) {
 }
 
 static void on_app_update(r32 dt) {
+	custom::file::watch_update();
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
 	sandbox::ecs_update_physics();
@@ -87,7 +89,6 @@ int main(int argc, char * argv[]) {
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);
-	custom::file::watch_init("assets", true);
 	custom::application::run();
 	custom::file::watch_shutdown();
 	// getchar();
