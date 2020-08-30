@@ -7,6 +7,11 @@
 
 namespace custom {
 
+void Strings_Storage::clear() {
+	values.count = 0;
+	offsets.count = 0;
+}
+
 void Strings_Storage::ensure_capacity(u32 values_capacity, u32 lengths_capacity) {
 	values.ensure_capacity(values_capacity);
 	offsets.ensure_capacity(lengths_capacity);

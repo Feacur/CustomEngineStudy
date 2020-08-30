@@ -3,7 +3,8 @@
 #include "engine/core/code.h"
 #include "engine/core/collection_types.h"
 #include "engine/debug/log.h"
-#include "engine/api/platform/file.h"
+#include "engine/api/internal/strings_storage.h"
+#include "engine/api/platform/timer.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
@@ -80,6 +81,9 @@ struct Watch_Change_Data {
 	HANDLE thread_handle = INVALID_HANDLE_VALUE;
 	DWORD  thread_id;
 
+	Strings_Storage storage;
+	volatile u64    storage_id;
+
 	void shutdown(void) {
 		if (thread_handle != INVALID_HANDLE_VALUE) {
 			CloseHandle(thread_handle);
@@ -133,20 +137,27 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 				NULL, NULL
 			);
 			if (!read_result) { LOG_LAST_ERROR(); }
-			
-			if (bytes_returned) {
-				CUSTOM_TRACE("change (%d bytes)", bytes_returned);
-				FILE_NOTIFY_INFORMATION const * next = info;
-				u32 const count = (u32)(bytes_returned / sizeof(*info));
-				for (u32 i = 0; i < count; ++i) {
-					static char buffer[256];
-					CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
-					wcstombs(buffer, next->FileName, next->FileNameLength);
-					CUSTOM_TRACE("change: '%s' (%d)", buffer, next->FileNameLength);
-					if (!next->NextEntryOffset) { break; }
-					next = info + next->NextEntryOffset;
+
+			if (data->storage_id != timer::get_ticks()) {
+				data->storage.clear();
+				if (bytes_returned) {
+					// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
+					FILE_NOTIFY_INFORMATION const * next = info;
+					u32 const count = (u32)(bytes_returned / sizeof(*info));
+					for (u32 i = 0; i < count; ++i) {
+						// @Todo: unicode paths? also for the asset system?
+						static char buffer[256];
+						CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
+						wcstombs(buffer, next->FileName, next->FileNameLength);
+						// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
+						data->storage.store_string(buffer, next->FileNameLength);
+						if (!next->NextEntryOffset) { break; }
+						next = info + next->NextEntryOffset;
+					}
+					memset(info, 0, bytes_returned);
+					// @Todo: threads synchronization; potentially ignored files?
+					data->storage_id = timer::get_ticks();
 				}
-				memset(info, 0, bytes_returned);
 			}
 
 			if (!FindNextChangeNotification(data->change_handle)) {
@@ -183,7 +194,16 @@ void watch_init(cstring path, bool subtree) {
 }
 
 void watch_update(void) {
-	// empty
+	static Strings_Storage storage;
+	static u64             storage_id;
+
+	storage.clear();
+	if (storage_id != watch_change_data.storage_id) {
+		storage_id = watch_change_data.storage_id;
+		for (u32 i = 0; i < watch_change_data.storage.get_count(); ++i) {
+			CUSTOM_TRACE("update change: '%s'", watch_change_data.storage.get_string(i));
+		}
+	}
 }
 
 void watch_shutdown(void) {
