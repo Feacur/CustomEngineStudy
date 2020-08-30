@@ -27,6 +27,7 @@
 static FILETIME platform_to_file_time(u64 value);
 static LONGLONG platform_get_file_size(HANDLE handle);
 static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read);
+static DWORD WINAPI watch_change_callback(LPVOID lpParam);
 
 namespace custom {
 namespace file {
@@ -101,91 +102,6 @@ struct Watch_Change_Data {
 	}
 };
 
-static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
-	Watch_Change_Data * data = (Watch_Change_Data *)lpParam;
-
-	// @Note: code tracks size, which is error prone; the reason is that `xcopy`
-	//        triggers all the files somehow, despite the `/D` flag, which
-	//        skips unchanged files
-	constexpr DWORD const notify_filter = 0
-		| FILE_NOTIFY_CHANGE_SIZE
-		// | FILE_NOTIFY_CHANGE_FILE_NAME
-		// | FILE_NOTIFY_CHANGE_DIR_NAME
-		// | FILE_NOTIFY_CHANGE_LAST_WRITE
-		;
-
-	data->change_handle = FindFirstChangeNotification(data->path, data->subtree, notify_filter);
-	if (data->change_handle != INVALID_HANDLE_VALUE) {
-		data->file_handle = CreateFile(
-			data->path,
-			FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
-			FILE_FLAG_BACKUP_SEMANTICS,
-			NULL
-		);
-	}
-
-	while (data->change_handle != INVALID_HANDLE_VALUE && data->file_handle != INVALID_HANDLE_VALUE) {
-		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
-		if (wait_status == WAIT_OBJECT_0) {
-			// @Note: is being called twice, beware, account
-			static FILE_NOTIFY_INFORMATION info[1024] = {};
-			DWORD bytes_returned;
-			BOOL read_result = ReadDirectoryChangesW(
-				data->file_handle,
-				(void *)info, (DWORD)sizeof(info),
-				data->subtree, notify_filter,
-				&bytes_returned,
-				NULL, NULL
-			);
-			if (!read_result) { LOG_LAST_ERROR(); }
-
-			if (data->storage_id != timer::get_ticks()) {
-				data->storage.clear();
-				if (bytes_returned) {
-					// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
-					FILE_NOTIFY_INFORMATION const * next = info;
-					u32 const count = (u32)(bytes_returned / sizeof(*info));
-					for (u32 i = 0; i < count; ++i) {
-						// @Todo: unicode paths? also for the asset system?
-						static char buffer[256];
-						CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
-						wcstombs(buffer, next->FileName, next->FileNameLength);
-						// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
-						data->storage.store_string(buffer, next->FileNameLength);
-						if (!next->NextEntryOffset) { break; }
-						next = info + next->NextEntryOffset;
-					}
-					memset(info, 0, bytes_returned);
-					// @Todo: threads synchronization; potentially ignored files?
-					data->storage_id = timer::get_ticks();
-				}
-			}
-
-			if (!FindNextChangeNotification(data->change_handle)) {
-				CUSTOM_ASSERT(false, "wait status: can't continue");
-			}
-			continue;
-		}
-
-		switch (wait_status) {
-			case WAIT_ABANDONED: CUSTOM_ASSERT(false, "wait status: abandoned"); break;
-			case WAIT_TIMEOUT:   CUSTOM_ASSERT(false, "wait status: timeout");   break;
-			case WAIT_FAILED:    CUSTOM_ASSERT(false, "wait status: failed");    break;
-			default:             CUSTOM_ASSERT(false, "wait status: uknown");    break;
-		}
-
-		LOG_LAST_ERROR();
-		break;
-	}
-
-	LOG_LAST_ERROR();
-
-	data->thread_handle = INVALID_HANDLE_VALUE;
-	data->shutdown();
-
-	return 0;
-}
-
 static Watch_Change_Data watch_change_data;
 void watch_init(cstring path, bool subtree) {
 	watch_change_data.path          = path;
@@ -230,4 +146,90 @@ static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read) 
 		LOG_LAST_ERROR();
 	}
 	return read_size;
+}
+
+static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
+	typedef custom::file::Watch_Change_Data Watch_Change_Data;
+	Watch_Change_Data * data = (Watch_Change_Data *)lpParam;
+
+	// @Note: code tracks size, which is error prone; the reason is that `xcopy`
+	//        triggers all the files somehow, despite the `/D` flag, which
+	//        skips unchanged files
+	constexpr DWORD const notify_filter = 0
+		| FILE_NOTIFY_CHANGE_SIZE
+		// | FILE_NOTIFY_CHANGE_FILE_NAME
+		// | FILE_NOTIFY_CHANGE_DIR_NAME
+		// | FILE_NOTIFY_CHANGE_LAST_WRITE
+		;
+
+	data->change_handle = FindFirstChangeNotification(data->path, data->subtree, notify_filter);
+	if (data->change_handle != INVALID_HANDLE_VALUE) {
+		data->file_handle = CreateFile(
+			data->path,
+			FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+			FILE_FLAG_BACKUP_SEMANTICS,
+			NULL
+		);
+	}
+
+	while (data->change_handle != INVALID_HANDLE_VALUE && data->file_handle != INVALID_HANDLE_VALUE) {
+		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
+		if (wait_status == WAIT_OBJECT_0) {
+			// @Note: is being called twice, beware, account
+			static FILE_NOTIFY_INFORMATION info[1024] = {};
+			DWORD bytes_returned;
+			BOOL read_result = ReadDirectoryChangesW(
+				data->file_handle,
+				(void *)info, (DWORD)sizeof(info),
+				data->subtree, notify_filter,
+				&bytes_returned,
+				NULL, NULL
+			);
+			if (!read_result) { LOG_LAST_ERROR(); }
+
+			if (data->storage_id != custom::timer::get_ticks()) {
+				data->storage.clear();
+				if (bytes_returned) {
+					// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
+					FILE_NOTIFY_INFORMATION const * next = info;
+					u32 const count = (u32)(bytes_returned / sizeof(*info));
+					for (u32 i = 0; i < count; ++i) {
+						// @Todo: unicode paths? also for the asset system?
+						static char buffer[256];
+						CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
+						wcstombs(buffer, next->FileName, next->FileNameLength);
+						// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
+						data->storage.store_string(buffer, next->FileNameLength);
+						if (!next->NextEntryOffset) { break; }
+						next = info + next->NextEntryOffset;
+					}
+					memset(info, 0, bytes_returned);
+					// @Todo: threads synchronization; potentially ignored files?
+					data->storage_id = custom::timer::get_ticks();
+				}
+			}
+
+			if (!FindNextChangeNotification(data->change_handle)) {
+				CUSTOM_ASSERT(false, "wait status: can't continue");
+			}
+			continue;
+		}
+
+		switch (wait_status) {
+			case WAIT_ABANDONED: CUSTOM_ASSERT(false, "wait status: abandoned"); break;
+			case WAIT_TIMEOUT:   CUSTOM_ASSERT(false, "wait status: timeout");   break;
+			case WAIT_FAILED:    CUSTOM_ASSERT(false, "wait status: failed");    break;
+			default:             CUSTOM_ASSERT(false, "wait status: uknown");    break;
+		}
+
+		LOG_LAST_ERROR();
+		break;
+	}
+
+	LOG_LAST_ERROR();
+
+	data->thread_handle = INVALID_HANDLE_VALUE;
+	data->shutdown();
+
+	return 0;
 }
