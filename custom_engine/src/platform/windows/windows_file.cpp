@@ -173,11 +173,16 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 		);
 	}
 
-	while (data->change_handle != INVALID_HANDLE_VALUE && data->file_handle != INVALID_HANDLE_VALUE) {
+	while (data->file_handle != INVALID_HANDLE_VALUE) {
 		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
 		if (wait_status == WAIT_OBJECT_0) {
-			// @Note: is being called twice, beware, account
-			static FILE_NOTIFY_INFORMATION info[1024] = {};
+			// @Note: might be called multiple times per file
+
+			// @Note: `FILE_NOTIFY_INFORMATION` uses flexible array member to store file names
+			//        https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-file_notify_information
+			static u8 info[1024 * sizeof(FILE_NOTIFY_INFORMATION)] = {};
+			typedef FILE_NOTIFY_INFORMATION const * Entry_Ptr;
+
 			DWORD bytes_returned;
 			BOOL read_result = ReadDirectoryChangesW(
 				data->file_handle,
@@ -190,18 +195,35 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 
 			if (bytes_returned) {
 				// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
-				FILE_NOTIFY_INFORMATION const * next = info;
-				u32 const count = (u32)(bytes_returned / sizeof(*info));
-				for (u32 i = 0; i < count; ++i) {
+				Entry_Ptr next = (Entry_Ptr)info;
+				do {
+					switch (next->Action)
+					{
+						case FILE_ACTION_ADDED:            break;
+						case FILE_ACTION_REMOVED:          break;
+						case FILE_ACTION_MODIFIED:         break;
+						case FILE_ACTION_RENAMED_OLD_NAME: break;
+						case FILE_ACTION_RENAMED_NEW_NAME: break;
+						default: CUSTOM_ASSERT(false, "suspicious file action"); break;
+					}
+
+					// @Note: file name is presented in bytes
+					u32 file_name_lenth = (u32)(next->FileNameLength / sizeof(*next->FileName));
+					CUSTOM_ASSERT(file_name_lenth, "suspicious file name length");
+
 					// @Todo: unicode paths? also for the asset system?
 					static char buffer[256];
-					CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
-					wcstombs(buffer, next->FileName, next->FileNameLength);
-					// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
-					data->storage.store_string(buffer, next->FileNameLength);
-					if (!next->NextEntryOffset) { break; }
-					next = info + next->NextEntryOffset;
-				}
+					if (file_name_lenth > C_ARRAY_LENGTH(buffer)) {
+						file_name_lenth = C_ARRAY_LENGTH(buffer);
+						CUSTOM_ASSERT(false, "out of bounds");
+					}
+					wcstombs(buffer, next->FileName, file_name_lenth);
+
+					// CUSTOM_TRACE("system change: '%s' (%d)", buffer, file_name_lenth);
+					data->storage.store_string(buffer, file_name_lenth);
+
+					next = (Entry_Ptr)(info + next->NextEntryOffset);
+				} while (next->NextEntryOffset);
 				memset(info, 0, bytes_returned);
 				// @Todo: threads synchronization; potentially ignored files?
 				data->storage_id = custom::timer::get_ticks();
@@ -209,6 +231,7 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 
 			if (!FindNextChangeNotification(data->change_handle)) {
 				CUSTOM_ASSERT(false, "wait status: can't continue");
+				break;
 			}
 			continue;
 		}
