@@ -636,8 +636,8 @@ static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 	}
 
 	static GLchar version[20];
-	sprintf(version, "#version %d core\n", glsl_version);
-	GLint version_length = (GLint)strlen(version);
+	GLint version_length = sprintf(version, "#version %d core\n", glsl_version);
+	CUSTOM_ASSERT(version_length >= 0 && version_length <= C_ARRAY_LENGTH(version), "out of bounds");
 
 	u8 count = 0;
 
