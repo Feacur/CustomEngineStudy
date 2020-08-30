@@ -1,4 +1,4 @@
-#include "engine/api/internal/entity_system.h"
+#pragma once
 
 struct lua_State;
 

@@ -1,10 +1,8 @@
-#include "ecs_renderer.h"
-
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/internal/component_types.h"
+#include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/application.h"
-#include "engine/api/graphics_params.h"
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
 
@@ -32,7 +30,7 @@ struct Renderable_Blob {
 	Visual const    * visual;
 };
 
-void ecs_update_renderer() {
+void ecs_update_renderer(void) {
 	// @Todo: global shaders data
 	// custom::renderer::set_uniform(shader, (u32)sandbox::Uniform::resolution, viewport_size);
 

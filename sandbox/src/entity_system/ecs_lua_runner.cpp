@@ -1,10 +1,7 @@
-#include "ecs_lua_runner.h"
-
 #include "engine/core/code.h"
 #include "engine/core/types.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/entity_system.h"
-#include "engine/api/internal/loader.h"
 #include "engine/impl/array.h"
 
 #include "component_types.h"
@@ -47,17 +44,27 @@ static void lua_function(lua_State * L, cstring name, custom::Entity const & ent
 	}
 }
 
+struct Script_Blob {
+	custom::Entity     entity;
+	Lua_Script const * script;
+};
+
 void ecs_update_lua(lua_State * L, r32 dt) {
-	// @Todo: prefetch all relevant components into a contiguous array?
+	custom::Array<Script_Blob> scripts(8);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
-		Lua_Script * lua_script = entity.get_component<Lua_Script>().get_safe();
-		if (!lua_script) { continue; }
-		if (lua_script->update_string_id == custom::empty_index) { continue; }
-		cstring update_name = custom::Entity::get_string(lua_script->update_string_id);
-		lua_function(L, update_name, entity, dt);
+		Lua_Script const * script = entity.get_component<Lua_Script>().get_safe();
+		if (!script) { continue; }
+
+		scripts.push({entity, script});
+	}
+
+	for (u32 i = 0; i < scripts.count; ++i) {
+		if (scripts[i].script->update_string_id == custom::empty_index) { continue; }
+		cstring update_name = custom::Entity::get_string(scripts[i].script->update_string_id);
+		lua_function(L, update_name, scripts[i].entity, dt);
 	}
 }
 

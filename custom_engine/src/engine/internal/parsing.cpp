@@ -99,7 +99,7 @@ inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10) {
 	// return sign * ldexpf(mantissa * powf(5, (r32)exponent), exponent);
 
 	if (!mantissa) { return 0.0f; }
-	if (!exponent_10) { return sign * (r32)mantissa; }
+	if (!exponent_10) { return (r32)sign * (r32)mantissa; }
 
 	// > mantissa_x * 2^exponent_2 == mantissa * 10^exponent_10
 	// > [start with] exponent_2 == exponent_10

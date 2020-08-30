@@ -5,8 +5,9 @@
 #include "asset_system/uniform_ids.h"
 #include "asset_system/asset_types.h"
 
-#include "entity_system/ecs_renderer.h"
 #include "entity_system/ecs_lua_runner.h"
+#include "entity_system/ecs_physics.h"
+#include "entity_system/ecs_renderer.h"
 
 #include <lua.hpp>
 
@@ -57,6 +58,7 @@ static void on_app_viewport(ivec2 size) {
 static void on_app_update(r32 dt) {
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
+	sandbox::ecs_update_physics();
 	sandbox::ecs_update_renderer();
 }
 
