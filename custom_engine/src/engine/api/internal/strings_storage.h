@@ -6,6 +6,7 @@ namespace custom {
 struct Strings_Storage {
 	Array<char> values;
 	Array<u32> offsets;
+	Array<u32> lengths;
 
 	void clear(void);
 	inline u32 get_count() { return offsets.count; }
@@ -14,6 +15,7 @@ struct Strings_Storage {
 	u32 get_id(cstring data, u32 length);
 
 	cstring get_string(u32 id);
+	u32 get_length(u32 id);
 };
 
 }

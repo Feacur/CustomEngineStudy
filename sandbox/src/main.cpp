@@ -58,8 +58,14 @@ static void on_app_viewport(ivec2 size) {
 
 static void on_app_update(r32 dt) {
 	custom::file::watch_update();
-	for (u32 i = 0; i < custom::file::modified.get_count(); ++i) {
-		CUSTOM_TRACE("changed: '%s'", custom::file::modified.get_string(i));
+	for (u32 i = 0; i < custom::file::actions.count; ++i) {
+		switch (custom::file::actions[i].type) {
+			case custom::file::Action_Type::Add: CUSTOM_TRACE("add: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
+			case custom::file::Action_Type::Rem: CUSTOM_TRACE("rem: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
+			case custom::file::Action_Type::Mod: CUSTOM_TRACE("mod: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
+			case custom::file::Action_Type::Old: CUSTOM_TRACE("old: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
+			case custom::file::Action_Type::New: CUSTOM_TRACE("new: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
+		}
 	}
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);

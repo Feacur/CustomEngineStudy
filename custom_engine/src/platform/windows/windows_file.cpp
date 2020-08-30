@@ -1,11 +1,14 @@
 #include "custom_pch.h"
 
 #include "engine/core/code.h"
+#include "engine/core/meta.h"
 #include "engine/core/collection_types.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/strings_storage.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/timer.h"
+#include "engine/impl/math_bitwise.h"
+#include "engine/impl/array.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
@@ -83,8 +86,18 @@ struct Watch_Change_Data {
 	HANDLE thread_handle = INVALID_HANDLE_VALUE;
 	DWORD  thread_id;
 
-	Strings_Storage storage;
 	volatile u64 storage_id;
+	Strings_Storage strings;
+	Array<Action> actions;
+
+	void add_action(Action action) {
+		for (u32 i = 0; i < actions.count; ++i) {
+			if (actions[i].id != action.id) { continue; }
+			if (actions[i].type != action.type) { continue; }
+			return;
+		}
+		actions.push(action);
+	}
 
 	void shutdown(void) {
 		if (thread_handle != INVALID_HANDLE_VALUE) {
@@ -113,13 +126,19 @@ void watch_init(cstring path, bool subtree) {
 void watch_update(void) {
 	static u64 storage_id;
 
-	modified.clear();
+	strings.clear();
+	actions.count = 0;
+
 	if (storage_id != watch_change_data.storage_id) {
 		// @Todo: threads synchronization
 		storage_id = watch_change_data.storage_id;
-		modified.values.push_range(watch_change_data.storage.values.data, watch_change_data.storage.values.count);
-		modified.offsets.push_range(watch_change_data.storage.offsets.data, watch_change_data.storage.offsets.count);
-		watch_change_data.storage.clear();
+		strings.values.push_range(watch_change_data.strings.values.data, watch_change_data.strings.values.count);
+		strings.offsets.push_range(watch_change_data.strings.offsets.data, watch_change_data.strings.offsets.count);
+		strings.lengths.push_range(watch_change_data.strings.lengths.data, watch_change_data.strings.lengths.count);
+		actions.push_range(watch_change_data.actions.data, watch_change_data.actions.count);
+
+		watch_change_data.strings.clear();
+		watch_change_data.actions.count = 0;
 	}
 }
 
@@ -152,36 +171,35 @@ static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read) 
 static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 	typedef custom::file::Watch_Change_Data Watch_Change_Data;
 	Watch_Change_Data * data = (Watch_Change_Data *)lpParam;
+	
+	// @Note: `FILE_NOTIFY_INFORMATION` uses flexible array member to store file names
+	//        - https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-file_notify_information
+	//        - must be DWORD-aligned; is this an issue, really?
+	//        - manually align if using version older than C++11?
+	alignas(DWORD) static u8 info[(sizeof(FILE_NOTIFY_INFORMATION) + 26) * 1024] = {};
+	static custom::Array<char> buffer;
 
-	// @Note: code tracks size, which is error prone; the reason is that `xcopy`
-	//        triggers all the files somehow, despite the `/D` flag, which
-	//        skips unchanged files
 	constexpr DWORD const notify_filter = 0
 		| FILE_NOTIFY_CHANGE_SIZE
-		// | FILE_NOTIFY_CHANGE_FILE_NAME
-		// | FILE_NOTIFY_CHANGE_DIR_NAME
-		// | FILE_NOTIFY_CHANGE_LAST_WRITE
+		| FILE_NOTIFY_CHANGE_LAST_WRITE
+		| FILE_NOTIFY_CHANGE_FILE_NAME
+		| FILE_NOTIFY_CHANGE_DIR_NAME
 		;
 
 	data->change_handle = FindFirstChangeNotification(data->path, data->subtree, notify_filter);
 	if (data->change_handle != INVALID_HANDLE_VALUE) {
 		data->file_handle = CreateFile(
 			data->path,
-			FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+			FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS,
 			NULL
 		);
 	}
 
-	while (data->file_handle != INVALID_HANDLE_VALUE) {
+	while (data->change_handle != INVALID_HANDLE_VALUE && data->file_handle != INVALID_HANDLE_VALUE) {
 		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
 		if (wait_status == WAIT_OBJECT_0) {
 			// @Note: might be called multiple times per file
-
-			// @Note: `FILE_NOTIFY_INFORMATION` uses flexible array member to store file names
-			//        https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-file_notify_information
-			static u8 info[1024 * sizeof(FILE_NOTIFY_INFORMATION)] = {};
-			typedef FILE_NOTIFY_INFORMATION const * Entry_Ptr;
 
 			DWORD bytes_returned;
 			BOOL read_result = ReadDirectoryChangesW(
@@ -194,36 +212,34 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 			if (!read_result) { LOG_LAST_ERROR(); }
 
 			if (bytes_returned) {
-				// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
-				Entry_Ptr next = (Entry_Ptr)info;
-				do {
-					switch (next->Action)
-					{
-						case FILE_ACTION_ADDED:            break;
-						case FILE_ACTION_REMOVED:          break;
-						case FILE_ACTION_MODIFIED:         break;
-						case FILE_ACTION_RENAMED_OLD_NAME: break;
-						case FILE_ACTION_RENAMED_NEW_NAME: break;
-						default: CUSTOM_ASSERT(false, "suspicious file action"); break;
-					}
-
+				u8 const * next_byte = info;
+				while (true) {
+					FILE_NOTIFY_INFORMATION const * next = (FILE_NOTIFY_INFORMATION const *)next_byte;
 					// @Note: file name is presented in bytes
 					u32 file_name_lenth = (u32)(next->FileNameLength / sizeof(*next->FileName));
-					CUSTOM_ASSERT(file_name_lenth, "suspicious file name length");
+					buffer.ensure_capacity(file_name_lenth);
+					buffer.count = (u32)wcstombs(buffer.data, next->FileName, file_name_lenth);
 
-					// @Todo: unicode paths? also for the asset system?
-					static char buffer[256];
-					if (file_name_lenth > C_ARRAY_LENGTH(buffer)) {
-						file_name_lenth = C_ARRAY_LENGTH(buffer);
-						CUSTOM_ASSERT(false, "out of bounds");
+					if (buffer.count != file_name_lenth) {
+						buffer.set_capacity(0);
+						CUSTOM_ASSERT(false, "failed to convert bytes;\n    read %d out of %d bytes", buffer.count, file_name_lenth);
 					}
-					wcstombs(buffer, next->FileName, file_name_lenth);
 
-					// CUSTOM_TRACE("system change: '%s' (%d)", buffer, file_name_lenth);
-					data->storage.store_string(buffer, file_name_lenth);
+					custom::file::Action_Type type = custom::file::Action_Type::None;
+					switch (next->Action) {
+						case FILE_ACTION_ADDED:            type = custom::file::Action_Type::Add; break;
+						case FILE_ACTION_REMOVED:          type = custom::file::Action_Type::Rem; break;
+						case FILE_ACTION_MODIFIED:         type = custom::file::Action_Type::Mod; break;
+						case FILE_ACTION_RENAMED_OLD_NAME: type = custom::file::Action_Type::Old; break;
+						case FILE_ACTION_RENAMED_NEW_NAME: type = custom::file::Action_Type::New; break;
+					}
 
-					next = (Entry_Ptr)(info + next->NextEntryOffset);
-				} while (next->NextEntryOffset);
+					u32 id = data->strings.store_string(buffer.data, buffer.count);
+					data->add_action({id, type});
+
+					if (!next->NextEntryOffset) { break; }
+					next_byte = next_byte + next->NextEntryOffset;
+				}
 				memset(info, 0, bytes_returned);
 				// @Todo: threads synchronization; potentially ignored files?
 				data->storage_id = custom::timer::get_ticks();

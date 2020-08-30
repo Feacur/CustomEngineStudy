@@ -2,7 +2,9 @@
 
 #include "engine/core/collection_types.h"
 #include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/platform/file.h"
 #include "engine/api/rendering_settings.h"
+#include "engine/impl/array.h"
 
 namespace custom {
 namespace system {
@@ -28,5 +30,8 @@ namespace custom {
 
 namespace custom {
 namespace file {
-	Strings_Storage modified;
+	template struct Array<Action>;
+
+	Strings_Storage strings;
+	Array<Action> actions;
 }}

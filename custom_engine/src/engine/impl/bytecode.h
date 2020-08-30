@@ -6,12 +6,6 @@
 
 namespace custom {
 
-// @Note: might come in handy in case of some portabiliy issues?
-// #define alignof(type) ({ \
-// 	struct s { char c; type d; }; \
-// 	offsetof(struct s, d); \
-// })
-
 template<typename T>
 void Bytecode::write(T const * data, u32 count) {
 	write_bytes(alignof(T), (u8 const *)data, count * sizeof(T));

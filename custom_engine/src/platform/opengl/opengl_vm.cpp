@@ -350,9 +350,7 @@ void shutdown(void) {
 void consume(Bytecode const & bc) {
 	while (bc.read_offset < bc.buffer.count) {
 		Instruction instruction = *bc.read<Instruction>();
-
-		switch (instruction)
-		{
+		switch (instruction) {
 			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
 			#include "engine/registry_impl/instruction.h"
 			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
@@ -444,8 +442,7 @@ static void opengl_message_callback(
 	// https://www.khronos.org/opengl/wiki/OpenGL_Error
 
 	cstring source_string = NULL;
-	switch (source)
-	{
+	switch (source) {
 		case GL_DEBUG_SOURCE_API:             source_string = "API"; break;
 		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   source_string = "window system"; break;
 		case GL_DEBUG_SOURCE_SHADER_COMPILER: source_string = "shader compiler"; break;
@@ -456,8 +453,7 @@ static void opengl_message_callback(
 	}
 
 	cstring type_string = NULL;
-	switch (type)
-	{
+	switch (type) {
 		case GL_DEBUG_TYPE_ERROR:               type_string = "error"; break;
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_string = "deprecated behavior"; break;
 		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  type_string = "undefined behavior"; break;
@@ -471,8 +467,7 @@ static void opengl_message_callback(
 	}
 
 	cstring severity_string = NULL;
-	switch (severity)
-	{
+	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:         severity_string = ANSI_BKG_RED "[crt]" ANSI_CLR; break; // All OpenGL Errors, shader compilation/linking errors, or highly-dangerous undefined behavior
 		case GL_DEBUG_SEVERITY_MEDIUM:       severity_string = ANSI_TXT_RED "[err]" ANSI_CLR; break; // Major performance warnings, shader compilation/linking warnings, or the use of deprecated functionality
 		case GL_DEBUG_SEVERITY_LOW:          severity_string = ANSI_TXT_YLW "[wrn]" ANSI_CLR; break; // Redundant state change performance warning, or unimportant undefined behavior
@@ -2356,6 +2351,7 @@ static void platform_Init_Uniforms(Bytecode const & bc) {
 	u32 count = *bc.read<u32>();
 	ogl.strings.values.set_capacity(count * name_capacity);
 	ogl.strings.offsets.set_capacity(count);
+	ogl.strings.lengths.set_capacity(count);
 	for (u32 i = 0; i < count; ++i) {
 		C_String value = read_cstring(bc);
 		ogl.strings.store_string(value.data, value.count);

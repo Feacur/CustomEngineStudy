@@ -9,7 +9,12 @@ namespace custom {
 
 namespace custom {
 namespace file {
-extern Strings_Storage modified;
+
+enum struct Action_Type : u8 {None, Add, Rem, Mod, Old, New};
+struct Action { u32 id; Action_Type type; };
+
+extern Strings_Storage strings;
+extern Array<Action> actions;
 
 u64 get_time(cstring path);
 void read(cstring path, Array<u8> & buffer);

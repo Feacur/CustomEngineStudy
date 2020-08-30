@@ -24,11 +24,22 @@
 	#define constexpr
 #endif
 
-#define CUSTOM_CONDITIONAL(statement, command, ...) if (!statement) { /**/ } else {\
+#define CUSTOM_CONDITIONAL(statement, command, ...) if (!(statement)) { /**/ } else {\
 	CUSTOM_CRITICAL(__VA_ARGS__);\
 	CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: " CUSTOM_FILE_AND_LINE ANSI_CLR "\n");\
 	command;\
 }\
+
+// #if __cplusplus < 201103L
+// 	// @Note: in case you wanted a version older than C++11 (?)
+// 	#define alignof(type) ({\
+// 		struct s { char c; type d; };\
+// 		offsetof(struct s, d);\
+// 	})
+// #endif
+
+#define CUSTOM_GET_NEXT_MULTIPLE_2(value, multiple) ((value + (multiple - 1)) & ~(multiple - 1))
+#define CUSTOM_ALIGN(value, alignment) CUSTOM_GET_NEXT_MULTIPLE_2(value, (decltype(value))alignment)
 
 // OS detection
 #if defined(_WIN64) || defined(_WIN32)
