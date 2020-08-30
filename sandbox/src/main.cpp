@@ -87,7 +87,9 @@ int main(int argc, char * argv[]) {
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);
+	custom::file::watch_init("assets", true);
 	custom::application::run();
+	custom::file::watch_shutdown();
 	// getchar();
 	return 0;
 }

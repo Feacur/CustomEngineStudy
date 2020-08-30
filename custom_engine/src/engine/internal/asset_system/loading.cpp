@@ -53,7 +53,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	cstring path = asset_ref.get_path();
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -126,7 +126,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	cstring path = asset_ref.get_path();
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -211,7 +211,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	cstring path = asset_ref.get_path();
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
@@ -309,7 +309,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	cstring path = asset_ref.get_path();
-	if (!file::exists(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }

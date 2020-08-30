@@ -20,30 +20,35 @@
 // API implementation
 //
 
+static FILETIME platform_to_file_time(u64 value);
 static LONGLONG platform_get_file_size(HANDLE handle);
 static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read);
 
 namespace custom {
 namespace file {
 
-// CompareFileTime
-
-bool exists(cstring path) {
+u64 get_time(cstring path) {
 	WIN32_FIND_DATA findFileData;
 	HANDLE handle = FindFirstFile(path, &findFileData);
 	if (handle == INVALID_HANDLE_VALUE) {
 		LOG_LAST_ERROR();
-		return false;
+		return 0;
 	}
 
+	ULARGE_INTEGER large;
+	large.LowPart  = findFileData.ftLastWriteTime.dwLowDateTime;
+	large.HighPart = findFileData.ftLastWriteTime.dwHighDateTime;
+
 	FindClose(handle);
-	return true;
+	return (u64)large.QuadPart;
 }
 
 void read(cstring path, Array<u8> & buffer) {
+	DWORD desiredAccess = GENERIC_READ;
+	DWORD shareMode     = FILE_SHARE_READ;
 	HANDLE handle = CreateFile(
 		path,
-		GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+		desiredAccess, shareMode, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
@@ -66,6 +71,76 @@ void read(cstring path, Array<u8> & buffer) {
 
 	CloseHandle(handle);
 }
+
+void watch_init(cstring path, bool subtree) {
+	/*
+	DWORD notifyFilter = FILE_NOTIFY_CHANGE_LAST_WRITE;
+	HANDLE handle = FindFirstChangeNotification(path, subtree, notifyFilter);
+	if (handle == INVALID_HANDLE_VALUE) {
+		LOG_LAST_ERROR();
+		return;
+	}
+
+	if (FindNextChangeNotification(handle)) {
+
+	}
+
+	FindCloseChangeNotification(handle);
+	*/
+}
+
+void watch_shutdown(void) {
+
+}
+
+/*
+void poll_callback(
+	DWORD dwErrorCode,
+	DWORD dwNumberOfBytesTransfered,
+	LPOVERLAPPED lpOverlapped
+) {
+	CUSTOM_ASSERT(false, "");
+}
+
+void poll(cstring path, bool subtree) {
+	DWORD desiredAccess = FILE_LIST_DIRECTORY;
+	DWORD shareMode     = FILE_SHARE_READ | FILE_SHARE_WRITE;
+	HANDLE handle = CreateFile(
+		path,
+		desiredAccess, shareMode, NULL, OPEN_EXISTING,
+		FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+		NULL
+	);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		LOG_LAST_ERROR();
+		return;
+	}
+
+	FILE_NOTIFY_INFORMATION buffer[1024];
+	DWORD bytesReturned;
+
+	DWORD notifyFilter = FILE_NOTIFY_CHANGE_LAST_WRITE
+		| FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_FILE_NAME;
+	while (true) {
+		OVERLAPPED overlapped;
+		if (ReadDirectoryChangesW(
+			handle,
+			(void *)buffer,
+			(DWORD)sizeof(buffer),
+			subtree,
+			notifyFilter,
+			&bytesReturned,
+			&overlapped, &poll_callback
+		) == 0) {
+			LOG_LAST_ERROR();
+		}
+		break;
+	}
+
+	CloseHandle(handle);
+}
+*/
 
 }}
 
