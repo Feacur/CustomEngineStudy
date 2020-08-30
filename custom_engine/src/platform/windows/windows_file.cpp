@@ -119,6 +119,7 @@ void watch_update(void) {
 		storage_id = watch_change_data.storage_id;
 		modified.values.push_range(watch_change_data.storage.values.data, watch_change_data.storage.values.count);
 		modified.offsets.push_range(watch_change_data.storage.offsets.data, watch_change_data.storage.offsets.count);
+		watch_change_data.storage.clear();
 	}
 }
 
@@ -187,26 +188,23 @@ static DWORD WINAPI watch_change_callback(LPVOID lpParam) {
 			);
 			if (!read_result) { LOG_LAST_ERROR(); }
 
-			if (data->storage_id != custom::timer::get_ticks()) {
-				data->storage.clear();
-				if (bytes_returned) {
-					// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
-					FILE_NOTIFY_INFORMATION const * next = info;
-					u32 const count = (u32)(bytes_returned / sizeof(*info));
-					for (u32 i = 0; i < count; ++i) {
-						// @Todo: unicode paths? also for the asset system?
-						static char buffer[256];
-						CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
-						wcstombs(buffer, next->FileName, next->FileNameLength);
-						// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
-						data->storage.store_string(buffer, next->FileNameLength);
-						if (!next->NextEntryOffset) { break; }
-						next = info + next->NextEntryOffset;
-					}
-					memset(info, 0, bytes_returned);
-					// @Todo: threads synchronization; potentially ignored files?
-					data->storage_id = custom::timer::get_ticks();
+			if (bytes_returned) {
+				// CUSTOM_TRACE("change (%d bytes)", bytes_returned);
+				FILE_NOTIFY_INFORMATION const * next = info;
+				u32 const count = (u32)(bytes_returned / sizeof(*info));
+				for (u32 i = 0; i < count; ++i) {
+					// @Todo: unicode paths? also for the asset system?
+					static char buffer[256];
+					CUSTOM_ASSERT(next->FileNameLength <= C_ARRAY_LENGTH(buffer), "out of bounds");
+					wcstombs(buffer, next->FileName, next->FileNameLength);
+					// CUSTOM_TRACE("system change: '%s' (%d)", buffer, next->FileNameLength);
+					data->storage.store_string(buffer, next->FileNameLength);
+					if (!next->NextEntryOffset) { break; }
+					next = info + next->NextEntryOffset;
 				}
+				memset(info, 0, bytes_returned);
+				// @Todo: threads synchronization; potentially ignored files?
+				data->storage_id = custom::timer::get_ticks();
 			}
 
 			if (!FindNextChangeNotification(data->change_handle)) {
