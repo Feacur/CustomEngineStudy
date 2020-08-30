@@ -72,25 +72,73 @@ void read(cstring path, Array<u8> & buffer) {
 	CloseHandle(handle);
 }
 
-void watch_init(cstring path, bool subtree) {
-	/*
-	DWORD notifyFilter = FILE_NOTIFY_CHANGE_LAST_WRITE;
-	HANDLE handle = FindFirstChangeNotification(path, subtree, notifyFilter);
-	if (handle == INVALID_HANDLE_VALUE) {
+struct Watch_Data {
+	HANDLE change_handle;
+	HANDLE thread_handle;
+	DWORD  thread_id;
+};
+
+static DWORD WINAPI watch_callback(LPVOID lpParam) {
+	Watch_Data * data = (Watch_Data *)lpParam;
+
+	while (true) {
+		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
+		if (wait_status == WAIT_OBJECT_0) {
+			// @Note: is being called twice, beware, investigate
+			CUSTOM_TRACE("wait status: ping");
+			if (!FindNextChangeNotification(data->change_handle)) {
+				CUSTOM_ASSERT(false, "wait status: can't continue");
+			}
+			continue;
+		}
+
+		switch (wait_status) {
+			case WAIT_ABANDONED: CUSTOM_ASSERT(false, "wait status: abandoned"); break;
+			case WAIT_TIMEOUT:   CUSTOM_ASSERT(false, "wait status: timeout");   break;
+			case WAIT_FAILED:    CUSTOM_ASSERT(false, "wait status: failed");    break;
+			default:             CUSTOM_ASSERT(false, "wait status: uknown");    break;
+		}
+
 		LOG_LAST_ERROR();
-		return;
+		break;
 	}
 
-	if (FindNextChangeNotification(handle)) {
+	FindCloseChangeNotification(data->change_handle);
+	data->change_handle = INVALID_HANDLE_VALUE;
+	return 0;
+}
 
+static Watch_Data watch_data;
+void watch_init(cstring path, bool subtree) {
+	// @Note: code tracks size, which is error prone; the reason is that `xcopy`
+	//        triggers all the files somehow, despite the `/D` flag, which
+	//        skips unchanged files
+	DWORD notifyFilter = 0
+		| FILE_NOTIFY_CHANGE_SIZE
+		// | FILE_NOTIFY_CHANGE_FILE_NAME
+		// | FILE_NOTIFY_CHANGE_DIR_NAME
+		// | FILE_NOTIFY_CHANGE_LAST_WRITE
+		;
+	watch_data.change_handle = FindFirstChangeNotification(path, true, notifyFilter);
+	if (watch_data.change_handle == INVALID_HANDLE_VALUE) { LOG_LAST_ERROR(); return; }
+
+	watch_data.thread_handle = CreateThread(NULL, 0, watch_callback, &watch_data, 0, &watch_data.thread_id);
+	if (watch_data.thread_handle == INVALID_HANDLE_VALUE) {
+		FindCloseChangeNotification(watch_data.change_handle);
+		watch_data.change_handle = INVALID_HANDLE_VALUE;
+		LOG_LAST_ERROR(); return;
 	}
-
-	FindCloseChangeNotification(handle);
-	*/
 }
 
 void watch_shutdown(void) {
-
+	if (watch_data.thread_handle != INVALID_HANDLE_VALUE) {
+		CloseHandle(watch_data.thread_handle);
+		watch_data.thread_handle = INVALID_HANDLE_VALUE;
+	}
+	if (watch_data.change_handle != INVALID_HANDLE_VALUE) {
+		FindCloseChangeNotification(watch_data.change_handle);
+		watch_data.change_handle = INVALID_HANDLE_VALUE;
+	}
 }
 
 /*
