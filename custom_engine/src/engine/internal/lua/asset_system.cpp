@@ -4,7 +4,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
 #include "engine/api/internal/asset_system.h"
-#include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/names_lookup.h"
 
 #include <lua.hpp>
 

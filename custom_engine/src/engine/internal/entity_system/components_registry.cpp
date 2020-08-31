@@ -1,4 +1,4 @@
-#include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/component_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/reference.h"

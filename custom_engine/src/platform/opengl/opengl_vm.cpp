@@ -6,6 +6,7 @@
 #include "engine/api/graphics_params.h"
 #include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/asset_types.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
@@ -190,10 +191,6 @@ struct Data
 	~Data() = default;
 
 	u32 version;
-
-	// @Note: might store offsets for random search
-	u32                 uniform_ready_state = RS_NONE;
-	custom::Strings_Storage strings;
 
 	custom::Array<unit_id> unit_ids; // sparse
 	u32 active_program = custom::empty_ref.id;
@@ -387,12 +384,6 @@ inline static bool has_allocated_target(u32 id) {
 }
 
 //
-
-u32 mark_pending_uniforms() {
-	u32 ready_state = ogl.uniform_ready_state;
-	if (ready_state == RS_NONE) { ogl.uniform_ready_state = RS_PENDING; }
-	return ready_state;
-}
 
 u32 mark_pending_shader(u32 id) {
 	ogl.programs_ensure_capacity(id);
@@ -1926,10 +1917,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 		// 	i, field_buffer.location
 		// );
 
-		// @Todo: make uniforms dynamic?
-		u32 uniform_id = ogl.strings.get_id(field_buffer.name, field_buffer.name_count);
-
-		field->id = uniform_id;
+		field->id = custom::uniform_names.store_string(field_buffer.name, field_buffer.name_count);
 		field->location = field_buffer.location;
 	}
 
@@ -2345,18 +2333,6 @@ static void platform_Overlay(Bytecode const & bc) {
 //
 //
 //
-
-static void platform_Init_Uniforms(Bytecode const & bc) {
-	u32 const name_capacity = C_ARRAY_LENGTH(Program_Field::name);
-	u32 count = *bc.read<u32>();
-	ogl.strings.values.set_capacity(count * name_capacity);
-	ogl.strings.offsets.set_capacity(count);
-	ogl.strings.lengths.set_capacity(count);
-	for (u32 i = 0; i < count; ++i) {
-		C_String value = read_cstring(bc);
-		ogl.strings.store_string(value.data, value.count);
-	}
-}
 
 static void platform_Message_Pointer(Bytecode const & bc) {
 	cstring value = *bc.read<cstring>();

@@ -1,7 +1,7 @@
 #include "custom_pch.h"
 
 #include "engine/core/collection_types.h"
-#include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/rendering_settings.h"
 #include "engine/impl/array.h"
@@ -25,7 +25,7 @@ namespace custom {
 namespace custom {
 	Strings_Storage component_names;
 	Strings_Storage asset_names;
-	Array<cstring> uniform_names;
+	Strings_Storage uniform_names;
 }
 
 namespace custom {

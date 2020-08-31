@@ -6,6 +6,6 @@ namespace custom {
 
 extern Strings_Storage component_names;
 extern Strings_Storage asset_names;
-extern Array<cstring> uniform_names;
+extern Strings_Storage uniform_names;
 
 }

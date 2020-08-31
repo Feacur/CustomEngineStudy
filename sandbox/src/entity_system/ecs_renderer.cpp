@@ -1,3 +1,4 @@
+#include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/renderer.h"
 #include "engine/api/internal/component_types.h"
@@ -6,7 +7,6 @@
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
 
-#include "../asset_system/uniform_ids.h"
 #include "component_types.h"
 
 #include <stdlib.h>
@@ -31,11 +31,18 @@ struct Renderable_Blob {
 };
 
 void ecs_update_renderer(void) {
-	// @Todo: global shaders data
-	// custom::renderer::set_uniform(shader, (u32)sandbox::Uniform::resolution, viewport_size);
+	static u32 const u_Resolution      = custom::uniform_names.store_string("u_Resolution", custom::empty_index);
+	static u32 const u_View_Projection = custom::uniform_names.store_string("u_View_Projection", custom::empty_index);
+	static u32 const u_Transform       = custom::uniform_names.store_string("u_Transform", custom::empty_index);
+	static u32 const u_Texture         = custom::uniform_names.store_string("u_Texture", custom::empty_index);
+	static u32 const u_Color           = custom::uniform_names.store_string("u_Color", custom::empty_index);
+	static u32 const u_Z               = custom::uniform_names.store_string("u_Z", custom::empty_index);
 
 	ivec2 viewport_size = custom::application::get_viewport_size();
 	r32 const aspect = (r32)viewport_size.x / (r32)viewport_size.y;
+
+	// @Todo: global shaders data
+	// custom::renderer::set_uniform(shader, u_Resolution, viewport_size);
 
 	// custom::Array<Hierarchy::Link> children(4);
 
@@ -196,12 +203,12 @@ void ecs_update_renderer(void) {
 			if (shader_id != renderable.visual->shader.ref.id) {
 				shader_id = renderable.visual->shader.ref.id;
 				custom::renderer::set_shader(renderable.visual->shader.ref);
-				custom::renderer::set_uniform(renderable.visual->shader.ref, (u32)sandbox::Uniform::View_Projection, camera_matrix);
+				custom::renderer::set_uniform(renderable.visual->shader.ref, u_View_Projection, camera_matrix);
 			}
 
 			custom::graphics::unit_id unit = custom::renderer::make_unit(renderable.visual->texture.ref);
-			custom::renderer::set_uniform(renderable.visual->shader.ref, (u32)sandbox::Uniform::Texture, unit);
-			custom::renderer::set_uniform(renderable.visual->shader.ref, (u32)sandbox::Uniform::Transform, transform_matrix);
+			custom::renderer::set_uniform(renderable.visual->shader.ref, u_Texture, unit);
+			custom::renderer::set_uniform(renderable.visual->shader.ref, u_Transform, transform_matrix);
 			custom::renderer::set_mesh(renderable.visual->mesh.ref);
 			custom::renderer::draw();
 		}

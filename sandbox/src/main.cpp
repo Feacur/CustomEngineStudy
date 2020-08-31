@@ -2,7 +2,6 @@
 
 #include "engine/impl/asset_system.h"
 
-#include "asset_system/uniform_ids.h"
 #include "asset_system/asset_types.h"
 
 #include "entity_system/ecs_lua_runner.h"
@@ -27,9 +26,6 @@ static void on_app_init() {
 	custom::file::watch_init(".", true);
 	init_client_asset_types();
 	init_client_component_types();
-
-	init_uniform_names();
-	custom::loader::uniforms();
 
 	// @Note: init Lua
 	L = luaL_newstate();

@@ -20,6 +20,4 @@ namespace loader {
 
 void init(Bytecode * bc);
 
-void uniforms();
-
 }}

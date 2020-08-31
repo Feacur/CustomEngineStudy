@@ -2,7 +2,7 @@
 
 #include "engine/api/internal/parsing.h"
 #include "engine/api/internal/entity_system.h"
-#include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/impl/array.h"
 
 namespace custom {

@@ -6,7 +6,7 @@
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/graphics_resource.h"
-#include "engine/api/internal/types_names_lookup.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/array_fixed.h"
@@ -91,26 +91,6 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Shader);
 	custom::loader::bc->write((Ref &)asset_ref);
-}
-
-}}
-
-// @Todo: make uniforms dynamic
-namespace custom {
-namespace loader {
-
-void uniforms() {
-	if (graphics::mark_pending_uniforms()) { return; }
-
-	bc->write(graphics::Instruction::Init_Uniforms);
-	bc->write((u32)custom::uniform_names.count);
-
-	for (u32 i = 0; i < (u32)custom::uniform_names.count; ++i) {
-		cstring name = custom::uniform_names[i];
-		u32 length = (u32)strlen(name);
-		bc->write(length);
-		bc->write(name, length);
-	}
 }
 
 }}
