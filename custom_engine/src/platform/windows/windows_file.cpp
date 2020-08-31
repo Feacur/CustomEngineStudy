@@ -24,6 +24,65 @@
 #include <stdlib.h>
 
 //
+//
+//
+
+struct Lock {
+	volatile bool locked;
+	void acquire() { CUSTOM_ASSERT(!locked, ""); locked = true; }
+	void release() { CUSTOM_ASSERT(locked, ""); locked = false; }
+};
+
+struct Lock_Scoped {
+	Lock * instance;
+	Lock_Scoped(Lock & lock) : instance(&lock) { instance->acquire(); }
+	~Lock_Scoped() { instance->release(); }
+};
+
+//
+//
+//
+
+namespace custom {
+namespace file {
+
+struct Watch_Files_Data {
+	cstring path;
+	bool subtree;
+	HANDLE file_handle   = INVALID_HANDLE_VALUE;
+	HANDLE thread_handle = INVALID_HANDLE_VALUE;
+	DWORD  thread_id;
+
+	Lock lock;
+	u64 storage_id;
+	Strings_Storage strings;
+	Array<Action> actions;
+
+	void add_action(Action action) {
+		for (u32 i = 0; i < actions.count; ++i) {
+			if (actions[i].id != action.id) { continue; }
+			if (actions[i].type != action.type) { continue; }
+			return;
+		}
+		actions.push(action);
+	}
+
+	void shutdown(bool terminate) {
+		if (thread_handle != INVALID_HANDLE_VALUE) {
+			if (terminate) { TerminateThread(thread_handle, 0); }
+			CloseHandle(thread_handle);
+			thread_handle = INVALID_HANDLE_VALUE;
+		}
+		if (file_handle != INVALID_HANDLE_VALUE) {
+			CloseHandle(file_handle);
+			file_handle = INVALID_HANDLE_VALUE;
+		}
+	}
+};
+
+}}
+
+//
 // API implementation
 //
 
@@ -78,39 +137,6 @@ void read(cstring path, Array<u8> & buffer) {
 	CloseHandle(handle);
 }
 
-struct Watch_Files_Data {
-	cstring path;
-	bool subtree;
-	HANDLE file_handle   = INVALID_HANDLE_VALUE;
-	HANDLE thread_handle = INVALID_HANDLE_VALUE;
-	DWORD  thread_id;
-
-	volatile u64 storage_id;
-	Strings_Storage strings;
-	Array<Action> actions;
-
-	void add_action(Action action) {
-		for (u32 i = 0; i < actions.count; ++i) {
-			if (actions[i].id != action.id) { continue; }
-			if (actions[i].type != action.type) { continue; }
-			return;
-		}
-		actions.push(action);
-	}
-
-	void shutdown(bool terminate) {
-		if (thread_handle != INVALID_HANDLE_VALUE) {
-			if (terminate) { TerminateThread(thread_handle, 0); }
-			CloseHandle(thread_handle);
-			thread_handle = INVALID_HANDLE_VALUE;
-		}
-		if (file_handle != INVALID_HANDLE_VALUE) {
-			CloseHandle(file_handle);
-			file_handle = INVALID_HANDLE_VALUE;
-		}
-	}
-};
-
 static Watch_Files_Data watch_data;
 void watch_init(cstring path, bool subtree) {
 	watch_data.path          = path;
@@ -127,6 +153,9 @@ void watch_update(void) {
 
 	if (storage_id != watch_data.storage_id) {
 		// @Todo: threads synchronization
+		// while (watch_data.locked) { YieldProcessor(); }
+		Lock_Scoped(watch_data.lock);
+
 		storage_id = watch_data.storage_id;
 		strings.values.push_range(watch_data.strings.values.data, watch_data.strings.values.count);
 		strings.offsets.push_range(watch_data.strings.offsets.data, watch_data.strings.offsets.count);
@@ -212,6 +241,10 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 		}
 		if (!bytes_returned) { continue; }
 
+		// @Todo: threads synchronization
+		// while (data->lock.locked) { Sleep(100); }
+		Lock_Scoped(data->lock);
+
 		u8 const * next_byte = info;
 		while (true) {
 			FILE_NOTIFY_INFORMATION const * next = (FILE_NOTIFY_INFORMATION const *)next_byte;
@@ -241,7 +274,6 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 			if (!next->NextEntryOffset) { break; }
 			next_byte = next_byte + next->NextEntryOffset;
 		}
-		// @Todo: threads synchronization; potentially ignored files?
 		data->storage_id = custom::timer::get_ticks();
 	}
 
