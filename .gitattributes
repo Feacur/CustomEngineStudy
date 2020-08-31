@@ -19,7 +19,7 @@
 # assets
 *.lua    text diff=cpp
 *.glsl   text diff=cpp
-*.entity text
+*.prefab text
 *.png    binary
 **/assets/meshes/*.obj text -binary
 

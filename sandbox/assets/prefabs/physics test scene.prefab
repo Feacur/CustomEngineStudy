@@ -1,14 +1,14 @@
 ! # entity
-	i 1 # is instance
+	i 1 # is instance; think of it as of a unity scene
 > # child
 	# left wall
-	p assets/prefabs/cube.entity
+	p assets/prefabs/cube.prefab
 		o Transform
 			p -0.5 5 0
 			s 1 10 1
 		~
 	# floor
-	p assets/prefabs/cube.entity
+	p assets/prefabs/cube.prefab
 		o Transform
 			p 25 -0.5 0
 			s 50 1 1

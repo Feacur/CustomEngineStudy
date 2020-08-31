@@ -1,14 +1,14 @@
 function global_init_physics_test()
 	-- camera to debug the scene
-	-- Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
+	-- Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.prefab")
 
 	-- load and instantiate
-	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
+	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.prefab")
 	local camera = Prefab_Asset.promote_to_instance(camera_prefab)
 
-	Asset.add(Prefab_Asset.type, "assets/prefabs/physics test scene.entity")
+	Asset.add(Prefab_Asset.type, "assets/prefabs/physics test scene.prefab")
 
-	local sphere_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/sphere.entity")
+	local sphere_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/sphere.prefab")
 	local sphere = Prefab_Asset.promote_to_instance(sphere_prefab)
 
 	-- set up

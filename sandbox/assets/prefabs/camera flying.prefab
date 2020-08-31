@@ -1,6 +1,6 @@
 ! # entity
 	i 1 # is instance
-	p assets/prefabs/camera.entity
+	p assets/prefabs/camera.prefab
 Lua_Script
 	a assets/scripts/script_fly.lua
 	u script_fly

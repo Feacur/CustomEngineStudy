@@ -4,15 +4,15 @@ function global_init_prefab_test()
 	print(lua_tag .. "global_init_prefab_test")
 
 	-- this camera is expected to be instanced automatically
-	Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
+	Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.prefab")
 
-	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/plane with suzannes.entity")
-	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/stack of rotating suzannes.entity")
+	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/plane with suzannes.prefab")
+	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/stack of rotating suzannes.prefab")
 
 	Prefab_Asset.instantiate(floor_prefab)
 	Prefab_Asset.instantiate(suzanne_rotating_prefab)
 
-	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.entity")
+	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.prefab")
 	local camera = Prefab_Asset.promote_to_instance(camera_prefab)
 	local camera_component = camera:get_component(Camera.type)
 	camera_component.clear = 2;
