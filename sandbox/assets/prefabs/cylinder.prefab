@@ -5,5 +5,5 @@ Transform
 Visual
 	s assets/shaders/v3_texture_tint.glsl
 	t assets/textures/checkerboard.png
-	m assets/meshes/cube_1.obj
+	m assets/meshes/cylinder_1.obj
 	l 0

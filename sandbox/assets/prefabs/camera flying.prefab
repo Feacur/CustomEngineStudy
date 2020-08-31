@@ -1,6 +1,10 @@
 ! # entity
 	i 1 # is instance
 	p assets/prefabs/camera.prefab
+		o Transform
+			p 0 6 -10
+			rd 30 0 0
+		~
 Lua_Script
 	a assets/scripts/script_fly.lua
 	u script_fly
