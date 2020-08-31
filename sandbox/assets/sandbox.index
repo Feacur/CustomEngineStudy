@@ -8,5 +8,5 @@ Texture
 	2 textures/checkerboard.png
 	3 textures/proto_blue.png
 Mesh
-	1 meshes/plane_xz.obj
+	1 meshes/plane_xz_1.obj
 	2 meshes/suzanne.obj

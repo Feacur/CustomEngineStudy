@@ -6,7 +6,7 @@
 		Visual
 			s assets/shaders/v3_texture_tint.glsl
 			t assets/textures/proto_blue.png
-			m assets/meshes/plane_xz.obj
+			m assets/meshes/plane_xz_1.obj
 			l 0
 		> # child
 			p assets/prefabs/suzanne.entity
