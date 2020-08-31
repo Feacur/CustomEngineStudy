@@ -6,8 +6,8 @@ function global_init_prefab_test()
 	-- this camera is expected to be instanced automatically
 	Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.entity")
 
-	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/floor.entity")
-	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/suzanne rotating.entity")
+	local floor_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/plane with suzannes.entity")
+	local suzanne_rotating_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/stack of rotating suzannes.entity")
 
 	Prefab_Asset.instantiate(floor_prefab)
 	Prefab_Asset.instantiate(suzanne_rotating_prefab)
