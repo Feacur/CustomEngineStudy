@@ -27,3 +27,8 @@ struct Physical
 {
 	u8 dummy;
 };
+
+struct Phys2d
+{
+	u8 dummy;
+};

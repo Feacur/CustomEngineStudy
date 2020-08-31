@@ -80,3 +80,26 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Physical>) {
 }
 
 }
+
+//
+// Phys2d
+//
+
+namespace custom {
+
+template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Phys2d>) {
+	RefT<Phys2d> const & fromT = (RefT<Phys2d> const &)from;
+	RefT<Phys2d> & toT = (RefT<Phys2d> &)to;
+
+	*toT.get_fast() = *fromT.get_fast();
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
+	// RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
+	// RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+}
+
+}
