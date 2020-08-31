@@ -48,15 +48,17 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 }
 
 void serialization_read_Child_block(Entity & entity, cstring * source) {
-	bool done = false;
-
 	Entity last_child = {custom::empty_ref};
 
+	bool is_instance = entity.is_instance();
+
+	bool done = false;
 	while (!done && *source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
 				Entity child = Entity::serialization_read(source);
+				if (is_instance) { child.promote_to_instance(); }
 				Hierarchy::set_parent(child, entity);
 				last_child = child;
 			} break;
@@ -66,7 +68,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				Asset_RefT<Prefab_Asset> prefab_asset = Asset::add<Prefab_Asset>(id);
 
-				Entity child = prefab_asset.ref.get_fast()->copy(entity.is_instance());
+				Entity child = prefab_asset.ref.get_fast()->copy(is_instance);
 				Hierarchy::set_parent(child, entity);
 				last_child = child;
 			} break;
@@ -106,9 +108,9 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 			} break;
 
 			case 'r': ++(*source); switch (**source) {
-				case ' ': component->rotation = (parse_void(source), parse_vec4(source)); break;
-				case 'r': component->rotation = quat_from_radians((parse_void(source), parse_vec3(source))); break;
-				case 'd': component->rotation = quat_from_radians((parse_void(source), parse_vec3(source)) * deg_to_rad); break;
+				case ' ':              component->rotation = (parse_void(source), parse_vec4(source)); break;
+				case 'r': ++(*source); component->rotation = quat_from_radians((parse_void(source), parse_vec3(source))); break;
+				case 'd': ++(*source); component->rotation = quat_from_radians((parse_void(source), parse_vec3(source)) * deg_to_rad); break;
 			} break;
 
 			case 's': ++(*source); {
