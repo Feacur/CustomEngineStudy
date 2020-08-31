@@ -62,9 +62,8 @@ struct Entity : public Ref
 
 	// API
 	static Entity create(bool is_instance);
-	static Entity serialization_read(cstring * source);
-	void override(cstring * source);
-	void override(Entity const & entity);
+	void serialization_read(cstring * source);
+	void override_with(Entity const & source);
 	void destroy(void);
 	bool is_instance() const;
 	Entity copy(bool force_instance) const;

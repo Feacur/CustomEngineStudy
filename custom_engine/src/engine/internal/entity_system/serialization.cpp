@@ -29,7 +29,7 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 			} break;
 
 			case 'o': ++(*source); {
-				entity.override(source);
+				entity.serialization_read(source);
 			} break;
 
 			case 'p': ++(*source); {
@@ -38,7 +38,7 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 				Asset_RefT<Prefab_Asset> prefab_asset = Asset::add<Prefab_Asset>(id);
 
 				custom::Entity const prefab = *prefab_asset.ref.get_fast();
-				entity.override(prefab);
+				entity.override_with(prefab);
 			} break;
 
 			case '#': break;
@@ -57,8 +57,8 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
-				Entity child = Entity::serialization_read(source);
-				if (is_instance) { child.promote_to_instance(); }
+				Entity child = Entity::create(is_instance);
+				child.serialization_read(source);
 				Hierarchy::set_parent(child, entity);
 				last_child = child;
 			} break;
@@ -75,7 +75,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 
 			case 'o': ++(*source); {
 				Entity child = last_child;
-				child.override(source);
+				child.serialization_read(source);
 			} break;
 
 			case '#': break;

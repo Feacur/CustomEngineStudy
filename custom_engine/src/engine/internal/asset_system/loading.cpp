@@ -294,10 +294,9 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!file.count) { return; }
 	file.push('\0'); --file.count;
 
-	CUSTOM_TRACE("load asset: '%s'", path);
-
 	cstring source = (cstring)file.data;
-	custom::Entity prefab = custom::Entity::serialization_read(&source);
+	custom::Entity prefab = Entity::create(false);
+	prefab.serialization_read(&source);
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	Prefab_Asset * asset = refT.get_fast();
