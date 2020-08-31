@@ -1,6 +1,6 @@
 # Blender v2.83.4 OBJ File: ''
 # www.blender.org
-o plane_xz_1
+o plane_xz
 v 0.5 0 -0.5
 v -0.5 0 -0.5
 v 0.5 0 0.5
