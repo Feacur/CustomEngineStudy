@@ -1,3 +1,5 @@
+# https://git-scm.com/docs/gitmodules
+
 [submodule "premake"]
 	path = vendor/premake
 	url = ../premake.git # https://github.com/feacur/premake
