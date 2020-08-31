@@ -3,7 +3,7 @@
 
 namespace custom {
 	// @Forward
-	template<typename T> struct Ref_Pool;
+	template<typename T> struct Ref_PoolT;
 }
 
 //
@@ -30,7 +30,7 @@ inline bool operator!=(Ref const & a, Ref const & b) {
 template<typename T>
 struct RefT : public Ref
 {
-	static Ref_Pool<T> pool;
+	static Ref_PoolT<T> pool;
 
 	inline static RefT<T> create(void) { return pool.create(); }
 	inline void destroy(void) { return pool.destroy(*this); }
@@ -70,9 +70,9 @@ struct Gen_Pool
 //        not quite relates to the pool itself, but definitely to RefT and
 //        types/places that make use of it
 template<typename T>
-struct Ref_Pool
+struct Ref_PoolT
 {
-	~Ref_Pool(void) = default;
+	~Ref_PoolT(void) = default;
 
 	Gen_Pool generations;
 	Array<T> instances; // sparse; count indicates the last active object
