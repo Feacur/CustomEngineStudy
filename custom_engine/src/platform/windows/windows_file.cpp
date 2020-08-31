@@ -98,9 +98,9 @@ struct Watch_Files_Data {
 		actions.push(action);
 	}
 
-	void shutdown(void) {
+	void shutdown(bool terminate) {
 		if (thread_handle != INVALID_HANDLE_VALUE) {
-			TerminateThread(thread_handle, 0);
+			if (terminate) { TerminateThread(thread_handle, 0); }
 			CloseHandle(thread_handle);
 			thread_handle = INVALID_HANDLE_VALUE;
 		}
@@ -139,7 +139,7 @@ void watch_update(void) {
 }
 
 void watch_shutdown(void) {
-	watch_data.shutdown();
+	watch_data.shutdown(true);
 }
 
 }}
@@ -172,7 +172,8 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 	//        - https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-file_notify_information
 	//        - must be DWORD-aligned; is this an issue, really?
 	//        - manually align if using version older than C++11?
-	alignas(DWORD) static u8 info[(sizeof(FILE_NOTIFY_INFORMATION) + 26) * 1024] = {};
+	constexpr u32 const info_size_guesstimate = sizeof(FILE_NOTIFY_INFORMATION) + 26 * sizeof(FILE_NOTIFY_INFORMATION::FileName);
+	alignas(DWORD) static u8 info[info_size_guesstimate * 1024] = {};
 	static custom::Array<char> buffer;
 
 	// @Note: file system is not ideal
@@ -204,7 +205,11 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 			&bytes_returned,
 			NULL, NULL
 		);
-		if (!read_result) { LOG_LAST_ERROR(); }
+		if (!read_result) {
+			LOG_LAST_ERROR();
+			CUSTOM_ASSERT(false, "failed to read changes");
+			continue;
+		}
 		if (!bytes_returned) { continue; }
 
 		u8 const * next_byte = info;
@@ -236,16 +241,11 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 			if (!next->NextEntryOffset) { break; }
 			next_byte = next_byte + next->NextEntryOffset;
 		}
-		memset(info, 0, bytes_returned);
 		// @Todo: threads synchronization; potentially ignored files?
 		data->storage_id = custom::timer::get_ticks();
 	}
 
-	LOG_LAST_ERROR();
-
-	data->thread_handle = INVALID_HANDLE_VALUE;
-	data->shutdown();
-
+	data->shutdown(false);
 	return 0;
 }
 
@@ -260,9 +260,9 @@ struct Watch_Change_Data {
 	HANDLE thread_handle = INVALID_HANDLE_VALUE;
 	DWORD  thread_id;
 
-	void shutdown(void) {
+	void shutdown(bool terminate) {
 		if (thread_handle != INVALID_HANDLE_VALUE) {
-			TerminateThread(thread_handle, 0);
+			if (terminate) { TerminateThread(thread_handle, 0); }
 			CloseHandle(thread_handle);
 			thread_handle = INVALID_HANDLE_VALUE;
 		}
@@ -296,32 +296,18 @@ static DWORD WINAPI watch_change_thread(LPVOID lpParam) {
 
 	while (data->change_handle != INVALID_HANDLE_VALUE) {
 		DWORD wait_status = WaitForSingleObject(data->change_handle, INFINITE);
-		if (wait_status == WAIT_OBJECT_0) {
-			// @Note: might be called multiple times per file
+		if (wait_status == WAIT_TIMEOUT) { continue; }
+		if (wait_status == WAIT_FAILED) { LOG_LAST_ERROR(); CUSTOM_ASSERT(false, "failed to wait"); continue; }
+		if (wait_status != WAIT_OBJECT_0) { CUSTOM_ASSERT(false, "unknown wait status: '0x%x'", wait_status); continue; }
 
-			if (!FindNextChangeNotification(data->change_handle)) {
-				CUSTOM_ASSERT(false, "wait status: can't continue");
-				break;
-			}
-			continue;
+		if (!FindNextChangeNotification(data->change_handle)) {
+			LOG_LAST_ERROR();
+			CUSTOM_ASSERT(false, "can't schedule next change search");
+			break;
 		}
-		
-		switch (wait_status) {
-			case WAIT_ABANDONED: CUSTOM_ASSERT(false, "wait status: abandoned"); break;
-			case WAIT_TIMEOUT:   CUSTOM_ASSERT(false, "wait status: timeout");   break;
-			case WAIT_FAILED:    CUSTOM_ASSERT(false, "wait status: failed");    break;
-			default:             CUSTOM_ASSERT(false, "wait status: uknown");    break;
-		}
-		
-		LOG_LAST_ERROR();
-		break;
 	}
 
-	LOG_LAST_ERROR();
-
-	data->thread_handle = INVALID_HANDLE_VALUE;
-	data->shutdown();
-
+	data->shutdown(false);
 	return 0;
 }
 */
