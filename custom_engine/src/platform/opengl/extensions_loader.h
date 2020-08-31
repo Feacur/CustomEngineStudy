@@ -42,8 +42,7 @@ static void allocate_extensions_string(custom::Array<char> & buffer) {
 		buffer.push_range(value, length);
 		buffer.push(' ');
 	}
-	if (buffer.count > 0) { --buffer.count; }
-	buffer.push('\0');
+	if (buffer.count > 0) { buffer[buffer.count - 1] = '\0'; }
 }
 
 typedef void * load_func(cstring name);

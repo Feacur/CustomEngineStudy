@@ -215,7 +215,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
-	file.push('\0');
+	file.push('\0'); --file.count;
 
 	Array<u8> attributes;
 	Array<r32> vertices;
@@ -313,7 +313,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
-	file.push('\0');
+	file.push('\0'); --file.count;
 
 	CUSTOM_TRACE("load asset: '%s'", path);
 

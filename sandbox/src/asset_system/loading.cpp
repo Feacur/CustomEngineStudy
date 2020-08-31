@@ -36,7 +36,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
-	// file.push('\0');
+	// file.push('\0'); --file.count;
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 	Lua_Asset * asset = refT.get_fast();
