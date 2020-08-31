@@ -9,7 +9,6 @@
 #include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
-#include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
 #include "engine/impl/asset_system.h"
 
