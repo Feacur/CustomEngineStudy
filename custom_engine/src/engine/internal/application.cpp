@@ -21,16 +21,16 @@
 #if defined(APP_DISPLAY_PERFORMANCE)
 	static void DISPLAY_PERFORMANCE(
 		custom::window::Internal_Data * window,
-		u64 time_system, u64 time_logic, u64 time_render, u64 precision,
-		r32 dt
+		u64 time_frame,
+		u64 time_system, u64 time_logic, u64 time_render,
+		u64 precision, r32 dt
 	) {
-		u64 const duration = (time_system + time_logic + time_render);
-		float const system_ms = time_system * custom::timer::millisecond / (float)precision;
-		float const logic_ms  = time_logic  * custom::timer::millisecond / (float)precision;
-		float const render_ms = time_render * custom::timer::millisecond / (float)precision;
-		float const debug_ms  = duration * custom::timer::millisecond / (float)precision;
-		float const debug_fps = precision / (float)duration;
-		float const debug_dt  = dt * custom::timer::millisecond;
+		r32 const frame_ms  = time_frame * custom::timer::millisecond / (r32)precision;
+		r32 const system_ms = time_system * custom::timer::millisecond / (r32)precision;
+		r32 const logic_ms  = time_logic  * custom::timer::millisecond / (r32)precision;
+		r32 const render_ms = time_render * custom::timer::millisecond / (r32)precision;
+		r32 const frame_ps  = precision / (r32)time_frame;
+		r32 const dt_ms     = dt * custom::timer::millisecond;
 		static char header_text[128];
 		s32 header_length = sprintf(
 			header_text,
@@ -38,15 +38,15 @@
 			"- %.1f ms (%.1f FPS)"
 			"---> system: %.1f ms | logic: %.1f ms | render: %.1f ms"
 			"---> dt %.1f ms",
-			debug_ms, debug_fps,
+			frame_ms, frame_ps,
 			system_ms, logic_ms, render_ms,
-			debug_dt
+			dt_ms
 		);
 		CUSTOM_ASSERT(header_length >= 0 && header_length <= C_ARRAY_LENGTH(header_text), "out of bounds");
 		custom::window::set_header(window, header_text);
 	}
 #else
-	#define DISPLAY_PERFORMANCE(window, time_system, time_logic, time_render, precision, dt) (void)0
+	#define DISPLAY_PERFORMANCE(window, time_frame, time_system, time_logic, time_render, precision, dt) (void)0
 #endif
 
 static u64 get_last_frame_ticks(bool vsync, u16 refresh_rate) {
@@ -130,12 +130,12 @@ void run(void) {
 		u16 refresh_rate = app.refresh_rate.force
 			? app.refresh_rate.target
 			: custom::window::get_refresh_rate(app.window, app.refresh_rate.target);
-		u64 last_frame_ticks = get_last_frame_ticks(
+		u64 time_frame = get_last_frame_ticks(
 			custom::window::check_vsync(app.window),
 			refresh_rate
 		);
 
-		r32 dt = (r32)last_frame_ticks / custom::timer::ticks_per_second;
+		r32 dt = (r32)time_frame / custom::timer::ticks_per_second;
 		if (dt > (r32)app.refresh_rate.failsafe / refresh_rate) { dt = 1.0f / refresh_rate; }
 
 		// process the frame
@@ -152,9 +152,9 @@ void run(void) {
 
 		DISPLAY_PERFORMANCE(
 			app.window,
+			time_frame,
 			time_system, time_logic, time_render,
-			custom::timer::ticks_per_second,
-			dt
+			custom::timer::ticks_per_second, dt
 		);
 	}
 
