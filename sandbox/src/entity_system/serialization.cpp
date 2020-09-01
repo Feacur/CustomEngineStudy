@@ -141,6 +141,10 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 				component->is_static = (bool)(parse_void(source), parse_u32(source));
 			} break;
 
+			case 'p': ++(*source); {
+				component->points.push((parse_void(source), parse_vec2(source)));
+			} break;
+
 			case '#': break;
 			default: done = true; break;
 		}

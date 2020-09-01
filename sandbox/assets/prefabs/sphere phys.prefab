@@ -2,6 +2,10 @@
 	p assets/prefabs/sphere.prefab
 Phys2d
 	s 0
+	p 0 0.5
+	p 0.5 0
+	p 0 -0.5
+	p -0.5 0
 Lua_Script
 	a assets/scripts/script_control_2d.lua
 	u script_control_2d

@@ -8,6 +8,10 @@
 			s 1 10 1
 		Phys2d
 			s 1
+			p 0.5 5
+			p 0.5 -5
+			p -0.5 -5
+			p -0.5 5
 		~
 	# floor
 	p assets/prefabs/cube.prefab
@@ -16,4 +20,8 @@
 			s 50 1 1
 		Phys2d
 			s 1
+			p 25 0.5
+			p 25 -0.5
+			p -25 -0.5
+			p -25 0.5
 		~

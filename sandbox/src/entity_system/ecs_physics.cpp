@@ -19,17 +19,11 @@ namespace sandbox {
 struct Physical_Blob {
 	custom::Entity   entity;
 	Phys2d         * physical;
-};
-
-struct Transformable_Blob {
-	custom::Entity   entity;
 	Transform      * transform;
-	Phys2d         * physical;
 };
 
 void ecs_update_physics(r32 dt) {
 	custom::Array<Physical_Blob> physicals(8);
-	custom::Array<Transformable_Blob> transformables(8);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
@@ -37,18 +31,26 @@ void ecs_update_physics(r32 dt) {
 		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
 		if (!physical) { continue; }
 
-		physicals.push({entity, physical});
-
 		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
 
-		transformables.push({entity, transform, physical});
+		physicals.push();
+		Physical_Blob * blob = physicals.data + (physicals.count - 1);
+		blob->entity = entity;
+		blob->physical = physical;
+		blob->transform = transform;
 	}
 
 	// @Todo: pass transform components data into physical components
-	for (u32 i = 0; i < transformables.count; ++i) {
-		transformables[i].physical->aabb.position = transformables[i].transform->position.xy;
-		transformables[i].physical->aabb.extents = transformables[i].transform->scale.xy / 2.0f;
+	for (u32 i = 0; i < physicals.count; ++i) {
+		Physical_Blob & physical = physicals[i];
+		physical.physical->position = physical.transform->position.xy;
+		physical.physical->transformed.count = 0;
+
+		Phys2d * phys = physical.physical;
+		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
+			phys->transformed.push(phys->points[point_i] + phys->position);
+		}
 	}
 
 	// @Todo: process
@@ -58,22 +60,18 @@ void ecs_update_physics(r32 dt) {
 	}
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
-			if (collide(physicals[ai].physical->aabb, physicals[bi].physical->aabb)) {
-				++collisions_count.data[ai];
-				++collisions_count.data[bi];
-			}
 		}
 	}
 	vec2 gravity = {0, 9.81f};
 	for (u32 i = 0; i < physicals.count; ++i) {
 		if (physicals[i].physical->is_static) { continue; }
 		if (collisions_count[i]) { continue; }
-		physicals[i].physical->aabb.position -= gravity * dt;
+		physicals[i].physical->position -= gravity * dt;
 	}
 
 	// @Todo: pass physical components data into transform components
-	for (u32 i = 0; i < transformables.count; ++i) {
-		transformables[i].transform->position.xy = transformables[i].physical->aabb.position;
+	for (u32 i = 0; i < physicals.count; ++i) {
+		physicals[i].transform->position.xy = physicals[i].physical->position;
 	}
 }
 

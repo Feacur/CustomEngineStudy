@@ -116,6 +116,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
 	Phys2d * component = refT.get_fast();
 
 	component->points.~Array();
+	component->transformed.~Array();
 }
 
 }

@@ -31,10 +31,13 @@ struct Physical
 
 struct Phys2d
 {
-	aabb2 aabb;
-	// vec2 position;
-	// complex rotation;
+	// aabb2 aabb;
+	vec2 position;
+	complex rotation;
 	// @Todo: use fixed array? store systemically?
+	//        - move actual data out, because that what would happen
+	//          using an external physics engine
 	custom::Array<vec2> points;
+	custom::Array<vec2> transformed;
 	bool is_static;
 };
