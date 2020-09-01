@@ -50,7 +50,7 @@ u32 Strings_Storage::get_id(cstring value, u32 length) {
 
 cstring Strings_Storage::get_string(u32 id) {
 	u32 string_offset = offsets[id];
-	return &values.data[string_offset];
+	return &values[string_offset];
 }
 
 u32 Strings_Storage::get_length(u32 id) {
