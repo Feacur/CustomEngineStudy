@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/types.h"
+#include "engine/core/math_types.h"
 #include "engine/api/internal/asset_system.h"
 
 namespace custom {
@@ -30,5 +31,9 @@ struct Physical
 
 struct Phys2d
 {
-	u8 dummy;
+	vec2 position;
+	complex rotation;
+	// @Todo: use fixed array? store systemically?
+	custom::Array<vec2> points;
+	bool is_static;
 };

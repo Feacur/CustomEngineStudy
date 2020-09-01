@@ -11,7 +11,6 @@
 			m assets/meshes/plane_xz_1.obj
 			l 0
 	~ # stop parsing inlined prefab
-	# p assets/prefabs/plane_xz.prefab
 	p assets/prefabs/cube.prefab
 		o Transform
 			p -4 0.5 -4

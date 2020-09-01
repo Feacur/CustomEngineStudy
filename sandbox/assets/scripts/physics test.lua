@@ -8,7 +8,7 @@ function global_init_physics_test()
 
 	Asset.add(Prefab_Asset.type, "assets/prefabs/- scene - physics test.prefab")
 
-	local sphere_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/sphere.prefab")
+	local sphere_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/sphere phys.prefab")
 	local sphere = Prefab_Asset.promote_to_instance(sphere_prefab)
 
 	-- set up

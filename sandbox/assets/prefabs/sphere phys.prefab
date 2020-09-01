@@ -1,0 +1,4 @@
+! # entity
+	p assets/prefabs/sphere.prefab
+Phys2d
+	s 0

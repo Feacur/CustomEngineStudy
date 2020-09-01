@@ -65,7 +65,7 @@ static void on_app_update(r32 dt) {
 	}
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
-	sandbox::ecs_update_physics();
+	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();
 }
 
