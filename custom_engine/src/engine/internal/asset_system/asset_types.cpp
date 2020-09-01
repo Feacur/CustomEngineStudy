@@ -14,3 +14,14 @@ namespace custom {
 template struct Array<Mesh_Asset::Buffer>;
 
 }
+
+//
+// Config_Asset
+//
+
+namespace custom {
+
+template struct Array<Config_Asset::Entry>;
+Strings_Storage Config_Asset::strings;
+
+}

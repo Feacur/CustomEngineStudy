@@ -324,3 +324,39 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 }
 
 }}
+
+//
+// Config_Asset
+//
+
+namespace custom {
+namespace loading {
+
+template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+
+	cstring path = asset_ref.get_path();
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+
+	Array<u8> file; file::read(path, file);
+	if (!file.count) { return; }
+	file.push('\0'); --file.count;
+
+	cstring source = (cstring)file.data;
+	custom::Entity prefab = Entity::create(false);
+	prefab.serialization_read(&source);
+
+	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	Config_Asset * asset = refT.get_fast();
+	new (asset) Config_Asset;
+}
+
+template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+
+	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	Config_Asset * asset = refT.get_safe();
+	asset->entries.~Array();
+}
+
+}}
