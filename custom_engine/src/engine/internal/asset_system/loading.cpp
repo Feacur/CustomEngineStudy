@@ -58,7 +58,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!file.count) { return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Shader_Asset * asset = refT.get_fast();
 	// new (asset) Shader_Asset;
 
@@ -84,7 +84,8 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
-	Shader_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Shader_Asset * asset = refT.get_fast();
 	asset->~Shader_Asset();
 
 	// @Note: remove asset from the GVM
@@ -111,7 +112,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!file.count) { return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Texture_Asset * asset = refT.get_fast();
 	// new (asset) Texture_Asset;
 
@@ -169,7 +170,8 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
-	Texture_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Texture_Asset * asset = refT.get_fast();
 	asset->~Texture_Asset();
 
 	// @Note: remove asset from the GVM
@@ -205,7 +207,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Mesh_Asset * asset = refT.get_fast();
 	new (asset) Mesh_Asset;
 
@@ -267,7 +269,8 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
-	Mesh_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Mesh_Asset * asset = refT.get_fast();
 	asset->~Mesh_Asset();
 
 	// @Note: remove asset from the GVM
@@ -299,6 +302,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	prefab.serialization_read(&source);
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
@@ -319,7 +323,8 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
-	Prefab_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Prefab_Asset * asset = refT.get_fast();
 	asset->destroy();
 }
 
@@ -347,15 +352,17 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 	prefab.serialization_read(&source);
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Config_Asset * asset = refT.get_fast();
 	new (asset) Config_Asset;
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
-	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "config asset doesn't exist"); return; }
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
-	Config_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Config_Asset * asset = refT.get_fast();
 	asset->entries.~Array();
 }
 

@@ -6,7 +6,7 @@
 
 #include "component_types.h"
 
-// #include <new>
+#include <new>
 
 //
 // Visual
@@ -22,15 +22,19 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Visual>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
-	// RefT<Visual> & refT = (RefT<Visual> &)ref;
+	RefT<Visual> & refT = (RefT<Visual> &)ref;
+	Visual * component = refT.get_fast();
+
+	new (component) Phys2d;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
-	Visual * visual = refT.get_fast();
-	visual->shader  = {custom::empty_ref, custom::empty_index};
-	visual->texture = {custom::empty_ref, custom::empty_index};
-	visual->mesh    = {custom::empty_ref, custom::empty_index};
+	Visual * component = refT.get_fast();
+
+	component->shader  = {custom::empty_ref, custom::empty_index};
+	component->texture = {custom::empty_ref, custom::empty_index};
+	component->mesh    = {custom::empty_ref, custom::empty_index};
 }
 
 }
@@ -49,11 +53,17 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Lua_Script>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Lua_Script>) {
-	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+	Lua_Script * component = refT.get_fast();
+
+	component->update_string_id = custom::empty_index;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
-	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+	Lua_Script * component = refT.get_fast();
+
+	component->update_string_id = custom::empty_index;
 }
 
 }
@@ -95,11 +105,15 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Phys2d>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
-	// RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+	Phys2d * component = refT.get_fast();
+
+	new (component) Phys2d;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
-	// RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+	Phys2d * component = refT.get_fast();
 }
 
 }
