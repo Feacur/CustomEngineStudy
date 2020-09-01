@@ -193,6 +193,7 @@ Entity Entity::copy(bool force_instance) const {
 }
 
 void Entity::promote_to_instance(void) {
+	// @Todo: apply this to the whole hierarchy correctly
 	if (is_instance()) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
 	instances.push(*this);
 }

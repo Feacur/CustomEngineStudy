@@ -12,10 +12,9 @@ namespace custom {
 
 namespace custom {
 
-struct Ref
-{
-	u32 id, gen;
-};
+// @Change: replace with a u64? with a union? with a struct of bit fields?
+//          manually do bitwise operations? use smaller types?
+struct Ref {u32 id, gen;};
 
 constexpr Ref const empty_ref = {UINT32_MAX, UINT32_MAX};
 

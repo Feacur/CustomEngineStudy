@@ -85,7 +85,6 @@ static void hint_graphics(void) {
 	// custom::pixel_format_hint.stencil_bits = 8;
 	// custom::pixel_format_hint.doublebuffer = true;
 	// custom::pixel_format_hint.swap         = 1;
-	// @Note: double buffer performance on ma machine, without powering it from the grid, is horrible
 }
 
 int main(int argc, char * argv[]) {

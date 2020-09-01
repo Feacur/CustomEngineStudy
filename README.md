@@ -1,5 +1,6 @@
 # Summary
 Study on C/C++, custom engines, games and stuff  
+* See [TODO](TODO.md) and [DONE](DONE.md) lists
 
 # How to work with this stuff
 ### __Contents__
@@ -20,21 +21,43 @@ Executable test project
 
 ### __Project setup and build__
 Git  
-* git submodule update --init --recursive
-* git submodule update -f
+* `"git submodule update --init --recursive"`
+* `"git submodule update -f"`
 
 In case of using SSH key passphrases  
-* See "/__ external settings __/.gitconfig"
+* See `git config example` [there](./__%20external%20settings%20__/.gitconfig)
+* See `ssh config example` [there](./__%20external%20settings%20__/ssh%20config)
 
 VSCode  
-* See "**/.vscode/tasks.json" for build commands
-* See "**/.vscode/launch.json" for run and debug commands
+* See `build commands` [there](./__%20workspace%20__/.vscode/tasks.json)
+* See `run and debug commands` [there](./sandbox/.vscode/launch.json)
 
-Other IDE  
-* Call `GenerateProjects.bat ###`
+Other IDEs  
+* Call `"GenerateProjects.bat ###"`
 
-> Target output into "/bin" folder  
-> Intermediate output into "/bin-int" folder  
+> Target output goes into `"/bin"` folder  
+> Intermediate output goes into `"/bin-int"` folder  
+
+### __External__
+```
+> custom_engine/vendor/glad
+OpenGL functions loader and boilerplate
+```
+
+```
+> custom_engine/vendor/lua
+Scripting
+```
+
+```
+> custom_engine/vendor/stb
+PNG loading
+```
+
+```
+> /vendor/premake
+A build configuration tool
+```
 
 # References studied
 * https://github.com/etodd/lasercrabs
