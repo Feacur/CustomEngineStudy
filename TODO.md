@@ -1,13 +1,16 @@
 # Immediate tasks
-- interactive physics demo
+- make use of `Config_Asset`
+  - put graphics settings there (both context and runtime)
+  - (?) put Lua callbacks there (assets, init, update, etc.)
+  - (?) file watcher folder path
+- better physics overall
+- factor physics backend data out of the component
+- factor physics mesh asset out of the prefab data
+  - (?) unify renderable mesh with physics mesh
 
 # Near plans
 - hot reloading of assets
   - link file watcher's output with the asset system
-- `Config_Asset`
-  - put graphics settings there (both context and runtime)
-  - (?) put Lua callbacks there (assets, init, update, etc.)
-  - (?) file watcher folder path
 
 # Bugfix
 - investigate nested and inline prefabs instantiation
@@ -39,6 +42,7 @@
 - assets metadata
 - OS backends: Linux
 - graphics backends: DirectX, Vulkan
+- physics backends: Box2d, Bullet Physics
 
 # Potential features
 - (?) unity build option

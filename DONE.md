@@ -1,3 +1,9 @@
+# September 02, 2020
+- interactive physics demo (simple SAT)
+  - `Phys2d` component
+- provided some more runtime checks for components and assets
+- initial unused `Config_Asset`
+
 # September 01, 2020
 - provided this [DONE](DONE.md) along with [TODO](TODO.md)
 - fixed ref generations tracking
