@@ -7,11 +7,35 @@
 
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
 
-constexpr inline static bool collide(aabb2 first, aabb2 second) {
-	vec2 position = first.position - second.position;
-	vec2 size = first.extents + second.extents;
-	return position.x <= size.x && position.y <= size.y
-	    && position.x >= -size.x && position.y >= -size.y;
+// constexpr static bool collide(aabb2 first, aabb2 second) {
+// 	vec2 position = first.position - second.position;
+// 	vec2 size = first.extents + second.extents;
+// 	return position.x <= size.x && position.y <= size.y
+// 	    && position.x >= -size.x && position.y >= -size.y;
+// }
+
+static bool overlap_sat(Phys2d const & first, Phys2d const & second) {
+	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
+		u32 axis_i_2 = (axis_i + 1) % first.transformed.count;
+		vec2 axis = first.transformed[axis_i_2] - first.transformed[axis_i];
+		axis = normalize(vec2{-axis.y, axis.x});
+
+		vec2 projection_1 = {INFINITY, -INFINITY};
+		for (u32 p = 0; p < first.transformed.count; ++p) {
+			projection_1.x = min(projection_1.x, dot_product(axis, first.transformed[p]));
+			projection_1.y = max(projection_1.y, dot_product(axis, first.transformed[p]));
+		}
+
+		vec2 projection_2 = {INFINITY, -INFINITY};
+		for (u32 p = 0; p < second.transformed.count; ++p) {
+			projection_2.x = min(projection_2.x, dot_product(axis, second.transformed[p]));
+			projection_2.y = max(projection_2.y, dot_product(axis, second.transformed[p]));
+		}
+
+		if (projection_1.x > projection_2.y) { return false; }
+		if (projection_2.x > projection_1.y) { return false; }
+	}
+	return true;
 }
 
 namespace sandbox {
@@ -59,7 +83,13 @@ void ecs_update_physics(r32 dt) {
 		collisions_count.push(0);
 	}
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
+		Phys2d const & phys_a = *physicals[ai].physical;
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
+			Phys2d const & phys_b = *physicals[bi].physical;
+			if (overlap_sat(phys_a, phys_b) && overlap_sat(phys_b, phys_a)) {
+				++collisions_count[ai];
+				++collisions_count[bi];
+			}
 		}
 	}
 	vec2 gravity = {0, 9.81f};
