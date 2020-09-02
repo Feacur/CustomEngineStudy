@@ -347,14 +347,65 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 	if (!file.count) { return; }
 	file.push('\0'); --file.count;
 
-	cstring source = (cstring)file.data;
-	custom::Entity prefab = Entity::create(false);
-	prefab.serialization_read(&source);
-
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Config_Asset * asset = refT.get_fast();
 	new (asset) Config_Asset;
+
+	Strings_Storage cache;
+
+	cstring source = (cstring)file.data;
+	while (*source) {
+		parse_void(&source);
+
+		if (strncmp(source, "s32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			s32 value = (parse_void(&source), parse_s32(&source));
+			asset->set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "u32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			u32 value = (parse_void(&source), parse_u32(&source));
+			asset->set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "r32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			r32 value = (parse_void(&source), parse_r32(&source));
+			asset->set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "bln", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			bln value = (parse_void(&source), parse_bln(&source));
+			asset->set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "str", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			cstring line_end = (parse_void(&source), source); skip_to_eol(&line_end);
+			u32 value = cache.store_string(source, (u32)(line_end - source));
+			asset->set_value(cache.get_string(key), cache.get_string(value));
+		}
+
+		skip_to_eol(&source); parse_eol(&source);
+	}
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {

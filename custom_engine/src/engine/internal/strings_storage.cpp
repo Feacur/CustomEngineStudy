@@ -33,7 +33,7 @@ u32 Strings_Storage::store_string(cstring value, u32 length) {
 	return id;
 }
 
-u32 Strings_Storage::get_id(cstring value, u32 length) {
+u32 Strings_Storage::get_id(cstring value, u32 length) const {
 	if (length == custom::empty_index) {
 		length = (u32)strlen(value);
 	}
@@ -48,12 +48,12 @@ u32 Strings_Storage::get_id(cstring value, u32 length) {
 	return custom::empty_index;
 }
 
-cstring Strings_Storage::get_string(u32 id) {
+cstring Strings_Storage::get_string(u32 id) const {
 	u32 string_offset = offsets[id];
 	return &values[string_offset];
 }
 
-u32 Strings_Storage::get_length(u32 id) {
+u32 Strings_Storage::get_length(u32 id) const {
 	return lengths[id];
 }
 

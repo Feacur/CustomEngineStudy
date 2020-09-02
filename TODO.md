@@ -1,8 +1,4 @@
 # Immediate tasks
-- make use of `Config_Asset`
-  - put graphics settings there (both context and runtime)
-  - (?) put Lua callbacks there (assets, init, update, etc.)
-  - (?) file watcher folder path
 - better physics overall
 - factor physics backend data out of the component
 - factor physics mesh asset out of the prefab data
@@ -11,6 +7,9 @@
 # Near plans
 - hot reloading of assets
   - link file watcher's output with the asset system
+- extend application of `Config_Asset`
+  - (?) put Lua callbacks there (assets, init, update, etc.)
+  - (?) file watcher folder path
 
 # Bugfix
 - investigate nested and inline prefabs instantiation
@@ -43,6 +42,8 @@
 - OS backends: Linux
 - graphics backends: DirectX, Vulkan
 - physics backends: Box2d, Bullet Physics
+- refactor loading interface: hide specific implementation, alike it was done for `*.obj`
+  - (?) `loading` for assets and `entity_components` seem a bit confusing
 
 # Potential features
 - (?) unity build option

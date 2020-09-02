@@ -10,6 +10,7 @@ namespace custom {
 namespace custom {
 namespace application {
 
+void init(void);
 void run(void);
 void set_refresh_rate(u16 target, u8 failsafe, u8 vsync, b8 force);
 

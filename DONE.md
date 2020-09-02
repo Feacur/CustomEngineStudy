@@ -1,3 +1,7 @@
+# September 03, 2020
+- make use of `Config_Asset`
+  - put graphics settings there (both context and runtime)
+
 # September 02, 2020
 - interactive physics demo (simple SAT)
   - `Phys2d` component

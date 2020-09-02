@@ -54,7 +54,7 @@ struct Prefab_Asset : public Entity { };
 struct Config_Asset {
 	static Strings_Storage strings;
 
-	enum struct Value_Type : u8 {None, s32, u32, r32, str};
+	enum struct Value_Type : u8 {None, s32, u32, r32, bln, str};
 	struct Entry {
 		u32 key;
 		union {
@@ -65,6 +65,9 @@ struct Config_Asset {
 		Value_Type type;
 	};
 	Array<Entry> entries;
+
+	template<typename T> void set_value(cstring key, T value);
+	template<typename T> T get_value(cstring key, T default_value) const;
 };
 
 }

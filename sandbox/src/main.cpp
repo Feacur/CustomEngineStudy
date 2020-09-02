@@ -23,9 +23,24 @@ void init_client_loader(lua_State * L);
 
 static void on_app_init() {
 	// @Note: init systems
-	custom::file::watch_init(".", true);
 	init_client_asset_types();
 	init_client_component_types();
+
+	// @Note init configs
+	u32 config_id = custom::Asset::store_string("assets/configs/client.cfg", custom::empty_index);
+	custom::Asset_RefT<custom::Config_Asset> config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
+	custom::Config_Asset const * config = config_ref.ref.get_fast();
+
+	CUSTOM_TRACE("client true: %d", config->get_value("client_true", false));
+	CUSTOM_TRACE("client false: %d", config->get_value("client_false", true));
+
+	custom::file::watch_init(".", true);
+
+	u16 rr_target   = (u16)config->get_value<u32>("refresh_rate_target",   144);
+	u8  rr_failsafe =  (u8)config->get_value<u32>("refresh_rate_failsafe", 10);
+	u8  rr_vsync    =  (u8)config->get_value<u32>("refresh_rate_vsync",    1);
+	b8  rr_force    =  (b8)config->get_value<u32>("refresh_rate_force",    0);
+	custom::application::set_refresh_rate(rr_target, rr_failsafe, rr_vsync, rr_force);
 
 	// @Note: init Lua
 	L = luaL_newstate();
@@ -41,8 +56,8 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	u32 id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
-	custom::Asset::add<Lua_Asset>(id);
+	u32 lua_id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
+	custom::Asset::add<Lua_Asset>(lua_id);
 
 	// @Note: call Lua init
 	sandbox::lua_function(L, "global_init");
@@ -69,32 +84,13 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_update_renderer();
 }
 
-static void hint_graphics(void) {
-	// context_settings
-	// custom::context_settings = {};
-	// custom::context_settings.major_version = 4;
-	// custom::context_settings.minor_version = 6;
-
-	// pixel_format_hint
-	// custom::pixel_format_hint = {};
-	// custom::pixel_format_hint.red_bits     = 8;
-	// custom::pixel_format_hint.green_bits   = 8;
-	// custom::pixel_format_hint.blue_bits    = 8;
-	// custom::pixel_format_hint.alpha_bits   = 8;
-	// custom::pixel_format_hint.depth_bits   = 24;
-	// custom::pixel_format_hint.stencil_bits = 8;
-	// custom::pixel_format_hint.doublebuffer = true;
-	// custom::pixel_format_hint.swap         = 1;
-}
-
 int main(int argc, char * argv[]) {
 	CUSTOM_TRACE("__cplusplus: %d", __cplusplus);
-
-	hint_graphics();
-	custom::application::set_refresh_rate(60, 10, 1, false);
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);
+	custom::application::init();
+
 	custom::application::run();
 	custom::file::watch_shutdown();
 	// getchar();

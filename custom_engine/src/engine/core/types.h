@@ -18,6 +18,7 @@ typedef unsigned long u48; // witty (32 + 64) / 2
 typedef float  r32;
 typedef double r64;
 
+typedef bool    bln;
 typedef uint8_t b8;
 
 typedef char const * cstring;

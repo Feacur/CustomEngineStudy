@@ -2,6 +2,8 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/asset_system.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/api/platform/system.h"
 #include "engine/api/platform/timer.h"
 #include "engine/api/platform/window.h"
@@ -10,6 +12,7 @@
 #include "engine/api/internal/bytecode.h"
 #include "engine/api/internal/loader.h"
 #include "engine/api/internal/renderer.h"
+#include "engine/api/rendering_settings.h"
 #include "engine/impl/math_linear.h"
 
 #define APP_DISPLAY_PERFORMANCE
@@ -89,34 +92,61 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 	CALL_SAFELY(app.callbacks.viewport, size);
 }
 
-static void init(void) {
+static void hint_graphics(Config_Asset const * config) {
+	CUSTOM_TRACE(config->get_value("engine_string", "no engine string"));
+
+	u32 ogl_version = config->get_value<u32>("open_gl_version", 46);
+
+	// context_settings
+	custom::context_settings = {};
+	custom::context_settings.major_version = ogl_version / 10;
+	custom::context_settings.minor_version = ogl_version % 10;
+
+	// pixel_format_hint
+	custom::pixel_format_hint = {};
+	custom::pixel_format_hint.red_bits     = config->get_value<s32>("pixel_format_red_bits",     8);
+	custom::pixel_format_hint.green_bits   = config->get_value<s32>("pixel_format_green_bits",   8);
+	custom::pixel_format_hint.blue_bits    = config->get_value<s32>("pixel_format_blue_bits",    8);
+	custom::pixel_format_hint.alpha_bits   = config->get_value<s32>("pixel_format_alpha_bits",   8);
+	custom::pixel_format_hint.depth_bits   = config->get_value<s32>("pixel_format_depth_bits",   8);
+	custom::pixel_format_hint.stencil_bits = config->get_value<s32>("pixel_format_stencil_bits", 24);
+	custom::pixel_format_hint.doublebuffer = config->get_value<bln>("pixel_format_doublebuffer", true);
+	custom::pixel_format_hint.swap         = config->get_value<s32>("pixel_format_swap",         1);
+}
+
+void init(void) {
+	// @Note: init systems
+	init_asset_types();
+	init_component_types();
+
+	u32 config_id = custom::Asset::store_string("assets/configs/engine.cfg", custom::empty_index);
+	custom::Asset_RefT<custom::Config_Asset> config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
+	custom::Config_Asset const * config = config_ref.ref.get_fast();
+
+	hint_graphics(config);
+
 	custom::system::init();
 	custom::timer::init();
 	custom::loader::init(&app.bytecode_loader);
 	custom::renderer::init(&app.bytecode_renderer);
 
-	init_asset_types();
-	init_component_types();
-
-	// @Todo: init context outside a window environment?
+	// @Note: init graphics
 	app.window = custom::window::create();
 	custom::window::init_context(app.window);
 
-	ivec2 size = custom::window::get_size(app.window);
-
-	// @Todo: expose vsync setting
-	custom::window::set_vsync(app.window, app.refresh_rate.vsync);
 	custom::window::set_viewport_callback(app.window, &update_viewport_safely);
 
-	update_viewport_safely(app.window, size);
 	CALL_SAFELY(app.callbacks.init);
 }
 
 void run(void) {
-	init();
+	custom::window::set_vsync(app.window, app.refresh_rate.vsync);
 
+	ivec2 size = custom::window::get_size(app.window);
+	update_viewport_safely(app.window, size);
+
+	//
 	custom::timer::snapshot();
-
 	while (true) {
 		if (custom::system::should_close) { break; }
 		if (custom::window::get_should_close(app.window)) { break; }
