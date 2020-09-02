@@ -137,8 +137,8 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
-			case 's': ++(*source); {
-				component->is_static = (parse_void(source), parse_r32(source));
+			case 'm': ++(*source); {
+				component->movable = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 'p': ++(*source); {

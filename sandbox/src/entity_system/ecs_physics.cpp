@@ -18,7 +18,12 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
 		u32 axis_i_2 = (axis_i + 1) % first.transformed.count;
 		vec2 axis = first.transformed[axis_i_2] - first.transformed[axis_i];
-		// axis = normalize(axis);
+
+		// @Note: turn 90 degrees clockwise
+		axis = {-axis.y, axis.x};
+
+		// @Note: for early normalization
+		axis = normalize(axis);
 
 		vec2 projection_1 = {INFINITY, -INFINITY};
 		for (u32 p = 0; p < first.transformed.count; ++p) {
@@ -35,9 +40,9 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 		if (projection_1.x > projection_2.y) { return false; }
 		if (projection_2.x > projection_1.y) { return false; }
 
-		r32 current_overlap = min(projection_1.y, projection_2.y) - max(projection_1.x, projection_2.x);
-		if (overlap > current_overlap) {
-			overlap = current_overlap;
+		r32 projection_overlap = min(projection_1.y, projection_2.y) - max(projection_1.x, projection_2.x);
+		if (overlap > projection_overlap) {
+			overlap = projection_overlap;
 			separator = axis;
 		}
 	}
@@ -71,44 +76,52 @@ void ecs_update_physics(r32 dt) {
 		blob->transform = transform;
 	}
 
-	// @Todo: pass transform components data into physical components
+	// @Todo: broad phase; at least, global AABB for the time being
+
+	// consume components
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & physical = physicals[i];
 		physical.physical->position = physical.transform->position.xy;
 		physical.physical->transformed.count = 0;
 
+		// @Todo: process in local space
 		Phys2d * phys = physical.physical;
 		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
 			phys->transformed.push(phys->points[point_i] + phys->position);
 		}
 	}
 
-	// @Todo: process
-	custom::Array<u32> collisions_count(physicals.count);
-	for (u32 ai = 0; ai < physicals.count; ++ai) {
-		collisions_count.push(0);
+	// process
+	vec2 gravity = {0, 9.81f};
+	for (u32 i = 0; i < physicals.count; ++i) {
+		physicals[i].physical->position -= gravity * (physicals[i].physical->movable * dt);
 	}
+
+	struct Collision { Phys2d * phys_a, * phys_b; vec2 separator; };
+	custom::Array<Collision> collisions(physicals.count);
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
 		Phys2d & phys_a = *physicals[ai].physical;
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
 			Phys2d & phys_b = *physicals[bi].physical;
-			r32 overlap = INFINITY;
-			vec2 separator;
-			if (overlap_sat(phys_a, phys_b, overlap, separator) && overlap_sat(phys_b, phys_a, overlap, separator) && overlap > 0) {
-				separator = normalize(separator);
-				phys_a.position += separator * (overlap * phys_a.is_static);
-				phys_b.position -= separator * (overlap * phys_b.is_static);
-			}
+			r32 overlap = INFINITY; vec2 separator;
+			if (!overlap_sat(phys_a, phys_b, overlap, separator)) { continue; }
+			if (!overlap_sat(phys_b, phys_a, overlap, separator)) { continue; }
+			if (overlap == 0) { continue; }
+			// @Note: for late normalization
+			// separator = normalize(separator);
+
+			separator.x = separator.x * sign(phys_a.position.x - phys_b.position.x);
+			separator.y = separator.y * sign(phys_b.position.y - phys_a.position.y);
+			collisions.push({&phys_a, &phys_b, separator * overlap});
 		}
 	}
-	vec2 gravity = {0, 9.81f};
-	for (u32 i = 0; i < physicals.count; ++i) {
-		if (physicals[i].physical->is_static == 0) { continue; }
-		if (collisions_count[i]) { continue; }
-		physicals[i].physical->position -= gravity * dt;
+
+	for (u32 i = 0; i < collisions.count; ++i) {
+		collisions[i].phys_a->position += collisions[i].separator * collisions[i].phys_a->movable;
+		collisions[i].phys_b->position -= collisions[i].separator * collisions[i].phys_b->movable;
 	}
 
-	// @Todo: pass physical components data into transform components
+	// feed components
 	for (u32 i = 0; i < physicals.count; ++i) {
 		physicals[i].transform->position.xy = physicals[i].physical->position;
 	}

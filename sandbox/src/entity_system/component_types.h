@@ -39,5 +39,5 @@ struct Phys2d
 	//          using an external physics engine
 	custom::Array<vec2> points;
 	custom::Array<vec2> transformed;
-	r32 is_static;
+	r32 movable;
 };

@@ -13,11 +13,11 @@ function global_init_physics_test()
 
 	-- set up
 	local camera_transform = camera:get_component(Transform.type)
-	camera_transform.position = vec3.new(9.5, 5, -10)
+	camera_transform.position = vec3.new(8, 4, -10)
 
 	local camera_component = camera:get_component(Camera.type)
 	camera_component.ortho = 1
-	camera_component.scale = 0.1
+	camera_component.scale = 0.08
 
 	local sphere_transform = sphere:get_component(Transform.type)
 	sphere_transform.position = vec3.new(1, 2, 0)
