@@ -14,11 +14,11 @@
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
 
-static bool overlap_sat(Phys2d const & first, Phys2d const & second) {
+static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overlap, vec2 & separator) {
 	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
 		u32 axis_i_2 = (axis_i + 1) % first.transformed.count;
 		vec2 axis = first.transformed[axis_i_2] - first.transformed[axis_i];
-		axis = normalize(vec2{-axis.y, axis.x});
+		// axis = normalize(axis);
 
 		vec2 projection_1 = {INFINITY, -INFINITY};
 		for (u32 p = 0; p < first.transformed.count; ++p) {
@@ -34,6 +34,12 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second) {
 
 		if (projection_1.x > projection_2.y) { return false; }
 		if (projection_2.x > projection_1.y) { return false; }
+
+		r32 current_overlap = min(projection_1.y, projection_2.y) - max(projection_1.x, projection_2.x);
+		if (overlap > current_overlap) {
+			overlap = current_overlap;
+			separator = axis;
+		}
 	}
 	return true;
 }
@@ -83,18 +89,21 @@ void ecs_update_physics(r32 dt) {
 		collisions_count.push(0);
 	}
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
-		Phys2d const & phys_a = *physicals[ai].physical;
+		Phys2d & phys_a = *physicals[ai].physical;
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
-			Phys2d const & phys_b = *physicals[bi].physical;
-			if (overlap_sat(phys_a, phys_b) && overlap_sat(phys_b, phys_a)) {
-				++collisions_count[ai];
-				++collisions_count[bi];
+			Phys2d & phys_b = *physicals[bi].physical;
+			r32 overlap = INFINITY;
+			vec2 separator;
+			if (overlap_sat(phys_a, phys_b, overlap, separator) && overlap_sat(phys_b, phys_a, overlap, separator) && overlap > 0) {
+				separator = normalize(separator);
+				phys_a.position += separator * (overlap * phys_a.is_static);
+				phys_b.position -= separator * (overlap * phys_b.is_static);
 			}
 		}
 	}
 	vec2 gravity = {0, 9.81f};
 	for (u32 i = 0; i < physicals.count; ++i) {
-		if (physicals[i].physical->is_static) { continue; }
+		if (physicals[i].physical->is_static == 0) { continue; }
 		if (collisions_count[i]) { continue; }
 		physicals[i].physical->position -= gravity * dt;
 	}
