@@ -59,6 +59,7 @@ void Array_Fixed<T, capacity>::push(void) {
 
 template<typename T, u16 capacity>
 void Array_Fixed<T, capacity>::push(T const & value) {
+	CUSTOM_ASSERT(count < capacity, "count exceeds capacity");
 	data[count++] = value;
 }
 

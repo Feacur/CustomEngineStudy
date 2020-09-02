@@ -9,7 +9,6 @@
 #include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
-#include "engine/impl/array_fixed.h"
 #include "engine/impl/bytecode.h"
 #include "engine/impl/asset_system.h"
 
@@ -59,7 +58,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	if (!file.count) { return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Shader_Asset * asset = refT.get_fast();
 	// new (asset) Shader_Asset;
 
@@ -85,7 +84,8 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
-	Shader_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Shader_Asset * asset = refT.get_fast();
 	asset->~Shader_Asset();
 
 	// @Note: remove asset from the GVM
@@ -112,7 +112,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	if (!file.count) { return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Texture_Asset * asset = refT.get_fast();
 	// new (asset) Texture_Asset;
 
@@ -170,7 +170,8 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
-	Texture_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Texture_Asset * asset = refT.get_fast();
 	asset->~Texture_Asset();
 
 	// @Note: remove asset from the GVM
@@ -206,7 +207,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	if (!indices.count) { CUSTOM_ASSERT(false, "mesh has no indices '%s'", path); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
-
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Mesh_Asset * asset = refT.get_fast();
 	new (asset) Mesh_Asset;
 
@@ -268,7 +269,8 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
-	Mesh_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Mesh_Asset * asset = refT.get_fast();
 	asset->~Mesh_Asset();
 
 	// @Note: remove asset from the GVM
@@ -295,12 +297,12 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!file.count) { return; }
 	file.push('\0'); --file.count;
 
-	CUSTOM_TRACE("load asset: '%s'", path);
-
 	cstring source = (cstring)file.data;
-	custom::Entity prefab = custom::Entity::serialization_read(&source);
+	custom::Entity prefab = Entity::create(false);
+	prefab.serialization_read(&source);
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Prefab_Asset * asset = refT.get_fast();
 	// new (asset) Prefab_Asset;
 
@@ -321,8 +323,47 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
-	Prefab_Asset * asset = refT.get_safe();
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Prefab_Asset * asset = refT.get_fast();
 	asset->destroy();
+}
+
+}}
+
+//
+// Config_Asset
+//
+
+namespace custom {
+namespace loading {
+
+template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+
+	cstring path = asset_ref.get_path();
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+
+	Array<u8> file; file::read(path, file);
+	if (!file.count) { return; }
+	file.push('\0'); --file.count;
+
+	cstring source = (cstring)file.data;
+	custom::Entity prefab = Entity::create(false);
+	prefab.serialization_read(&source);
+
+	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Config_Asset * asset = refT.get_fast();
+	new (asset) Config_Asset;
+}
+
+template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "config asset doesn't exist"); return; }
+
+	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Config_Asset * asset = refT.get_fast();
+	asset->entries.~Array();
 }
 
 }}

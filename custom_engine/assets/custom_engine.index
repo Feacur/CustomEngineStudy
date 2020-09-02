@@ -1,3 +1,0 @@
-Shader
-	1 shaders/v2_texture_tint.glsl
-	2 shaders/v3_texture_tint.glsl

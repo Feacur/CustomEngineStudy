@@ -245,6 +245,64 @@ static luaL_Reg const Physical_meta[] = {
 };
 
 //
+// Phys2d
+//
+
+static int Phys2d_index(lua_State * L) {
+	typedef custom::RefT<Phys2d> Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Phys2d);
+
+	Ref const * object = (Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { lua_pushnil(L); return 1; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Phys2d_newindex(lua_State * L) {
+	typedef custom::RefT<Phys2d> Ref;
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0;}
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Phys2d_eq(lua_State * L) {
+	typedef custom::RefT<Phys2d> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Phys2d", 2);
+
+	Ref const * object1 = (Ref const *)lua_touserdata(L, 1);
+	Ref const * object2 = (Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, *object1 == *object2);
+
+	return 1;
+}
+
+static luaL_Reg const Phys2d_meta[] = {
+	{"__index", Phys2d_index},
+	{"__newindex", Phys2d_newindex},
+	{"__eq", Phys2d_eq},
+	//
+	{NULL, NULL},
+};
+
+//
 //
 //
 

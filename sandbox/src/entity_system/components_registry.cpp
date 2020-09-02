@@ -14,7 +14,7 @@
 	template custom::RefT<T> custom::Entity::get_component<T>(void) const;\
 	template bool custom::Entity::has_component<T>(void) const;\
 	/* @Note: initialize compile-time statics: */\
-	custom::Ref_Pool<T> custom::RefT<T>::pool;\
+	custom::Ref_PoolT<T> custom::RefT<T>::pool;\
 	u32 custom::Component_Registry<T>::type;\
 
 #include "../registry_impl/component_types.h"

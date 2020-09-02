@@ -85,50 +85,16 @@ Entity Entity::create(bool is_instance) {
 	return entity;
 }
 
-Entity Entity::serialization_read(cstring * source) {
-	CUSTOM_TRACE("serialization read start");
-	Entity entity = create(false);
-
-	// @Note: component readers are assumed to early out upon discovery of
-	//        any unrecognized non-whitespace sequence
-
+void Entity::serialization_read(cstring * source) {
 	while (**source) {
 		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 
 		if (**source == '~') { break; };
 
-		if (**source == '!') {
-			serialization::serialization_read_Entity_block(entity, source);
-			continue;
-		}
-
-		if (**source == '>') {
-			serialization::serialization_read_Child_block(entity, source);
+		if (**source == '#') { // a comment
+			skip_to_eol(source); parse_eol(source);
 			continue;
 		};
-
-		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
-		if (type != custom::empty_index) {
-			Ref component_ref = entity.add_component(type);
-			(*Entity::component_serialization_readers[type])(entity, component_ref, source);
-			continue;
-		}
-
-		// @Note: any unrecognized line is silently skipped
-		skip_to_eol(source); parse_eol(source);
-	}
-
-	CUSTOM_TRACE("serialization read end");
-	return entity;
-}
-
-void Entity::override(cstring * source) {
-	CUSTOM_TRACE("override start");
-
-	while (**source) {
-		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
-
-		if (**source == '~') { break; };
 
 		if (**source == '!') {
 			serialization::serialization_read_Entity_block(*this, source);
@@ -138,34 +104,45 @@ void Entity::override(cstring * source) {
 		if (**source == '>') {
 			serialization::serialization_read_Child_block(*this, source);
 			continue;
-		};
+		}
+
+		bool remove_component = 0;
+		if (**source == '-') {
+			++(*source); parse_void(source);
+			remove_component = true;
+		}
 
 		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
-		if (type != custom::empty_index) {
-			Ref component_ref = has_component(type) ? get_component(type) : add_component(type);
-			(*Entity::component_serialization_readers[type])(*this, component_ref, source);
+		if (type == custom::empty_index) {
+			// @Note: any unrecognized line is silently skipped
+			skip_to_eol(source); parse_eol(source);
 			continue;
 		}
 
-		// @Note: any unrecognized line is silently skipped
-		skip_to_eol(source); parse_eol(source);
-	}
+		if (remove_component) {
+			if (has_component(type)) { rem_component(type); }
+			skip_to_eol(source); parse_eol(source);
+			continue;
+		}
 
-	CUSTOM_TRACE("override end");
+		// @Note: component readers are assumed to early out upon discovery of
+		//        any unrecognized non-whitespace sequence
+		Ref component_ref = has_component(type) ? get_component(type) : add_component(type);
+		(*Entity::component_serialization_readers[type])(*this, component_ref, source);
+	}
 }
 
-void Entity::override(Entity const & entity) {
-	CUSTOM_TRACE("override start");
-
+void Entity::override_with(Entity const & entity) {
 	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
 		Ref const from_component_ref = entity.get_component(type);
-		if ((*Entity::component_containers[type])(from_component_ref)) {
-			Ref to_component_ref = has_component(type) ? get_component(type) : add_component(type);
-			(*Entity::component_copiers[type])(*this, from_component_ref, to_component_ref);
+		if (!(*Entity::component_containers[type])(from_component_ref)) {
+			if (has_component(type)) { rem_component(type); }
+			continue;
 		}
-	}
 
-	CUSTOM_TRACE("override end");
+		Ref to_component_ref = has_component(type) ? get_component(type) : add_component(type);
+		(*Entity::component_copiers[type])(*this, from_component_ref, to_component_ref);
+	}
 }
 
 void Entity::destroy(void) {
@@ -216,6 +193,7 @@ Entity Entity::copy(bool force_instance) const {
 }
 
 void Entity::promote_to_instance(void) {
+	// @Todo: apply this to the whole hierarchy correctly
 	if (is_instance()) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
 	instances.push(*this);
 }

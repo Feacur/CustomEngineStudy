@@ -15,6 +15,7 @@ typedef custom::Shader_Asset Shader_Asset;
 typedef custom::Texture_Asset Texture_Asset;
 typedef custom::Mesh_Asset Mesh_Asset;
 typedef custom::Prefab_Asset Prefab_Asset;
+typedef custom::Config_Asset Config_Asset;
 
 //
 // Shader_Asset
@@ -298,6 +299,66 @@ static luaL_Reg const Prefab_Asset_meta[] = {
 	// instance:###
 	{"instantiate", Prefab_Asset_instantiate},
 	{"promote_to_instance", Prefab_Asset_promote_to_instance},
+	// Type.###
+	//
+	{NULL, NULL},
+};
+
+//
+// Config_Asset
+//
+
+static int Config_Asset_index(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Config_Asset> Asset_Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Config_Asset);
+
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Config_Asset_newindex(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Config_Asset> Asset_Ref;
+
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Config_Asset_eq(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Config_Asset> Asset_Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Config_Asset", 2);
+
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, object1->ref == object2->ref);
+
+	return 1;
+}
+
+static luaL_Reg const Config_Asset_meta[] = {
+	{"__index", Config_Asset_index},
+	{"__newindex", Config_Asset_newindex},
+	{"__eq", Config_Asset_eq},
+	// instance:###
 	// Type.###
 	//
 	{NULL, NULL},

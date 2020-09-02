@@ -13,7 +13,7 @@
 	template struct custom::RefT<T>;\
 	template struct custom::Asset_RefT<T>;\
 	/* @Note: initialize compile-time statics: */\
-	custom::Ref_Pool<T> custom::RefT<T>::pool;\
+	custom::Ref_PoolT<T> custom::RefT<T>::pool;\
 	u32 custom::Asset_Registry<T>::type;\
 
 #include "../registry_impl/asset_types.h"

@@ -20,9 +20,11 @@ Ref Gen_Pool::create(void) {
 	}
 	else {
 		id = gens.count;
-		gens.push(0);
+		u32 capacity_before = gens.capacity;
+		gens.push();
+		for (u32 i = capacity_before; i < gens.capacity; ++i) { gens.data[i] = 0; }
 	}
-	return { id, gens.get(id) };
+	return { id, gens[id] };
 }
 
 void Gen_Pool::destroy(Ref const & ref) {

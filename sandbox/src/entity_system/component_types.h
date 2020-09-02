@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/types.h"
+#include "engine/core/math_types.h"
 #include "engine/api/internal/asset_system.h"
 
 namespace custom {
@@ -26,4 +27,17 @@ struct Visual
 struct Physical
 {
 	u8 dummy;
+};
+
+struct Phys2d
+{
+	// aabb2 aabb;
+	vec2 position;
+	complex rotation;
+	// @Todo: use fixed array? store systemically?
+	//        - move actual data out, because that what would happen
+	//          using an external physics engine
+	custom::Array<vec2> points;
+	custom::Array<vec2> transformed;
+	r32 is_static;
 };

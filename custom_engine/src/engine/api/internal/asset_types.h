@@ -51,4 +51,20 @@ struct Mesh_Asset {
 
 struct Prefab_Asset : public Entity { };
 
+struct Config_Asset {
+	static Strings_Storage strings;
+
+	enum struct Value_Type : u8 {None, s32, u32, r32, str};
+	struct Entry {
+		u32 key;
+		union {
+			s32 value_s32;
+			u32 value_u32;
+			r32 value_r32;
+		};
+		Value_Type type;
+	};
+	Array<Entry> entries;
+};
+
 }

@@ -40,13 +40,12 @@ inline static u32 translate_face_index(s32 value, u32 base) {
 }
 
 struct tri_index { u32 v, t, n; };
-static void parse_face_line(cstring source, Array<tri_index> & array, u32 vcount, u32 tcount, u32 ncount) {
-	Array_Fixed<tri_index, 4> face;
-
+static void parse_face_line(cstring source, Array<tri_index> & temporary_buffer, Array<tri_index> & out, u32 vcount, u32 tcount, u32 ncount) {
+	temporary_buffer.count = 0;
 	while (!IS_EOL(*source)) {
 		parse_void(&source);
 		face_index fi = parse_face_index(&source);
-		face.push({
+		temporary_buffer.push({
 			translate_face_index(fi.v, vcount),
 			translate_face_index(fi.t, tcount),
 			translate_face_index(fi.n, ncount),
@@ -54,10 +53,10 @@ static void parse_face_line(cstring source, Array<tri_index> & array, u32 vcount
 	}
 
 	// @Note: triangulate CCW
-	for (u16 i = 2; i < face.count; ++i) {
-		array.push(face.data[i]);
-		array.push(face.data[i - 1]);
-		array.push(face.data[0]);
+	for (u16 i = 2; i < temporary_buffer.count; ++i) {
+		out.push(temporary_buffer.data[i]);
+		out.push(temporary_buffer.data[i - 1]);
+		out.push(temporary_buffer.data[0]);
 	}
 }
 
@@ -88,6 +87,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 	Array<vec2> packed_vt(count_buffer_vt);
 	Array<vec3> packed_vn(count_buffer_vn);
 	Array<tri_index> packed_tris(count_buffer_f * 3 * 2);
+	Array<tri_index> temporary_buffer(4);
 
 	// @Note: read packed data
 	source = (cstring)file.data;
@@ -102,7 +102,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 			case 'f': {
 				++source;
 				parse_face_line(
-					source, packed_tris,
+					source, temporary_buffer, packed_tris,
 					packed_v.count, packed_vt.count, packed_vn.count
 				);
 			} break;

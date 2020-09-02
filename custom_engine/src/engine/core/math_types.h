@@ -63,6 +63,9 @@ typedef xvec2<u32> uvec2;
 typedef xvec3<u32> uvec3;
 typedef xvec4<u32> uvec4;
 
+struct aabb2 { vec2 position, extents; };
+struct aabb3 { vec3 position, extents; };
+
 struct mat2 {
 	union {
 		struct { vec2 x, y; };

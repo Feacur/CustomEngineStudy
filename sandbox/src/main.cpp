@@ -65,7 +65,7 @@ static void on_app_update(r32 dt) {
 	}
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
-	sandbox::ecs_update_physics();
+	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();
 }
 
@@ -85,7 +85,6 @@ static void hint_graphics(void) {
 	// custom::pixel_format_hint.stencil_bits = 8;
 	// custom::pixel_format_hint.doublebuffer = true;
 	// custom::pixel_format_hint.swap         = 1;
-	// @Note: double buffer performance on ma machine, without powering it from the grid, is horrible
 }
 
 int main(int argc, char * argv[]) {

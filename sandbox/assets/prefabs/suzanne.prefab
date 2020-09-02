@@ -1,0 +1,9 @@
+Transform
+	p 0 0 0
+	r 0 0 0 1
+	s 1 1 1
+Visual
+	s assets/shaders/v3_texture_tint.glsl
+	t assets/textures/checkerboard.png
+	m assets/meshes/suzanne.obj
+	l 0

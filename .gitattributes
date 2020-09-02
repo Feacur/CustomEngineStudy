@@ -1,14 +1,28 @@
-*     text=auto
+# https://git-scm.com/docs/gitattributes
 
+* text=auto
+
+# vendor
+*.obj binary
+*.dll binary
+
+# code
 *.h   text diff=cpp
 *.c   text diff=cpp
 *.hpp text diff=cpp
 *.cpp text diff=cpp
 *.inl text diff=cpp
 
-*.lua  text diff=cpp
-*.glsl text diff=cpp
-*.obj binary
-*.png binary
-
+# project
 *.bat text eol=crlf
+
+# assets
+*.lua    text diff=cpp
+*.glsl   text diff=cpp
+*.prefab text
+*.png    binary
+**/assets/meshes/*.obj text -binary
+
+# @Todo:
+#        - force `eol=lf` for textual assets?
+#        - provide nested attributes?

@@ -119,3 +119,36 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 }
 
 }}
+
+//
+// Phys2d
+//
+
+namespace custom {
+namespace serialization {
+
+template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
+	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
+
+	Phys2d * component = refT.get_fast();
+	// new (component) Phys2d;
+
+	bool done = false;
+	while (!done && **source) {
+		skip_to_eol(source); parse_eol(source);
+		switch ((parse_void(source), **source)) {
+			case 's': ++(*source); {
+				component->is_static = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 'p': ++(*source); {
+				component->points.push((parse_void(source), parse_vec2(source)));
+			} break;
+
+			case '#': break;
+			default: done = true; break;
+		}
+	}
+}
+
+}}
