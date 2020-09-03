@@ -3,6 +3,7 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/asset_system.h"
+#include "engine/api/platform/file.h"
 #include "engine/impl/array.h"
 
 namespace custom {
@@ -21,6 +22,7 @@ Array<void_ref_func *> Asset::asset_destructors;
 Array<bool_ref_func *> Asset::asset_containers;
 Array<loading_func *>  Asset::asset_loaders;
 Array<loading_func *>  Asset::asset_unloaders;
+Array<loading_func *>  Asset::asset_updaters;
 
 }
 
@@ -36,6 +38,48 @@ u32 Asset::store_string(cstring data, u32 length) {
 
 cstring Asset::get_string(u32 id) {
 	return strings.get_string(id);
+}
+
+}
+
+//
+//
+//
+
+namespace custom {
+
+static u32 find_by_resource(u32 resource) {
+	for (u32 i = 0; i < Asset::types.count; ++i) {
+		if (Asset::resources[i] == resource) { return i; }
+	}
+	return custom::empty_index;
+}
+
+void Asset::update(void) {
+	typedef custom::file::Action_Type Action_Type;
+
+	custom::file::watch_update();
+	for (u32 i = 0; i < file::actions.count; ++i) {
+		custom::file::Action const & action = custom::file::actions[i];
+		cstring string = custom::file::strings.get_string(action.id);
+		u32 length = custom::file::strings.get_length(action.id);
+		switch (action.type) {
+			case Action_Type::Add: CUSTOM_TRACE("@Todo: add '%s'", string); break;
+			case Action_Type::Rem: CUSTOM_TRACE("@Todo: rem '%s'", string); break;
+
+			case Action_Type::Mod: {
+				u32 resource = strings.get_id(string, length);
+				u32 index = find_by_resource(resource);
+				if (index != custom::empty_index) {
+					Asset asset = {instance_refs[index], resources[index], types[index]};
+					(*Asset::asset_updaters[asset.type])(asset);
+				}
+			} break;
+
+			case Action_Type::Old: CUSTOM_TRACE("@Todo: old '%s'", string); break;
+			case Action_Type::New: CUSTOM_TRACE("@Todo: new '%s'", string); break;
+		}
+	}
 }
 
 }

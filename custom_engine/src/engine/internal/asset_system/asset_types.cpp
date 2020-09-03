@@ -3,6 +3,7 @@
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/internal/asset_types.h"
+#include "engine/api/internal/parsing.h"
 #include "engine/impl/array.h"
 
 //
@@ -122,6 +123,65 @@ template<> cstring Config_Asset::get_value<cstring>(cstring key, cstring default
 		}
 	}
 	return default_value;
+}
+
+void Config_Asset::update(cstring source) {
+	Strings_Storage cache;
+
+	entries.count = 0;
+	while (*source) {
+		parse_void(&source);
+
+		if (strncmp(source, "s32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			s32 value = (parse_void(&source), parse_s32(&source));
+			set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "u32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			u32 value = (parse_void(&source), parse_u32(&source));
+			set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "r32", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			r32 value = (parse_void(&source), parse_r32(&source));
+			set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "bln", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			bln value = (parse_void(&source), parse_bln(&source));
+			set_value(cache.get_string(key), value);
+		}
+
+		if (strncmp(source, "str", 3) == 0) { source += 3;
+			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
+			u32 key = cache.store_string(source, (u32)(string_end - source));
+
+			source = string_end;
+			cstring line_end = (parse_void(&source), source); skip_to_eol(&line_end);
+			u32 value = cache.store_string(source, (u32)(line_end - source));
+			set_value(cache.get_string(key), cache.get_string(value));
+		}
+
+		skip_to_eol(&source); parse_eol(&source);
+	}
+
+	++version;
 }
 
 }

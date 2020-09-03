@@ -28,7 +28,7 @@
 		u64 time_system, u64 time_logic, u64 time_render,
 		u64 precision, r32 dt
 	) {
-		r32 const frame_ms  = time_frame * custom::timer::millisecond / (r32)precision;
+		r32 const frame_ms  = time_frame  * custom::timer::millisecond / (r32)precision;
 		r32 const system_ms = time_system * custom::timer::millisecond / (r32)precision;
 		r32 const logic_ms  = time_logic  * custom::timer::millisecond / (r32)precision;
 		r32 const render_ms = time_render * custom::timer::millisecond / (r32)precision;
@@ -72,10 +72,10 @@ static struct {
 	ivec2 viewport_size;
 
 	struct {
-		u16 target;
-		u8 failsafe;
-		u8 vsync;
-		b8 force;
+		u16 target  = 144;
+		u8 failsafe = 10;
+		u8 vsync    = 1;
+		b8 force    = false;
 	} refresh_rate;
 
 	struct {
@@ -170,6 +170,7 @@ void run(void) {
 
 		// process the frame
 		u64 time_logic = custom::timer::get_ticks();
+		custom::Asset::update();
 		CALL_SAFELY(app.callbacks.update, dt);
 		time_logic = custom::timer::get_ticks() - time_logic;
 

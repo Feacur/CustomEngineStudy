@@ -93,6 +93,14 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
+template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
+	// if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
+
+	// RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
+	// if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	// Shader_Asset * asset = refT.get_fast();
+}
+
 }}
 
 //
@@ -177,6 +185,14 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	// @Note: remove asset from the GVM
 	custom::loader::bc->write(graphics::Instruction::Free_Texture);
 	custom::loader::bc->write((Ref &)asset_ref);
+}
+
+template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
+	// if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
+
+	// RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
+	// if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	// Texture_Asset * asset = refT.get_fast();
 }
 
 }}
@@ -278,6 +294,14 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
+template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
+	// if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
+
+	// RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
+	// if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	// Mesh_Asset * asset = refT.get_fast();
+}
+
 }}
 
 //
@@ -328,6 +352,14 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	asset->destroy();
 }
 
+template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
+	// if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
+
+	// RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
+	// if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	// Prefab_Asset * asset = refT.get_fast();
+}
+
 }}
 
 //
@@ -352,60 +384,7 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 	Config_Asset * asset = refT.get_fast();
 	new (asset) Config_Asset;
 
-	Strings_Storage cache;
-
-	cstring source = (cstring)file.data;
-	while (*source) {
-		parse_void(&source);
-
-		if (strncmp(source, "s32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			s32 value = (parse_void(&source), parse_s32(&source));
-			asset->set_value(cache.get_string(key), value);
-		}
-
-		if (strncmp(source, "u32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			u32 value = (parse_void(&source), parse_u32(&source));
-			asset->set_value(cache.get_string(key), value);
-		}
-
-		if (strncmp(source, "r32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			r32 value = (parse_void(&source), parse_r32(&source));
-			asset->set_value(cache.get_string(key), value);
-		}
-
-		if (strncmp(source, "bln", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			bln value = (parse_void(&source), parse_bln(&source));
-			asset->set_value(cache.get_string(key), value);
-		}
-
-		if (strncmp(source, "str", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			cstring line_end = (parse_void(&source), source); skip_to_eol(&line_end);
-			u32 value = cache.store_string(source, (u32)(line_end - source));
-			asset->set_value(cache.get_string(key), cache.get_string(value));
-		}
-
-		skip_to_eol(&source); parse_eol(&source);
-	}
+	asset->update((cstring)file.data);
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
@@ -415,6 +394,23 @@ template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	Config_Asset * asset = refT.get_fast();
 	asset->entries.~Array();
+}
+
+template<> LOADING_FUNC(asset_pool_update<Config_Asset>) {
+	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "config asset doesn't exist"); return; }
+
+	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	Config_Asset * asset = refT.get_fast();
+
+	cstring path = asset_ref.get_path();
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+
+	Array<u8> file; file::read(path, file);
+	if (!file.count) { return; }
+	file.push('\0'); --file.count;
+
+	asset->update((cstring)file.data);
 }
 
 }}

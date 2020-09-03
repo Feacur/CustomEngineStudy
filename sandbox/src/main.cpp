@@ -15,6 +15,21 @@
 // https://github.com/Marzac/le3d
 
 static lua_State * L;
+static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
+
+static void consume_config(void) {
+	static u32 version = custom::empty_index;
+
+	custom::Config_Asset const * config = config_ref.ref.get_fast();
+	if (version == config->version) { return; }
+	version = config->version;
+
+	u16 rr_target   = (u16)config->get_value<u32>("refresh_rate_target",   144);
+	u8  rr_failsafe =  (u8)config->get_value<u32>("refresh_rate_failsafe", 10);
+	u8  rr_vsync    =  (u8)config->get_value<u32>("refresh_rate_vsync",    1);
+	b8  rr_force    =  (b8)config->get_value<u32>("refresh_rate_force",    0);
+	custom::application::set_refresh_rate(rr_target, rr_failsafe, rr_vsync, rr_force);
+}
 
 void init_client_asset_types(void);
 void init_client_component_types(void);
@@ -28,19 +43,12 @@ static void on_app_init() {
 
 	// @Note init configs
 	u32 config_id = custom::Asset::store_string("assets/configs/client.cfg", custom::empty_index);
-	custom::Asset_RefT<custom::Config_Asset> config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
+	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 	custom::Config_Asset const * config = config_ref.ref.get_fast();
 
-	CUSTOM_TRACE("client true: %d", config->get_value("client_true", false));
-	CUSTOM_TRACE("client false: %d", config->get_value("client_false", true));
+	consume_config();
 
 	custom::file::watch_init(".", true);
-
-	u16 rr_target   = (u16)config->get_value<u32>("refresh_rate_target",   144);
-	u8  rr_failsafe =  (u8)config->get_value<u32>("refresh_rate_failsafe", 10);
-	u8  rr_vsync    =  (u8)config->get_value<u32>("refresh_rate_vsync",    1);
-	b8  rr_force    =  (b8)config->get_value<u32>("refresh_rate_force",    0);
-	custom::application::set_refresh_rate(rr_target, rr_failsafe, rr_vsync, rr_force);
 
 	// @Note: init Lua
 	L = luaL_newstate();
@@ -68,16 +76,7 @@ static void on_app_viewport(ivec2 size) {
 }
 
 static void on_app_update(r32 dt) {
-	custom::file::watch_update();
-	for (u32 i = 0; i < custom::file::actions.count; ++i) {
-		switch (custom::file::actions[i].type) {
-			case custom::file::Action_Type::Add: CUSTOM_TRACE("add: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
-			case custom::file::Action_Type::Rem: CUSTOM_TRACE("rem: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
-			case custom::file::Action_Type::Mod: CUSTOM_TRACE("mod: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
-			case custom::file::Action_Type::Old: CUSTOM_TRACE("old: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
-			case custom::file::Action_Type::New: CUSTOM_TRACE("new: '%s'", custom::file::strings.get_string(custom::file::actions[i].id)); break;
-		}
-	}
+	consume_config();
 	sandbox::lua_function(L, "global_update");
 	sandbox::ecs_update_lua(L, dt);
 	sandbox::ecs_update_physics(dt);

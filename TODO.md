@@ -1,12 +1,12 @@
 # Immediate tasks
+- hot reloading of assets
+  - link file watcher's output with the asset system
 - better physics overall
 - factor physics backend data out of the component
 - factor physics mesh asset out of the prefab data
   - (?) unify renderable mesh with physics mesh
 
 # Near plans
-- hot reloading of assets
-  - link file watcher's output with the asset system
 - extend application of `Config_Asset`
   - (?) put Lua callbacks there (assets, init, update, etc.)
   - (?) file watcher folder path
@@ -39,6 +39,7 @@
 - `Material_Asset`
   - (?) a separete `Physics_Material_Asset`, if ever needed
 - assets metadata
+- preprocess raw assets so that they can be loaded into memory with little or no parsing
 - OS backends: Linux
 - graphics backends: DirectX, Vulkan
 - physics backends: Box2d, Bullet Physics
@@ -50,5 +51,10 @@
 - (?) reorganize projects path due to inconvenient error messages
   - moving preject files to the root fixes the behaviour, but looks ugly
 - move project files out from the root directory
+- (?) try symlinks instead of copying files around
+  - developer mode or administrator mode required
+  - https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/
+  - probably should collapse engine assets and sandbox assets into a single folder for that
+  - (???) or run mutiple threaded watchers
 
 [Markdown](https://www.markdownguide.org/basic-syntax/)

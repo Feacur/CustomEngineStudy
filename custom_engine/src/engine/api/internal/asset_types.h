@@ -65,9 +65,12 @@ struct Config_Asset {
 		Value_Type type;
 	};
 	Array<Entry> entries;
+	u32 version = custom::empty_index;
 
 	template<typename T> void set_value(cstring key, T value);
 	template<typename T> T get_value(cstring key, T default_value) const;
+
+	void update(cstring source);
 };
 
 }

@@ -10,6 +10,7 @@ namespace loading {
 
 template<typename T> LOADING_FUNC(asset_pool_load);
 template<typename T> LOADING_FUNC(asset_pool_unload);
+template<typename T> LOADING_FUNC(asset_pool_update);
 
 }}
 

@@ -19,10 +19,15 @@ if [%target_location%] == [] (
 rem clean batch file arguments
 set target_location=%target_location:"=%
 
+echo ---- PREPARE ASSETS: START ---- %time%
+
+rem no messages
+rem rd /Q ".\bin\%target_location%\sandbox\assets"
+rem mklink /D ".\bin\%target_location%\sandbox\assets" "..\..\..\resources\assets"
+
 rem no messages, always yes, all non-empty dirs, create dirs, only changed
 set flags=/Q /Y /S /I /D
-
-echo ---- PREPARE ASSETS: START ---- %time%
 xcopy %flags% ".\custom_engine\assets" ".\bin\%target_location%\sandbox\assets"
 xcopy %flags% ".\sandbox\assets" ".\bin\%target_location%\sandbox\assets"
+
 echo ---- PREPARE ASSETS: DONE  ---- %time%

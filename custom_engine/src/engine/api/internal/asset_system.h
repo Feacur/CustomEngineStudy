@@ -57,6 +57,9 @@ struct Asset : public Ref
 	static Array<bool_ref_func *> asset_containers;
 	static Array<loading_func *>  asset_loaders;
 	static Array<loading_func *>  asset_unloaders;
+	static Array<loading_func *>  asset_updaters;
+
+	static void update(void);
 
 	static Asset add(u32 type, u32 resource);
 	static void  rem(u32 type, u32 resource);

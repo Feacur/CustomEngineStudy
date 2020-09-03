@@ -113,7 +113,7 @@ u64 get_time(cstring path) {
 void read(cstring path, Array<u8> & buffer) {
 	HANDLE handle = CreateFile(
 		path,
-		GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+		GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
@@ -164,6 +164,13 @@ void watch_update(void) {
 
 		watch_data.strings.clear();
 		watch_data.actions.count = 0;
+
+		for (u32 i = 0; i < strings.offsets.count; ++i) {
+			char * string = strings.values.data + strings.offsets[i];
+			while ((string = strchr(string, '\\'), string)) {
+				*string = '/'; ++string;
+			}
+		}
 	}
 }
 
