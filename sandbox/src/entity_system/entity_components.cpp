@@ -25,7 +25,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 	Visual * component = refT.get_fast();
 
-	new (component) Phys2d;
+	new (component) Visual;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {

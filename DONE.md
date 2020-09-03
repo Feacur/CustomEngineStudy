@@ -1,3 +1,9 @@
+# September 04, 2020
+- hot reloading of assets
+  - shaders, textures, meshes, prefabs, configs, lua assets
+- gave a shot to symlinks: doable, nice in a way
+  - ugly in others: hot reloading paths are mess; need a revamp of assets structure
+
 # September 03, 2020
 - make use of `Config_Asset`
   - put graphics settings there (both context and runtime)

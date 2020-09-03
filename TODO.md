@@ -1,6 +1,4 @@
 # Immediate tasks
-- hot reloading of assets
-  - link file watcher's output with the asset system
 - better physics overall
 - factor physics backend data out of the component
 - factor physics mesh asset out of the prefab data
@@ -16,13 +14,14 @@
   - forbid it by ignoring the command and warning the user?
   - still, order of instantiation is error-prone now:
   - fix `promote_to_instance`
-- hot reloading Lua might leak junk
 - extensively test systems; erroneous behaviour still emerges
 - system code performance on my machine drops noticeably if powered from the accumulator only
-  - probably, it's probably expected, but still unwanted
+  - it's probably expected, though  still unwanted, irritating, potentially malicious
 
 # Keep in mind
 - build times; they seem to be ok right now on my machine (August 31, 2020)
+- hot reloading Lua might leak junk
+- hot reloading prefabs might break something
 - test shipping configuration from time to time
 - test precompiled headers occasionally
 - file watcher threads syncronization
@@ -45,6 +44,8 @@
 - physics backends: Box2d, Bullet Physics
 - refactor loading interface: hide specific implementation, alike it was done for `*.obj`
   - (?) `loading` for assets and `entity_components` seem a bit confusing
+- (?) instanced prefabs should receive update upon hot reloading of prefabs
+  - the same applies to promoted ones
 
 # Potential features
 - (?) unity build option

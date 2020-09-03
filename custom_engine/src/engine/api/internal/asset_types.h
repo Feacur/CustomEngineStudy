@@ -9,6 +9,9 @@ namespace custom {
 
 struct Shader_Asset {
 	Array<u8> source;
+
+	void update(Array<u8> & file);
+
 	~Shader_Asset() = default;
 };
 
@@ -23,6 +26,8 @@ struct Texture_Asset {
 
 	graphics::Filter_Mode min_tex, min_mip, mag_tex;
 	graphics::Wrap_Mode wrap_x, wrap_y;
+
+	void update(Array<u8> & file);
 
 	~Texture_Asset() = default;
 };
@@ -40,6 +45,8 @@ struct Mesh_Asset {
 	};
 	Array<Buffer> buffers;
 
+	void update(Array<u8> & file);
+
 	~Mesh_Asset() {
 		for (u32 i = 0; i < buffers.count; ++i) {
 			buffers[i].attributes.~Array();
@@ -49,7 +56,11 @@ struct Mesh_Asset {
 	}
 };
 
-struct Prefab_Asset : public Entity { };
+struct Prefab_Asset {
+	Entity entity;
+
+	void update(Array<u8> & file);
+};
 
 struct Config_Asset {
 	static Strings_Storage strings;
@@ -70,7 +81,7 @@ struct Config_Asset {
 	template<typename T> void set_value(cstring key, T value);
 	template<typename T> T get_value(cstring key, T default_value) const;
 
-	void update(cstring source);
+	void update(Array<u8> & file);
 };
 
 }

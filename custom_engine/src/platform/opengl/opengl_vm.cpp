@@ -2,7 +2,6 @@
 
 #include "engine/core/math_types.h"
 #include "engine/api/platform/graphics_vm.h"
-#include "engine/api/platform/graphics_resource.h"
 #include "engine/api/graphics_params.h"
 #include "engine/api/internal/strings_storage.h"
 #include "engine/api/internal/asset_types.h"
@@ -31,8 +30,7 @@ typedef custom::graphics::unit_id unit_id;
 #define COMPILE_VERSION(major, minor) (major * 10 + minor)
 
 #define RS_NONE    0
-#define RS_PENDING 1
-#define RS_LOADED  2
+#define RS_LOADED  1
 
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 // https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/OpenGL%204.x%20and%20Beyond.pdf
@@ -381,36 +379,6 @@ inline static bool has_allocated_mesh(u32 id) {
 inline static bool has_allocated_target(u32 id) {
 	if (id >= ogl.targets.capacity) { return false; }
 	return ogl.targets.get(id).id != empty_gl_id;
-}
-
-//
-
-u32 mark_pending_shader(u32 id) {
-	ogl.programs_ensure_capacity(id);
-	u32 ready_state = ogl.programs.get(id).ready_state;
-	if (ready_state == RS_NONE) { ogl.programs.get(id).ready_state = RS_PENDING; }
-	return ready_state;
-}
-
-u32 mark_pending_texture(u32 id) {
-	ogl.textures_ensure_capacity(id);
-	u32 ready_state = ogl.textures.get(id).ready_state;
-	if (ready_state == RS_NONE) { ogl.textures.get(id).ready_state = RS_PENDING; }
-	return ready_state;
-}
-
-u32 mark_pending_mesh(u32 id) {
-	ogl.meshes_ensure_capacity(id);
-	u32 ready_state = ogl.meshes.get(id).ready_state;
-	if (ready_state == RS_NONE) { ogl.meshes.get(id).ready_state = RS_PENDING; }
-	return ready_state;
-}
-
-u32 mark_pending_target(u32 id) {
-	ogl.targets_ensure_capacity(id);
-	u32 ready_state = ogl.targets.get(id).ready_state;
-	if (ready_state == RS_NONE) { ogl.targets.get(id).ready_state = RS_PENDING; }
-	return ready_state;
 }
 
 }}
@@ -1224,13 +1192,9 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 		return;
 	}
 
+	new (resource) opengl::Program;
 	resource->gen = ref.gen;
 
-	if (resource->ready_state != RS_PENDING) {
-		CUSTOM_ASSERT(false, "shader %d wasn't marked as pending", ref.id);
-		return;
-	}
-	new (resource) opengl::Program;
 	resource->id = glCreateProgram();
 }
 
@@ -1262,13 +1226,8 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 		return;
 	}
 
-	resource->gen = ref.gen;
-
-	if (resource->ready_state != RS_PENDING) {
-		CUSTOM_ASSERT(false, "texture %d wasn't marked as pending", ref.id);
-		return;
-	}
 	platform_consume_texture_params(asset, resource);
+	resource->gen = ref.gen;
 
 	// -- allocate memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -1383,12 +1342,8 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		CUSTOM_TRACE("mesh %d already exists", ref.id);
 		return;
 	}
-	if (resource->ready_state != RS_PENDING) {
-		CUSTOM_ASSERT(false, "mesh %d wasn't marked as pending", ref.id);
-		return;
-	}
-	platform_consume_mesh_params(asset, resource);
 
+	platform_consume_mesh_params(asset, resource);
 	resource->gen = ref.gen;
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "VAOs are not supported");
@@ -1557,6 +1512,7 @@ static void platform_consume_target_params(Bytecode const & bc, opengl::Target *
 }
 
 static void platform_Allocate_Target(Bytecode const & bc) {
+	// @Todo
 	u32 asset_id = *bc.read<u32>();
 	ogl.targets_ensure_capacity(asset_id);
 	opengl::Target * resource = &ogl.targets.get(asset_id);
@@ -1566,7 +1522,9 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 		platform_consume_target_params(bc, &default_resource);
 		return;
 	}
+
 	platform_consume_target_params(bc, resource);
+	// resource->gen = ref.gen;
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "frame buffers are not supported");
 
@@ -1998,7 +1956,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
-				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
+				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) {
+					CUSTOM_TRACE("skipping static mesh %d data", ref.id);
+					continue;
+				}
 				CUSTOM_TRACE("overwriting mesh %d data", ref.id);
 			}
 
@@ -2031,7 +1992,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
-				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) { continue; }
+				if (buffer.frequency == custom::graphics::Mesh_Frequency::Static) {
+					CUSTOM_TRACE("skipping static mesh %d data", ref.id);
+					continue;
+				}
 				CUSTOM_TRACE("overwriting mesh %d data", ref.id);
 			}
 	
