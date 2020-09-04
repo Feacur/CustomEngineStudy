@@ -196,8 +196,8 @@ void run(void) {
 	custom::window::destroy(app.window);
 }
 
-void set_refresh_rate(u16 target, u8 debug, u8 failsafe, u8 vsync, b8 as_display) {
-	app.refresh_rate = {target, debug, failsafe, vsync, as_display};
+void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_display) {
+	app.refresh_rate = {(u16)target, (u8)debug, (u8)failsafe, (u8)vsync, (b8)as_display};
 	if (app.window) { custom::window::set_vsync(app.window, app.refresh_rate.vsync); }
 }
 

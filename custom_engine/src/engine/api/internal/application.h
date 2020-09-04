@@ -12,7 +12,7 @@ namespace application {
 
 void init(void);
 void run(void);
-void set_refresh_rate(u16 target, u8 debug, u8 failsafe, u8 vsync, b8 as_display);
+void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_display);
 
 // data
 ivec2 const & get_viewport_size(void);
