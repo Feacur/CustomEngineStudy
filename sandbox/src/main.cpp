@@ -26,11 +26,14 @@ static void consume_config(void) {
 	if (version == config->version) { return; }
 	version = config->version;
 
-	u16 rr_target   = (u16)config->get_value<u32>("refresh_rate_target",   144);
-	u8  rr_failsafe =  (u8)config->get_value<u32>("refresh_rate_failsafe", 10);
-	u8  rr_vsync    =  (u8)config->get_value<u32>("refresh_rate_vsync",    1);
-	b8  rr_force    =  (b8)config->get_value<u32>("refresh_rate_force",    0);
-	custom::application::set_refresh_rate(rr_target, rr_failsafe, rr_vsync, rr_force);
+	u16 rr_target     = (u16)config->get_value<u32>("refresh_rate_target",     144);
+	u8  rr_debug      =  (u8)config->get_value<u32>("refresh_rate_debug",      20);
+	u8  rr_failsafe   =  (u8)config->get_value<u32>("refresh_rate_failsafe",   10);
+	u8  rr_vsync      =  (u8)config->get_value<u32>("refresh_rate_vsync",      1);
+	b8  rr_as_display =  (b8)config->get_value<bln>("refresh_rate_as_display", true);
+	custom::application::set_refresh_rate(
+		rr_target, rr_debug, rr_failsafe, rr_vsync, rr_as_display
+	);
 }
 
 void init_client_asset_types(void);

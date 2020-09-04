@@ -72,10 +72,11 @@ static struct {
 	ivec2 viewport_size;
 
 	struct {
-		u16 target  = 144;
-		u8 failsafe = 10;
-		u8 vsync    = 1;
-		b8 force    = false;
+		u16 target    = 144;
+		u8 debug      = 20;
+		u8 failsafe   = 10;
+		u8 vsync      = 1;
+		b8 as_display = false;
 	} refresh_rate;
 
 	struct {
@@ -157,16 +158,17 @@ void run(void) {
 		time_system = custom::timer::get_ticks() - time_system;
 
 		// prepare for a frame
-		u16 refresh_rate = app.refresh_rate.force
-			? app.refresh_rate.target
-			: custom::window::get_refresh_rate(app.window, app.refresh_rate.target);
+		u16 refresh_rate = app.refresh_rate.as_display
+			? custom::window::get_refresh_rate(app.window, app.refresh_rate.target)
+			: app.refresh_rate.target;
+
 		u64 time_frame = get_last_frame_ticks(
-			custom::window::check_vsync(app.window),
-			refresh_rate
+			custom::window::check_vsync(app.window), refresh_rate
 		);
 
 		r32 dt = (r32)time_frame / custom::timer::ticks_per_second;
-		if (dt > (r32)app.refresh_rate.failsafe / refresh_rate) { dt = 1.0f / refresh_rate; }
+		if (dt > (r32)app.refresh_rate.debug / refresh_rate) { dt = 1.0f / refresh_rate; }
+		else if (dt > (r32)app.refresh_rate.failsafe / refresh_rate) { dt = (r32)app.refresh_rate.failsafe / refresh_rate; }
 
 		// process the frame
 		u64 time_logic = custom::timer::get_ticks();
@@ -194,8 +196,8 @@ void run(void) {
 	custom::window::destroy(app.window);
 }
 
-void set_refresh_rate(u16 target, u8 failsafe, u8 vsync, b8 force) {
-	app.refresh_rate = {target, failsafe, vsync, force};
+void set_refresh_rate(u16 target, u8 debug, u8 failsafe, u8 vsync, b8 as_display) {
+	app.refresh_rate = {target, debug, failsafe, vsync, as_display};
 	if (app.window) { custom::window::set_vsync(app.window, app.refresh_rate.vsync); }
 }
 

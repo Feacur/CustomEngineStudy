@@ -36,7 +36,7 @@ void ecs_init_physics(void) {
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 }
 
-static r32 physics_frequency = 50.0f;
+static u32 physics_rate_target   = 60;
 static void consume_config(void) {
 	static u32 version = custom::empty_index;
 
@@ -46,14 +46,16 @@ static void consume_config(void) {
 	if (version == config->version) { return; }
 	version = config->version;
 
-	physics_frequency = config->get_value<r32>("physics_frequency", 50.0f);
+	physics_rate_target = config->get_value<u32>("physics_rate_target", 60);
 }
 
 void ecs_update_physics(r32 dt) {
 	consume_config();
+
+	CUSTOM_ASSERT(physics_rate_target, "zero frequency");
+	r32 period = 1.0f / physics_rate_target;
+
 	static r32 elapsed = 0; elapsed += dt;
-	CUSTOM_ASSERT(physics_frequency != 0, "zero frequency");
-	r32 period = 1.0f / physics_frequency;
 	while (elapsed >= period) {
 		elapsed -= period;
 		ecs_update_physics_iteration(period);
