@@ -22,7 +22,7 @@ struct Physical_Blob {
 	Transform      * transform;
 };
 
-void ecs_update_physics_iteration(r32 dt);
+void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
 
 //
 //
@@ -36,7 +36,7 @@ void ecs_init_physics(void) {
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 }
 
-static u32 physics_rate_target   = 60;
+static u32 physics_rate_target   = 50;
 static void consume_config(void) {
 	static u32 version = custom::empty_index;
 
@@ -46,7 +46,7 @@ static void consume_config(void) {
 	if (version == config->version) { return; }
 	version = config->version;
 
-	physics_rate_target = config->get_value<u32>("physics_rate_target", 60);
+	physics_rate_target = config->get_value<u32>("physics_rate_target", 50);
 }
 
 void ecs_update_physics(r32 dt) {
@@ -55,10 +55,39 @@ void ecs_update_physics(r32 dt) {
 	CUSTOM_ASSERT(physics_rate_target, "zero frequency");
 	r32 period = 1.0f / physics_rate_target;
 
+	//
+	custom::Array<Physical_Blob> physicals(8);
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::instances[i];
+		if (!entity.exists()) { continue; }
+
+		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
+		if (!physical) { continue; }
+
+		Transform * transform = entity.get_component<Transform>().get_safe();
+		if (!transform) { continue; }
+
+		physicals.push();
+		Physical_Blob * blob = physicals.data + (physicals.count - 1);
+		blob->entity = entity;
+		blob->physical = physical;
+		blob->transform = transform;
+	}
+
+	//
+	for (u32 i = 0; i < physicals.count; ++i) {
+		Physical_Blob & physical = physicals[i];
+		physical.physical->position = physical.transform->position.xy;
+	}
+
 	static r32 elapsed = 0; elapsed += dt;
 	while (elapsed >= period) {
 		elapsed -= period;
-		ecs_update_physics_iteration(period);
+		ecs_update_physics_iteration(period, physicals);
+	}
+
+	for (u32 i = 0; i < physicals.count; ++i) {
+		physicals[i].transform->position.xy = physicals[i].physical->position;
 	}
 }
 
@@ -103,41 +132,20 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 	return true;
 }
 
-void ecs_update_physics_iteration(r32 dt) {
-	custom::Array<Physical_Blob> physicals(8);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
-		if (!entity.exists()) { continue; }
-
-		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
-		if (!physical) { continue; }
-
-		Transform * transform = entity.get_component<Transform>().get_safe();
-		if (!transform) { continue; }
-
-		physicals.push();
-		Physical_Blob * blob = physicals.data + (physicals.count - 1);
-		blob->entity = entity;
-		blob->physical = physical;
-		blob->transform = transform;
-	}
-
+void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
 	// @Todo: broad phase; at least, global AABB for the time being
 
-	// consume components
 	for (u32 i = 0; i < physicals.count; ++i) {
-		Physical_Blob & physical = physicals[i];
-		physical.physical->position = physical.transform->position.xy;
-		physical.physical->transformed.count = 0;
-
 		// @Todo: process in local space
+		Physical_Blob & physical = physicals[i];
 		Phys2d * phys = physical.physical;
+
+		physical.physical->transformed.count = 0;
 		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
 			phys->transformed.push(phys->points[point_i] + phys->position);
 		}
 	}
 
-	// process
 	vec2 gravity = {0, 9.81f};
 	for (u32 i = 0; i < physicals.count; ++i) {
 		physicals[i].physical->position -= gravity * (physicals[i].physical->movable * dt);
@@ -165,10 +173,5 @@ void ecs_update_physics_iteration(r32 dt) {
 	for (u32 i = 0; i < collisions.count; ++i) {
 		collisions[i].phys_a->position += collisions[i].separator * collisions[i].phys_a->movable;
 		collisions[i].phys_b->position -= collisions[i].separator * collisions[i].phys_b->movable;
-	}
-
-	// feed components
-	for (u32 i = 0; i < physicals.count; ++i) {
-		physicals[i].transform->position.xy = physicals[i].physical->position;
 	}
 }
