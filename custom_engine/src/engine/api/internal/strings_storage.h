@@ -16,6 +16,8 @@ struct Strings_Storage {
 
 	cstring get_string(u32 id) const;
 	u32 get_length(u32 id) const;
+
+	~Strings_Storage() = default;
 };
 
 }

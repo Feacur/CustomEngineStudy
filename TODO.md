@@ -22,12 +22,16 @@
 - build times; they seem to be ok right now on my machine (August 31, 2020)
 - hot reloading Lua might leak junk
 - hot reloading prefabs might break something
+- smaller data types is not always a win; sometimes junk padding helps performance a substantial amount
 - test shipping configuration from time to time
 - test precompiled headers occasionally
 - file watcher threads syncronization
   - for the time being I use a simple assertion lock; Naughty Dog does use this technique, though
 - do I need an inline [DONE](DONE.md)? there are commit messages all the same
   - though, might be used to show big picture
+- sporadic runtime and cleanup crashes are, probably, memory-related
+  - revisit your `placement new` calls; btw, you can use templates like
+  - ...  for that, but oh is it ugly
 - search for `@Bug:`, `@Note:`, `@Optimize:`, `@Todo:`, `@Change:` in the code
 
 # Optimization
@@ -46,6 +50,9 @@
   - (?) `loading` for assets and `entity_components` seem a bit confusing
 - (?) instanced prefabs should receive update upon hot reloading of prefabs
   - the same applies to promoted ones
+- (?) assets usage tracking, so that they could be automatically unloaded?
+  - some of them can be quite easily marked like this through components load/unload
+  - ... though there are instances, where code requests an asset and should manage the lifetime by itself
 
 # Potential features
 - (?) unity build option

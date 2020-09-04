@@ -275,6 +275,8 @@ void Config_Asset::update(Array<u8> & file) {
 	file.push('\0'); --file.count;
 
 	entries.count = 0;
+
+	// @Todo: factor a common allocator out?
 	Strings_Storage cache;
 
 	cstring source = (cstring)file.data;

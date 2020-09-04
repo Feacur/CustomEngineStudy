@@ -58,6 +58,7 @@ struct Gen_Pool
 
 	Array<u32> gens; // sparse; count indicates the last active object
 	Array<u32> gaps;
+	// @Todo: provide a relocation table, so that the data can be compressed?
 
 	// API
 	Ref create(void);
