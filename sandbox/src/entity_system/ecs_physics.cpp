@@ -147,6 +147,8 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	// @Todo: broad phase; at least, global AABB for the time being
 
 	// @Todo: process in local space?
+	//        - until then, apply whole hierarchy transform?
+	//        - allow only local space?
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Phys2d * phys = physicals[i].physical;
 		phys->transformed.count = 0;
