@@ -1,5 +1,7 @@
 #include "engine/api/internal/component_types.h"
+#include "engine/api/internal/asset_system.h"
 #include "engine/api/internal/entity_system.h"
+#include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
 
@@ -13,6 +15,56 @@
 // 	return position.x <= size.x && position.y <= size.y
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
+
+struct Physical_Blob {
+	custom::Entity   entity;
+	Phys2d         * physical;
+	Transform      * transform;
+};
+
+void ecs_update_physics_iteration(r32 dt);
+
+//
+//
+//
+
+namespace sandbox {
+
+static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
+void ecs_init_physics(void) {
+	u32 config_id = custom::Asset::get_resource("assets/configs/client.cfg", custom::empty_index);
+	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
+}
+
+static r32 physics_frequency = 50.0f;
+static void consume_config(void) {
+	static u32 version = custom::empty_index;
+
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
+	if (version == config->version) { return; }
+	version = config->version;
+
+	physics_frequency = config->get_value<r32>("physics_frequency", 50.0f);
+}
+
+void ecs_update_physics(r32 dt) {
+	consume_config();
+	static r32 elapsed = 0; elapsed += dt;
+	CUSTOM_ASSERT(physics_frequency != 0, "zero frequency");
+	r32 period = 1.0f / physics_frequency;
+	while (elapsed >= period) {
+		elapsed -= period;
+		ecs_update_physics_iteration(period);
+	}
+}
+
+}
+
+//
+//
+//
 
 static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overlap, vec2 & separator) {
 	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
@@ -49,15 +101,7 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 	return true;
 }
 
-namespace sandbox {
-
-struct Physical_Blob {
-	custom::Entity   entity;
-	Phys2d         * physical;
-	Transform      * transform;
-};
-
-void ecs_update_physics(r32 dt) {
+void ecs_update_physics_iteration(r32 dt) {
 	custom::Array<Physical_Blob> physicals(8);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
@@ -125,6 +169,4 @@ void ecs_update_physics(r32 dt) {
 	for (u32 i = 0; i < physicals.count; ++i) {
 		physicals[i].transform->position.xy = physicals[i].physical->position;
 	}
-}
-
 }

@@ -20,7 +20,9 @@ static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref,
 static void consume_config(void) {
 	static u32 version = custom::empty_index;
 
-	custom::Config_Asset const * config = config_ref.ref.get_fast();
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
 	if (version == config->version) { return; }
 	version = config->version;
 
@@ -44,7 +46,6 @@ static void on_app_init() {
 	// @Note init configs
 	u32 config_id = custom::Asset::store_string("assets/configs/client.cfg", custom::empty_index);
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
-	custom::Config_Asset const * config = config_ref.ref.get_fast();
 
 	consume_config();
 
@@ -66,6 +67,9 @@ static void on_app_init() {
 
 	u32 lua_id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
 	custom::Asset::add<Lua_Asset>(lua_id);
+
+	//
+	sandbox::ecs_init_physics();
 
 	// @Note: call Lua init
 	sandbox::lua_function(L, "global_init");

@@ -36,6 +36,10 @@ u32 Asset::store_string(cstring data, u32 length) {
 	return strings.store_string(data, length);
 }
 
+u32 Asset::get_resource(cstring data, u32 length) {
+	return strings.get_id(data, length);
+}
+
 cstring Asset::get_string(u32 id) {
 	return strings.get_string(id);
 }
