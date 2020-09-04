@@ -4,3 +4,8 @@
 	path = vendor/premake
 	url = ../premake.git # https://github.com/feacur/premake
 	branch = master
+
+[submodule "lua"]
+	path = custom_engine/vendor/lua
+	url = ../lua.git # https://github.com/feacur/lua
+	branch = master
