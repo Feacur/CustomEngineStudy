@@ -34,6 +34,7 @@ struct Phys2d
 	// aabb2 aabb;
 	vec2 position;
 	complex rotation;
+	vec2 scale;
 	// @Todo: use fixed array? store systemically?
 	//        - move actual data out, because that what would happen
 	//          using an external physics engine

@@ -20,15 +20,20 @@ static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref,
 static void consume_config(void) {
 	static u32 version = custom::empty_index;
 
-	custom::Config_Asset const * config = config_ref.ref.get_fast();
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
 	if (version == config->version) { return; }
 	version = config->version;
 
-	u16 rr_target   = (u16)config->get_value<u32>("refresh_rate_target",   144);
-	u8  rr_failsafe =  (u8)config->get_value<u32>("refresh_rate_failsafe", 10);
-	u8  rr_vsync    =  (u8)config->get_value<u32>("refresh_rate_vsync",    1);
-	b8  rr_force    =  (b8)config->get_value<u32>("refresh_rate_force",    0);
-	custom::application::set_refresh_rate(rr_target, rr_failsafe, rr_vsync, rr_force);
+	u32 rr_target     = config->get_value<u32>("refresh_rate_target",     144);
+	u32 rr_debug      = config->get_value<u32>("refresh_rate_debug",      20);
+	u32 rr_failsafe   = config->get_value<u32>("refresh_rate_failsafe",   10);
+	u32 rr_vsync      = config->get_value<u32>("refresh_rate_vsync",      1);
+	bln rr_as_display = config->get_value<bln>("refresh_rate_as_display", true);
+	custom::application::set_refresh_rate(
+		rr_target, rr_debug, rr_failsafe, rr_vsync, rr_as_display
+	);
 }
 
 void init_client_asset_types(void);
@@ -44,7 +49,6 @@ static void on_app_init() {
 	// @Note init configs
 	u32 config_id = custom::Asset::store_string("assets/configs/client.cfg", custom::empty_index);
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
-	custom::Config_Asset const * config = config_ref.ref.get_fast();
 
 	consume_config();
 
@@ -66,6 +70,9 @@ static void on_app_init() {
 
 	u32 lua_id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
 	custom::Asset::add<Lua_Asset>(lua_id);
+
+	//
+	sandbox::ecs_init_physics();
 
 	// @Note: call Lua init
 	sandbox::lua_function(L, "global_init");

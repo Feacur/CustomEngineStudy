@@ -5,6 +5,7 @@
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/entity_system.h"
 #include "engine/impl/asset_system.h"
+#include "engine/impl/math_linear.h"
 
 #include "../asset_system/asset_types.h"
 #include "component_types.h"
@@ -139,6 +140,12 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 		switch ((parse_void(source), **source)) {
 			case 'm': ++(*source); {
 				component->movable = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 'r': ++(*source); switch (**source) {
+				case ' ':              component->rotation = (parse_void(source), parse_vec2(source)); break;
+				case 'r': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source))); break;
+				case 'd': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source)) * deg_to_rad); break;
 			} break;
 
 			case 'p': ++(*source); {
