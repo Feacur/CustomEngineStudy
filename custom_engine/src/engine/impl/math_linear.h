@@ -820,7 +820,7 @@ constexpr inline icomplex complex_conjugate(icomplex value) {
 	return {value.x, -value.y};
 }
 
-constexpr inline icomplex complex_multiply(icomplex first, icomplex second) {
+constexpr inline icomplex complex_product(icomplex first, icomplex second) {
 	return {
 		first.x * second.x - first.y * second.y,
 		first.x * second.y + first.y * second.x

@@ -20,7 +20,7 @@ function global_init_physics_test()
 	camera_component.scale = 0.08
 
 	local sphere_transform = sphere:get_component(Transform.type)
-	sphere_transform.position = vec3.new(1, 2, 0)
+	sphere_transform.position = vec3.new(1, 3, 0)
 end
 
 function global_update_physics_test()

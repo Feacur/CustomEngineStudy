@@ -78,6 +78,7 @@ void ecs_update_physics(r32 dt) {
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & physical = physicals[i];
 		physical.physical->position = physical.transform->position.xy;
+		physical.physical->scale = physical.transform->scale.xy;
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -87,7 +88,8 @@ void ecs_update_physics(r32 dt) {
 	}
 
 	for (u32 i = 0; i < physicals.count; ++i) {
-		physicals[i].transform->position.xy = physicals[i].physical->position;
+		Physical_Blob & physical = physicals[i];
+		physical.transform->position.xy = physical.physical->position;
 	}
 }
 
@@ -108,22 +110,24 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 		// @Note: for early normalization
 		axis = normalize(axis);
 
-		vec2 projection_1 = {INFINITY, -INFINITY};
+		r32 min1 = INFINITY, max1 = -INFINITY;
 		for (u32 p = 0; p < first.transformed.count; ++p) {
-			projection_1.x = min(projection_1.x, dot_product(axis, first.transformed[p]));
-			projection_1.y = max(projection_1.y, dot_product(axis, first.transformed[p]));
+			r32 projection = dot_product(axis, first.transformed[p]);
+			min1 = min(min1, projection);
+			max1 = max(max1, projection);
 		}
 
-		vec2 projection_2 = {INFINITY, -INFINITY};
+		r32 min2 = INFINITY, max2 = -INFINITY;
 		for (u32 p = 0; p < second.transformed.count; ++p) {
-			projection_2.x = min(projection_2.x, dot_product(axis, second.transformed[p]));
-			projection_2.y = max(projection_2.y, dot_product(axis, second.transformed[p]));
+			r32 projection = dot_product(axis, second.transformed[p]);
+			min2 = min(min2, projection);
+			max2 = max(max2, projection);
 		}
 
-		if (projection_1.x > projection_2.y) { return false; }
-		if (projection_2.x > projection_1.y) { return false; }
+		if (min1 > max2) { return false; }
+		if (min2 > max2) { return false; }
 
-		r32 projection_overlap = min(projection_1.y, projection_2.y) - max(projection_1.x, projection_2.x);
+		r32 projection_overlap = min(max1, max2) - max(min1, min2);
 		if (overlap > projection_overlap) {
 			overlap = projection_overlap;
 			separator = axis;
@@ -135,14 +139,13 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
 	// @Todo: broad phase; at least, global AABB for the time being
 
+	// @Todo: process in local space?
 	for (u32 i = 0; i < physicals.count; ++i) {
-		// @Todo: process in local space
-		Physical_Blob & physical = physicals[i];
-		Phys2d * phys = physical.physical;
-
-		physical.physical->transformed.count = 0;
+		Phys2d * phys = physicals[i].physical;
+		phys->transformed.count = 0;
 		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
-			phys->transformed.push(phys->points[point_i] + phys->position);
+			vec2 const p = complex_product(phys->rotation, phys->points[point_i] * phys->scale) + phys->position;
+			phys->transformed.push(p);
 		}
 	}
 
@@ -164,8 +167,7 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			// @Note: for late normalization
 			// separator = normalize(separator);
 
-			separator.x = separator.x * sign(phys_a.position.x - phys_b.position.x);
-			separator.y = separator.y * sign(phys_b.position.y - phys_a.position.y);
+			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
 			collisions.push({&phys_a, &phys_b, separator * overlap});
 		}
 	}

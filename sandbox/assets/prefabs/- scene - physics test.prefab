@@ -4,24 +4,27 @@
 	# left wall
 	p assets/prefabs/cube.prefab
 		o Transform
-			p -0.5 5 0
+			p -0.4 5 0
 			s 1 10 1
 		Phys2d
 			m 0
-			p 0.5 5
-			p 0.5 -5
-			p -0.5 -5
-			p -0.5 5
-		~
+			r 1 0 # N.B.: quat to complex is not implemented
+			p 0.5 0.5
+			p 0.5 -0.5
+			p -0.5 -0.5
+			p -0.5 0.5
+	 	~
 	# floor
 	p assets/prefabs/cube.prefab
 		o Transform
-			p 25 -0.5 0
+			p 25 -0.4 0
+			rd 0 0 -5
 			s 50 1 1
 		Phys2d
 			m 0
-			p 25 0.5
-			p 25 -0.5
-			p -25 -0.5
-			p -25 0.5
+			rd -5 # N.B.: quat to complex is not implemented
+			p 0.5 0.5
+			p 0.5 -0.5
+			p -0.5 -0.5
+			p -0.5 0.5
 		~
