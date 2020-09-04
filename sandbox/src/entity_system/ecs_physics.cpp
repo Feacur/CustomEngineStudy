@@ -79,6 +79,10 @@ void ecs_update_physics(r32 dt) {
 		Physical_Blob & physical = physicals[i];
 		physical.physical->position = physical.transform->position.xy;
 		physical.physical->scale = physical.transform->scale.xy;
+		CUSTOM_ASSERT(!quat_is_singularity(physical.transform->rotation), "verify your code");
+		physical.physical->rotation = complex_from_radians(
+			quat_get_radians_z(physical.transform->rotation)
+		);
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -90,6 +94,9 @@ void ecs_update_physics(r32 dt) {
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & physical = physicals[i];
 		physical.transform->position.xy = physical.physical->position;
+		physical.transform->rotation = quat_from_radians({
+			0, 0, complex_get_radians(physical.physical->rotation)
+		});
 	}
 }
 

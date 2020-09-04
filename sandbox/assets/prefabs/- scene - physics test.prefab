@@ -8,7 +8,6 @@
 			s 1 10 1
 		Phys2d
 			m 0
-			r 1 0 # N.B.: quat to complex is not implemented
 			p 0.5 0.5
 			p 0.5 -0.5
 			p -0.5 -0.5
@@ -22,7 +21,6 @@
 			s 50 1 1
 		Phys2d
 			m 0
-			rd -5 # N.B.: quat to complex is not implemented
 			p 0.5 0.5
 			p 0.5 -0.5
 			p -0.5 -0.5

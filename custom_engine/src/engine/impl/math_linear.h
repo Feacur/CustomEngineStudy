@@ -866,6 +866,10 @@ constexpr inline complex complex_product(complex first, complex second) {
 	};
 }
 
+inline r32 complex_get_radians(complex value) {
+	return atan2f(value.y, value.x);
+}
+
 //
 // quaternion routines
 // code assumes normalized values
@@ -1055,6 +1059,61 @@ constexpr inline vec3 quat_get_forward(quat q) {
 	return cross_product(product_axis_c, reciprocal.xyz)
 	     + product_axis_c * reciprocal.w
 	     - reciprocal.xyz * q.z;
+};
+
+// @Todo: figure the math out
+// https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/Core/Private/Math/UnrealMath.cpp
+// https://github.com/g-truc/glm/blob/master/glm/gtc/quaternion.inl
+// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+inline constexpr bool const quat_is_singularity(quat q) {
+	if (2 * absolute(q.y * q.z + q.x * q.w) <= epsilon) {
+		if (absolute((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) <= epsilon) {
+			return true;
+		}
+		if (absolute(1 - 2 * (q.x * q.x + q.y * q.y)) <= epsilon) {
+			return true;
+		}
+	}
+	if (2 * absolute(q.x * q.y + q.z * q.w) <= epsilon) {
+		if (absolute((q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z)) <= epsilon) {
+			return true;
+		}
+		if (absolute(1 - 2 * (q.y * q.y + q.z * q.z)) <= epsilon) {
+			return true;
+		}
+	}
+	if (1 - 2 * absolute(q.y * q.w - q.x * q.z) <= epsilon) {
+		return true;
+	}
+	return false;
+}
+
+inline r32 quat_get_radians_x(quat q) {
+	// if (axis_sin == 0 && axis_cos == 0) { return 2 * atan2f(q.x, q.w); }
+	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 2 * atan2f(q.x, q.w); }
+	return atan2f(
+		2 * (q.y * q.z + q.x * q.w),
+		(q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)
+		// @Note: alternatively `1 - 2 * (q.x * q.x + q.y * q.y)`?
+	);
+};
+
+inline constexpr r32 clamp(r32 value, r32 low, r32 high);
+inline r32 quat_get_radians_y(quat q) {
+	return asinf(
+		clamp(2 * (q.y * q.w - q.x * q.z), -1.0f, 1.0f)
+	);
+};
+
+inline r32 quat_get_radians_z(quat q) {
+	// if (axis_sin == 0 && axis_cos == 0) { return 0; }
+	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 0; }
+	return atan2f(
+		2 * (q.x * q.y + q.z * q.w),
+		(q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z)
+		// @Note: alternatively `1 - 2 * (q.y * q.y + q.z * q.z)`?
+	);
 };
 
 //
