@@ -107,10 +107,6 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 
 	component->mesh = {custom::empty_ref, custom::empty_index};
 	component->internal_data = phys2d_add_data();
-
-	component->transformed.data     = NULL;
-	component->transformed.capacity = 0;
-	component->transformed.count    = 0;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {

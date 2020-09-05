@@ -10,21 +10,6 @@
 
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
 
-// constexpr static bool collide(aabb2 first, aabb2 second) {
-// 	vec2 position = first.position - second.position;
-// 	vec2 size = first.extents + second.extents;
-// 	return position.x <= size.x && position.y <= size.y
-// 	    && position.x >= -size.x && position.y >= -size.y;
-// }
-
-struct Physical_Blob {
-	custom::Entity   entity;
-	Phys2d         * physical;
-	Transform      * transform;
-};
-
-void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
-
 //
 //
 //
@@ -33,17 +18,42 @@ struct Phys2d_Internal {
 	vec2 position;
 	vec2 scale;
 	complex rotation;
+	custom::Collider2d_Asset * mesh;
+	r32 movable;
 	custom::Array<vec2> buffer;
 };
-template<> struct custom::RefT<Phys2d_Internal>;
+custom::Ref_PoolT<Phys2d_Internal> custom::RefT<Phys2d_Internal>::pool;
 
 custom::Ref phys2d_add_data(void) {
-	return custom::empty_ref;
+	typedef custom::RefT<Phys2d_Internal> RefT;
+	RefT refT = RefT::pool.create();
+	Phys2d_Internal * internal = refT.get_fast();
+
+	internal->buffer.data     = NULL;
+	internal->buffer.capacity = 0;
+	internal->buffer.count    = 0;
+
+	return refT;
 }
 
 void phys2d_rem_data(custom::Ref ref) {
+	typedef custom::RefT<Phys2d_Internal> RefT;
+	RefT refT = {ref};
+	Phys2d_Internal * internal = refT.get_fast();
 
+	internal->buffer.~Array();
+
+	RefT::pool.destroy(ref);
 }
+
+struct Physical_Blob {
+	custom::Entity    entity;
+	Phys2d          * phys2d;
+	Transform       * transform;
+	Phys2d_Internal * internal;
+};
+
+void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
 
 //
 //
@@ -71,6 +81,7 @@ static void consume_config(void) {
 }
 
 void ecs_update_physics(r32 dt) {
+	typedef custom::RefT<Phys2d_Internal> RefT;
 	consume_config();
 
 	CUSTOM_ASSERT(physics_rate_target, "zero frequency");
@@ -82,28 +93,33 @@ void ecs_update_physics(r32 dt) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
-		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
-		if (!physical) { continue; }
+		Phys2d * phys2d = entity.get_component<Phys2d>().get_safe();
+		if (!phys2d) { continue; }
+		if (!phys2d->mesh.exists()) { CUSTOM_ASSERT(false, "no mesh data"); continue; }
+
+		RefT refT = {phys2d->internal_data};
+		Phys2d_Internal * internal = refT.get_safe();
+		if (!internal) { CUSTOM_ASSERT(false, "no internal data"); continue; }
 
 		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
 
 		physicals.push();
 		Physical_Blob * blob = physicals.data + (physicals.count - 1);
-		blob->entity = entity;
-		blob->physical = physical;
-		blob->transform = transform;
+		*blob = {entity, phys2d, transform, internal};
 	}
 
 	//
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & physical = physicals[i];
-		physical.physical->position = physical.transform->position.xy;
-		physical.physical->scale = physical.transform->scale.xy;
+		physical.internal->position = physical.transform->position.xy;
+		physical.internal->scale = physical.transform->scale.xy;
 		CUSTOM_ASSERT(!quat_is_singularity(physical.transform->rotation), "verify your code");
-		physical.physical->rotation = complex_from_radians(
+		physical.internal->rotation = complex_from_radians(
 			quat_get_radians_z(physical.transform->rotation)
 		);
+		physical.internal->mesh = physical.phys2d->mesh.ref.get_fast();
+		physical.internal->movable = physical.phys2d->movable;
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -114,9 +130,9 @@ void ecs_update_physics(r32 dt) {
 
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & physical = physicals[i];
-		physical.transform->position.xy = physical.physical->position;
+		physical.transform->position.xy = physical.internal->position;
 		physical.transform->rotation = quat_from_radians({
-			0, 0, complex_get_radians(physical.physical->rotation)
+			0, 0, complex_get_radians(physical.internal->rotation)
 		});
 	}
 }
@@ -127,10 +143,17 @@ void ecs_update_physics(r32 dt) {
 //
 //
 
-static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overlap, vec2 & separator) {
-	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
-		u32 axis_i_2 = (axis_i + 1) % first.transformed.count;
-		vec2 axis = first.transformed[axis_i_2] - first.transformed[axis_i];
+// constexpr static bool collide(aabb2 first, aabb2 second) {
+// 	vec2 position = first.position - second.position;
+// 	vec2 size = first.extents + second.extents;
+// 	return position.x <= size.x && position.y <= size.y
+// 	    && position.x >= -size.x && position.y >= -size.y;
+// }
+
+static bool overlap_sat(Phys2d_Internal const & first, Phys2d_Internal const & second, r32 & overlap, vec2 & separator) {
+	for (u32 axis_i = 0; axis_i < first.buffer.count; ++axis_i) {
+		u32 axis_i_2 = (axis_i + 1) % first.buffer.count;
+		vec2 axis = first.buffer[axis_i_2] - first.buffer[axis_i];
 
 		// @Note: turn 90 degrees clockwise
 		axis = {-axis.y, axis.x};
@@ -139,15 +162,15 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 		axis = normalize(axis);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
-		for (u32 p = 0; p < first.transformed.count; ++p) {
-			r32 projection = dot_product(axis, first.transformed[p]);
+		for (u32 p = 0; p < first.buffer.count; ++p) {
+			r32 projection = dot_product(axis, first.buffer[p]);
 			min1 = min(min1, projection);
 			max1 = max(max1, projection);
 		}
 
 		r32 min2 = INFINITY, max2 = -INFINITY;
-		for (u32 p = 0; p < second.transformed.count; ++p) {
-			r32 projection = dot_product(axis, second.transformed[p]);
+		for (u32 p = 0; p < second.buffer.count; ++p) {
+			r32 projection = dot_product(axis, second.buffer[p]);
 			min2 = min(min2, projection);
 			max2 = max(max2, projection);
 		}
@@ -171,27 +194,28 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	//        - until then, apply whole hierarchy transform?
 	//        - allow only local space?
 	for (u32 i = 0; i < physicals.count; ++i) {
-		Phys2d * phys = physicals[i].physical;
-		custom::Collider2d_Asset * mesh = phys->mesh.ref.get_safe();
+		Phys2d_Internal * phys = physicals[i].internal;
+		custom::Array<vec2> & mesh_points = phys->mesh->buffer;
 
-		phys->transformed.count = 0;
-		for (u32 point_i = 0; point_i < mesh->buffer.count; ++point_i) {
-			vec2 const p = complex_product(phys->rotation, mesh->buffer[point_i] * phys->scale) + phys->position;
-			phys->transformed.push(p);
+		phys->buffer.count = 0;
+		for (u32 point_i = 0; point_i < mesh_points.count; ++point_i) {
+			vec2 const p = complex_product(phys->rotation, mesh_points[point_i] * phys->scale) + phys->position;
+			phys->buffer.push(p);
 		}
 	}
 
 	vec2 gravity = {0, 9.81f};
 	for (u32 i = 0; i < physicals.count; ++i) {
-		physicals[i].physical->position -= gravity * (physicals[i].physical->movable * dt);
+		Phys2d_Internal * phys = physicals[i].internal;
+		phys->position -= gravity * (physicals[i].internal->movable * dt);
 	}
 
-	struct Collision { Phys2d * phys_a, * phys_b; vec2 separator; };
+	struct Collision { Phys2d_Internal * phys_a, * phys_b; vec2 separator; };
 	custom::Array<Collision> collisions(physicals.count);
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
-		Phys2d & phys_a = *physicals[ai].physical;
+		Phys2d_Internal & phys_a = *physicals[ai].internal;
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
-			Phys2d & phys_b = *physicals[bi].physical;
+			Phys2d_Internal & phys_b = *physicals[bi].internal;
 			r32 overlap = INFINITY; vec2 separator;
 			if (!overlap_sat(phys_a, phys_b, overlap, separator)) { continue; }
 			if (!overlap_sat(phys_b, phys_a, overlap, separator)) { continue; }

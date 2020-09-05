@@ -45,7 +45,7 @@ namespace custom {
 
 template<typename T>
 Asset_RefT<T> Asset::add(u32 resource) {
-	return {add(Asset_Registry<T>::type, resource)};
+	return {add(Asset_Registry<T>::type, resource), resource};
 }
 
 template<typename T>
@@ -55,7 +55,7 @@ void Asset::rem(u32 resource) {
 
 template<typename T>
 Asset_RefT<T> Asset::get(u32 resource) {
-	return {get(Asset_Registry<T>::type, resource)};
+	return {get(Asset_Registry<T>::type, resource), resource};
 }
 
 template<typename T>
