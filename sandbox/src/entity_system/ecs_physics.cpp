@@ -151,9 +151,11 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	//        - allow only local space?
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Phys2d * phys = physicals[i].physical;
+		custom::Collider2d_Asset * mesh = phys->mesh.ref.get_safe();
+
 		phys->transformed.count = 0;
-		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
-			vec2 const p = complex_product(phys->rotation, phys->points[point_i] * phys->scale) + phys->position;
+		for (u32 point_i = 0; point_i < mesh->buffer.count; ++point_i) {
+			vec2 const p = complex_product(phys->rotation, mesh->buffer[point_i] * phys->scale) + phys->position;
 			phys->transformed.push(p);
 		}
 	}

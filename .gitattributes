@@ -17,11 +17,12 @@
 *.bat text eol=crlf
 
 # assets
-*.lua    text diff=cpp
-*.glsl   text diff=cpp
-*.prefab text
-*.png    binary
-**/assets/meshes/*.obj text -binary
+*.lua      text diff=cpp
+*.glsl     text diff=cpp
+*.prefab   text
+*.collider text
+*.png      binary
+**/assets/**/*.obj text -binary
 
 # @Todo:
 #        - force `eol=lf` for textual assets?

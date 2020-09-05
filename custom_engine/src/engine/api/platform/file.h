@@ -3,11 +3,6 @@
 #include "engine/api/internal/strings_storage.h"
 
 namespace custom {
-	// @Forward
-	template<typename T> struct Array;
-}
-
-namespace custom {
 namespace file {
 
 enum struct Action_Type : u8 {None, Add, Rem, Mod, Old, New};

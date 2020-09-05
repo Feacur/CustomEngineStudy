@@ -7,11 +7,8 @@
 			p -0.4 5 0
 			s 1 10 1
 		Phys2d
+			c assets/meshes/square_1.collider
 			m 0
-			p 0.5 0.5
-			p 0.5 -0.5
-			p -0.5 -0.5
-			p -0.5 0.5
 	 	~
 	# floor
 	p assets/prefabs/cube.prefab
@@ -20,9 +17,6 @@
 			rd 0 0 -5
 			s 50 1 1
 		Phys2d
+			c assets/meshes/square_1.collider
 			m 0
-			p 0.5 0.5
-			p 0.5 -0.5
-			p -0.5 -0.5
-			p -0.5 0.5
 		~
