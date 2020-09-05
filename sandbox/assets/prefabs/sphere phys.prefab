@@ -3,7 +3,7 @@
 Phys2d
 	c assets/meshes/rhombus_1.collider
 	d 1
-	r 1.5
+	r 0.5
 Lua_Script
 	a assets/scripts/script_control_2d.lua
 	u script_control_2d

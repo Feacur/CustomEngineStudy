@@ -258,7 +258,7 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 
 	for (u32 i = 0; i < collisions.count; ++i) {
 		vec2 normal = collisions[i].normal;
-		collisions[i].phys_a->velocity = reflect(collisions[i].phys_a->velocity, normal, collisions[i].phys_a->restitution);
-		collisions[i].phys_b->velocity = reflect(collisions[i].phys_b->velocity, -normal, collisions[i].phys_b->restitution);
+		collisions[i].phys_a->velocity = reflect(collisions[i].phys_a->velocity, normal,  1 + collisions[i].phys_a->restitution);
+		collisions[i].phys_b->velocity = reflect(collisions[i].phys_b->velocity, -normal, 1 + collisions[i].phys_b->restitution);
 	}
 }
