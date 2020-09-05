@@ -192,6 +192,12 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 }
 
 void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
+	vec2 const global_gravity = settings.gravity;
+	for (u32 i = 0; i < physicals.count; ++i) {
+		Physical_Blob & phys = physicals[i];
+		phys.position += global_gravity * (phys.movable * dt);
+	}
+
 	// @Todo: broad phase; at least, global AABB for the time being
 
 	// @Todo: process in local space?
@@ -212,12 +218,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			vec2 const p = complex_product(phys.rotation, mesh_points[point_i] * phys.scale) + phys.position;
 			transformed_points_buffer.push(p);
 		}
-	}
-
-	vec2 const global_gravity = settings.gravity;
-	for (u32 i = 0; i < physicals.count; ++i) {
-		Physical_Blob & phys = physicals[i];
-		phys.position += global_gravity * (phys.movable * dt);
 	}
 
 	custom::Array<Collision> collisions(physicals.count);
