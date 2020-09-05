@@ -88,6 +88,12 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_update_lua(L, dt);
 	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();
+
+	if (custom::application::get_key(custom::Key_Code::Alt)) {
+		if (custom::application::get_key(custom::Key_Code::F4)) {
+			custom::system::should_close = true;
+		}
+	}
 }
 
 int main(int argc, char * argv[]) {
