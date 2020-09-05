@@ -16,8 +16,6 @@
 //        - proactively bind textures pending to rendering
 //        - batch and rebind if running out of slots/units
 
-namespace sandbox {
-
 struct Renderer_Blob {
 	custom::Entity    entity;
 	Transform const * transform;
@@ -30,7 +28,53 @@ struct Renderable_Blob {
 	Visual const    * visual;
 };
 
+void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables);
+
+//
+//
+//
+
+namespace sandbox {
+
 void ecs_update_renderer(void) {
+	custom::Array<Renderer_Blob> renderers(8);
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::instances[i];
+		if (!entity.exists()) { continue; }
+
+		Transform const * transform = entity.get_component<Transform>().get_safe();
+		if (!transform) { continue; }
+
+		Camera const * camera = entity.get_component<Camera>().get_safe();
+		if (!camera) { continue; }
+
+		renderers.push({entity, transform, camera});
+	}
+
+	custom::Array<Renderable_Blob> renderables(custom::Entity::instances.count);
+	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
+		custom::Entity entity = custom::Entity::instances[i];
+		if (!entity.exists()) { continue; }
+
+		Transform const * transform = entity.get_component<Transform>().get_safe();
+		if (!transform) { continue; }
+
+		Visual const * visual = entity.get_component<Visual>().get_safe();
+		if (!visual) { continue; }
+
+		renderables.push({entity, transform, visual});
+	}
+
+	ecs_update_renderer_internal(renderers, renderables);
+}
+
+}
+
+//
+//
+//
+
+void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables) {
 	static u32 const u_Resolution      = custom::uniform_names.store_string("u_Resolution", custom::empty_index);
 	static u32 const u_View_Projection = custom::uniform_names.store_string("u_View_Projection", custom::empty_index);
 	static u32 const u_Transform       = custom::uniform_names.store_string("u_Transform", custom::empty_index);
@@ -44,46 +88,22 @@ void ecs_update_renderer(void) {
 	// @Todo: global shaders data
 	// custom::renderer::set_uniform(shader, u_Resolution, viewport_size);
 
-	// custom::Array<Hierarchy::Link> children(4);
+	//
+	// prepare renderers
+	//
 
-	// @Note: fetch renderers
 	u32 renderer_ids_limit = 0;
-	custom::Array<Renderer_Blob> renderers(8);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
-		if (!entity.exists()) { continue; }
-
-		Transform const * transform = entity.get_component<Transform>().get_safe();
-		if (!transform) { continue; }
-
-		Camera const * camera = entity.get_component<Camera>().get_safe();
-		if (!camera) { continue; }
-
-		renderers.push({entity, transform, camera});
-		renderer_ids_limit = max(renderer_ids_limit, entity.id);
+	for (u32 i = 0; i < renderers.count; ++i) {
+		renderer_ids_limit = max(renderer_ids_limit, renderers[i].entity.id);
 	}
 
-	// @Todo: revisit nesting; optimize matrices cache
 	custom::Array<mat4> renderer_locals(renderer_ids_limit + 1);
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob & renderer = renderers[i];
 		renderer_locals.get(renderer.entity.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
 	}
 
-	// for (u32 i = 0; i < renderers.count; ++i) {
-	// 	Renderer_Blob & renderer = renderers[i];
-	//
-	// 	children.count = 0;
-	// 	Hierarchy::fetch_children(renderer.entity, children);
-	// 	if (children.count == 0) { continue; }
-	//
-	// 	mat4 const & mat4_parent = renderer_locals.get(renderer.entity.id);
-	// 	for (u32 ci = 0; ci < children.count; ++ci) {
-	// 		custom::Entity child = children[ci].entity;
-	// 		renderer_locals.get(child.id) = mat_product(renderer_locals.get(child.id), mat4_parent);
-	// 	}
-	// }
-
+	// @Todo: revisit nesting
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob const & renderer = renderers[i];
 
@@ -104,44 +124,22 @@ void ecs_update_renderer(void) {
 		return (a->camera->layer > b->camera->layer) - (a->camera->layer < b->camera->layer);
 	});
 
-	// @Note: fetch renderables
+	//
+	// prepare renderables
+	//
+
 	u32 renderable_ids_limit = 0;
-	custom::Array<Renderable_Blob> renderables(custom::Entity::instances.count);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
-		if (!entity.exists()) { continue; }
-
-		Transform const * transform = entity.get_component<Transform>().get_safe();
-		if (!transform) { continue; }
-
-		Visual const * visual = entity.get_component<Visual>().get_safe();
-		if (!visual) { continue; }
-
-		renderables.push({entity, transform, visual});
-		renderable_ids_limit = max(renderable_ids_limit, entity.id);
+	for (u32 i = 0; i < renderables.count; ++i) {
+		renderable_ids_limit = max(renderable_ids_limit, renderables[i].entity.id);
 	}
 
-	// @Todo: revisit nesting; optimize matrices cache
 	custom::Array<mat4> renderable_locals(renderable_ids_limit + 1);
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob & renderable = renderables[i];
 		renderable_locals.get(renderable.entity.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
 	}
 
-	// for (u32 i = 0; i < renderables.count; ++i) {
-	// 	Renderable_Blob & renderable = renderables[i];
-	//
-	// 	children.count = 0;
-	// 	Hierarchy::fetch_children(renderable.entity, children);
-	// 	if (children.count == 0) { continue; }
-	//
-	// 	mat4 const & mat4_parent = renderable_locals.get(renderable.entity.id);
-	// 	for (u32 ci = 0; ci < children.count; ++ci) {
-	// 		custom::Entity child = children[ci].entity;
-	// 		renderable_locals.get(child.id) = mat_product(renderable_locals.get(child.id), mat4_parent);
-	// 	}
-	// }
-
+	// @Todo: revisit nesting
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob const & renderable = renderables[i];
 
@@ -162,7 +160,10 @@ void ecs_update_renderer(void) {
 		return (a->visual->layer > b->visual->layer) - (a->visual->layer < b->visual->layer);
 	});
 
-	// @Note: iterate renderers and renderables
+	//
+	// render
+	//
+
 	u32 renderable_i = 0;
 	custom::Array<Renderable_Blob> relevant_renderables(renderables.count);
 	for (u32 camera_i = 0; camera_i < renderers.count; ++camera_i) {
@@ -213,6 +214,4 @@ void ecs_update_renderer(void) {
 			custom::renderer::draw();
 		}
 	}
-}
-
 }

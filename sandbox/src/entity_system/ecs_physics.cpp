@@ -26,6 +26,18 @@ struct Physical_Blob {
 	r32 movable;
 };
 
+struct Points_Blob {
+	u32 offset, count;
+};
+
+struct Collision {
+	Physical_Blob * phys_a, * phys_b;
+	vec2 separator;
+};
+
+static custom::Array<Points_Blob> transformed_points;
+static custom::Array<vec2>        transformed_points_buffer;
+
 void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
 
 //
@@ -65,13 +77,13 @@ void ecs_update_physics(r32 dt) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
-		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
-		if (!physical) { continue; }
-		if (!physical->mesh.exists()) { CUSTOM_ASSERT(false, "no mesh data"); continue; }
-
 		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
 		CUSTOM_ASSERT(!quat_is_singularity(transform->rotation), "verify your code");
+
+		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
+		if (!physical) { continue; }
+		if (!physical->mesh.exists()) { CUSTOM_ASSERT(false, "no mesh data"); continue; }
 
 		entities.push({entity, transform, physical});
 	}
@@ -126,13 +138,6 @@ void ecs_update_physics(r32 dt) {
 // 	return position.x <= size.x && position.y <= size.y
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
-
-struct Points_Blob {
-	u32 offset, count;
-};
-
-static custom::Array<Points_Blob> transformed_points;
-static custom::Array<vec2>        transformed_points_buffer;
 
 static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator) {
 	vec2 const * first_points = transformed_points_buffer.data + transformed_points[first_i].offset;
@@ -206,7 +211,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		phys.position -= gravity * (phys.movable * dt);
 	}
 
-	struct Collision { Physical_Blob * phys_a, * phys_b; vec2 separator; };
 	custom::Array<Collision> collisions(physicals.count);
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
 		Physical_Blob & phys_a = physicals[ai];
