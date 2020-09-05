@@ -35,6 +35,12 @@ struct Collision {
 	vec2 separator;
 };
 
+struct Physics_Settings {
+	u32  frequency = 50;
+	vec2 gravity   = {0, -9.81f};
+};
+
+static Physics_Settings settings;
 static custom::Array<Points_Blob> transformed_points;
 static custom::Array<vec2>        transformed_points_buffer;
 
@@ -52,9 +58,8 @@ void ecs_init_physics(void) {
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 }
 
-static u32 physics_rate_target   = 50;
 static void consume_config(void) {
-	static u32 version = custom::empty_index;
+	u32 version = custom::empty_index;
 
 	custom::Config_Asset const * config = config_ref.ref.get_safe();
 	CUSTOM_ASSERT(config, "no config");
@@ -62,14 +67,18 @@ static void consume_config(void) {
 	if (version == config->version) { return; }
 	version = config->version;
 
-	physics_rate_target = config->get_value<u32>("physics_rate_target", 50);
+	settings.frequency = config->get_value<u32>("physics_frequency", 50);
+	settings.gravity   = {
+		config->get_value<r32>("physics_gravity_x", 0),
+		config->get_value<r32>("physics_gravity_y", -9.81f),
+	};
 }
 
 void ecs_update_physics(r32 dt) {
 	consume_config();
 
-	CUSTOM_ASSERT(physics_rate_target, "zero frequency");
-	r32 period = 1.0f / physics_rate_target;
+	CUSTOM_ASSERT(settings.frequency, "zero frequency");
+	r32 period = 1.0f / settings.frequency;
 
 	//
 	custom::Array<Entity_Blob> entities(8);
@@ -205,10 +214,10 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		}
 	}
 
-	vec2 gravity = {0, 9.81f};
+	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
-		phys.position -= gravity * (phys.movable * dt);
+		phys.position += global_gravity * (phys.movable * dt);
 	}
 
 	custom::Array<Collision> collisions(physicals.count);
