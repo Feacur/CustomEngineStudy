@@ -9,19 +9,20 @@ namespace custom {
 
 struct Transform
 {
-	vec3 position;
-	vec3 scale;
-	quat rotation;
+	vec3 position = {0, 0, 0};
+	vec3 scale    = {1, 1, 1};
+	quat rotation = {0, 0, 0, 1};
 };
 
 struct Camera
 {
-	r32 near;
-	r32 far;
-	r32 scale;
-	r32 ortho;
-	custom::graphics::Clear_Flag clear;
-	u8 layer;
+	typedef custom::graphics::Clear_Flag Clear_Flag;
+	r32 near  = 0.1f;
+	r32 far   = 100;
+	r32 scale = 1;
+	r32 ortho = 0;
+	Clear_Flag clear = Clear_Flag::Color | Clear_Flag::Depth;
+	u8 layer = 0;
 };
 
 struct Hierarchy {
@@ -38,12 +39,7 @@ struct Hierarchy {
 
 // struct Transform2d
 // {
-// 	vec2 position;
-// 	vec2 scale;
-// 	complex rotation;
-// };
-
-// struct Camera2d
-// {
-// 	mat3 projection;
+// 	vec2    position = {0, 0};
+// 	vec2    scale    = {1, 1};
+// 	complex rotation = {1, 0};
 // };

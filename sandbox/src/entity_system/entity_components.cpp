@@ -6,8 +6,6 @@
 
 #include "component_types.h"
 
-#include <new>
-
 //
 // Visual
 //
@@ -25,16 +23,14 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 	Visual * component = refT.get_fast();
 
-	new (component) Visual;
-}
-
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
-	RefT<Visual> & refT = (RefT<Visual> &)ref;
-	Visual * component = refT.get_fast();
-
 	component->shader  = {custom::empty_ref, custom::empty_index};
 	component->texture = {custom::empty_ref, custom::empty_index};
 	component->mesh    = {custom::empty_ref, custom::empty_index};
+}
+
+template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
+	// RefT<Visual> & refT = (RefT<Visual> &)ref;
+	// Visual * component = refT.get_fast();
 }
 
 }
@@ -60,10 +56,8 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Lua_Script>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
-	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
-	Lua_Script * component = refT.get_fast();
-
-	component->update_string_id = custom::empty_index;
+	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
+	// Lua_Script * component = refT.get_fast();
 }
 
 }
@@ -95,6 +89,9 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Physical>) {
 // Phys2d
 //
 
+extern custom::Ref phys2d_add_data(void);
+extern void phys2d_rem_data(custom::Ref ref);
+
 namespace custom {
 
 template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Phys2d>) {
@@ -108,14 +105,19 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 	Phys2d * component = refT.get_fast();
 
-	new (component) Phys2d;
+	component->mesh = {custom::empty_ref, custom::empty_index};
+	component->internal_data = phys2d_add_data();
+
+	component->transformed.data     = NULL;
+	component->transformed.capacity = 0;
+	component->transformed.count    = 0;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 	Phys2d * component = refT.get_fast();
 
-	component->transformed.~Array();
+	phys2d_rem_data(component->internal_data);
 }
 
 }

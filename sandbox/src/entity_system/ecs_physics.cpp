@@ -3,6 +3,7 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
+#include "engine/impl/reference.h"
 #include "engine/impl/math_linear.h"
 
 #include "component_types.h"
@@ -23,6 +24,26 @@ struct Physical_Blob {
 };
 
 void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
+
+//
+//
+//
+
+struct Phys2d_Internal {
+	vec2 position;
+	vec2 scale;
+	complex rotation;
+	custom::Array<vec2> buffer;
+};
+template<> struct custom::RefT<Phys2d_Internal>;
+
+custom::Ref phys2d_add_data(void) {
+	return custom::empty_ref;
+}
+
+void phys2d_rem_data(custom::Ref ref) {
+
+}
 
 //
 //

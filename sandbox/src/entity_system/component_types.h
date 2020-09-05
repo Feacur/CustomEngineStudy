@@ -36,6 +36,7 @@ struct Phys2d
 	vec2 scale;
 	complex rotation;
 	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
+	custom::Ref internal_data;
 	custom::Array<vec2> transformed;
 	r32 movable;
 };
