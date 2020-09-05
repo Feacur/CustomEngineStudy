@@ -5,5 +5,5 @@ Phys2d
 	d 1
 	r 0.5
 Lua_Script
-	a assets/scripts/script_control_2d.lua
-	u script_control_2d
+	a assets/scripts/script_control_phys2d.lua
+	u script_control_phys2d

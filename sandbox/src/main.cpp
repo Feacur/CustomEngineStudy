@@ -57,6 +57,7 @@ static void on_app_init() {
 	// @Note: init Lua
 	L = luaL_newstate();
 	init_client_loader(L);
+	custom::lua::init_debug(L);
 	custom::lua::init_input(L);
 	custom::lua::init_graphics_params(L);
 	custom::lua::init_math_linear(L);

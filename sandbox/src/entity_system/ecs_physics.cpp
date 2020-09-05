@@ -93,12 +93,12 @@ void ecs_update_physics(r32 dt) {
 
 		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
-		CUSTOM_ASSERT(!quat_is_singularity(transform->rotation), "verify your code");
 
 		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
 		if (!physical) { continue; }
 		if (!physical->mesh.exists()) { CUSTOM_ASSERT(false, "no mesh data"); continue; }
 
+		CUSTOM_ASSERT(!quat_is_singularity(transform->rotation), "verify your code");
 		entities.push({entity, transform, physical});
 	}
 
