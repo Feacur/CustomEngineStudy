@@ -5,8 +5,6 @@
 #include "engine/api/internal/component_types.h"
 #include "engine/impl/entity_system.h"
 
-#include <new>
-
 //
 // Entity
 //
@@ -59,11 +57,17 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Transform>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Transform>) {
-	// RefT<Transform> & refT = (RefT<Transform> &)ref;
+	RefT<Transform> & refT = (RefT<Transform> &)ref;
+	Transform * component = refT.get_fast();
+
+	component->position = {0, 0, 0};
+	component->scale    = {1, 1, 1};
+	component->rotation = {0, 0, 0, 1};
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Transform>) {
 	// RefT<Transform> & refT = (RefT<Transform> &)ref;
+	// Transform * component = refT.get_fast();
 }
 
 }
@@ -82,11 +86,20 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Camera>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Camera>) {
-	// RefT<Camera> & refT = (RefT<Camera> &)ref;
+	RefT<Camera> & refT = (RefT<Camera> &)ref;
+	Camera * component = refT.get_fast();
+
+	component->near  = 0.1f;
+	component->far   = 100;
+	component->scale = 1;
+	component->ortho = 0;
+	component->clear = Camera::Clear_Flag::Color | Camera::Clear_Flag::Depth;
+	component->layer = 0;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Camera>) {
 	// RefT<Camera> & refT = (RefT<Camera> &)ref;
+	// Camera * component = refT.get_fast();
 }
 
 }
@@ -111,7 +124,10 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_load<Hierarchy>) {
-	// RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
+	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
+	Hierarchy * component = refT.get_fast();
+
+	component->parent = {custom::empty_ref};
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Hierarchy>) {
@@ -119,10 +135,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Hierarchy>) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 	Hierarchy * component = refT.get_fast();
 
-	Entity parent = component->parent;
-	component->parent = {custom::empty_ref};
-
-	Hierarchy::rem_parent(entity, parent);
+	Hierarchy::rem_parent(entity, component->parent);
 }
 
 }

@@ -47,13 +47,15 @@ struct Mesh_Asset {
 
 	void update(Array<u8> & file);
 
-	~Mesh_Asset() {
-		for (u32 i = 0; i < buffers.count; ++i) {
-			buffers[i].attributes.~Array();
-			buffers[i].buffer.~Array();
-		}
-		buffers.~Array();
-	}
+	~Mesh_Asset(); // @Note: array is POD and doesn't call elements' destructor
+};
+
+struct Collider2d_Asset {
+	Array<vec2> points;
+
+	void update(Array<u8> & file);
+
+	~Collider2d_Asset() = default;
 };
 
 struct Prefab_Asset {
@@ -82,6 +84,8 @@ struct Config_Asset {
 	template<typename T> T get_value(cstring key, T default_value) const;
 
 	void update(Array<u8> & file);
+
+	~Config_Asset() = default;
 };
 
 }

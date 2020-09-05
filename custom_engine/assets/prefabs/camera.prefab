@@ -1,8 +1,8 @@
 ! # entity
 Transform
 	p 0 0 0
-	r 0 0 0 1
 	s 1 1 1
+	r 0 0 0 1
 Camera
 	n 0.1
 	f 100

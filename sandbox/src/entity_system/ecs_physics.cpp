@@ -3,23 +3,27 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/impl/array.h"
+#include "engine/impl/reference.h"
 #include "engine/impl/math_linear.h"
 
 #include "component_types.h"
 
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
 
-// constexpr static bool collide(aabb2 first, aabb2 second) {
-// 	vec2 position = first.position - second.position;
-// 	vec2 size = first.extents + second.extents;
-// 	return position.x <= size.x && position.y <= size.y
-// 	    && position.x >= -size.x && position.y >= -size.y;
-// }
+struct Entity_Blob {
+	custom::Entity   entity;
+	Transform      * transform;
+	Phys2d         * physical;
+};
 
 struct Physical_Blob {
-	custom::Entity   entity;
-	Phys2d         * physical;
-	Transform      * transform;
+	// Transform
+	vec2 position;
+	vec2 scale;
+	complex rotation;
+	// Phys2d
+	custom::Collider2d_Asset * mesh;
+	r32 movable;
 };
 
 void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
@@ -56,33 +60,40 @@ void ecs_update_physics(r32 dt) {
 	r32 period = 1.0f / physics_rate_target;
 
 	//
-	custom::Array<Physical_Blob> physicals(8);
+	custom::Array<Entity_Blob> entities(8);
 	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
 		custom::Entity entity = custom::Entity::instances[i];
 		if (!entity.exists()) { continue; }
 
 		Phys2d * physical = entity.get_component<Phys2d>().get_safe();
 		if (!physical) { continue; }
+		if (!physical->mesh.exists()) { CUSTOM_ASSERT(false, "no mesh data"); continue; }
 
 		Transform * transform = entity.get_component<Transform>().get_safe();
 		if (!transform) { continue; }
+		CUSTOM_ASSERT(!quat_is_singularity(transform->rotation), "verify your code");
 
-		physicals.push();
-		Physical_Blob * blob = physicals.data + (physicals.count - 1);
-		blob->entity = entity;
-		blob->physical = physical;
-		blob->transform = transform;
+		entities.push({entity, transform, physical});
 	}
 
 	//
-	for (u32 i = 0; i < physicals.count; ++i) {
-		Physical_Blob & physical = physicals[i];
-		physical.physical->position = physical.transform->position.xy;
-		physical.physical->scale = physical.transform->scale.xy;
-		CUSTOM_ASSERT(!quat_is_singularity(physical.transform->rotation), "verify your code");
-		physical.physical->rotation = complex_from_radians(
-			quat_get_radians_z(physical.transform->rotation)
+	custom::Array<Physical_Blob> physicals(entities.count);
+	for (u32 i = 0; i < entities.count; ++i) {
+		Entity_Blob const & entity = entities[i];
+
+		physicals.push();
+		Physical_Blob * blob = physicals.data + (physicals.count - 1);
+
+		//
+		blob->position = entity.transform->position.xy;
+		blob->scale    = entity.transform->scale.xy;
+		blob->rotation = complex_from_radians(
+			quat_get_radians_z(entity.transform->rotation)
 		);
+
+		//
+		blob->mesh    = entity.physical->mesh.ref.get_fast();
+		blob->movable = entity.physical->movable;
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -91,12 +102,15 @@ void ecs_update_physics(r32 dt) {
 		ecs_update_physics_iteration(period, physicals);
 	}
 
-	for (u32 i = 0; i < physicals.count; ++i) {
-		Physical_Blob & physical = physicals[i];
-		physical.transform->position.xy = physical.physical->position;
-		physical.transform->rotation = quat_from_radians({
-			0, 0, complex_get_radians(physical.physical->rotation)
+	for (u32 i = 0; i < entities.count; ++i) {
+		Physical_Blob const & physical = physicals[i];
+		Entity_Blob         & entity   = entities[i];
+		//
+		entity.transform->position.xy = physical.position;
+		entity.transform->rotation = quat_from_radians({
+			0, 0, complex_get_radians(physical.rotation)
 		});
+		//
 	}
 }
 
@@ -106,10 +120,30 @@ void ecs_update_physics(r32 dt) {
 //
 //
 
-static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overlap, vec2 & separator) {
-	for (u32 axis_i = 0; axis_i < first.transformed.count; ++axis_i) {
-		u32 axis_i_2 = (axis_i + 1) % first.transformed.count;
-		vec2 axis = first.transformed[axis_i_2] - first.transformed[axis_i];
+// constexpr static bool collide(aabb2 first, aabb2 second) {
+// 	vec2 position = first.position - second.position;
+// 	vec2 size = first.extents + second.extents;
+// 	return position.x <= size.x && position.y <= size.y
+// 	    && position.x >= -size.x && position.y >= -size.y;
+// }
+
+struct Points_Blob {
+	u32 offset, count;
+};
+
+static custom::Array<Points_Blob> transformed_points;
+static custom::Array<vec2>        transformed_points_buffer;
+
+static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator) {
+	vec2 const * first_points = transformed_points_buffer.data + transformed_points[first_i].offset;
+	u32 const    first_points_count = transformed_points[first_i].count;
+
+	vec2 const * second_points = transformed_points_buffer.data + transformed_points[second_i].offset;
+	u32 const    second_points_count = transformed_points[second_i].count;
+
+	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
+		u32 axis_i_2 = (axis_i + 1) % first_points_count;
+		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
 
 		// @Note: turn 90 degrees clockwise
 		axis = {-axis.y, axis.x};
@@ -118,15 +152,15 @@ static bool overlap_sat(Phys2d const & first, Phys2d const & second, r32 & overl
 		axis = normalize(axis);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
-		for (u32 p = 0; p < first.transformed.count; ++p) {
-			r32 projection = dot_product(axis, first.transformed[p]);
+		for (u32 p = 0; p < first_points_count; ++p) {
+			r32 projection = dot_product(axis, first_points[p]);
 			min1 = min(min1, projection);
 			max1 = max(max1, projection);
 		}
 
 		r32 min2 = INFINITY, max2 = -INFINITY;
-		for (u32 p = 0; p < second.transformed.count; ++p) {
-			r32 projection = dot_product(axis, second.transformed[p]);
+		for (u32 p = 0; p < second_points_count; ++p) {
+			r32 projection = dot_product(axis, second_points[p]);
 			min2 = min(min2, projection);
 			max2 = max(max2, projection);
 		}
@@ -147,29 +181,40 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	// @Todo: broad phase; at least, global AABB for the time being
 
 	// @Todo: process in local space?
+	//        - until then, apply whole hierarchy transform?
+	//        - allow only local space?
+	transformed_points.count = 0;
+	transformed_points_buffer.count = 0;
 	for (u32 i = 0; i < physicals.count; ++i) {
-		Phys2d * phys = physicals[i].physical;
-		phys->transformed.count = 0;
-		for (u32 point_i = 0; point_i < phys->points.count; ++point_i) {
-			vec2 const p = complex_product(phys->rotation, phys->points[point_i] * phys->scale) + phys->position;
-			phys->transformed.push(p);
+		Physical_Blob & phys = physicals[i];
+		custom::Array<vec2> const & mesh_points = phys.mesh->points;
+
+		transformed_points.push({
+			transformed_points_buffer.count,
+			mesh_points.count
+		});
+
+		for (u32 point_i = 0; point_i < mesh_points.count; ++point_i) {
+			vec2 const p = complex_product(phys.rotation, mesh_points[point_i] * phys.scale) + phys.position;
+			transformed_points_buffer.push(p);
 		}
 	}
 
 	vec2 gravity = {0, 9.81f};
 	for (u32 i = 0; i < physicals.count; ++i) {
-		physicals[i].physical->position -= gravity * (physicals[i].physical->movable * dt);
+		Physical_Blob & phys = physicals[i];
+		phys.position -= gravity * (phys.movable * dt);
 	}
 
-	struct Collision { Phys2d * phys_a, * phys_b; vec2 separator; };
+	struct Collision { Physical_Blob * phys_a, * phys_b; vec2 separator; };
 	custom::Array<Collision> collisions(physicals.count);
 	for (u32 ai = 0; ai < physicals.count; ++ai) {
-		Phys2d & phys_a = *physicals[ai].physical;
+		Physical_Blob & phys_a = physicals[ai];
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
-			Phys2d & phys_b = *physicals[bi].physical;
+			Physical_Blob & phys_b = physicals[bi];
 			r32 overlap = INFINITY; vec2 separator;
-			if (!overlap_sat(phys_a, phys_b, overlap, separator)) { continue; }
-			if (!overlap_sat(phys_b, phys_a, overlap, separator)) { continue; }
+			if (!overlap_sat(ai, bi, overlap, separator)) { continue; }
+			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
 			if (overlap == 0) { continue; }
 			// @Note: for late normalization
 			// separator = normalize(separator);

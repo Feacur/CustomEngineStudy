@@ -32,6 +32,7 @@
 - sporadic runtime and cleanup crashes are, probably, memory-related
   - revisit your `placement new` calls; btw, you can use templates like
   - ...  for that, but oh is it ugly
+- (?) provide or not default components' values
 - search for `@Bug:`, `@Note:`, `@Optimize:`, `@Todo:`, `@Change:` in the code
 
 # Optimization

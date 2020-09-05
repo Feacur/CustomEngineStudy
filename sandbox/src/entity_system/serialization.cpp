@@ -10,8 +10,6 @@
 #include "../asset_system/asset_types.h"
 #include "component_types.h"
 
-// #include <new>
-
 //
 // Visual
 //
@@ -23,7 +21,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 
 	Visual * component = refT.get_fast();
-	// new (component) Visual;
 
 	bool done = false;
 	while (!done && **source) {
@@ -70,7 +67,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 
 	Lua_Script * component = refT.get_fast();
-	// new (component) Lua_Script;
 
 	bool done = false;
 	while (!done && **source) {
@@ -106,7 +102,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 	RefT<Physical> & refT = (RefT<Physical> &)ref;
 
 	Physical * component = refT.get_fast();
-	// new (component) Physical;
 
 	bool done = false;
 	while (!done && **source) {
@@ -132,7 +127,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 
 	Phys2d * component = refT.get_fast();
-	// new (component) Phys2d;
 
 	bool done = false;
 	while (!done && **source) {
@@ -142,14 +136,16 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 				component->movable = (parse_void(source), parse_r32(source));
 			} break;
 
-			case 'r': ++(*source); switch (**source) {
-				case ' ':              component->rotation = (parse_void(source), parse_vec2(source)); break;
-				case 'r': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source))); break;
-				case 'd': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source)) * deg_to_rad); break;
-			} break;
+			// case 'r': ++(*source); switch (**source) {
+			// 	case ' ':              component->rotation = (parse_void(source), parse_vec2(source)); break;
+			// 	case 'r': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source))); break;
+			// 	case 'd': ++(*source); component->rotation = complex_from_radians((parse_void(source), parse_r32(source)) * deg_to_rad); break;
+			// } break;
 
-			case 'p': ++(*source); {
-				component->points.push((parse_void(source), parse_vec2(source)));
+			case 'c': ++(*source); {
+				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
+				component->mesh = Asset::add<Collider2d_Asset>(id);
 			} break;
 
 			case '#': break;
