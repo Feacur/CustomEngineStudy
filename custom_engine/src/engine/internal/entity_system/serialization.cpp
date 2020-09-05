@@ -9,8 +9,6 @@
 #include "engine/impl/asset_system.h"
 #include "engine/impl/math_linear.h"
 
-#include <new>
-
 //
 // Entity
 //
@@ -101,7 +99,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 
 	Transform * component = refT.get_fast();
-	// new (component) Transform;
 
 	bool done = false;
 	while (!done && **source) {
@@ -140,7 +137,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 
 	Camera * component = refT.get_fast();
-	// new (component) Camera;
 
 	bool done = false;
 	while (!done && **source) {
@@ -190,7 +186,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>)
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();
-	new (component) Hierarchy;
+	component->parent = {custom::empty_ref};
 
 	// @Todo: read direct parent reference
 	CUSTOM_ASSERT(false, "is not implemented");

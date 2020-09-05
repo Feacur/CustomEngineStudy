@@ -41,7 +41,6 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Lua_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -50,7 +49,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	// new (asset) Lua_Asset;
+	Lua_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct the asset to Lua
@@ -60,6 +59,8 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	}
 
 	// @Todo: implement load/unload
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	asset = refT.get_fast();
 	asset->~Lua_Asset();
 }
@@ -69,8 +70,12 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+
+	//
 	Lua_Asset * asset = refT.get_fast();
 	asset->~Lua_Asset();
+
+	// @Todo: unload Lua's chunk if possible?
 }
 
 template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
@@ -78,7 +83,6 @@ template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Lua_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -87,6 +91,7 @@ template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Lua_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct the asset to Lua
@@ -96,6 +101,8 @@ template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
 	}
 
 	// @Todo: implement load/unload
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	asset = refT.get_fast();
 	asset->~Lua_Asset();
 }

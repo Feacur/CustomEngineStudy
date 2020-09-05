@@ -9,7 +9,6 @@
 #include "obj_parser.h"
 
 #include <stb_image.h>
-#include <new>
 
 //
 // Shader_Asset
@@ -96,7 +95,6 @@ void Mesh_Asset::update(Array<u8> & file) {
 	{
 		buffers.push();
 		Mesh_Asset::Buffer & buffer = buffers[0];
-		// new (&buffer) Mesh_Asset::Buffer;
 	
 		buffer.attributes.data     = attributes.data;     attributes.data     = NULL;
 		buffer.attributes.capacity = attributes.capacity; attributes.capacity = 0;
@@ -117,7 +115,10 @@ void Mesh_Asset::update(Array<u8> & file) {
 	{
 		buffers.push();
 		Mesh_Asset::Buffer & buffer = buffers[1];
-		new (&buffer) Mesh_Asset::Buffer;
+	
+		buffer.attributes.data     = NULL;
+		buffer.attributes.capacity = 0;
+		buffer.attributes.count    = 0;
 
 		buffer.buffer.data     = (u8 *)indices.data;             indices.data     = NULL;
 		buffer.buffer.capacity = indices.capacity * sizeof(u32); indices.capacity = 0;
