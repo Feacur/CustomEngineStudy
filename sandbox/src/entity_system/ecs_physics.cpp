@@ -23,7 +23,11 @@ struct Physical_Blob {
 	complex rotation;
 	// Phys2d
 	custom::Collider2d_Asset * mesh;
-	r32 movable;
+	r32 dynamic;
+	r32 mass;
+	r32 restitution;
+	vec2 velocity;
+	vec2 acceleration;
 };
 
 struct Points_Blob {
@@ -32,7 +36,8 @@ struct Points_Blob {
 
 struct Collision {
 	Physical_Blob * phys_a, * phys_b;
-	vec2 separator;
+	vec2 normal;
+	r32 overlap;
 };
 
 struct Physics_Settings {
@@ -113,8 +118,12 @@ void ecs_update_physics(r32 dt) {
 		);
 
 		//
-		blob->mesh    = entity.physical->mesh.ref.get_fast();
-		blob->movable = entity.physical->movable;
+		blob->dynamic      = entity.physical->dynamic;
+		blob->mass         = entity.physical->mass;
+		blob->restitution  = entity.physical->restitution;
+		blob->acceleration = entity.physical->acceleration;
+		blob->velocity     = entity.physical->velocity;
+		blob->mesh         = entity.physical->mesh.ref.get_fast();
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -132,6 +141,8 @@ void ecs_update_physics(r32 dt) {
 			0, 0, complex_get_radians(physical.rotation)
 		});
 		//
+		entity.physical->acceleration = physical.acceleration;
+		entity.physical->velocity     = physical.velocity;
 	}
 }
 
@@ -157,13 +168,10 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 
 	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
 		u32 axis_i_2 = (axis_i + 1) % first_points_count;
+
+		// @Note: turn the edge 90 degrees clockwise
 		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
-
-		// @Note: turn 90 degrees clockwise
-		axis = {-axis.y, axis.x};
-
-		// @Note: for early normalization
-		axis = normalize(axis);
+		axis = normalize(vec2{-axis.y, axis.x});
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
 		for (u32 p = 0; p < first_points_count; ++p) {
@@ -195,7 +203,12 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
-		phys.position += global_gravity * (phys.movable * dt);
+		phys.velocity += (phys.acceleration + global_gravity) * dt;
+	}
+
+	for (u32 i = 0; i < physicals.count; ++i) {
+		Physical_Blob & phys = physicals[i];
+		phys.position += phys.velocity * (phys.dynamic * dt);
 	}
 
 	// @Todo: broad phase; at least, global AABB for the time being
@@ -233,12 +246,19 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			// separator = normalize(separator);
 
 			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
-			collisions.push({&phys_a, &phys_b, separator * overlap});
+			collisions.push({&phys_a, &phys_b, separator, overlap});
 		}
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
-		collisions[i].phys_a->position += collisions[i].separator * collisions[i].phys_a->movable;
-		collisions[i].phys_b->position -= collisions[i].separator * collisions[i].phys_b->movable;
+		vec2 separator = collisions[i].normal * collisions[i].overlap;
+		collisions[i].phys_a->position += separator * collisions[i].phys_a->dynamic;
+		collisions[i].phys_b->position -= separator * collisions[i].phys_b->dynamic;
+	}
+
+	for (u32 i = 0; i < collisions.count; ++i) {
+		vec2 normal = collisions[i].normal;
+		collisions[i].phys_a->velocity = reflect(collisions[i].phys_a->velocity, normal, collisions[i].phys_a->restitution);
+		collisions[i].phys_b->velocity = reflect(collisions[i].phys_b->velocity, -normal, collisions[i].phys_b->restitution);
 	}
 }
