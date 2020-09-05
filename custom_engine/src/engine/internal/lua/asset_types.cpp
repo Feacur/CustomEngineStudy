@@ -14,6 +14,7 @@
 typedef custom::Shader_Asset Shader_Asset;
 typedef custom::Texture_Asset Texture_Asset;
 typedef custom::Mesh_Asset Mesh_Asset;
+typedef custom::Collider2d_Asset Collider2d_Asset;
 typedef custom::Prefab_Asset Prefab_Asset;
 typedef custom::Config_Asset Config_Asset;
 
@@ -191,6 +192,66 @@ static luaL_Reg const Mesh_Asset_meta[] = {
 	{"__index", Mesh_Asset_index},
 	{"__newindex", Mesh_Asset_newindex},
 	{"__eq", Mesh_Asset_eq},
+	// instance:###
+	// Type.###
+	//
+	{NULL, NULL},
+};
+
+//
+// Collider2d_Asset
+//
+
+static int Collider2d_Asset_index(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Collider2d_Asset> Asset_Ref;
+
+	LUA_INDEX_RAWGET_IMPL(Collider2d_Asset);
+
+	Asset_Ref const * object = (Asset_Ref const *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	lua_pushnil(L); return 1;
+}
+
+static int Collider2d_Asset_newindex(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Collider2d_Asset> Asset_Ref;
+
+	Asset_Ref * object = (Asset_Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	cstring id = lua_tostring(L, 2);
+
+	// @Optimize?
+	// if (strcmp(id, "") == 0) { return 0; }
+
+	LUA_REPORT_INDEX();
+	return 0;
+}
+
+static int Collider2d_Asset_eq(lua_State * L) {
+	typedef custom::Asset_RefT<custom::Collider2d_Asset> Asset_Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Collider2d_Asset", 2);
+
+	Asset_Ref const * object1 = (Asset_Ref const *)lua_touserdata(L, 1);
+	Asset_Ref const * object2 = (Asset_Ref const *)lua_touserdata(L, 2);
+
+	lua_pushboolean(L, object1->ref == object2->ref);
+
+	return 1;
+}
+
+static luaL_Reg const Collider2d_Asset_meta[] = {
+	{"__index", Collider2d_Asset_index},
+	{"__newindex", Collider2d_Asset_newindex},
+	{"__eq", Collider2d_Asset_eq},
 	// instance:###
 	// Type.###
 	//

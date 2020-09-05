@@ -132,10 +132,53 @@ void Mesh_Asset::update(Array<u8> & file) {
 	}
 }
 
+Mesh_Asset::~Mesh_Asset() {
+	for (u32 i = 0; i < buffers.count; ++i) {
+		buffers[i].attributes.~Array();
+		buffers[i].buffer.~Array();
+	}
+	buffers.~Array();
+}
+
 }
 
 //
+// Collider2d_Asset
 //
+
+namespace custom {
+
+void Collider2d_Asset::update(Array<u8> & file) {
+	file.push('\0'); --file.count;
+
+	cstring source;
+
+	u32 vertices_capacity = 0;
+	source = (cstring)file.data;
+	while (*source) {
+		++vertices_capacity;
+		skip_to_eol(&source); parse_eol(&source);
+	}
+
+	Array<vec2> vertices(vertices_capacity);
+	source = (cstring)file.data;
+	while (*source) {
+		vertices.push(parse_vec2(&source));
+		skip_to_eol(&source); parse_eol(&source);
+	}
+
+	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices"); return; }
+
+	buffer.set_capacity(vertices.count);
+	buffer.data     = vertices.data;     vertices.data     = NULL;
+	buffer.capacity = vertices.capacity; vertices.capacity = 0;
+	buffer.count    = vertices.count;    vertices.count    = 0;
+}
+
+}
+
+//
+// Prefab_Asset
 //
 
 namespace custom {
