@@ -37,8 +37,14 @@ void entity_do_before_destroy(Entity & entity) {
 	}
 
 	for (u32 i = 0; i < children.count; ++i) {
+		if (!children[i].entity.exists()) { continue; }
 		children[i].entity.destroy();
 	}
+}
+
+void entity_do_before_reset_system(void) {
+	// @Note: do not traverse hierarchy upon state reset
+	Hierarchy::links.count = 0;
 }
 
 }

@@ -62,6 +62,7 @@ struct Asset : public Ref
 
 	static void update(void);
 
+	static void reset_system(u32 type);
 	static Asset add(u32 type, u32 resource);
 	static void  rem(u32 type, u32 resource);
 	static Asset get(u32 type, u32 resource);

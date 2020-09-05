@@ -112,6 +112,14 @@ static int Entity_get_component(lua_State * L) {
 	return 1;
 }
 
+static int Entity_reset_system(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 0, "expected 0 arguments");
+
+	Entity::reset_system();
+
+	return 0;
+}
+
 static int Entity_create(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
 	LUA_ASSERT_TYPE(LUA_TBOOLEAN, 1);
@@ -174,6 +182,7 @@ static luaL_Reg const Entity_meta[] = {
 	{"has_component", Entity_has_component},
 	{"get_component", Entity_get_component},
 	// Type.###
+	{"reset_system", Entity_reset_system},
 	{"create", Entity_create},
 	//
 	{NULL, NULL},
