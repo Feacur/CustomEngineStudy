@@ -1,3 +1,10 @@
+# September 05, 2020
+- factor physics mesh asset out of the prefab data
+- factor physics backend data out of the component
+- collision SAT normal is correct now for any orientation
+- don't `placement new` components; also don't clear them, but prepare upon loading
+- correctly convert between 3d and 2d rotations
+
 # September 04, 2020
 - hot reloading of assets
   - shaders, textures, meshes, prefabs, configs, lua assets

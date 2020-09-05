@@ -58,6 +58,7 @@ namespace custom {
 //        which is too specific, surely
 void entity_do_after_copy(Entity const & from, Entity & to, bool force_instance);
 void entity_do_before_destroy(Entity & entity);
+void entity_do_before_reset_system(void);
 
 }
 
@@ -77,6 +78,18 @@ static u32 find_instance(u32 entity) {
 		return i;
 	}
 	return custom::empty_index;
+}
+
+void Entity::reset_system(void) {
+	CUSTOM_TRACE("Entity::reset_system()");
+	entity_do_before_reset_system();
+	while (instances.count > 0) {
+		CUSTOM_TRACE("destroy %d %d",
+			instances[0].id, instances[0].gen
+		);
+		instances[0].destroy();
+	}
+	CUSTOM_ASSERT(!instances.count, "still some entities");
 }
 
 Entity Entity::create(bool is_instance) {
@@ -132,9 +145,9 @@ void Entity::serialization_read(cstring * source) {
 	}
 }
 
-void Entity::override_with(Entity const & entity) {
+void Entity::override_with(Entity const & source) {
 	for (u32 type = 0; type < Entity::component_containers.count; ++type) {
-		Ref const from_component_ref = entity.get_component(type);
+		Ref const from_component_ref = source.get_component(type);
 		if (!(*Entity::component_containers[type])(from_component_ref)) {
 			if (has_component(type)) { rem_component(type); }
 			continue;

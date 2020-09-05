@@ -60,8 +60,6 @@ struct Collider2d_Asset {
 
 struct Prefab_Asset {
 	Entity entity;
-
-	void update(Array<u8> & file);
 };
 
 struct Config_Asset {

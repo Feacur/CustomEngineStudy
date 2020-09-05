@@ -2,6 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/asset_system.h"
 #include "engine/api/platform/file.h"
 #include "engine/impl/array.h"
@@ -147,6 +148,30 @@ static u32 find(u32 type, u32 resource) {
 		if (Asset::resources[i] == resource) { return i; }
 	}
 	return custom::empty_index;
+}
+
+void Asset::reset_system(u32 type) {
+	CUSTOM_TRACE("Asset::reset_system(%s)", custom::asset_names.get_string(type));
+
+	Array<Asset> instances_of_type;
+	for (u32 i = 0; i < instance_refs.count; ++i) {
+		if (types[i] == type) {
+			instances_of_type.push({instance_refs[i], resources[i], types[i]});
+		}
+	}
+
+	for (u32 i = 0; i < instances_of_type.count; ++i) {
+		CUSTOM_TRACE("destroy %d %d %d %d",
+			instances_of_type[i].id, instances_of_type[i].gen,
+			instances_of_type[i].resource, instances_of_type[i].type
+		);
+		instances_of_type[i].destroy();
+	}
+
+	for (u32 i = 0; i < instance_refs.count; ++i) {
+		if (types[i] != type) { continue; }
+		CUSTOM_ASSERT(false, "still some assets");
+	}
 }
 
 Asset Asset::add(u32 type, u32 resource) {

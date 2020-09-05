@@ -11,8 +11,6 @@
 #include "engine/impl/bytecode.h"
 #include "engine/impl/asset_system.h"
 
-#include <new>
-
 //
 //
 //
@@ -49,7 +47,6 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Shader_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -58,7 +55,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	// new (asset) Shader_Asset;
+	Shader_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -74,9 +71,9 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Shader_Asset * asset = refT.get_fast();
 
 	//
+	Shader_Asset * asset = refT.get_fast();
 	asset->~Shader_Asset();
 
 	// @Note: remove asset from the GVM
@@ -89,7 +86,6 @@ template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Shader_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -98,6 +94,7 @@ template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Shader_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -125,7 +122,6 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Texture_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -134,7 +130,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	// new (asset) Texture_Asset;
+	Texture_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -150,9 +146,9 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Texture_Asset * asset = refT.get_fast();
 
 	//
+	Texture_Asset * asset = refT.get_fast();
 	asset->~Texture_Asset();
 
 	// @Note: remove asset from the GVM
@@ -165,7 +161,6 @@ template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Texture_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -174,6 +169,7 @@ template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Texture_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -201,7 +197,6 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Mesh_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -210,7 +205,10 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	new (asset) Mesh_Asset;
+	Mesh_Asset * asset = refT.get_fast();
+	asset->buffers.data     = NULL;
+	asset->buffers.capacity = 0;
+	asset->buffers.count    = 0;
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -226,9 +224,9 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Mesh_Asset * asset = refT.get_fast();
 
 	//
+	Mesh_Asset * asset = refT.get_fast();
 	asset->~Mesh_Asset();
 
 	// @Note: remove asset from the GVM
@@ -241,7 +239,6 @@ template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Mesh_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -250,6 +247,7 @@ template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Mesh_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: direct asset to the GVM
@@ -277,7 +275,6 @@ template<> LOADING_FUNC(asset_pool_load<Collider2d_Asset>) {
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Collider2d_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -286,7 +283,10 @@ template<> LOADING_FUNC(asset_pool_load<Collider2d_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	new (asset) Collider2d_Asset;
+	Collider2d_Asset * asset = refT.get_fast();
+	asset->points.data     = NULL;
+	asset->points.capacity = 0;
+	asset->points.count    = 0;
 	asset->update(file);
 }
 
@@ -295,9 +295,9 @@ template<> LOADING_FUNC(asset_pool_unload<Collider2d_Asset>) {
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Collider2d_Asset * asset = refT.get_fast();
 
 	//
+	Collider2d_Asset * asset = refT.get_fast();
 	asset->~Collider2d_Asset();
 }
 
@@ -306,7 +306,6 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Collider2d_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -315,6 +314,7 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Collider2d_Asset * asset = refT.get_fast();
 	asset->update(file);
 }
 
@@ -327,12 +327,30 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 namespace custom {
 namespace loading {
 
+Entity entity_serialization_read(Array<u8> & file) {
+	file.push('\0'); --file.count;
+
+	cstring source = (cstring)file.data;
+	Entity entity = Entity::create(false);
+	entity.serialization_read(&source);
+
+	return entity;
+	// @Note: some weird behaviour occured here, 29 August 2020;
+	//       optimization related or memory related or something else, I don't grasp currently?
+	//       loading partially and sporadically fails if you first store
+	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
+	//       everything's fine, however if you do as it's done above
+	//       the notorious printf()-"fix" works, too
+	//       ...
+	//       although, if Ref is inherited, everything seems to bee alright
+	//       just be aware
+}
+
 template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -341,10 +359,13 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	// new (asset) Prefab_Asset;
-	asset->update(file);
+	Prefab_Asset * asset = refT.get_fast();
+	Entity prefab_entity = entity_serialization_read(file);
 
-	// @Note: parsing a prefab creates entities immediately
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	asset->entity = prefab_entity;
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
@@ -352,11 +373,13 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
-	asset->entity.destroy();
+	Prefab_Asset * asset = refT.get_fast();
+	Entity prefab_entity = asset->entity;
 	asset->entity = {custom::empty_ref};
+
+	prefab_entity.destroy();
 }
 
 template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
@@ -364,7 +387,6 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -374,10 +396,18 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 	if (!file.count) { return; }
 
 	// @Todo: update descendants, too?
+	Prefab_Asset * asset = refT.get_fast();
 	asset->entity.destroy();
-	asset->update(file);
 
-	// @Note: parsing a prefab creates entities immediately
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	Entity prefab_entity = entity_serialization_read(file);
+
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	asset->entity = prefab_entity;
 }
 
 }}
@@ -394,7 +424,6 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Config_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -403,7 +432,10 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	new (asset) Config_Asset;
+	Config_Asset * asset = refT.get_fast();
+	asset->entries.data     = NULL;
+	asset->entries.capacity = 0;
+	asset->entries.count    = 0;
 	asset->update(file);
 
 	// @Note: config is a passive data storage
@@ -414,9 +446,9 @@ template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Config_Asset * asset = refT.get_fast();
 
 	//
+	Config_Asset * asset = refT.get_fast();
 	asset->entries.~Array();
 }
 
@@ -425,7 +457,6 @@ template<> LOADING_FUNC(asset_pool_update<Config_Asset>) {
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Config_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -434,6 +465,7 @@ template<> LOADING_FUNC(asset_pool_update<Config_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
+	Config_Asset * asset = refT.get_fast();
 	asset->update(file);
 
 	// @Note: config is a passive data storage

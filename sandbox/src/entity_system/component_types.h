@@ -32,7 +32,10 @@ struct Physical
 
 struct Phys2d
 {
+	r32  dynamic      = 1;
+	r32  mass         = 1;
+	r32  restitution  = 1;
+	vec2 acceleration = {0, 0};
+	vec2 velocity     = {0, 0};
 	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
-	custom::Ref internal_data;
-	r32 movable;
 };

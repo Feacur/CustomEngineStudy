@@ -4,6 +4,7 @@ struct lua_State;
 namespace custom {
 namespace lua {
 
+void init_debug(lua_State * L);
 void init_input(lua_State * L);
 void init_graphics_params(lua_State * L);
 void init_math_linear(lua_State * L);

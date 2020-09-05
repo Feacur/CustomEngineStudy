@@ -1,4 +1,7 @@
 function script_fly(entity, dt)
+	local transform = entity:get_component(Transform.type)
+	if transform == nil then Debug.custom_assert(false, "entity has no Transform") return end
+
 	local mouse_wheel = Input.get_mouse_wheel()
 	if (mouse_wheel.y ~= 0) and entity:has_component(Camera.type) then
 		local camera = entity:get_component(Camera.type)
@@ -13,7 +16,7 @@ function script_fly(entity, dt)
 
 	if (not Input.get_mouse_key(Mouse_Code.Key2)) then return end
 
-	local position_delta = vec3.new(
+	local direction = vec3.new(
 		(Input.get_key(Key_Code.D) and 1 or 0) - (Input.get_key(Key_Code.A) and 1 or 0),
 		(Input.get_key(Key_Code.E) and 1 or 0) - (Input.get_key(Key_Code.Q) and 1 or 0),
 		(Input.get_key(Key_Code.W) and 1 or 0) - (Input.get_key(Key_Code.S) and 1 or 0)
@@ -29,7 +32,6 @@ function script_fly(entity, dt)
 		0
 	)
 
-	local transform = entity:get_component(Transform.type)
-	transform.position = transform.position + quat.rotate(transform.rotation, position_delta) * (move_speed * dt);
+	transform.position = transform.position + quat.rotate(transform.rotation, direction) * (move_speed * dt);
 	transform.rotation = quat.product(transform.rotation, rotation_delta)
 end

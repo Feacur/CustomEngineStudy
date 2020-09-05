@@ -273,7 +273,13 @@ static int Prefab_Asset_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	// if (strcmp(id, "") == 0) { return 0; }
+	if (strcmp(id, "entity") == 0) {
+		CUSTOM_ASSERT(false, "probably, shouldn't?");
+		custom::Entity * udata = (custom::Entity *)lua_newuserdatauv(L, sizeof(custom::Entity), 0);
+		luaL_setmetatable(L, "Entity");
+		*udata = object->ref.get_fast()->entity;
+		return 1;
+	}
 
 	LUA_REPORT_INDEX();
 	lua_pushnil(L); return 1;
@@ -288,7 +294,13 @@ static int Prefab_Asset_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	// if (strcmp(id, "") == 0) { return 0; }
+	if (strcmp(id, "entity") == 0) {
+		CUSTOM_ASSERT(false, "probably, shouldn't?");
+		LUA_ASSERT_USERDATA("Entity", 3);
+		custom::Entity const * value = (custom::Entity const *)lua_touserdata(L, 3);
+		object->ref.get_fast()->entity = *value;
+		return 0;
+	}
 
 	LUA_REPORT_INDEX();
 	return 0;

@@ -61,6 +61,7 @@ struct Entity : public Ref
 	static cstring get_string(u32 id);
 
 	// API
+	static void reset_system(void);
 	static Entity create(bool is_instance);
 	void serialization_read(cstring * source);
 	void override_with(Entity const & source);

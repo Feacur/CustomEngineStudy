@@ -9,7 +9,6 @@
 #include "obj_parser.h"
 
 #include <stb_image.h>
-#include <new>
 
 //
 // Shader_Asset
@@ -96,7 +95,6 @@ void Mesh_Asset::update(Array<u8> & file) {
 	{
 		buffers.push();
 		Mesh_Asset::Buffer & buffer = buffers[0];
-		// new (&buffer) Mesh_Asset::Buffer;
 	
 		buffer.attributes.data     = attributes.data;     attributes.data     = NULL;
 		buffer.attributes.capacity = attributes.capacity; attributes.capacity = 0;
@@ -117,7 +115,10 @@ void Mesh_Asset::update(Array<u8> & file) {
 	{
 		buffers.push();
 		Mesh_Asset::Buffer & buffer = buffers[1];
-		new (&buffer) Mesh_Asset::Buffer;
+	
+		buffer.attributes.data     = NULL;
+		buffer.attributes.capacity = 0;
+		buffer.attributes.count    = 0;
 
 		buffer.buffer.data     = (u8 *)indices.data;             indices.data     = NULL;
 		buffer.buffer.capacity = indices.capacity * sizeof(u32); indices.capacity = 0;
@@ -182,26 +183,6 @@ void Collider2d_Asset::update(Array<u8> & file) {
 //
 
 namespace custom {
-
-void Prefab_Asset::update(Array<u8> & file) {
-	file.push('\0'); --file.count;
-
-	cstring source = (cstring)file.data;
-	custom::Entity prefab = Entity::create(false);
-	prefab.serialization_read(&source);
-
-	entity = prefab;
-
-	// @Note: some weird behaviour occured here, 29 August 2020;
-	//       optimization related or memory related or something else, I don't grasp currently?
-	//       loading partially and sporadically fails if you first store
-	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
-	//       everything's fine, however if you do as it's done above
-	//       the notorious printf()-"fix" works, too
-	//       ...
-	//       although, if Ref is inherited, everything seems to bee alright
-	//       just be aware
-}
 
 }
 

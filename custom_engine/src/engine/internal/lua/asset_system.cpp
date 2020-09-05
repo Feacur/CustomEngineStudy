@@ -55,6 +55,16 @@ static int Asset_newindex(lua_State * L) {
 	return 0;
 }
 
+static int Asset_reset_system(lua_State * L) {
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 1, "expected 1 argument");
+	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
+
+	u32 type = (u32)lua_tointeger(L, 1);
+	Asset::reset_system(type);
+
+	return 0;
+}
+
 static int Asset_add(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 1);
@@ -158,6 +168,7 @@ static luaL_Reg const Asset_meta[] = {
 	{"exists", Asset_exists},
 	{"destroy", Asset_destroy},
 	// Type.###
+	{"reset_system", Asset_reset_system},
 	{"add", Asset_add},
 	{"rem", Asset_rem},
 	{"has", Asset_has},
