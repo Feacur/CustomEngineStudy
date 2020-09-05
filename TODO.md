@@ -1,13 +1,12 @@
 # Immediate tasks
-- better physics overall
-- factor physics backend data out of the component
-- factor physics mesh asset out of the prefab data
-  - (?) unify renderable mesh with physics mesh
+- physics response, integration, etc.
+  - study [box2d-lite](https://github.com/erincatto/box2d-lite)
 
 # Near plans
 - extend application of `Config_Asset`
   - (?) put Lua callbacks there (assets, init, update, etc.)
   - (?) file watcher folder path
+- allow correct physics processing in presence of `Hierarchy` components
 
 # Bugfix
 - investigate nested and inline prefabs instantiation
@@ -17,26 +16,25 @@
 - extensively test systems; erroneous behaviour still emerges
 - system code performance on my machine drops noticeably if powered from the accumulator only
   - it's probably expected, though  still unwanted, irritating, potentially malicious
+- hot reloading Lua might leak junk
+- hot reloading prefabs might break something
 
 # Keep in mind
 - build times; they seem to be ok right now on my machine (August 31, 2020)
-- hot reloading Lua might leak junk
-- hot reloading prefabs might break something
-- smaller data types is not always a win; sometimes junk padding helps performance a substantial amount
 - test shipping configuration from time to time
 - test precompiled headers occasionally
 - file watcher threads syncronization
   - for the time being I use a simple assertion lock; Naughty Dog does use this technique, though
-- do I need an inline [DONE](DONE.md)? there are commit messages all the same
-  - though, might be used to show big picture
 - sporadic runtime and cleanup crashes are, probably, memory-related
   - revisit your `placement new` calls; btw, you can use templates like
   - ...  for that, but oh is it ugly
 - (?) provide or not default components' values
+- it's possible to reactively allocate and deallocate components' data;
+  - might be useful for the third-party backends
 - search for `@Bug:`, `@Note:`, `@Optimize:`, `@Todo:`, `@Change:` in the code
 
 # Optimization
-- (?) smaller data types for ids
+- smaller data types is not always a win; sometimes junk padding helps performance a substantial amount
 
 # Future features
 - `Shared_Library_Asset`
@@ -54,6 +52,7 @@
 - (?) assets usage tracking, so that they could be automatically unloaded?
   - some of them can be quite easily marked like this through components load/unload
   - ... though there are instances, where code requests an asset and should manage the lifetime by itself
+- (?) unify renderable mesh with physics mesh
 
 # Potential features
 - (?) unity build option
@@ -65,5 +64,6 @@
   - https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/
   - probably should collapse engine assets and sandbox assets into a single folder for that
   - (???) or run mutiple threaded watchers
+- entity system callbacks, signaling appearance of entities with a requested set of components
 
 [Markdown](https://www.markdownguide.org/basic-syntax/)
