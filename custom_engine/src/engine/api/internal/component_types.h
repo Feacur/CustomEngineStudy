@@ -10,8 +10,8 @@ namespace custom {
 struct Transform
 {
 	vec3 position;
-	quat rotation;
 	vec3 scale;
+	quat rotation;
 };
 
 struct Camera
@@ -39,8 +39,8 @@ struct Hierarchy {
 // struct Transform2d
 // {
 // 	vec2 position;
-// 	complex rotation;
 // 	vec2 scale;
+// 	complex rotation;
 // };
 
 // struct Camera2d
