@@ -15,12 +15,16 @@
 //
 
 struct Phys2d_Internal {
+	// Transform
 	vec2 position;
 	vec2 scale;
 	complex rotation;
+	// Phys2d
 	custom::Collider2d_Asset * mesh;
 	r32 movable;
-	custom::Array<vec2> buffer;
+	// transient
+	u32 buffer_offset;
+	u32 points_count;
 };
 custom::Ref_PoolT<Phys2d_Internal> custom::RefT<Phys2d_Internal>::pool;
 
@@ -29,10 +33,6 @@ custom::Ref phys2d_add_data(void) {
 	RefT refT = RefT::pool.create();
 	Phys2d_Internal * internal = refT.get_fast();
 
-	internal->buffer.data     = NULL;
-	internal->buffer.capacity = 0;
-	internal->buffer.count    = 0;
-
 	return refT;
 }
 
@@ -40,8 +40,6 @@ void phys2d_rem_data(custom::Ref ref) {
 	typedef custom::RefT<Phys2d_Internal> RefT;
 	RefT refT = {ref};
 	Phys2d_Internal * internal = refT.get_fast();
-
-	internal->buffer.~Array();
 
 	RefT::pool.destroy(ref);
 }
@@ -150,10 +148,17 @@ void ecs_update_physics(r32 dt) {
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
 
+static custom::Array<vec2> points_buffer;
 static bool overlap_sat(Phys2d_Internal const & first, Phys2d_Internal const & second, r32 & overlap, vec2 & separator) {
-	for (u32 axis_i = 0; axis_i < first.buffer.count; ++axis_i) {
-		u32 axis_i_2 = (axis_i + 1) % first.buffer.count;
-		vec2 axis = first.buffer[axis_i_2] - first.buffer[axis_i];
+	vec2 const * first_points = points_buffer.data + first.buffer_offset;
+	u32 const    first_points_count = first.points_count;
+
+	vec2 const * second_points = points_buffer.data + second.buffer_offset;
+	u32 const    second_points_count = second.points_count;
+
+	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
+		u32 axis_i_2 = (axis_i + 1) % first_points_count;
+		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
 
 		// @Note: turn 90 degrees clockwise
 		axis = {-axis.y, axis.x};
@@ -162,15 +167,15 @@ static bool overlap_sat(Phys2d_Internal const & first, Phys2d_Internal const & s
 		axis = normalize(axis);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
-		for (u32 p = 0; p < first.buffer.count; ++p) {
-			r32 projection = dot_product(axis, first.buffer[p]);
+		for (u32 p = 0; p < first_points_count; ++p) {
+			r32 projection = dot_product(axis, first_points[p]);
 			min1 = min(min1, projection);
 			max1 = max(max1, projection);
 		}
 
 		r32 min2 = INFINITY, max2 = -INFINITY;
-		for (u32 p = 0; p < second.buffer.count; ++p) {
-			r32 projection = dot_product(axis, second.buffer[p]);
+		for (u32 p = 0; p < second_points_count; ++p) {
+			r32 projection = dot_product(axis, second_points[p]);
 			min2 = min(min2, projection);
 			max2 = max(max2, projection);
 		}
@@ -193,14 +198,16 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	// @Todo: process in local space?
 	//        - until then, apply whole hierarchy transform?
 	//        - allow only local space?
+	points_buffer.count = 0;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Phys2d_Internal * phys = physicals[i].internal;
-		custom::Array<vec2> & mesh_points = phys->mesh->buffer;
+		custom::Array<vec2> const & mesh_points = phys->mesh->points;
 
-		phys->buffer.count = 0;
+		phys->buffer_offset = points_buffer.count;
+		phys->points_count = mesh_points.count;
 		for (u32 point_i = 0; point_i < mesh_points.count; ++point_i) {
 			vec2 const p = complex_product(phys->rotation, mesh_points[point_i] * phys->scale) + phys->position;
-			phys->buffer.push(p);
+			points_buffer.push(p);
 		}
 	}
 

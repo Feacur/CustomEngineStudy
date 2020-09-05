@@ -51,7 +51,7 @@ struct Mesh_Asset {
 };
 
 struct Collider2d_Asset {
-	Array<vec2> buffer;
+	Array<vec2> points;
 
 	void update(Array<u8> & file);
 

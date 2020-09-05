@@ -169,10 +169,10 @@ void Collider2d_Asset::update(Array<u8> & file) {
 
 	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices"); return; }
 
-	buffer.set_capacity(vertices.count);
-	buffer.data     = vertices.data;     vertices.data     = NULL;
-	buffer.capacity = vertices.capacity; vertices.capacity = 0;
-	buffer.count    = vertices.count;    vertices.count    = 0;
+	points.set_capacity(vertices.count);
+	points.data     = vertices.data;     vertices.data     = NULL;
+	points.capacity = vertices.capacity; vertices.capacity = 0;
+	points.count    = vertices.count;    vertices.count    = 0;
 }
 
 }
