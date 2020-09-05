@@ -1,3 +1,9 @@
+# September 06, 2020
+- fixed buf with memory relocations during prefab assets loading
+- basic semi-implicit euler integration, physics response
+- made rendering and physics systems interface more explicit about the resources
+- implemented full reset of the state, so that `main.lua` could be reloaded correctly
+
 # September 05, 2020
 - factor physics mesh asset out of the prefab data
 - factor physics backend data out of the component

@@ -9,6 +9,7 @@
 #include "component_types.h"
 
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
+// https://gafferongames.com/post/integration_basics/
 
 struct Entity_Blob {
 	custom::Entity   entity;

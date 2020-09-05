@@ -1,5 +1,5 @@
 # Immediate tasks
-- physics response, integration, etc.
+- improve physics response, integration, etc.
   - study [box2d-lite](https://github.com/erincatto/box2d-lite)
 
 # Near plans
@@ -31,6 +31,7 @@
 - (?) provide or not default components' values
 - it's possible to reactively allocate and deallocate components' data;
   - might be useful for the third-party backends
+- components, entities, assets can be relocated in memory
 - search for `@Bug:`, `@Note:`, `@Optimize:`, `@Todo:`, `@Change:` in the code
 
 # Optimization
@@ -41,6 +42,7 @@
 - `Material_Asset`
   - (?) a separete `Physics_Material_Asset`, if ever needed
 - assets metadata
+- 3d physics, GJK, etc.; [watch Casey's video](https://youtu.be/Qupqu1xe7Io); [read Glenn's article](https://gafferongames.com/post/physics_in_3d/)
 - preprocess raw assets so that they can be loaded into memory with little or no parsing
 - OS backends: Linux
 - graphics backends: DirectX, Vulkan
