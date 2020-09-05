@@ -36,9 +36,11 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(id);
-				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
 
-				entity.override_with(prefab_asset->entity);
+				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
+				Entity source_entity = prefab_asset->entity;
+
+				entity.override_with(source_entity);
 			} break;
 
 			case '#': break;
@@ -67,9 +69,10 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(id);
-				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
 
+				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
 				Entity child = prefab_asset->entity.copy(is_instance);
+
 				Hierarchy::set_parent(child, entity);
 				last_child = child;
 			} break;

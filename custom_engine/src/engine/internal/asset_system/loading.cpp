@@ -327,12 +327,30 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 namespace custom {
 namespace loading {
 
+Entity entity_serialization_read(Array<u8> & file) {
+	file.push('\0'); --file.count;
+
+	cstring source = (cstring)file.data;
+	Entity entity = Entity::create(false);
+	entity.serialization_read(&source);
+
+	return entity;
+	// @Note: some weird behaviour occured here, 29 August 2020;
+	//       optimization related or memory related or something else, I don't grasp currently?
+	//       loading partially and sporadically fails if you first store
+	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
+	//       everything's fine, however if you do as it's done above
+	//       the notorious printf()-"fix" works, too
+	//       ...
+	//       although, if Ref is inherited, everything seems to bee alright
+	//       just be aware
+}
+
 template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -341,10 +359,13 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	Array<u8> file; file::read(path, file);
 	if (!file.count) { return; }
 
-	// new (asset) Prefab_Asset;
-	asset->update(file);
+	Prefab_Asset * asset = refT.get_fast();
+	Entity prefab_entity = entity_serialization_read(file);
 
-	// @Note: parsing a prefab creates entities immediately
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	asset->entity = prefab_entity;
 }
 
 template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
@@ -352,11 +373,13 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
-	asset->entity.destroy();
+	Prefab_Asset * asset = refT.get_fast();
+	Entity prefab_entity = asset->entity;
 	asset->entity = {custom::empty_ref};
+
+	prefab_entity.destroy();
 }
 
 template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
@@ -364,7 +387,6 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
-	Prefab_Asset * asset = refT.get_fast();
 
 	//
 	cstring path = asset_ref.get_path();
@@ -374,10 +396,18 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 	if (!file.count) { return; }
 
 	// @Todo: update descendants, too?
+	Prefab_Asset * asset = refT.get_fast();
 	asset->entity.destroy();
-	asset->update(file);
 
-	// @Note: parsing a prefab creates entities immediately
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	Entity prefab_entity = entity_serialization_read(file);
+
+	// @Note: memory might have been relocated
+	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
+	asset = refT.get_fast();
+	asset->entity = prefab_entity;
 }
 
 }}

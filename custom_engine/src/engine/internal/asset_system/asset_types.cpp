@@ -183,26 +183,6 @@ void Collider2d_Asset::update(Array<u8> & file) {
 
 namespace custom {
 
-void Prefab_Asset::update(Array<u8> & file) {
-	file.push('\0'); --file.count;
-
-	cstring source = (cstring)file.data;
-	custom::Entity prefab = Entity::create(false);
-	prefab.serialization_read(&source);
-
-	entity = prefab;
-
-	// @Note: some weird behaviour occured here, 29 August 2020;
-	//       optimization related or memory related or something else, I don't grasp currently?
-	//       loading partially and sporadically fails if you first store
-	//       the asset pointer and immediately assign it with `*asset = {prefab}`;
-	//       everything's fine, however if you do as it's done above
-	//       the notorious printf()-"fix" works, too
-	//       ...
-	//       although, if Ref is inherited, everything seems to bee alright
-	//       just be aware
-}
-
 }
 
 //
