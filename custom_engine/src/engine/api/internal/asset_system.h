@@ -41,13 +41,21 @@ struct Asset : public Ref
 	u32 resource;
 	u32 type;
 
-	struct State
-	{
+	struct State {
 		Array<Ref> instance_refs;
 		Array<u32> resources;
 		Array<u32> types;
 	};
+	struct VTable {
+		Array<ref_void_func *> asset_constructors;
+		Array<void_ref_func *> asset_destructors;
+		Array<bool_ref_func *> asset_containers;
+		Array<loading_func *>  asset_loaders;
+		Array<loading_func *>  asset_unloaders;
+		Array<loading_func *>  asset_updaters;
+	};
 	static State state;
+	static VTable vtable;
 	static Strings_Storage strings;
 
 	// strings API
@@ -55,17 +63,11 @@ struct Asset : public Ref
 	static u32 get_resource(cstring data, u32 length);
 	static cstring get_string(u32 id);
 
-	// types API
-	static Array<ref_void_func *> asset_constructors;
-	static Array<void_ref_func *> asset_destructors;
-	static Array<bool_ref_func *> asset_containers;
-	static Array<loading_func *>  asset_loaders;
-	static Array<loading_func *>  asset_unloaders;
-	static Array<loading_func *>  asset_updaters;
-
+	// system API
 	static void update(void);
-
 	static void reset_system(u32 type);
+
+	// types API
 	static Asset add(u32 type, u32 resource);
 	static void  rem(u32 type, u32 resource);
 	static Asset get(u32 type, u32 resource);

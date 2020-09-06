@@ -43,8 +43,7 @@ template<typename T> struct Component_Registry { static u32 type; };
 // @Todo: separate Entity_System container from Entity? and make the system container an instance?
 struct Entity : public Ref
 {
-	struct State
-	{
+	struct State {
 		// entities
 		Gen_Pool        generations;
 		Array<Entity>   instances;
@@ -57,15 +56,27 @@ struct Entity : public Ref
 		Array<u32> component_entity_ids;
 		#endif
 	};
+	struct VTable {
+		Array<ref_void_func *> component_constructors;
+		Array<void_ref_func *> component_destructors;
+		Array<bool_ref_func *> component_containers;
+		Array<entity_from_to_func *> component_copiers;
+		Array<entity_loading_func *> component_loaders;
+		Array<entity_loading_func *> component_unloaders;
+		Array<serialization_read_func *> component_serialization_readers;
+	};
 	static State state;
+	static VTable vtable;
 	static Strings_Storage strings;
 
 	// strings API
 	static u32 store_string(cstring data, u32 length);
 	static cstring get_string(u32 id);
 
-	// API
+	// system API
 	static void reset_system(void);
+
+	// entity API
 	static Entity create(bool is_instance);
 	void serialization_read(cstring * source);
 	void override_with(Entity const & source);
@@ -76,14 +87,6 @@ struct Entity : public Ref
 	inline bool exists(void) const { return state.generations.contains(*this); }
 
 	// components API
-	static Array<ref_void_func *> component_constructors;
-	static Array<void_ref_func *> component_destructors;
-	static Array<bool_ref_func *> component_containers;
-	static Array<entity_from_to_func *> component_copiers;
-	static Array<entity_loading_func *> component_loaders;
-	static Array<entity_loading_func *> component_unloaders;
-	static Array<serialization_read_func *> component_serialization_readers;
-
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);
 	Ref  get_component(u32 type) const;

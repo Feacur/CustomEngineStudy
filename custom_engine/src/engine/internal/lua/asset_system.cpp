@@ -118,7 +118,7 @@ static int Asset_get(lua_State * L) {
 	u32 id = Asset::store_string(id_string, custom::empty_index);
 	Asset asset = Asset::get(type, id);
 
-	bool has_asset = (*Asset::asset_containers[type])(asset);
+	bool has_asset = (*Asset::vtable.asset_containers[type])(asset);
 	if (!has_asset) { lua_pushnil(L); return 1; }
 
 	Asset * udata = (Asset *)lua_newuserdatauv(L, sizeof(Asset), 0);

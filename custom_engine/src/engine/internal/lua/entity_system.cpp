@@ -102,7 +102,7 @@ static int Entity_get_component(lua_State * L) {
 	u32 type = (u32)lua_tointeger(L, 2);
 	Ref component_ref = object->get_component(type);
 
-	bool has_component = (*Entity::component_containers[type])(component_ref);
+	bool has_component = (*Entity::vtable.component_containers[type])(component_ref);
 	if (!has_component) { lua_pushnil(L); return 1; }
 
 	Ref * udata = (Ref *)lua_newuserdatauv(L, sizeof(Ref), 0);

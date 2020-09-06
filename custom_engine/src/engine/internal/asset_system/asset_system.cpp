@@ -14,14 +14,8 @@ template struct Array<Asset>;
 
 //  @Note: initialize compile-time statics:
 Asset::State    Asset::state;
+Asset::VTable   Asset::vtable;
 Strings_Storage Asset::strings;
-
-Array<ref_void_func *> Asset::asset_constructors;
-Array<void_ref_func *> Asset::asset_destructors;
-Array<bool_ref_func *> Asset::asset_containers;
-Array<loading_func *>  Asset::asset_loaders;
-Array<loading_func *>  Asset::asset_unloaders;
-Array<loading_func *>  Asset::asset_updaters;
 
 }
 
@@ -75,7 +69,7 @@ void Asset::update(void) {
 				u32 index = find_by_resource(resource);
 				if (index != custom::empty_index) {
 					Asset asset = {Asset::state.instance_refs[index], Asset::state.resources[index], Asset::state.types[index]};
-					(*Asset::asset_updaters[asset.type])(asset);
+					(*Asset::vtable.asset_updaters[asset.type])(asset);
 				}
 			} break;
 
@@ -109,15 +103,15 @@ cstring Asset::get_path(void) const {
 
 bool Asset::exists(void) const {
 	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
-	return (*Asset::asset_containers[type])(*this);
+	return (*Asset::vtable.asset_containers[type])(*this);
 }
 
 void Asset::destroy(void) {
 	// @Note: duplicates `Asset::rem` code
 	CUSTOM_ASSERT(is_correct(*this), "asset ref is corrupted");
-	if ((*Asset::asset_containers[type])(*this)) {
-		(*Asset::asset_unloaders[type])(*this);
-		(*Asset::asset_destructors[type])(*this);
+	if ((*Asset::vtable.asset_containers[type])(*this)) {
+		(*Asset::vtable.asset_unloaders[type])(*this);
+		(*Asset::vtable.asset_destructors[type])(*this);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 
@@ -175,21 +169,21 @@ Asset Asset::add(u32 type, u32 resource) {
 		asset.gen = asset_ref.gen;
 	}
 
-	if (asset.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(asset)) {
+	if (asset.id == custom::empty_ref.id || !(*Asset::vtable.asset_containers[type])(asset)) {
 		if (index != custom::empty_index) {
 			Asset::state.instance_refs.remove_at(index);
 			Asset::state.resources.remove_at(index);
 			Asset::state.types.remove_at(index);
 		}
 
-		Ref asset_ref = (*Asset::asset_constructors[type])();
+		Ref asset_ref = (*Asset::vtable.asset_constructors[type])();
 		asset.id  = asset_ref.id;
 		asset.gen = asset_ref.gen;
 		Asset::state.instance_refs.push(asset);
 		Asset::state.resources.push(resource);
 		Asset::state.types.push(type);
 
-		(*Asset::asset_loaders[type])(asset);
+		(*Asset::vtable.asset_loaders[type])(asset);
 	}
 	// @Todo: check explicitly?
 	//else { CUSTOM_ASSERT(false, "asset already exists"); }
@@ -211,9 +205,9 @@ void Asset::rem(u32 type, u32 resource) {
 		Asset::state.types.remove_at(index);
 	}
 
-	if ((*Asset::asset_containers[type])(asset)) {
-		(*Asset::asset_unloaders[type])(asset);
-		(*Asset::asset_destructors[type])(asset);
+	if ((*Asset::vtable.asset_containers[type])(asset)) {
+		(*Asset::vtable.asset_unloaders[type])(asset);
+		(*Asset::vtable.asset_destructors[type])(asset);
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 }
@@ -230,7 +224,7 @@ bool Asset::has(u32 type, u32 resource) {
 	if (index == custom::empty_index) { return false; }
 
 	Ref ref = Asset::state.instance_refs[index];
-	return (*Asset::asset_containers[type])(ref);
+	return (*Asset::vtable.asset_containers[type])(ref);
 }
 
 }
