@@ -34,15 +34,15 @@ Array<loading_func *>  Asset::asset_updaters;
 namespace custom {
 
 u32 Asset::store_string(cstring data, u32 length) {
-	return strings.store_string(data, length);
+	return Asset::strings.store_string(data, length);
 }
 
 u32 Asset::get_resource(cstring data, u32 length) {
-	return strings.get_id(data, length);
+	return Asset::strings.get_id(data, length);
 }
 
 cstring Asset::get_string(u32 id) {
-	return strings.get_string(id);
+	return Asset::strings.get_string(id);
 }
 
 }
@@ -73,10 +73,10 @@ void Asset::update(void) {
 			case Action_Type::Rem: CUSTOM_TRACE("@Todo: rem '%s'", string); break;
 
 			case Action_Type::Mod: {
-				u32 resource = strings.get_id(string, length);
+				u32 resource = Asset::strings.get_id(string, length);
 				u32 index = find_by_resource(resource);
 				if (index != custom::empty_index) {
-					Asset asset = {instance_refs[index], resources[index], types[index]};
+					Asset asset = {Asset::instance_refs[index], Asset::resources[index], Asset::types[index]};
 					(*Asset::asset_updaters[asset.type])(asset);
 				}
 			} break;
@@ -123,10 +123,10 @@ void Asset::destroy(void) {
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 
-	for (u32 i = 0; i < instance_refs.count; ++i) {
-		if (types[i] != type) { continue; }
-		if (resources[i] != resource) { continue; }
-		if (instance_refs[i] != *this) { continue; }
+	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
+		if (Asset::types[i] != type) { continue; }
+		if (Asset::resources[i] != resource) { continue; }
+		if (Asset::instance_refs[i] != *this) { continue; }
 		Asset::instance_refs.remove_at(i);
 		Asset::resources.remove_at(i);
 		Asset::types.remove_at(i);
@@ -151,25 +151,18 @@ static u32 find(u32 type, u32 resource) {
 }
 
 void Asset::reset_system(u32 type) {
-	CUSTOM_TRACE("Asset::reset_system(%s)", custom::asset_names.get_string(type));
-
 	Array<Asset> instances_of_type;
-	for (u32 i = 0; i < instance_refs.count; ++i) {
-		if (types[i] == type) {
-			instances_of_type.push({instance_refs[i], resources[i], types[i]});
-		}
+	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
+		if (Asset::types[i] != type) { continue; }
+		instances_of_type.push({Asset::instance_refs[i], Asset::resources[i], Asset::types[i]});
 	}
 
 	for (u32 i = 0; i < instances_of_type.count; ++i) {
-		CUSTOM_TRACE("destroy %d %d %d %d",
-			instances_of_type[i].id, instances_of_type[i].gen,
-			instances_of_type[i].resource, instances_of_type[i].type
-		);
 		instances_of_type[i].destroy();
 	}
 
-	for (u32 i = 0; i < instance_refs.count; ++i) {
-		if (types[i] != type) { continue; }
+	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
+		if (Asset::types[i] != type) { continue; }
 		CUSTOM_ASSERT(false, "still some assets");
 	}
 }

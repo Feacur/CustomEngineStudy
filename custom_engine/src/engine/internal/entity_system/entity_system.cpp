@@ -38,11 +38,11 @@ Array<serialization_read_func *> Entity::component_serialization_readers;
 namespace custom {
 
 u32 Entity::store_string(cstring data, u32 length) {
-	return strings.store_string(data, length);
+	return Entity::strings.store_string(data, length);
 }
 
 cstring Entity::get_string(u32 id) {
-	return strings.get_string(id);
+	return Entity::strings.get_string(id);
 }
 
 }
@@ -81,20 +81,16 @@ static u32 find_instance(u32 entity) {
 }
 
 void Entity::reset_system(void) {
-	CUSTOM_TRACE("Entity::reset_system()");
 	entity_do_before_reset_system();
-	while (instances.count > 0) {
-		CUSTOM_TRACE("destroy %d %d",
-			instances[0].id, instances[0].gen
-		);
-		instances[0].destroy();
+	while (Entity::instances.count > 0) {
+		Entity::instances[0].destroy();
 	}
-	CUSTOM_ASSERT(!instances.count, "still some entities");
+	CUSTOM_ASSERT(!Entity::instances.count, "still some entities");
 }
 
 Entity Entity::create(bool is_instance) {
 	Entity entity = {Entity::generations.create()};
-	if (is_instance) { instances.push(entity); }
+	if (is_instance) { Entity::instances.push(entity); }
 	return entity;
 }
 
@@ -175,9 +171,9 @@ void Entity::destroy(void) {
 	entity_do_before_destroy(*this);
 	Entity::generations.destroy(*this);
 
-	for (u32 i = 0; i < instances.count; ++i) {
-		if (instances[i] != *this) { continue; }
-		instances.remove_at(i);
+	for (u32 i = 0; i < Entity::instances.count; ++i) {
+		if (Entity::instances[i] != *this) { continue; }
+		Entity::instances.remove_at(i);
 		break;
 	}
 }
@@ -208,7 +204,7 @@ Entity Entity::copy(bool force_instance) const {
 void Entity::promote_to_instance(void) {
 	// @Todo: apply this to the whole hierarchy correctly
 	if (is_instance()) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
-	instances.push(*this);
+	Entity::instances.push(*this);
 }
 
 }

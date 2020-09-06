@@ -31,15 +31,15 @@ struct RefT : public Ref
 {
 	static Ref_PoolT<T> pool;
 
-	inline static RefT<T> create(void) { return pool.create(); }
-	inline void destroy(void) { return pool.destroy(*this); }
-	inline bool exists(void) const { return pool.contains(*this); }
+	inline static RefT<T> create(void) { return RefT::pool.create(); }
+	inline void destroy(void) { return RefT::pool.destroy(*this); }
+	inline bool exists(void) const { return RefT::pool.contains(*this); }
 
-	inline T * get_fast(void) { return pool.get_fast(*this); }
-	inline T * get_safe(void) { return pool.get_safe(*this); }
+	inline T * get_fast(void) { return RefT::pool.get_fast(*this); }
+	inline T * get_safe(void) { return RefT::pool.get_safe(*this); }
 
-	inline T const * get_fast(void) const { return pool.get_fast(*this); }
-	inline T const * get_safe(void) const { return pool.get_safe(*this); }
+	inline T const * get_fast(void) const { return RefT::pool.get_fast(*this); }
+	inline T const * get_safe(void) const { return RefT::pool.get_safe(*this); }
 };
 
 }
