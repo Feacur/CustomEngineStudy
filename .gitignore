@@ -1,6 +1,7 @@
 # https://git-scm.com/docs/gitignore
 
 # IDE
+/.vs
 *.sln
 *.vcxproj*
 *.user

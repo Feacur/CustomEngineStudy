@@ -49,10 +49,9 @@ project "custom_engine"
 		"stb",
 	}
 
-	-- @Note: testing custom xcopy calls instead
-	-- postbuildcommands {
-	-- 	("{COPY} \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
-	-- }
+	postbuildcommands {
+		("xcopy /Q /Y /S /I /D \"%{prj.location}assets\" \"" .. engine_target_location .. "/sandbox/assets\""),
+	}
 
 	filter "system:windows"
 		defines {

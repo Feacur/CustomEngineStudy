@@ -72,6 +72,9 @@ echo ---- BUILD SOLUTION: START ---- %time%
 msbuild %solution% -property:Configuration=%configuration% -target:%actions% -maxCpuCount %log_console% %log_file%
 echo ---- BUILD SOLUTION: DONE  ---- %time%
 
+rem WTF, Microsoft
+taskkill /F /IM MSBuild.exe >nul
+
 rem @Note: testing custom xcopy calls instead
 rem @Todo: provide system and architecture tags?
-call prepare_assets.bat "%configuration%-windows-x86_64"
+rem call prepare_assets.bat "%configuration%-windows-x86_64"

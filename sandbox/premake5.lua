@@ -14,6 +14,8 @@ project "sandbox"
 	objdir (sandbox_to_root .. "/" .. intermediate_location .. "/%{prj.name}")
 	implibdir (sandbox_to_root .. "/" .. intermediate_location .. "/%{prj.name}")
 
+	debugdir ("%{cfg.targetdir}")
+
 	files {
 		"src/**.h",
 		"src/**.cpp",
@@ -33,7 +35,6 @@ project "sandbox"
 		"custom_engine",
 	}
 
-	-- @Note: testing custom xcopy calls instead
-	-- postbuildcommands {
-	-- 	("{COPY} \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
-	-- }
+	postbuildcommands {
+		("xcopy /Q /Y /S /I /D \"%{prj.location}assets\" \"%{cfg.buildtarget.directory}assets\"")
+	}

@@ -94,8 +94,6 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 }
 
 static void hint_graphics(Config_Asset const * config) {
-	CUSTOM_TRACE(config->get_value("engine_string", "no engine string"));
-
 	u32 ogl_version = config->get_value<u32>("open_gl_version", 46);
 
 	// context_settings
