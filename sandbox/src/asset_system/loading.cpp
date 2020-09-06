@@ -11,6 +11,19 @@
 #include "asset_types.h"
 #include "../entity_system/component_types.h"
 
+namespace custom {
+
+// @Todo: revisit
+static void read_file_safely(cstring path, Array<u8> & buffer) {
+	constexpr u32 count = 4;
+	for (u32 i = 0; i < count; ++i) {
+		if (file::read(path, buffer)) { return; }
+	}
+	CUSTOM_ASSERT(false, "failed to read file safely: '%s'", path);
+}
+
+}
+
 // @Note: direct asset to the Lua
 //        alternative to `luaL_dostring(L, (cstring)asset->source.data)`,
 //        assuming NULL-termination is there
@@ -46,7 +59,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	cstring path = asset_ref.get_path();
 	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
-	Array<u8> file; file::read(path, file);
+	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
 	Lua_Asset * asset = refT.get_fast();
@@ -88,7 +101,7 @@ template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
 	cstring path = asset_ref.get_path();
 	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 
-	Array<u8> file; file::read(path, file);
+	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
 	Lua_Asset * asset = refT.get_fast();

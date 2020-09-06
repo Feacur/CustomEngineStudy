@@ -12,7 +12,7 @@ extern Strings_Storage strings;
 extern Array<Action> actions;
 
 u64 get_time(cstring path);
-void read(cstring path, Array<u8> & buffer);
+bool read(cstring path, Array<u8> & buffer);
 
 void watch_init(cstring path, bool subtree);
 void watch_update(void);

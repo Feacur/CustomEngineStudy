@@ -86,9 +86,6 @@ struct Watch_Files_Data {
 // API implementation
 //
 
-static FILETIME platform_to_file_time(u64 value);
-static LONGLONG platform_get_file_size(HANDLE handle);
-static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read);
 static DWORD WINAPI watch_files_thread(LPVOID lpParam);
 
 namespace custom {
@@ -99,6 +96,7 @@ u64 get_time(cstring path) {
 	HANDLE handle = FindFirstFile(path, &find_file_data);
 	if (handle == INVALID_HANDLE_VALUE) {
 		LOG_LAST_ERROR();
+		CUSTOM_TRACE("failed to find file: `%s`", path);
 		return 0;
 	}
 
@@ -110,7 +108,7 @@ u64 get_time(cstring path) {
 	return (u64)large.QuadPart;
 }
 
-void read(cstring path, Array<u8> & buffer) {
+bool read(cstring path, Array<u8> & buffer) {
 	HANDLE handle = CreateFile(
 		path,
 		GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
@@ -119,22 +117,43 @@ void read(cstring path, Array<u8> & buffer) {
 	);
 	if (handle == INVALID_HANDLE_VALUE) {
 		LOG_LAST_ERROR();
-		CUSTOM_ASSERT(false, "failed to open file: %s", path);
-		return;
+		CUSTOM_TRACE("failed to open file: `%s`", path);
+		return false;
 	}
 
+	LARGE_INTEGER file_size_li;
+	if (!GetFileSizeEx(handle, &file_size_li)) {
+		LOG_LAST_ERROR();
+		CUSTOM_TRACE("failed to get file size: `%s`", path);
+		return false;
+	}
+	// @Todo: unlock file size from u32 type?
+	CUSTOM_ASSERT(file_size_li.QuadPart <= UINT_MAX, "@Todo: file is too large: `%s`\n    size is %lld", path, file_size_li.QuadPart);
+	u32 file_size = (u32)file_size_li.QuadPart;
+
 	// @Note: allocate an additional byte for potential '\0'
-	LONGLONG file_size = platform_get_file_size(handle);
-	buffer.set_capacity((u32)file_size + 1);
-	if (buffer.data) {
-		buffer.count = (u32)platform_read_file(handle, buffer.data, file_size);
-		if (buffer.count != file_size) {
-			CUSTOM_ASSERT(false, "failed to read file: %s;\n    read %d out of %d bytes", path, buffer.count, buffer.capacity);
-			buffer.count = 0;
-		}
+	buffer.set_capacity(file_size + 1);
+	if (!buffer.data) {
+		CUSTOM_TRACE("failed to allocate memory for file: `%s`", path);
+		return false;
+	}
+
+	DWORD bytes_read;
+	if (!ReadFile(handle, buffer.data, (DWORD)buffer.capacity, &bytes_read, NULL)) {
+		LOG_LAST_ERROR();
+		CUSTOM_TRACE("failed to read file: `%s`", path);
+		return false;
+	}
+	buffer.count = (u32)bytes_read;
+
+	if (buffer.count != file_size) {
+		CUSTOM_TRACE("failed to read file fully: `%s`;\n    read %d out of %d bytes", path, buffer.count, buffer.capacity);
+		buffer.count = 0;
+		return false;
 	}
 
 	CloseHandle(handle);
+	return true;
 }
 
 static Watch_Files_Data watch_data;
@@ -183,22 +202,6 @@ void watch_shutdown(void) {
 //
 // platform implementation
 //
-
-static LONGLONG platform_get_file_size(HANDLE handle) {
-	LARGE_INTEGER value;
-	if (!GetFileSizeEx(handle, &value)) {
-		LOG_LAST_ERROR();
-	}
-	return value.QuadPart;
-}
-
-static DWORD platform_read_file(HANDLE handle, LPVOID buffer, LONGLONG to_read) {
-	DWORD read_size;
-	if (!ReadFile(handle, buffer, (DWORD)to_read, &read_size, NULL)) {
-		LOG_LAST_ERROR();
-	}
-	return read_size;
-}
 
 static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 	typedef custom::file::Watch_Files_Data Watch_Data;
