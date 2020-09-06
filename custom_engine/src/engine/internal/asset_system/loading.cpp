@@ -16,6 +16,7 @@ namespace custom {
 // @Todo: revisit
 static void read_file_safely(cstring path, Array<u8> & buffer) {
 	constexpr u32 count = 4;
+	// if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 	for (u32 i = 0; i < count; ++i) {
 		if (file::read(path, buffer)) { return; }
 	}
@@ -63,8 +64,6 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -102,8 +101,6 @@ template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -138,8 +135,6 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -177,8 +172,6 @@ template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -213,8 +206,6 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -255,8 +246,6 @@ template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -291,8 +280,6 @@ template<> LOADING_FUNC(asset_pool_load<Collider2d_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -322,8 +309,6 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -367,8 +352,6 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -403,8 +386,6 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -440,8 +421,6 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 
@@ -473,8 +452,6 @@ template<> LOADING_FUNC(asset_pool_update<Config_Asset>) {
 
 	//
 	cstring path = asset_ref.get_path();
-	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
-
 	Array<u8> file; read_file_safely(path, file);
 	if (!file.count) { return; }
 

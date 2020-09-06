@@ -57,6 +57,7 @@
   - ... though there are instances, where code requests an asset and should manage the lifetime by itself
 - (?) unify renderable mesh with physics mesh
 - more types for `Config_Asset`; arrays would be useful, too
+- (?) try [CMake](https://cmake.org/)
 
 # Potential features
 - (?) unity build option
