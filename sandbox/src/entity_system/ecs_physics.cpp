@@ -255,6 +255,7 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		vec2 separator = collisions[i].normal * collisions[i].overlap;
 		collisions[i].phys_a->position += separator * collisions[i].phys_a->dynamic;
 		collisions[i].phys_b->position -= separator * collisions[i].phys_b->dynamic;
+		// @Todo: move dynamic shapes only half way; account if both shapes are static
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {

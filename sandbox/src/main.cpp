@@ -17,6 +17,19 @@
 static lua_State * L;
 static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
 
+cstring init_lua_asset = "assets/scripts/main.lua";
+cstring init_lua_callback = "global_init";
+
+static void consume_config_init(void) {
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
+	init_lua_asset    = config->get_value<cstring>("init_lua_asset",    "assets/scripts/main.lua");
+	init_lua_callback = config->get_value<cstring>("init_lua_callback", "global_init");
+}
+
+cstring update_lua_callback = "global_update";
+
 static void consume_config(void) {
 	static u32 version = custom::empty_index;
 
@@ -34,6 +47,8 @@ static void consume_config(void) {
 	custom::application::set_refresh_rate(
 		rr_target, rr_debug, rr_failsafe, rr_vsync, rr_as_display
 	);
+
+	update_lua_callback = config->get_value<cstring>("update_lua_callback", "global_update");
 }
 
 void init_client_asset_types(void);
@@ -50,6 +65,7 @@ static void on_app_init() {
 	u32 config_id = custom::Asset::store_string("assets/configs/client.cfg", custom::empty_index);
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 
+	consume_config_init();
 	consume_config();
 
 	custom::file::watch_init(".", true);
@@ -69,14 +85,14 @@ static void on_app_init() {
 	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
 	// luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
 
-	u32 lua_id = custom::Asset::store_string("assets/scripts/main.lua", custom::empty_index);
+	u32 lua_id = custom::Asset::store_string(init_lua_asset, custom::empty_index);
 	custom::Asset::add<Lua_Asset>(lua_id);
 
 	//
 	sandbox::ecs_init_physics();
 
 	// @Note: call Lua init
-	sandbox::lua_function(L, "global_init");
+	sandbox::lua_function(L, init_lua_callback);
 }
 
 static void on_app_viewport(ivec2 size) {
@@ -85,7 +101,7 @@ static void on_app_viewport(ivec2 size) {
 
 static void on_app_update(r32 dt) {
 	consume_config();
-	sandbox::lua_function(L, "global_update");
+	sandbox::lua_function(L, update_lua_callback);
 	sandbox::ecs_update_lua(L, dt);
 	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();

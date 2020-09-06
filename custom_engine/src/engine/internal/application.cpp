@@ -70,6 +70,7 @@ static struct {
 	custom::window::Internal_Data * window;
 
 	ivec2 viewport_size;
+	bln update_assets_automatically = true;
 
 	struct {
 		u16 target    = 144;
@@ -93,7 +94,12 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 	CALL_SAFELY(app.callbacks.viewport, size);
 }
 
-static void hint_graphics(Config_Asset const * config) {
+static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
+
+static void consume_config_init(void) {
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
 	u32 ogl_version = config->get_value<u32>("open_gl_version", 46);
 
 	// context_settings
@@ -113,16 +119,28 @@ static void hint_graphics(Config_Asset const * config) {
 	custom::pixel_format_hint.swap         = config->get_value<s32>("pixel_format_swap",         1);
 }
 
+static void consume_config(void) {
+	u32 version = custom::empty_index;
+
+	custom::Config_Asset const * config = config_ref.ref.get_safe();
+	CUSTOM_ASSERT(config, "no config");
+
+	if (version == config->version) { return; }
+	version = config->version;
+
+	app.update_assets_automatically = config->get_value<bln>("update_assets_automatically", true);
+}
+
 void init(void) {
 	// @Note: init systems
 	init_asset_types();
 	init_component_types();
 
-	u32 config_id = custom::Asset::store_string("assets/configs/engine.cfg", custom::empty_index);
-	custom::Asset_RefT<custom::Config_Asset> config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
-	custom::Config_Asset const * config = config_ref.ref.get_fast();
+	u32 config_id = Asset::store_string("assets/configs/engine.cfg", custom::empty_index);
+	config_ref = Asset::add<Config_Asset>(config_id);
 
-	hint_graphics(config);
+	consume_config_init();
+	consume_config();
 
 	custom::system::init();
 	custom::timer::init();
@@ -153,6 +171,10 @@ void run(void) {
 		u64 time_system = custom::timer::get_ticks();
 		custom::window::update(app.window);
 		custom::system::update();
+		consume_config();
+		if (app.update_assets_automatically || get_key_transition(custom::Key_Code::F5, true)) {
+			custom::Asset::update();
+		}
 		time_system = custom::timer::get_ticks() - time_system;
 
 		// prepare for a frame
@@ -170,7 +192,6 @@ void run(void) {
 
 		// process the frame
 		u64 time_logic = custom::timer::get_ticks();
-		custom::Asset::update();
 		CALL_SAFELY(app.callbacks.update, dt);
 		time_logic = custom::timer::get_ticks() - time_logic;
 
