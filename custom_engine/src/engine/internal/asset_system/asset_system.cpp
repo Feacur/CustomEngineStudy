@@ -151,8 +151,6 @@ static u32 find(u32 type, u32 resource) {
 }
 
 void Asset::reset_system(u32 type) {
-	CUSTOM_TRACE("Asset::reset_system(%s)", custom::asset_names.get_string(type));
-
 	Array<Asset> instances_of_type;
 	for (u32 i = 0; i < instance_refs.count; ++i) {
 		if (types[i] == type) {
@@ -161,10 +159,6 @@ void Asset::reset_system(u32 type) {
 	}
 
 	for (u32 i = 0; i < instances_of_type.count; ++i) {
-		CUSTOM_TRACE("destroy %d %d %d %d",
-			instances_of_type[i].id, instances_of_type[i].gen,
-			instances_of_type[i].resource, instances_of_type[i].type
-		);
 		instances_of_type[i].destroy();
 	}
 

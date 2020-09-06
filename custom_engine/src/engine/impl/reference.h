@@ -22,6 +22,12 @@ void Ref_PoolT<T>::destroy(Ref const & ref) {
 	if (ref.id == instances.count - 1) { instances.pop(); }
 }
 
+// template<typename T>
+// void Ref_PoolT<T>::reset_system(void) {
+// 	generations.reset_system();
+// 	instances.count = 0;
+// }
+
 }
 
 //
@@ -41,5 +47,9 @@ template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
 template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
 	return RefT<T>::pool.contains(ref);
 }
+
+// template<typename T> VOID_VOID_FUNC(ref_pool_reset_system) {
+// 	RefT<T>::pool.reset_system();
+// }
 
 }

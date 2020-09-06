@@ -42,4 +42,9 @@ void Gen_Pool::destroy(Ref const & ref) {
 	}
 }
 
+// void Gen_Pool::reset_system(void) {
+// 	gens.count = 0;
+// 	gaps.count = 0;
+// }
+
 }

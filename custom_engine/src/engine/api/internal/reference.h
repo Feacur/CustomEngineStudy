@@ -63,6 +63,7 @@ struct Gen_Pool
 	// API
 	Ref create(void);
 	void destroy(Ref const & ref);
+	// void reset_system(void);
 	inline bool contains(Ref const & ref) const { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
 };
 
@@ -80,6 +81,7 @@ struct Ref_PoolT
 	// API
 	RefT<T> create(void);
 	void destroy(Ref const & ref);
+	// void reset_system(void);
 
 	// RefT API
 	inline bool contains(Ref const & ref) const { return generations.contains(ref); };
@@ -108,5 +110,8 @@ typedef VOID_REF_FUNC(void_ref_func);
 
 #define BOOL_REF_FUNC(ROUTINE_NAME) bool ROUTINE_NAME(Ref const & ref)
 typedef BOOL_REF_FUNC(bool_ref_func);
+
+// #define VOID_VOID_FUNC(ROUTINE_NAME) void ROUTINE_NAME(void)
+// typedef VOID_VOID_FUNC(void_void_func);
 
 }

@@ -72,6 +72,7 @@ struct Entity : public Ref
 	inline bool exists(void) const { return generations.contains(*this); }
 
 	// components API
+	// @Change: make it an array of delegates?
 	static Array<ref_void_func *> component_constructors;
 	static Array<void_ref_func *> component_destructors;
 	static Array<bool_ref_func *> component_containers;
@@ -79,6 +80,7 @@ struct Entity : public Ref
 	static Array<entity_loading_func *> component_loaders;
 	static Array<entity_loading_func *> component_unloaders;
 	static Array<serialization_read_func *> component_serialization_readers;
+	// static Array<void_void_func *> component_system_resetters;
 
 	Ref  add_component(u32 type);
 	void rem_component(u32 type);

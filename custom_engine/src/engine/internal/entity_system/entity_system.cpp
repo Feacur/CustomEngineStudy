@@ -28,6 +28,7 @@ Array<entity_from_to_func *> Entity::component_copiers;
 Array<entity_loading_func *> Entity::component_loaders;
 Array<entity_loading_func *> Entity::component_unloaders;
 Array<serialization_read_func *> Entity::component_serialization_readers;
+// Array<void_void_func *> Entity::component_system_resetters;
 
 }
 
@@ -81,15 +82,31 @@ static u32 find_instance(u32 entity) {
 }
 
 void Entity::reset_system(void) {
-	CUSTOM_TRACE("Entity::reset_system()");
 	entity_do_before_reset_system();
-	while (instances.count > 0) {
-		CUSTOM_TRACE("destroy %d %d",
-			instances[0].id, instances[0].gen
-		);
-		instances[0].destroy();
-	}
+	// @Note a conventional way: remove each and every entity with their componentes out there
+	while (instances.count > 0) { instances[0].destroy(); }
 	CUSTOM_ASSERT(!instances.count, "still some entities");
+
+	// @Note: alternatively manually reset all the relevant memory blocks;
+	//        this should be faster; although, we sidestep any lifetime rules imposed
+	//        with components' load/unload callbacks
+	// for (u32 type = 0; type < Entity::component_system_resetters.count; ++type) {
+	// 	(*Entity::component_system_resetters[type])();
+	// }
+
+	// generations.reset_system();
+	// instances.count = 0;
+
+	// #if !defined(ENTITY_COMPONENTS_DENSE)
+	// // components.set_capacity(0);
+	// for (u32 i = 0; i < Entity::components.capacity; ++i) {
+	// 	Entity::components.data[i] = custom::empty_ref;
+	// }
+	// #else
+	// components.count = 0;
+	// component_types.count = 0;
+	// component_entity_ids.count = 0;
+	// #endif
 }
 
 Entity Entity::create(bool is_instance) {

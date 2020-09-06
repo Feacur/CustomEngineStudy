@@ -34,6 +34,7 @@ void init_client_component_types(void) {
 	custom::Entity::component_loaders.set_capacity(custom::component_names.get_count());
 	custom::Entity::component_unloaders.set_capacity(custom::component_names.get_count());
 	custom::Entity::component_serialization_readers.set_capacity(custom::component_names.get_count());
+	// custom::Entity::component_system_resetters.set_capacity(custom::component_names.get_count());
 	#define COMPONENT_IMPL(T)\
 		custom::Entity::component_constructors.push(&custom::ref_pool_create<T>);\
 		custom::Entity::component_destructors.push(&custom::ref_pool_destroy<T>);\
@@ -42,6 +43,7 @@ void init_client_component_types(void) {
 		custom::Entity::component_loaders.push(&custom::component_pool_load<T>);\
 		custom::Entity::component_unloaders.push(&custom::component_pool_unload<T>);\
 		custom::Entity::component_serialization_readers.push(&custom::serialization::component_pool_serialization_read<T>);\
+		/*custom::Entity::component_system_resetters.push(&custom::ref_pool_reset_system<T>);*/\
 
 	#include "../registry_impl/component_types.h"
 }

@@ -53,6 +53,7 @@ struct Asset : public Ref
 	static cstring get_string(u32 id);
 
 	// types API
+	// @Change: make it an array of delegates?
 	static Array<ref_void_func *> asset_constructors;
 	static Array<void_ref_func *> asset_destructors;
 	static Array<bool_ref_func *> asset_containers;
