@@ -88,8 +88,8 @@ void ecs_update_physics(r32 dt) {
 
 	//
 	custom::Array<Entity_Blob> entities(8);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
+	for (u32 i = 0; i < custom::Entity::state.instances.count; ++i) {
+		custom::Entity entity = custom::Entity::state.instances[i];
 		if (!entity.exists()) { continue; }
 
 		Transform * transform = entity.get_component<Transform>().get_safe();

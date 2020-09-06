@@ -38,8 +38,8 @@ namespace sandbox {
 
 void ecs_update_renderer(void) {
 	custom::Array<Renderer_Blob> renderers(8);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
+	for (u32 i = 0; i < custom::Entity::state.instances.count; ++i) {
+		custom::Entity entity = custom::Entity::state.instances[i];
 		if (!entity.exists()) { continue; }
 
 		Transform const * transform = entity.get_component<Transform>().get_safe();
@@ -51,9 +51,9 @@ void ecs_update_renderer(void) {
 		renderers.push({entity, transform, camera});
 	}
 
-	custom::Array<Renderable_Blob> renderables(custom::Entity::instances.count);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
+	custom::Array<Renderable_Blob> renderables(custom::Entity::state.instances.count);
+	for (u32 i = 0; i < custom::Entity::state.instances.count; ++i) {
+		custom::Entity entity = custom::Entity::state.instances[i];
 		if (!entity.exists()) { continue; }
 
 		Transform const * transform = entity.get_component<Transform>().get_safe();

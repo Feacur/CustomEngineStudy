@@ -43,18 +43,22 @@ template<typename T> struct Component_Registry { static u32 type; };
 // @Todo: separate Entity_System container from Entity? and make the system container an instance?
 struct Entity : public Ref
 {
-	// entities
-	static Gen_Pool      generations;
-	static Array<Entity> instances;
+	struct State
+	{
+		// entities
+		Gen_Pool        generations;
+		Array<Entity>   instances;
+
+		// components
+		Array<Ref> components;
+
+		#if defined(ENTITY_COMPONENTS_DENSE)
+		Array<u32> component_types;
+		Array<u32> component_entity_ids;
+		#endif
+	};
+	static State state;
 	static Strings_Storage strings;
-
-	// components
-	static Array<Ref> components;
-
-	#if defined(ENTITY_COMPONENTS_DENSE)
-	static Array<u32> component_types;
-	static Array<u32> component_entity_ids;
-	#endif
 
 	// strings API
 	static u32 store_string(cstring data, u32 length);
@@ -69,7 +73,7 @@ struct Entity : public Ref
 	bool is_instance() const;
 	Entity copy(bool force_instance) const;
 	void promote_to_instance(void);
-	inline bool exists(void) const { return generations.contains(*this); }
+	inline bool exists(void) const { return state.generations.contains(*this); }
 
 	// components API
 	static Array<ref_void_func *> component_constructors;

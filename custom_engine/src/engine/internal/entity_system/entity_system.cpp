@@ -11,15 +11,8 @@ namespace custom {
 template struct Array<Entity>;
 
 //  @Note: initialize compile-time statics:
-Gen_Pool               Entity::generations;
-Array<Entity>          Entity::instances;
-Array<Ref>             Entity::components;
-Strings_Storage        Entity::strings;
-
-#if defined(ENTITY_COMPONENTS_DENSE)
-Array<u32>             Entity::component_types;
-Array<u32>             Entity::component_entity_ids;
-#endif
+Entity::State   Entity::state;
+Strings_Storage Entity::strings;
 
 Array<ref_void_func *> Entity::component_constructors;
 Array<void_ref_func *> Entity::component_destructors;
@@ -73,8 +66,8 @@ void serialization_read_Child_block(Entity & entity, cstring * source);
 namespace custom {
 
 static u32 find_instance(u32 entity) {
-	for (u32 i = 0; i < Entity::instances.count; ++i) {
-		if (Entity::instances[i].id != entity) { continue; }
+	for (u32 i = 0; i < Entity::state.instances.count; ++i) {
+		if (Entity::state.instances[i].id != entity) { continue; }
 		return i;
 	}
 	return custom::empty_index;
@@ -82,15 +75,15 @@ static u32 find_instance(u32 entity) {
 
 void Entity::reset_system(void) {
 	entity_do_before_reset_system();
-	while (Entity::instances.count > 0) {
-		Entity::instances[0].destroy();
+	while (Entity::state.instances.count > 0) {
+		Entity::state.instances[0].destroy();
 	}
-	CUSTOM_ASSERT(!Entity::instances.count, "still some entities");
+	CUSTOM_ASSERT(!Entity::state.instances.count, "still some entities");
 }
 
 Entity Entity::create(bool is_instance) {
-	Entity entity = {Entity::generations.create()};
-	if (is_instance) { Entity::instances.push(entity); }
+	Entity entity = {Entity::state.generations.create()};
+	if (is_instance) { Entity::state.instances.push(entity); }
 	return entity;
 }
 
@@ -158,9 +151,9 @@ void Entity::destroy(void) {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return; }
 
 	u32 entity_offset = id * Entity::component_destructors.count;
-	if (entity_offset < Entity::components.capacity) {
+	if (entity_offset < Entity::state.components.capacity) {
 		for (u32 type = 0; type < Entity::component_destructors.count; ++type) {
-			Ref component_ref = Entity::components.get(entity_offset + type);
+			Ref component_ref = Entity::state.components.get(entity_offset + type);
 			if ((*Entity::component_containers[type])(component_ref)) {
 				(*Entity::component_unloaders[type])(*this, component_ref, false);
 				(*Entity::component_destructors[type])(component_ref);
@@ -169,11 +162,11 @@ void Entity::destroy(void) {
 	}
 
 	entity_do_before_destroy(*this);
-	Entity::generations.destroy(*this);
+	Entity::state.generations.destroy(*this);
 
-	for (u32 i = 0; i < Entity::instances.count; ++i) {
-		if (Entity::instances[i] != *this) { continue; }
-		Entity::instances.remove_at(i);
+	for (u32 i = 0; i < Entity::state.instances.count; ++i) {
+		if (Entity::state.instances[i] != *this) { continue; }
+		Entity::state.instances.remove_at(i);
 		break;
 	}
 }
@@ -204,7 +197,7 @@ Entity Entity::copy(bool force_instance) const {
 void Entity::promote_to_instance(void) {
 	// @Todo: apply this to the whole hierarchy correctly
 	if (is_instance()) { CUSTOM_ASSERT(false, "prefab is an instance already"); return; }
-	Entity::instances.push(*this);
+	Entity::state.instances.push(*this);
 }
 
 }
@@ -218,9 +211,9 @@ void Entity::promote_to_instance(void) {
 namespace custom {
 
 static u32 find(u32 type, u32 entity) {
-	for (u32 i = 0; i < Entity::component_types.count; ++i) {
-		if (Entity::component_types[i] != type) { continue; }
-		if (Entity::component_entity_ids[i] == entity) { return i; }
+	for (u32 i = 0; i < Entity::state.component_types.count; ++i) {
+		if (Entity::state.component_types[i] != type) { continue; }
+		if (Entity::state.component_entity_ids[i] == entity) { return i; }
 	}
 	return custom::empty_index;
 }
@@ -231,19 +224,19 @@ Ref Entity::add_component(u32 type) {
 	Ref component_ref = custom::empty_ref;
 
 	u32 component_index = find(type, id);
-	if (component_index != custom::empty_index) { component_ref = Entity::components[component_index]; }
+	if (component_index != custom::empty_index) { component_ref = Entity::state.components[component_index]; }
 
 	if (component_ref.id == custom::empty_ref.id || !(*Entity::component_containers[type])(component_ref)) {
 		if (component_index != custom::empty_index) {
-			Entity::components.remove_at(component_index);
-			Entity::component_entity_ids.remove_at(component_index);
-			Entity::component_types.remove_at(component_index);
+			Entity::state.components.remove_at(component_index);
+			Entity::state.component_entity_ids.remove_at(component_index);
+			Entity::state.component_types.remove_at(component_index);
 		}
 
 		component_ref= (*Entity::component_constructors[type])();
-		Entity::components.push(component_ref);
-		Entity::component_entity_ids.push(id);
-		Entity::component_types.push(type);
+		Entity::state.components.push(component_ref);
+		Entity::state.component_entity_ids.push(id);
+		Entity::state.component_types.push(type);
 
 		(*Entity::component_loaders[type])(*this, component_ref, true);
 	}
@@ -259,10 +252,10 @@ void Entity::rem_component(u32 type) {
 
 	u32 component_index = find(type, id);
 	if (component_index != custom::empty_index) {
-		component_ref = Entity::components[component_index];
-		Entity::components.remove_at(component_index);
-		Entity::component_entity_ids.remove_at(component_index);
-		Entity::component_types.remove_at(component_index);
+		component_ref = Entity::state.components[component_index];
+		Entity::state.components.remove_at(component_index);
+		Entity::state.component_entity_ids.remove_at(component_index);
+		Entity::state.component_types.remove_at(component_index);
 	}
 
 	if ((*Entity::component_containers[type])(component_ref)) {
@@ -278,7 +271,7 @@ Ref Entity::get_component(u32 type) const {
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return custom::empty_ref; }
 
-	return Entity::components[component_index];
+	return Entity::state.components[component_index];
 }
 
 bool Entity::has_component(u32 type) const {
@@ -287,7 +280,7 @@ bool Entity::has_component(u32 type) const {
 	u32 component_index = find(type, id);
 	if (component_index == custom::empty_index) { return false; }
 
-	Ref component_ref = Entity::components[component_index];
+	Ref component_ref = Entity::state.components[component_index];
 	return (*Entity::component_containers[type])(component_ref);
 }
 
@@ -301,18 +294,18 @@ Ref Entity::add_component(u32 type) {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	// entity_components_ensure_capacity
-	u32 capacity_before = Entity::components.capacity;
-	Entity::components.ensure_capacity((id + 1) * Entity::component_constructors.count);
-	for (u32 i = capacity_before; i < Entity::components.capacity; ++i) {
-		Entity::components.data[i] = custom::empty_ref;
+	u32 capacity_before = Entity::state.components.capacity;
+	Entity::state.components.ensure_capacity((id + 1) * Entity::component_constructors.count);
+	for (u32 i = capacity_before; i < Entity::state.components.capacity; ++i) {
+		Entity::state.components.data[i] = custom::empty_ref;
 	}
 
 	u32 component_index = id * Entity::component_constructors.count + type;
-	Ref component_ref = Entity::components.get(component_index);
+	Ref component_ref = Entity::state.components.get(component_index);
 
 	if (!(*Entity::component_containers[type])(component_ref)) {
 		component_ref = (*Entity::component_constructors[type])();
-		Entity::components.get(component_index) = component_ref;
+		Entity::state.components.get(component_index) = component_ref;
 
 		(*Entity::component_loaders[type])(*this, component_ref, true);
 	}
@@ -326,11 +319,11 @@ void Entity::rem_component(u32 type) {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return; }
 
 	u32 component_index = id * Entity::component_destructors.count + type;
-	if (component_index >= Entity::components.capacity) {
+	if (component_index >= Entity::state.components.capacity) {
 		CUSTOM_ASSERT(false, "component doesn't exist"); return;
 	}
 
-	Ref component_ref = Entity::components.get(component_index);
+	Ref component_ref = Entity::state.components.get(component_index);
 
 	if ((*Entity::component_containers[type])(component_ref)) {
 		(*Entity::component_unloaders[type])(*this, component_ref, true);
@@ -343,18 +336,18 @@ Ref Entity::get_component(u32 type) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return custom::empty_ref; }
 
 	u32 component_index = id * Entity::component_containers.count + type;
-	if (component_index >= Entity::components.capacity) { return custom::empty_ref; }
+	if (component_index >= Entity::state.components.capacity) { return custom::empty_ref; }
 
-	return Entity::components.get(component_index);
+	return Entity::state.components.get(component_index);
 }
 
 bool Entity::has_component(u32 type) const {
 	if (!exists()) { CUSTOM_ASSERT(false, "entity doesn't exist"); return false; }
 
 	u32 component_index = id * Entity::component_containers.count + type;
-	if (component_index >= Entity::components.capacity) { return false; }
+	if (component_index >= Entity::state.components.capacity) { return false; }
 
-	Ref component_ref = Entity::components.get(component_index);
+	Ref component_ref = Entity::state.components.get(component_index);
 	return (*Entity::component_containers[type])(component_ref);
 }
 
@@ -389,13 +382,13 @@ void Component::destroy(void) {
 	else { CUSTOM_ASSERT(false, "component doesn't exist"); }
 
 	#if defined(ENTITY_COMPONENTS_DENSE)
-	for (u32 i = 0; i < Entity::components.count; ++i) {
-		if (Entity::component_types[i] != type) { continue; }
-		if (Entity::component_entity_ids[i] != entity.id) { continue; }
-		if (Entity::components[i] != ref) { continue; }
-		Entity::components.remove_at(i);
-		Entity::component_entity_ids.remove_at(i);
-		Entity::component_types.remove_at(i);
+	for (u32 i = 0; i < Entity::state.components.count; ++i) {
+		if (Entity::state.component_types[i] != type) { continue; }
+		if (Entity::state.component_entity_ids[i] != entity.id) { continue; }
+		if (Entity::state.components[i] != ref) { continue; }
+		Entity::state.components.remove_at(i);
+		Entity::state.component_entity_ids.remove_at(i);
+		Entity::state.component_types.remove_at(i);
 		break;
 	}
 	#endif

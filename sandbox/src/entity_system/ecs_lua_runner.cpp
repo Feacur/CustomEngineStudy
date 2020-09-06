@@ -51,8 +51,8 @@ struct Script_Blob {
 
 void ecs_update_lua(lua_State * L, r32 dt) {
 	custom::Array<Script_Blob> scripts(8);
-	for (u32 i = 0; i < custom::Entity::instances.count; ++i) {
-		custom::Entity entity = custom::Entity::instances[i];
+	for (u32 i = 0; i < custom::Entity::state.instances.count; ++i) {
+		custom::Entity entity = custom::Entity::state.instances[i];
 		if (!entity.exists()) { continue; }
 
 		Lua_Script const * script = entity.get_component<Lua_Script>().get_safe();

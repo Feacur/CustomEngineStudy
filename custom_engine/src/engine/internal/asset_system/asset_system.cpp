@@ -13,10 +13,8 @@ namespace custom {
 template struct Array<Asset>;
 
 //  @Note: initialize compile-time statics:
-Array<Ref>             Asset::instance_refs;
-Array<u32>             Asset::resources;
-Array<u32>             Asset::types;
-Strings_Storage        Asset::strings;
+Asset::State    Asset::state;
+Strings_Storage Asset::strings;
 
 Array<ref_void_func *> Asset::asset_constructors;
 Array<void_ref_func *> Asset::asset_destructors;
@@ -54,8 +52,8 @@ cstring Asset::get_string(u32 id) {
 namespace custom {
 
 static u32 find_by_resource(u32 resource) {
-	for (u32 i = 0; i < Asset::types.count; ++i) {
-		if (Asset::resources[i] == resource) { return i; }
+	for (u32 i = 0; i < Asset::state.types.count; ++i) {
+		if (Asset::state.resources[i] == resource) { return i; }
 	}
 	return custom::empty_index;
 }
@@ -76,7 +74,7 @@ void Asset::update(void) {
 				u32 resource = Asset::strings.get_id(string, length);
 				u32 index = find_by_resource(resource);
 				if (index != custom::empty_index) {
-					Asset asset = {Asset::instance_refs[index], Asset::resources[index], Asset::types[index]};
+					Asset asset = {Asset::state.instance_refs[index], Asset::state.resources[index], Asset::state.types[index]};
 					(*Asset::asset_updaters[asset.type])(asset);
 				}
 			} break;
@@ -96,10 +94,10 @@ void Asset::update(void) {
 namespace custom {
 
 inline static u32 is_correct(Asset const & asset) {
-	for (u32 i = 0; i < Asset::types.count; ++i) {
-		if (Asset::types[i] != asset.type) { continue; }
-		if (Asset::resources[i] != asset.resource) { continue; }
-		if (Asset::instance_refs[i] == asset) { return true; }
+	for (u32 i = 0; i < Asset::state.types.count; ++i) {
+		if (Asset::state.types[i] != asset.type) { continue; }
+		if (Asset::state.resources[i] != asset.resource) { continue; }
+		if (Asset::state.instance_refs[i] == asset) { return true; }
 	}
 	return false;
 }
@@ -123,13 +121,13 @@ void Asset::destroy(void) {
 	}
 	else { CUSTOM_ASSERT(false, "asset doesn't exist"); }
 
-	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
-		if (Asset::types[i] != type) { continue; }
-		if (Asset::resources[i] != resource) { continue; }
-		if (Asset::instance_refs[i] != *this) { continue; }
-		Asset::instance_refs.remove_at(i);
-		Asset::resources.remove_at(i);
-		Asset::types.remove_at(i);
+	for (u32 i = 0; i < Asset::state.instance_refs.count; ++i) {
+		if (Asset::state.types[i] != type) { continue; }
+		if (Asset::state.resources[i] != resource) { continue; }
+		if (Asset::state.instance_refs[i] != *this) { continue; }
+		Asset::state.instance_refs.remove_at(i);
+		Asset::state.resources.remove_at(i);
+		Asset::state.types.remove_at(i);
 		break;
 	}
 }
@@ -143,26 +141,26 @@ void Asset::destroy(void) {
 namespace custom {
 
 static u32 find(u32 type, u32 resource) {
-	for (u32 i = 0; i < Asset::types.count; ++i) {
-		if (Asset::types[i] != type) { continue; }
-		if (Asset::resources[i] == resource) { return i; }
+	for (u32 i = 0; i < Asset::state.types.count; ++i) {
+		if (Asset::state.types[i] != type) { continue; }
+		if (Asset::state.resources[i] == resource) { return i; }
 	}
 	return custom::empty_index;
 }
 
 void Asset::reset_system(u32 type) {
 	Array<Asset> instances_of_type;
-	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
-		if (Asset::types[i] != type) { continue; }
-		instances_of_type.push({Asset::instance_refs[i], Asset::resources[i], Asset::types[i]});
+	for (u32 i = 0; i < Asset::state.instance_refs.count; ++i) {
+		if (Asset::state.types[i] != type) { continue; }
+		instances_of_type.push({Asset::state.instance_refs[i], Asset::state.resources[i], Asset::state.types[i]});
 	}
 
 	for (u32 i = 0; i < instances_of_type.count; ++i) {
 		instances_of_type[i].destroy();
 	}
 
-	for (u32 i = 0; i < Asset::instance_refs.count; ++i) {
-		if (Asset::types[i] != type) { continue; }
+	for (u32 i = 0; i < Asset::state.instance_refs.count; ++i) {
+		if (Asset::state.types[i] != type) { continue; }
 		CUSTOM_ASSERT(false, "still some assets");
 	}
 }
@@ -172,24 +170,24 @@ Asset Asset::add(u32 type, u32 resource) {
 
 	u32 index = find(type, resource);
 	if (index != custom::empty_index) {
-		Ref asset_ref = Asset::instance_refs[index];
+		Ref asset_ref = Asset::state.instance_refs[index];
 		asset.id  = asset_ref.id;
 		asset.gen = asset_ref.gen;
 	}
 
 	if (asset.id == custom::empty_ref.id || !(*Asset::asset_containers[type])(asset)) {
 		if (index != custom::empty_index) {
-			Asset::instance_refs.remove_at(index);
-			Asset::resources.remove_at(index);
-			Asset::types.remove_at(index);
+			Asset::state.instance_refs.remove_at(index);
+			Asset::state.resources.remove_at(index);
+			Asset::state.types.remove_at(index);
 		}
 
 		Ref asset_ref = (*Asset::asset_constructors[type])();
 		asset.id  = asset_ref.id;
 		asset.gen = asset_ref.gen;
-		Asset::instance_refs.push(asset);
-		Asset::resources.push(resource);
-		Asset::types.push(type);
+		Asset::state.instance_refs.push(asset);
+		Asset::state.resources.push(resource);
+		Asset::state.types.push(type);
 
 		(*Asset::asset_loaders[type])(asset);
 	}
@@ -205,12 +203,12 @@ void Asset::rem(u32 type, u32 resource) {
 
 	u32 index = find(type, resource);
 	if (index != custom::empty_index) {
-		Ref asset_ref = Asset::instance_refs[index];
+		Ref asset_ref = Asset::state.instance_refs[index];
 		asset.id  = asset_ref.id;
 		asset.gen = asset_ref.gen;
-		Asset::instance_refs.remove_at(index);
-		Asset::resources.remove_at(index);
-		Asset::types.remove_at(index);
+		Asset::state.instance_refs.remove_at(index);
+		Asset::state.resources.remove_at(index);
+		Asset::state.types.remove_at(index);
 	}
 
 	if ((*Asset::asset_containers[type])(asset)) {
@@ -224,14 +222,14 @@ Asset Asset::get(u32 type, u32 resource) {
 	u32 index = find(type, resource);
 	if (index == custom::empty_index) { return {custom::empty_ref}; }
 
-	return {Asset::instance_refs[index], resource, type};
+	return {Asset::state.instance_refs[index], resource, type};
 }
 
 bool Asset::has(u32 type, u32 resource) {
 	u32 index = find(type, resource);
 	if (index == custom::empty_index) { return false; }
 
-	Ref ref = Asset::instance_refs[index];
+	Ref ref = Asset::state.instance_refs[index];
 	return (*Asset::asset_containers[type])(ref);
 }
 

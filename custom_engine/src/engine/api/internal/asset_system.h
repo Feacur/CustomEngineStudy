@@ -41,10 +41,13 @@ struct Asset : public Ref
 	u32 resource;
 	u32 type;
 
-	// instances
-	static Array<Ref> instance_refs;
-	static Array<u32> resources;
-	static Array<u32> types;
+	struct State
+	{
+		Array<Ref> instance_refs;
+		Array<u32> resources;
+		Array<u32> types;
+	};
+	static State state;
 	static Strings_Storage strings;
 
 	// strings API
