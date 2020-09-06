@@ -47,12 +47,12 @@ struct Asset : public Ref
 		Array<u32> types;
 	};
 	struct VTable {
-		Array<ref_void_func *> asset_constructors;
-		Array<void_ref_func *> asset_destructors;
-		Array<bool_ref_func *> asset_containers;
-		Array<loading_func *>  asset_loaders;
-		Array<loading_func *>  asset_unloaders;
-		Array<loading_func *>  asset_updaters;
+		Array<ref_void_func *> create;
+		Array<void_ref_func *> destroy;
+		Array<bool_ref_func *> contains;
+		Array<loading_func *>  load;
+		Array<loading_func *>  unload;
+		Array<loading_func *>  update;
 	};
 	static State state;
 	static VTable vtable;

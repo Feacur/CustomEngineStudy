@@ -28,19 +28,19 @@ void init_asset_types(void) {
 
 	#include "engine/registry_impl/asset_types.h"
 
-	custom::Asset::vtable.asset_constructors.set_capacity(custom::asset_names.get_count());
-	custom::Asset::vtable.asset_destructors.set_capacity(custom::asset_names.get_count());
-	custom::Asset::vtable.asset_containers.set_capacity(custom::asset_names.get_count());
-	custom::Asset::vtable.asset_loaders.set_capacity(custom::asset_names.get_count());
-	custom::Asset::vtable.asset_unloaders.set_capacity(custom::asset_names.get_count());
-	custom::Asset::vtable.asset_updaters.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.create.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.destroy.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.contains.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.load.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.unload.set_capacity(custom::asset_names.get_count());
+	custom::Asset::vtable.update.set_capacity(custom::asset_names.get_count());
 	#define ASSET_IMPL(T)\
-		custom::Asset::vtable.asset_constructors.push(&custom::ref_pool_create<T>);\
-		custom::Asset::vtable.asset_destructors.push(&custom::ref_pool_destroy<T>);\
-		custom::Asset::vtable.asset_containers.push(&custom::ref_pool_contains<T>);\
-		custom::Asset::vtable.asset_loaders.push(&custom::loading::asset_pool_load<T>);\
-		custom::Asset::vtable.asset_unloaders.push(&custom::loading::asset_pool_unload<T>);\
-		custom::Asset::vtable.asset_updaters.push(&custom::loading::asset_pool_update<T>);\
+		custom::Asset::vtable.create.push(&custom::ref_pool_create<T>);\
+		custom::Asset::vtable.destroy.push(&custom::ref_pool_destroy<T>);\
+		custom::Asset::vtable.contains.push(&custom::ref_pool_contains<T>);\
+		custom::Asset::vtable.load.push(&custom::loading::asset_pool_load<T>);\
+		custom::Asset::vtable.unload.push(&custom::loading::asset_pool_unload<T>);\
+		custom::Asset::vtable.update.push(&custom::loading::asset_pool_update<T>);\
 
 	#include "engine/registry_impl/asset_types.h"
 }

@@ -57,13 +57,13 @@ struct Entity : public Ref
 		#endif
 	};
 	struct VTable {
-		Array<ref_void_func *> component_constructors;
-		Array<void_ref_func *> component_destructors;
-		Array<bool_ref_func *> component_containers;
-		Array<entity_from_to_func *> component_copiers;
-		Array<entity_loading_func *> component_loaders;
-		Array<entity_loading_func *> component_unloaders;
-		Array<serialization_read_func *> component_serialization_readers;
+		Array<ref_void_func *> create;
+		Array<void_ref_func *> destroy;
+		Array<bool_ref_func *> contains;
+		Array<entity_from_to_func *> copy;
+		Array<entity_loading_func *> load;
+		Array<entity_loading_func *> unload;
+		Array<serialization_read_func *> serialization_read;
 	};
 	static State state;
 	static VTable vtable;

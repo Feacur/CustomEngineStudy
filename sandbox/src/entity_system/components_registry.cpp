@@ -27,21 +27,21 @@ void init_client_component_types(void) {
 
 	#include "../registry_impl/component_types.h"
 
-	custom::Entity::vtable.component_constructors.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_destructors.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_containers.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_copiers.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_loaders.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_unloaders.set_capacity(custom::component_names.get_count());
-	custom::Entity::vtable.component_serialization_readers.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.create.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.destroy.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.contains.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.copy.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.load.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.unload.set_capacity(custom::component_names.get_count());
+	custom::Entity::vtable.serialization_read.set_capacity(custom::component_names.get_count());
 	#define COMPONENT_IMPL(T)\
-		custom::Entity::vtable.component_constructors.push(&custom::ref_pool_create<T>);\
-		custom::Entity::vtable.component_destructors.push(&custom::ref_pool_destroy<T>);\
-		custom::Entity::vtable.component_containers.push(&custom::ref_pool_contains<T>);\
-		custom::Entity::vtable.component_copiers.push(&custom::component_pool_copy<T>);\
-		custom::Entity::vtable.component_loaders.push(&custom::component_pool_load<T>);\
-		custom::Entity::vtable.component_unloaders.push(&custom::component_pool_unload<T>);\
-		custom::Entity::vtable.component_serialization_readers.push(&custom::serialization::component_pool_serialization_read<T>);\
+		custom::Entity::vtable.create.push(&custom::ref_pool_create<T>);\
+		custom::Entity::vtable.destroy.push(&custom::ref_pool_destroy<T>);\
+		custom::Entity::vtable.contains.push(&custom::ref_pool_contains<T>);\
+		custom::Entity::vtable.copy.push(&custom::component_pool_copy<T>);\
+		custom::Entity::vtable.load.push(&custom::component_pool_load<T>);\
+		custom::Entity::vtable.unload.push(&custom::component_pool_unload<T>);\
+		custom::Entity::vtable.serialization_read.push(&custom::serialization::component_pool_serialization_read<T>);\
 
 	#include "../registry_impl/component_types.h"
 }
