@@ -106,11 +106,13 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();
 
-	if (custom::application::get_key(custom::Key_Code::Alt)) {
-		if (custom::application::get_key(custom::Key_Code::F4)) {
-			custom::system::should_close = true;
-		}
+	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key(custom::Key_Code::F4)) {
+		custom::system::should_close = true;
 	}
+}
+
+static bool on_app_close() {
+	return true;
 }
 
 int main(int argc, char * argv[]) {
@@ -118,10 +120,8 @@ int main(int argc, char * argv[]) {
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);
-	custom::application::init();
-
+	custom::application::set_close_callback(&on_app_close);
 	custom::application::run();
-	custom::file::watch_shutdown();
 	// getchar();
 	return 0;
 }

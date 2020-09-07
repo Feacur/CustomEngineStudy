@@ -37,7 +37,7 @@ namespace window {
 struct Internal_Data
 {
 	HWND hwnd;
-	bool should_close;
+	bool is_externally_destroyed;
 	context::Internal_Data * graphics_context;
 	ivec2 size;
 
@@ -58,6 +58,7 @@ struct Internal_Data
 
 	struct {
 		viewport_func * viewport;
+		close_func    * close;
 	} callbacks;
 };
 
@@ -66,6 +67,7 @@ Internal_Data * create(void) {
 	static ATOM const window_atom = platform_register_window_class();
 
 	Internal_Data * data = (Internal_Data *)calloc(1, sizeof(Internal_Data));
+	CUSTOM_ASSERT(data, "failed to allocate window");
 
 	data->hwnd = platform_create_window();
 	data->size = platform_get_window_size(data->hwnd);
@@ -76,7 +78,7 @@ Internal_Data * create(void) {
 	return data;
 }
 
-void destroy(Internal_Data * data) {
+static void clean_internal(Internal_Data * data) {
 	if (data->graphics_context) {
 		context::destroy(data->graphics_context);
 		data->graphics_context = NULL;
@@ -84,19 +86,24 @@ void destroy(Internal_Data * data) {
 	if (data->hwnd) {
 		platform_raw_input_shutdown(data->hwnd);
 		RemoveProp(data->hwnd, TEXT(CUSTOM_WINDOW_PTR));
-		DestroyWindow(data->hwnd);
 		data->hwnd = NULL;
 	}
+}
+
+void destroy(Internal_Data * data) {
+	if (data->hwnd) { DestroyWindow(data->hwnd); return; }
 	free(data);
 }
 
 void init_context(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	CUSTOM_ASSERT(!data->graphics_context, "trying to create a second rendering context");
 	data->graphics_context = context::create(data);
 	graphics::init();
 }
 
 void update(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	// @Todo: split into input consumption and buffer output?
 	keyboard_update(data);
 	mouse_update(data);
@@ -104,42 +111,50 @@ void update(Internal_Data * data) {
 }
 
 void set_vsync(Internal_Data * data, u8 value) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	context::set_vsync(data->graphics_context, value);
 }
 
 bool check_vsync(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return context::check_vsync(data->graphics_context);
 }
 
 u16 get_refresh_rate(Internal_Data * data, u16 default_value) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	s32 monitor_hz = GetDeviceCaps(GetDC(data->hwnd), VREFRESH);
 	return (monitor_hz > 0) ? (u16)monitor_hz : default_value;
 }
 
 void set_header(Internal_Data * data, cstring value) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	SetWindowText(data->hwnd, value);
 }
 
 ivec2 const & get_size(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return data->size;
 }
 
-bool get_should_close(Internal_Data * data) {
-	return data->should_close;
+bool get_is_active(Internal_Data * data) {
+	return data->hwnd;
 }
 
 // input
 bool get_key(Internal_Data * data, Key_Code key) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	using U = meta::underlying_type<custom::Key_Code>::type;
 	return data->keyboard.keys[(U)key];
 }
 
 bool get_mouse_key(Internal_Data * data, Mouse_Code key) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	using U = meta::underlying_type<Mouse_Code>::type;
 	return data->mouse.keys[(U)key];
 }
 
 bool get_key_transition(Internal_Data * data, Key_Code key, bool to_state) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	using U = meta::underlying_type<Key_Code>::type;
 	bool from = data->keyboard.prev[(U)key];
 	bool to = data->keyboard.keys[(U)key];
@@ -147,6 +162,7 @@ bool get_key_transition(Internal_Data * data, Key_Code key, bool to_state) {
 }
 
 bool get_mouse_key_transition(Internal_Data * data, Mouse_Code key, bool to_state) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	using U = meta::underlying_type<Mouse_Code>::type;
 	bool from = data->mouse.prev[(U)key];
 	bool to = data->mouse.keys[(U)key];
@@ -154,24 +170,34 @@ bool get_mouse_key_transition(Internal_Data * data, Mouse_Code key, bool to_stat
 }
 
 ivec2 const & get_mouse_pos(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return data->mouse.position;
 }
 
 ivec2 const & get_mouse_delta(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return data->mouse.delta;
 }
 
 vec2 const & get_mouse_wheel(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return data->mouse.wheel;
 }
 
 // callbacks
 void set_viewport_callback(Internal_Data * data, viewport_func * callback) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	data->callbacks.viewport = callback;
+}
+
+void set_close_callback(Internal_Data * data, close_func * callback) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
+	data->callbacks.close = callback;
 }
 
 // platform internal access
 HDC get_hdc(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	return GetDC(data->hwnd);
 }
 
@@ -263,6 +289,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 	if (!window) {
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
+	CUSTOM_ASSERT(window->hwnd, "window does't exist");
 
 	switch (message) {
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/raw-input
@@ -277,6 +304,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_KEYUP:
 		case WM_KEYDOWN: {
 			process_message_keyboard(window, wParam, lParam);
+			// @Note: [alt]+[f4] won't result with a WM_CLOSE
 			return 0; // An application should return zero if it processes this message.
 		} break;
 		
@@ -387,15 +415,25 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		// @Note: forgo the normal pipeline and just prompt the window to close
 		case WM_CLOSE: {
 			// Sent as a signal that a window or an application should terminate.
-			window->should_close = true;
-			// DestroyWindow(hwnd); // Go to WM_DESTROY
+			if (window->callbacks.close) {
+				(*window->callbacks.close)(window);
+			}
+			else {
+				window->is_externally_destroyed = true;
+				DestroyWindow(hwnd); // Go to WM_DESTROY
+			}
 			return 0; // If an application processes this message, it should return zero.
 		} break;
 
-		// @Note: forgo the normal pipeline and just prompt the window to close
+		// @Note: forgo the normal pipeline and let the application decide
 		case WM_DESTROY: {
 			// Sent when a window is being destroyed. It is sent to the window procedure of the window being destroyed after the window is removed from the screen.
-			window->should_close = true;
+			if (window->is_externally_destroyed) {
+				custom::window::clean_internal(window);
+			}
+			else {
+				free(window);
+			}
 			// 	PostQuitMessage(0); // Go to WM_QUIT
 			return 0; // If an application processes this message, it should return zero.
 		} break;
