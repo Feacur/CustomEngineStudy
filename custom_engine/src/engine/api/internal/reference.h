@@ -29,6 +29,7 @@ inline bool operator!=(Ref const & a, Ref const & b) {
 template<typename T>
 struct RefT : public Ref
 {
+	// @Todo: factor this state out, too
 	static Ref_PoolT<T> pool;
 
 	inline static RefT<T> create(void) { return RefT::pool.create(); }

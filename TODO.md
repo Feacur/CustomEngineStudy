@@ -32,6 +32,7 @@
 - it's possible to reactively allocate and deallocate components' data;
   - might be useful for the third-party backends
 - components, entities, assets can be relocated in memory
+- buy [RemedyBG](https://remedybg.itch.io/remedybg)
 - search for `@Bug:`, `@Note:`, `@Optimize:`, `@Todo:`, `@Change:` in the code
 
 # Optimization
@@ -55,6 +56,8 @@
   - some of them can be quite easily marked like this through components load/unload
   - ... though there are instances, where code requests an asset and should manage the lifetime by itself
 - (?) unify renderable mesh with physics mesh
+- more types for `Config_Asset`; arrays would be useful, too
+- (?) try [CMake](https://cmake.org/)
 
 # Potential features
 - (?) unity build option
@@ -67,5 +70,8 @@
   - probably should collapse engine assets and sandbox assets into a single folder for that
   - (???) or run mutiple threaded watchers
 - entity system callbacks, signaling appearance of entities with a requested set of components
+- (?) embed [dear imgui](https://github.com/ocornut/imgui)
+- (?) embed [Box2D](https://github.com/erincatto/box2d)
+- (???) explore the idea of [rotors](https://marctenbosch.com/quaternions/) as a quaternions replacement
 
 [Markdown](https://www.markdownguide.org/basic-syntax/)

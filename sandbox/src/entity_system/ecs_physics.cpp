@@ -10,6 +10,9 @@
 
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
 // https://gafferongames.com/post/integration_basics/
+// https://github.com/erincatto/box2d-lite
+// https://en.wikipedia.org/wiki/Coefficient_of_restitution
+// https://www.youtube.com/watch?v=fdZfddO7YTs
 
 struct Entity_Blob {
 	custom::Entity   entity;
@@ -23,12 +26,13 @@ struct Physical_Blob {
 	vec2 scale;
 	complex rotation;
 	// Phys2d
-	custom::Collider2d_Asset * mesh;
 	r32 dynamic;
 	r32 mass;
+	r32 inverse_mass;
 	r32 restitution;
 	vec2 velocity;
 	vec2 acceleration;
+	custom::Collider2d_Asset * mesh;
 };
 
 struct Points_Blob {
@@ -121,6 +125,7 @@ void ecs_update_physics(r32 dt) {
 		//
 		blob->dynamic      = entity.physical->dynamic;
 		blob->mass         = entity.physical->mass;
+		blob->inverse_mass = entity.physical->dynamic / entity.physical->mass;
 		blob->restitution  = entity.physical->restitution;
 		blob->acceleration = entity.physical->acceleration;
 		blob->velocity     = entity.physical->velocity;
@@ -171,6 +176,7 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 		u32 axis_i_2 = (axis_i + 1) % first_points_count;
 
 		// @Note: turn the edge 90 degrees clockwise
+		//        might actually be normalized late
 		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
 		axis = normalize(vec2{-axis.y, axis.x});
 
@@ -204,12 +210,12 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
-		phys.velocity += (phys.acceleration + global_gravity) * dt;
+		phys.velocity += (phys.acceleration + global_gravity) * (phys.dynamic * dt);
 	}
 
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
-		phys.position += phys.velocity * (phys.dynamic * dt);
+		phys.position += phys.velocity * dt;
 	}
 
 	// @Todo: broad phase; at least, global AABB for the time being
@@ -239,27 +245,81 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		Physical_Blob & phys_a = physicals[ai];
 		for (u32 bi = ai + 1; bi < physicals.count; ++bi) {
 			Physical_Blob & phys_b = physicals[bi];
+
+			if (phys_a.dynamic == 0 && phys_b.dynamic == 0) { continue; }
+
 			r32 overlap = INFINITY; vec2 separator;
 			if (!overlap_sat(ai, bi, overlap, separator)) { continue; }
 			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
 			if (overlap == 0) { continue; }
-			// @Note: for late normalization
-			// separator = normalize(separator);
 
 			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
 			collisions.push({&phys_a, &phys_b, separator, overlap});
 		}
 	}
 
-	for (u32 i = 0; i < collisions.count; ++i) {
-		vec2 separator = collisions[i].normal * collisions[i].overlap;
-		collisions[i].phys_a->position += separator * collisions[i].phys_a->dynamic;
-		collisions[i].phys_b->position -= separator * collisions[i].phys_b->dynamic;
-	}
+	// @Note: for late normalization
+	// for (u32 i = 0; i < collisions.count; ++i) {
+	// 	collisions[i].normal = normalize(collisions[i].normal);
+	// }
+
+	// @Note: simplest collision response against a static object looks like
+	//        velocity = reflect(velocity, normal, 1 + cor);
+	//        but general case is a tiniest bit more complex
+
+	// @Note: energy and momentum conservation
+	//        ---- ---- ---- ----
+	//        cor = |u2 - u1| / |v2 - v1|
+	//        m1*v1 + m2*v2 = m1*u1 + m2*u2
+	//        ---- ---- ---- ----
+	//        cor*(v2 - v1) = |u2 - u1|*(v2 - v1) / |v2 - v1|
+	//        cor*(v2 - v1) = (u2 - u1)
+	//        ---- ---- ---- ----
+	//        (m1*v1 + m2*v2 - m2*u2) / m1 = u1
+	//        cor*(v2 - v1) + u1 = u2
+	//        ---- ---- ---- ----
+	//        substitude u2, resolve for u1
+	//        (m1*v1 + m2*v2 - m2*(cor*(v2 - v1) + u1)) / m1  = u1
+	//        (m1*v1 + m2*v2 - m2*cor*(v2 - v1) - m2*u1) / m1 = u1
+	//        (m1*v1 + m2*v2 - m2*cor*(v2 - v1)) / m1         = u1 + m2*u1 / m1
+	//        (m1*v1 + m2*v2 - m2*cor*(v2 - v1)) / m1         = u1*(m1 + m2) / m1
+	//        (m1*v1 + m2*v2 - m2*cor*(v2 - v1)) / (m1 + m2)  = u1
+	//        ---- ---- ---- ----
+	//        inverse masses
+	//        (v1/m2 + v2/m1 - cor*(v2 - v1)/m1) / (1/m2 + 1/m1) = u1
 
 	for (u32 i = 0; i < collisions.count; ++i) {
 		vec2 normal = collisions[i].normal;
-		collisions[i].phys_a->velocity = reflect(collisions[i].phys_a->velocity, normal,  1 + collisions[i].phys_a->restitution);
-		collisions[i].phys_b->velocity = reflect(collisions[i].phys_b->velocity, -normal, 1 + collisions[i].phys_b->restitution);
+		vec2 tangent = {-normal.y, normal.x};
+
+		Physical_Blob * phys_a = collisions[i].phys_a;
+		Physical_Blob * phys_b = collisions[i].phys_b;
+
+		// @Note: collision happens only along the normal
+		r32 vel_normal_a = dot_product(normal, phys_a->velocity);
+		r32 vel_normal_b = dot_product(normal, phys_b->velocity);
+
+		r32 const cor  = (phys_a->restitution + phys_b->restitution) / 2;
+		r32 const imp  = (vel_normal_a*phys_b->inverse_mass) + (vel_normal_b*phys_a->inverse_mass);
+		r32 const rel  = (vel_normal_b - vel_normal_a) * cor;
+		r32 const mass = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
+
+		vel_normal_a = (imp + rel*phys_a->inverse_mass)*mass;
+		vel_normal_b = (imp - rel*phys_b->inverse_mass)*mass;
+
+		// @Note: tangential velocity doesn't change
+		phys_a->velocity = normal * vel_normal_a + tangent * dot_product(tangent, phys_a->velocity);
+		phys_b->velocity = normal * vel_normal_b + tangent * dot_product(tangent, phys_b->velocity);
+	}
+
+	for (u32 i = 0; i < collisions.count; ++i) {
+		vec2 separator = collisions[i].normal * collisions[i].overlap;
+
+		Physical_Blob * phys_a = collisions[i].phys_a;
+		Physical_Blob * phys_b = collisions[i].phys_b;
+
+		phys_a->position += separator * phys_a->dynamic;
+		phys_b->position -= separator * phys_b->dynamic;
+		// @Todo: move dynamic shapes only half way; account if both shapes are static
 	}
 }
