@@ -1,0 +1,6 @@
+! # entity
+	p assets/prefabs/cube.prefab
+Phys2d
+	c assets/meshes/square_1.collider
+	d 1
+	r 0.5
