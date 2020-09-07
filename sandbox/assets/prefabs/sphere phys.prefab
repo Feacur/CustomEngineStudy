@@ -1,9 +1,6 @@
 ! # entity
 	p assets/prefabs/sphere.prefab
 Phys2d
-	c assets/meshes/rhombus_1.collider
+	c assets/meshes/circle_1.collider
 	d 1
 	r 0.5
-Lua_Script
-	a assets/scripts/script_control_phys2d.lua
-	u script_control_phys2d

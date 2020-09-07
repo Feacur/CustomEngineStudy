@@ -8,8 +8,12 @@ function global_init_physics_test()
 
 	Asset.add(Prefab_Asset.type, "assets/prefabs/- scene - physics test.prefab")
 
+	Asset.add(Lua_Asset.type, "assets/scripts/script_control_phys2d.lua")
+
 	local sphere_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/sphere phys.prefab")
 	local sphere = Prefab_Asset.promote_to_instance(sphere_prefab)
+
+	local sphere2 = sphere:copy(true)
 
 	-- set up
 	local camera_transform = camera:get_component(Transform.type)
@@ -20,7 +24,13 @@ function global_init_physics_test()
 	camera_component.scale = 0.08
 
 	local sphere_transform = sphere:get_component(Transform.type)
-	sphere_transform.position = vec3.new(1, 3, 0)
+	sphere_transform.position = vec3.new(2, 3, 0)
+
+	local sphere_script = sphere:add_component(Lua_Script.type)
+	sphere_script.update = "script_control_phys2d"
+
+	local sphere2_transform = sphere2:get_component(Transform.type)
+	sphere2_transform.position = vec3.new(4, 3, 0)
 end
 
 function global_update_physics_test()
