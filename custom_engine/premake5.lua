@@ -1,5 +1,4 @@
 project "custom_engine"
-	-- location "."
 	kind "StaticLib" -- or "SharedLib"
 	language "C++"
 	cdialect "C11"

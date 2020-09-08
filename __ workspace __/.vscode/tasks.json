@@ -1,11 +1,15 @@
 {
     "version": "2.0.0",
     "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
+        "reveal": "never",
+        "panel": "shared",
         "showReuseMessage": false,
-        "clear": true
+        "clear": true,
+        "revealProblems": "onProblem",
     },
+    "problemMatcher":"$msCompile",
+    "type": "shell",
+    "options": {"cwd": ".."},
     "tasks": [
         {
             "label": "Clean Build Shipping",
@@ -16,11 +20,6 @@
                 "x64", "x64", "Shipping",
                 "Clean Build"
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Rebuild Shipping",
@@ -31,11 +30,6 @@
                 "x64", "x64", "Shipping",
                 "Rebuild"
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Build Shipping",
@@ -45,11 +39,6 @@
                 "CustomEngineStudy.sln",
                 "x64", "x64", "Shipping",
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Build Development",
@@ -59,11 +48,6 @@
                 "CustomEngineStudy.sln",
                 "x64", "x64", "Development",
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Build Debug",
@@ -73,11 +57,6 @@
                 "CustomEngineStudy.sln",
                 "x64", "x64", "Debug",
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Build DebugLibs",
@@ -87,63 +66,34 @@
                 "CustomEngineStudy.sln",
                 "x64", "x64", "DebugLibs",
             ],
-            "problemMatcher": "$msCompile",
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Prepare Assets Shipping",
             "group": "build",
             "command": "${workspaceFolder}/../prepare_assets.bat",
-            "args": [
-                "Shipping-windows-x86_64",
-            ],
+            "args": ["Shipping"],
             "problemMatcher": [],
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Prepare Assets Development",
             "group": "build",
             "command": "${workspaceFolder}/../prepare_assets.bat",
-            "args": [
-                "Development-windows-x86_64",
-            ],
+            "args": ["Development"],
             "problemMatcher": [],
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Prepare Assets Debug",
             "group": "build",
             "command": "${workspaceFolder}/../prepare_assets.bat",
-            "args": [
-                "Debug-windows-x86_64",
-            ],
+            "args": ["Debug"],
             "problemMatcher": [],
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
         {
             "label": "Prepare Assets DebugLibs",
             "group": "build",
             "command": "${workspaceFolder}/../prepare_assets.bat",
-            "args": [
-                "DebugLibs-windows-x86_64",
-            ],
+            "args": ["DebugLibs"],
             "problemMatcher": [],
-            "type": "shell",
-            "options": {
-                "cwd": ".."
-            },
         },
     ]
 }
