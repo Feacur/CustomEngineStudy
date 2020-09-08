@@ -12,7 +12,7 @@ static int Debug_custom_assert(lua_State * L) {
 	LUA_ASSERT_TYPE(LUA_TBOOLEAN, 1);
 	LUA_ASSERT_TYPE(LUA_TSTRING,  2);
 
-	CUSTOM_ASSERT(lua_toboolean(L, 1), lua_tostring(L, 2));
+	CUSTOM_ASSERT(lua_toboolean(L, 1), "%s", lua_tostring(L, 2));
 
 	return 0;
 }

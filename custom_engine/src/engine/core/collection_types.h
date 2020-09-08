@@ -50,11 +50,11 @@ struct Array
 	void remove_at_ordered(u32 i);
 };
 
-template<typename T, u16 capacity>
+template<typename T, u16 N>
 struct Array_Fixed
 {
-	T data[capacity];
-	constexpr static u16 const capacity = capacity;
+	T data[N];
+	constexpr static u16 const capacity = N;
 	u16 count;
 
 	Array_Fixed(u16 count = 0);

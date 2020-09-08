@@ -27,11 +27,11 @@ void log_last_error(cstring source) {
 	);
 
 	if (size) {
-		CUSTOM_ERROR("system error '0x%x': %s", error, message_buffer);
+		CUSTOM_ERROR("system error '0x%x': %s", (u32)error, message_buffer);
 		LocalFree(message_buffer);
 	}
 	else {
-		CUSTOM_ERROR("system error '0x%x': unknown", error);
+		CUSTOM_ERROR("system error '0x%x': unknown", (u32)error);
 	}
 	CUSTOM_MESSAGE("  " ANSI_TXT_GRY "at: %s" ANSI_CLR "\n", source);
 }

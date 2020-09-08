@@ -17,8 +17,8 @@ struct xvec2 {
 template<typename T>
 struct xvec3 {
 	union {
-		struct { xvec2<T> xy; T z; };
-		struct { T x; xvec2<T> yz; };
+		struct { xvec2<T> xy; T _1; };
+		struct { T _2; xvec2<T> yz; };
 		struct { T x, y, z; };
 		T data[3];
 	};
@@ -32,10 +32,10 @@ struct xvec3 {
 template<typename T>
 struct xvec4 {
 	union {
-		struct { xvec3<T> xyz; T w; };
-		struct { T x; xvec3<T> yzw; };
+		struct { xvec3<T> xyz; T _1; };
+		struct { T _2; xvec3<T> yzw; };
 		struct { xvec2<T> xy; xvec2<T> zw; };
-		struct { T x; xvec2<T> yz; T w; };
+		struct { T _3; xvec2<T> yz; T _4; };
 		struct { T x, y, z, w; };
 		T data[4];
 	};

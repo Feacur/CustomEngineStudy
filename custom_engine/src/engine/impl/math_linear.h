@@ -1066,7 +1066,7 @@ constexpr inline vec3 quat_get_forward(quat q) {
 // https://github.com/g-truc/glm/blob/master/glm/gtc/quaternion.inl
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-inline constexpr bool const quat_is_singularity(quat q) {
+inline constexpr bool quat_is_singularity(quat q) {
 	if (2 * absolute(q.y * q.z + q.x * q.w) <= epsilon) {
 		if (absolute((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) <= epsilon) {
 			return true;

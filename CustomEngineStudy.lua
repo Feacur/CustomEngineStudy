@@ -1,6 +1,7 @@
 include "./premake5_customizations.lua"
 
 workspace "CustomEngineStudy"
+	-- toolset ("msc-ClangCL")
 	-- toolset ("msc")
 	architecture "x86_64" -- x86, x86_64, ARM
 	systemversion "latest"
@@ -8,7 +9,6 @@ workspace "CustomEngineStudy"
 	warnings "Extra"
 	editandcontinue "Off"
 	flags {
-		"FatalWarnings",
 		"NoMinimalRebuild",
 		"MultiProcessorCompile",
 		"NoIncrementalLink",
@@ -35,7 +35,28 @@ workspace "CustomEngineStudy"
 		--                         but I've disabled fatal mode for the libs
 	}
 
-	filter "toolset:msc*"
+	filter "toolset:msc-ClangCL"
+		flags {
+			-- "FatalWarnings",
+		}
+		defines {
+			"CUSTOM_CLANG"
+		}
+		buildoptions {
+			"-Wno-undefined-var-template",
+			"-Wno-unused-parameter",
+			"-Wno-missing-braces",
+			"-Wno-invalid-constexpr",
+			-- "-Wno-unused-function",
+			"-Wno-switch",
+			"-Wno-unused-function",
+			"-Wno-unused-variable",
+		}
+
+	filter "toolset:msc-v*"
+		flags {
+			"FatalWarnings",
+		}
 		disablewarnings {
 			"4201", -- nameless struct/union (suppress)
 			"4189", -- local variable is initialized but not referenced (suppress)

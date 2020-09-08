@@ -64,7 +64,7 @@ struct Internal_Data
 
 Internal_Data * create(void) {
 	// @Bug: is this error prone to register a window class like that?
-	static ATOM const window_atom = platform_register_window_class();
+	platform_register_window_class();
 
 	Internal_Data * data = (Internal_Data *)calloc(1, sizeof(Internal_Data));
 	CUSTOM_ASSERT(data, "failed to allocate window");
@@ -215,6 +215,9 @@ static ivec2 platform_get_window_size(HWND hwnd) {
 
 static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static ATOM platform_register_window_class(void) {
+	static ATOM window_class_atom = NULL;
+	if (window_class_atom) { return window_class_atom; }
+
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa
 	WNDCLASSEX window_class; // = {};
 	ZeroMemory(&window_class, sizeof(window_class));
@@ -225,7 +228,7 @@ static ATOM platform_register_window_class(void) {
 	window_class.lpszClassName = TEXT(CUSTOM_WINDOW_CLASS_NAME);
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerclassexa
-	ATOM window_class_atom = RegisterClassEx(&window_class);
+	window_class_atom = RegisterClassEx(&window_class);
 	CUSTOM_ASSERT(window_class_atom, "failed to register window class");
 	return window_class_atom;
 }

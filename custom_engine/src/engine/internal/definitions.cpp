@@ -11,7 +11,6 @@
 typedef custom::graphics::unit_id unit_id;
 
 // @Note: initialize compile-time structs (xvec<T>)
-namespace custom {
 
 template struct xvec2<r32>;
 template struct xvec3<r32>;
@@ -24,8 +23,6 @@ template struct xvec4<s32>;
 template struct xvec2<u32>;
 template struct xvec3<u32>;
 template struct xvec4<u32>;
-
-}
 
 // @Note: initialize compile-time structs (Array<T>)
 namespace custom {
@@ -82,7 +79,7 @@ u16 get_type_size(Data_Type value) {
 		#define DATA_TYPE_IMPL(T) case Data_Type::T: return sizeof(T);
 		#include "engine/registry_impl/data_type.h"
 	}
-	CUSTOM_ASSERT(false, "unknown data type %d", value);
+	CUSTOM_ASSERT(false, "unknown data type %d", (u32)value);
 	return 0;
 }
 

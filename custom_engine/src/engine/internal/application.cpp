@@ -46,7 +46,7 @@
 			system_ms, logic_ms, render_ms,
 			dt_ms
 		);
-		CUSTOM_ASSERT(header_length >= 0 && header_length <= C_ARRAY_LENGTH(header_text), "out of bounds");
+		CUSTOM_ASSERT(header_length >= 0 && header_length <= (s32)C_ARRAY_LENGTH(header_text), "out of bounds");
 		custom::window::set_header(window, header_text);
 	}
 #else

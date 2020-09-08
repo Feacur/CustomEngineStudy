@@ -32,16 +32,17 @@ struct RefT : public Ref
 	// @Todo: factor this state out, too
 	static Ref_PoolT<T> pool;
 
-	inline static RefT<T> create(void) { return RefT::pool.create(); }
-	inline void destroy(void) { return RefT::pool.destroy(*this); }
-	inline bool exists(void) const { return RefT::pool.contains(*this); }
+	inline static RefT<T> create(void) { return RefT<T>::pool.create(); }
+	inline void destroy(void) { return RefT<T>::pool.destroy(*this); }
+	inline bool exists(void) const { return RefT<T>::pool.contains(*this); }
 
-	inline T * get_fast(void) { return RefT::pool.get_fast(*this); }
-	inline T * get_safe(void) { return RefT::pool.get_safe(*this); }
+	inline T * get_fast(void) { return RefT<T>::pool.get_fast(*this); }
+	inline T * get_safe(void) { return RefT<T>::pool.get_safe(*this); }
 
-	inline T const * get_fast(void) const { return RefT::pool.get_fast(*this); }
-	inline T const * get_safe(void) const { return RefT::pool.get_safe(*this); }
+	inline T const * get_fast(void) const { return RefT<T>::pool.get_fast(*this); }
+	inline T const * get_safe(void) const { return RefT<T>::pool.get_safe(*this); }
 };
+template<typename T> Ref_PoolT<T> RefT<T>::pool;
 
 }
 

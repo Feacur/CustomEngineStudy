@@ -76,7 +76,6 @@ struct Program
 		uniforms.count = 0;
 	}
 };
-template struct custom::Array<Program>;
 
 struct Texture
 {
@@ -97,7 +96,6 @@ struct Texture
 		ready_state = RS_NONE;
 	}
 };
-template struct custom::Array<Texture>;
 
 struct Sampler
 {
@@ -109,7 +107,6 @@ struct Sampler
 		id = empty_gl_id;
 	}
 };
-template struct custom::Array<Sampler>;
 
 struct Attribute
 {
@@ -146,7 +143,6 @@ struct Mesh
 		buffers.count = 0;
 	}
 };
-template struct custom::Array<Mesh>;
 
 struct Render_Texture
 {
@@ -182,7 +178,6 @@ struct Target
 		buffers.count = 0;
 	}
 };
-template struct custom::Array<Target>;
 
 struct Data
 {
@@ -243,6 +238,12 @@ struct Data
 };
 
 }
+
+template struct custom::Array<opengl::Program>;
+template struct custom::Array<opengl::Texture>;
+template struct custom::Array<opengl::Sampler>;
+template struct custom::Array<opengl::Mesh>;
+template struct custom::Array<opengl::Target>;
 
 static opengl::Data ogl;
 
@@ -348,7 +349,7 @@ void consume(Bytecode const & bc) {
 		switch (instruction) {
 			#define INSTRUCTION_IMPL(T) case Instruction::T: platform_##T(bc); break;
 			#include "engine/registry_impl/instruction.h"
-			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", instruction); break;
+			default: CUSTOM_ASSERT(false, "unknown instruction encountered: %d", (u32)instruction); break;
 		}
 		PLATFORM_CONSUME_ERRORS();
 	}
@@ -376,10 +377,10 @@ inline static bool has_allocated_mesh(u32 id) {
 	return ogl.meshes.get(id).id != empty_gl_id;
 }
 
-inline static bool has_allocated_target(u32 id) {
-	if (id >= ogl.targets.capacity) { return false; }
-	return ogl.targets.get(id).id != empty_gl_id;
-}
+// inline static bool has_allocated_target(u32 id) {
+// 	if (id >= ogl.targets.capacity) { return false; }
+// 	return ogl.targets.get(id).id != empty_gl_id;
+// }
 
 }}
 
@@ -591,7 +592,7 @@ static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 
 	static GLchar version[20];
 	GLint version_length = sprintf(version, "#version %d core\n", glsl_version);
-	CUSTOM_ASSERT(version_length >= 0 && version_length <= C_ARRAY_LENGTH(version), "out of bounds");
+	CUSTOM_ASSERT(version_length >= 0 && version_length <= (GLint)C_ARRAY_LENGTH(version), "out of bounds");
 
 	u8 count = 0;
 
@@ -728,7 +729,7 @@ static GLenum get_comparison(Comparison value) {
 		case Comparison::Greater: return GL_GREATER;
 		case Comparison::True:    return GL_ALWAYS;
 	}
-	CUSTOM_ASSERT(false, "unknown comparison %d", value);
+	CUSTOM_ASSERT(false, "unknown comparison %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -737,7 +738,7 @@ static GLenum get_clip_origin(Clip_Origin value) {
 		case Clip_Origin::Lower_Left: return GL_LOWER_LEFT;
 		case Clip_Origin::Upper_Left: return GL_UPPER_LEFT;
 	}
-	CUSTOM_ASSERT(false, "unknown clip origin %d", value);
+	CUSTOM_ASSERT(false, "unknown clip origin %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -746,7 +747,7 @@ static GLenum get_clip_depth(Clip_Depth value) {
 		case Clip_Depth::Neg_One: return GL_NEGATIVE_ONE_TO_ONE;
 		case Clip_Depth::Zero_One: return GL_ZERO_TO_ONE;
 	}
-	CUSTOM_ASSERT(false, "unknown clip depth %d", value);
+	CUSTOM_ASSERT(false, "unknown clip depth %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -756,7 +757,7 @@ static GLenum get_cull_mode(Cull_Mode value) {
 		case Cull_Mode::Front: return GL_FRONT;
 		case Cull_Mode::Both:  return GL_FRONT_AND_BACK;
 	}
-	CUSTOM_ASSERT(false, "unknown cull mode %d", value);
+	CUSTOM_ASSERT(false, "unknown cull mode %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -765,7 +766,7 @@ static GLenum get_front_face(Front_Face value) {
 		case Front_Face::CW:  return GL_CW;
 		case Front_Face::CCW: return GL_CCW;
 	}
-	CUSTOM_ASSERT(false, "unknown front face %d", value);
+	CUSTOM_ASSERT(false, "unknown front face %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -780,7 +781,7 @@ static GLenum get_operation(Operation value) {
 		case Operation::Decr_Wrap: return GL_DECR_WRAP;
 		case Operation::Invert:    return GL_INVERT;
 	}
-	CUSTOM_ASSERT(false, "unknown operation %d", value);
+	CUSTOM_ASSERT(false, "unknown operation %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -828,7 +829,7 @@ static GLenum get_texture_internal_format(Texture_Type texture_type, Data_Type d
 			case Data_Type::u8: return GL_STENCIL_INDEX8;
 		}
 	}
-	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d and channels count %d", texture_type, data_type, channels);
+	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d and channels count %d", (u32)texture_type, (u32)data_type, (u32)channels);
 	return GL_NONE;
 }
 
@@ -850,7 +851,7 @@ static GLenum get_texture_data_format(Texture_Type texture_type, u8 channels) {
 		case Texture_Type::Stencil:
 			return GL_STENCIL_INDEX;
 	}
-	CUSTOM_ASSERT(false, "unknown texture type %d and channels count %d", texture_type, channels);
+	CUSTOM_ASSERT(false, "unknown texture type %d and channels count %d", (u32)texture_type, (u32)channels);
 	return GL_NONE;
 }
 
@@ -868,7 +869,7 @@ static GLenum get_attachment_format(Texture_Type texture_type, u8 index) {
 		case Texture_Type::Stencil:
 			return GL_STENCIL_ATTACHMENT;
 	}
-	CUSTOM_ASSERT(false, "unknown texture type %d and index %d", texture_type, index);
+	CUSTOM_ASSERT(false, "unknown texture type %d and index %d", (u32)texture_type, (u32)index);
 	return GL_NONE;
 }
 
@@ -890,7 +891,7 @@ static GLenum get_min_filter(Filter_Mode texture_filter, Filter_Mode mipmap_filt
 			case Filter_Mode::Linear: return GL_LINEAR_MIPMAP_LINEAR;
 		} break;
 	}
-	CUSTOM_ASSERT(false, "unknown texture filter %d and mipmap filter %d", texture_filter, mipmap_filter);
+	CUSTOM_ASSERT(false, "unknown texture filter %d and mipmap filter %d", (u32)texture_filter, (u32)mipmap_filter);
 	return GL_NONE;
 }
 
@@ -900,7 +901,7 @@ static GLenum get_mag_filter(Filter_Mode value) {
 		case Filter_Mode::Point:  return GL_NEAREST;
 		case Filter_Mode::Linear: return GL_LINEAR;
 	}
-	CUSTOM_ASSERT(false, "unknown filter mode %d", value);
+	CUSTOM_ASSERT(false, "unknown filter mode %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -911,7 +912,7 @@ static GLenum get_wrap_mode(Wrap_Mode value) {
 		case Wrap_Mode::Mirror_Repeat: return GL_MIRRORED_REPEAT;
 		case Wrap_Mode::Mirror_Clamp:  return GL_MIRROR_CLAMP_TO_EDGE;
 	}
-	CUSTOM_ASSERT(false, "unknown wrap mode %d", value);
+	CUSTOM_ASSERT(false, "unknown wrap mode %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -939,7 +940,7 @@ static GLenum get_texture_data_type(Texture_Type texture_type, Data_Type data_ty
 			case Data_Type::u8: return GL_UNSIGNED_BYTE;
 		}
 	}
-	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d", texture_type, data_type);
+	CUSTOM_ASSERT(false, "unknown texture type %d with data type %d", (u32)texture_type, (u32)data_type);
 	return GL_NONE;
 }
 
@@ -974,7 +975,7 @@ static GLenum get_data_type(Data_Type value) {
 		case Data_Type::mat3: return GL_FLOAT;
 		case Data_Type::mat4: return GL_FLOAT;
 	};
-	CUSTOM_ASSERT(false, "unknown data type %d", value);
+	CUSTOM_ASSERT(false, "unknown data type %d", (u32)value);
 	return GL_NONE;
 }
 
@@ -1012,7 +1013,7 @@ static GLenum get_mesh_usage(Mesh_Frequency frequency, Mesh_Access access) {
 			case Mesh_Access::Copy: return GL_STREAM_COPY;
 		}
 	}
-	CUSTOM_ASSERT(false, "unknown frequency %d and access %d", frequency, access);
+	CUSTOM_ASSERT(false, "unknown frequency %d and access %d", (u32)frequency, (u32)access);
 	return GL_NONE;
 }
 
@@ -1103,7 +1104,7 @@ static void platform_Blend_Mode(Bytecode const & bc) {
 			// glBlendFunc(GL_ZERO, GL_SRC_COLOR); // just the same
 			return;
 	}
-	CUSTOM_ASSERT(false, "unknown blend mode %d", value);
+	CUSTOM_ASSERT(false, "unknown blend mode %d", (u32)value);
 }
 
 static void platform_Cull_Mode(Bytecode const & bc) {
@@ -1949,10 +1950,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[(u16)i];
-			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
-			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+			// GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+			// GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
-			// @Todo: allow offests usage
+			// @Todo: allow offsets usage
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
@@ -1985,10 +1986,10 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 		}
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
 			opengl::Buffer & buffer = resource->buffers[(u16)i];
-			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
+			// GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
-			// @Todo: allow offests usage
+			// @Todo: allow offsets usage
 			u32 offset = 0;
 			Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 			if (resource->ready_state == RS_LOADED) {
@@ -2274,7 +2275,7 @@ static void platform_Draw(Bytecode const & bc) {
 		return;
 	}
 
-	opengl::Program const * program = &ogl.programs.get(ogl.active_program);
+	// opengl::Program const * program = &ogl.programs.get(ogl.active_program);
 	opengl::Mesh const * mesh = &ogl.meshes.get(ogl.active_mesh);
 
 	// // GLint program_id;

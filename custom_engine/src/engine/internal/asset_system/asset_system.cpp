@@ -214,7 +214,7 @@ void Asset::rem(u32 type, u32 resource) {
 
 Asset Asset::get(u32 type, u32 resource) {
 	u32 index = find(type, resource);
-	if (index == custom::empty_index) { return {custom::empty_ref}; }
+	if (index == custom::empty_index) { return {custom::empty_ref, custom::empty_index, custom::empty_index}; }
 
 	return {Asset::state.instance_refs[index], resource, type};
 }

@@ -230,9 +230,9 @@ void swap_buffers(Internal_Data * data) {
 
 static void * load_ogl_function(cstring name) {
 	if (!name) { return NULL; }
-	void * address = wgl.GetProcAddress(name);
+	void * address = (void *)wgl.GetProcAddress(name);
 	if (!address) {
-		address = GetProcAddress(wgl.instance, name);
+		address = (void *)GetProcAddress(wgl.instance, name);
 	}
 	// if (!address) { CUSTOM_WARNING("missing an OpenGL function: %s", name); }
 	return address;
@@ -727,16 +727,16 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	if (!hrc) {
 		DWORD const error = GetLastError();
 		if (bits_are_set(error, ERROR_INVALID_VERSION_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid version", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid version", (u32)error);
 		}
 		else if (bits_are_set(error, ERROR_INVALID_PROFILE_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid profile", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid profile", (u32)error);
 		}
 		else if (bits_are_set(error, ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: incopatible device context", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: incopatible device context", (u32)error);
 		}
 		else {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: unknown", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: unknown", (u32)error);
 		}
 		return NULL;
 	} LOG_LAST_ERROR();

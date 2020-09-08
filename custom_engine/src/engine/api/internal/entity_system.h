@@ -39,6 +39,7 @@ typedef SERIALIZATION_READ_FUNC(serialization_read_func);
 namespace custom {
 
 template<typename T> struct Component_Registry { static u32 type; };
+template<typename T> u32 Component_Registry<T>::type;
 
 // @Todo: separate Entity_System container from Entity? and make the system container an instance?
 struct Entity : public Ref
