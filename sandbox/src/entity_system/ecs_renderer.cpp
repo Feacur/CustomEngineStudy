@@ -172,8 +172,8 @@ void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, cust
 		mat4 const camera_matrix = mat_product(
 			mat_inverse_transform(renderer_locals.get(renderer.entity.id)),
 			interpolate(
-				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
-				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->near, renderer.camera->far),
+				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->ncp, renderer.camera->fcp),
+				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->ncp, renderer.camera->fcp),
 				renderer.camera->ortho
 			)
 		);

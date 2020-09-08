@@ -8,7 +8,7 @@ function script_fly(entity, dt)
 		if Input.get_key(Key_Code.Control) then
 			camera.ortho = math.min(math.max(camera.ortho + mouse_wheel.y * 4 * dt, 0), 1)
 		elseif Input.get_key(Key_Code.Alt) then
-			camera.far = math.min(math.max(camera.far + mouse_wheel.y * 10 * dt, 0), math.huge)
+			camera.fcp = math.min(math.max(camera.fcp + mouse_wheel.y * 10 * dt, 0), math.huge)
 		else
 			camera.scale = math.min(math.max(camera.scale + mouse_wheel.y * 2 * dt, 0.5), 2)
 		end

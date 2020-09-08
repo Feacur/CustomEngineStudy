@@ -1,3 +1,5 @@
+#include "custom_pch.h"
+
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
 #include "engine/api/lua.h"
@@ -119,8 +121,8 @@ static int Camera_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "near")  == 0) { lua_pushnumber(L, object->get_fast()->near);  return 1; }
-	if (strcmp(id, "far")   == 0) { lua_pushnumber(L, object->get_fast()->far);   return 1; }
+	if (strcmp(id, "ncp")  == 0) { lua_pushnumber(L, object->get_fast()->ncp);  return 1; }
+	if (strcmp(id, "fcp")   == 0) { lua_pushnumber(L, object->get_fast()->fcp);   return 1; }
 	if (strcmp(id, "scale") == 0) { lua_pushnumber(L, object->get_fast()->scale); return 1; }
 	if (strcmp(id, "ortho") == 0) { lua_pushnumber(L, object->get_fast()->ortho); return 1; }
 	if (strcmp(id, "clear") == 0) { lua_pushinteger(L, (u8)object->get_fast()->clear); return 1; }
@@ -140,8 +142,8 @@ static int Camera_newindex(lua_State * L) {
 
 	// @Optimize?
 	LUA_ASSERT_TYPE(LUA_TNUMBER, 3);
-	if (strcmp(id, "near")  == 0) { object->get_fast()->near  = (r32)lua_tonumber(L, 3); return 0; }
-	if (strcmp(id, "far")   == 0) { object->get_fast()->far   = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "ncp")  == 0) { object->get_fast()->ncp  = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "fcp")   == 0) { object->get_fast()->fcp   = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "scale") == 0) { object->get_fast()->scale = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "ortho") == 0) { object->get_fast()->ortho = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "clear") == 0) { object->get_fast()->clear = (custom::graphics::Clear_Flag)lua_tonumber(L, 3); return 0; }

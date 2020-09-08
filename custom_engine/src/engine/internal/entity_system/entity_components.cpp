@@ -95,8 +95,8 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Camera>) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 	Camera * component = refT.get_fast();
 
-	component->near  = 0.1f;
-	component->far   = 100;
+	component->ncp  = 0.1f;
+	component->fcp   = 100;
 	component->scale = 1;
 	component->ortho = 0;
 	component->clear = Camera::Clear_Flag::Color | Camera::Clear_Flag::Depth;

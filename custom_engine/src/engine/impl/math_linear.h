@@ -1296,7 +1296,7 @@ Aim is to scale some world-space coordinates into a box of:
 
 XY scale is usually represented by:
 - 1 / tangent(vield of view radians / 2): a bisected angle scales each of the halves of X and Y planes respectively
-- near / (XY half size): [in case of a perspective projection] keeps area of the near clipping plane intact, but affects field of view
+- ncp / (XY half size): [in case of a perspective projection] keeps area of the near clipping plane intact, but affects field of view
 - any value of choice
 
 Orthograhic projection:
@@ -1339,30 +1339,30 @@ Perspective projection:
 
 */
 
-constexpr inline mat4 mat_persp(vec2 scale, r32 near, r32 far) {
+constexpr inline mat4 mat_persp(vec2 scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
-	float const reverse_depth = 1 / (far - near);
+	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = isinf(far) ? 1 : ((far - NCP * near) * reverse_depth);
+	result[2][2] = isinf(fcp) ? 1 : ((fcp - NCP * ncp) * reverse_depth);
 	result[2][3] = 1; // W += 1 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = isinf(far) ? ((NCP - 1) * near) : ((NCP - 1) * near * far * reverse_depth);
+	result[3][2] = isinf(fcp) ? ((NCP - 1) * ncp) : ((NCP - 1) * ncp * fcp * reverse_depth);
 	result[3][3] = 0; // W += 0 * vec4.w
 	return result;
 }
 
-constexpr inline mat4 mat_ortho(vec2 scale, r32 near, r32 far) {
+constexpr inline mat4 mat_ortho(vec2 scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
-	float const reverse_depth = 1 / (far - near);
+	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
 	result[0][0] = scale.x;
 	result[1][1] = scale.y;
-	result[2][2] = isinf(far) ? 0 : ((1 - NCP) * reverse_depth);
+	result[2][2] = isinf(fcp) ? 0 : ((1 - NCP) * reverse_depth);
 	result[2][3] = 0; // W += 0 * vec4.z
 	// result[3].xy = offset;
-	result[3][2] = isinf(far) ? 0 : ((far * NCP - near) * reverse_depth);
+	result[3][2] = isinf(fcp) ? 0 : ((fcp * NCP - ncp) * reverse_depth);
 	result[3][3] = 1; // W += 1 * vec4.w
 	return result;
 }

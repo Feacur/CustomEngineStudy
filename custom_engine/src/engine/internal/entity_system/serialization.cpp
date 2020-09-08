@@ -143,11 +143,11 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
 			case 'n': ++(*source); {
-				component->near = (parse_void(source), parse_r32(source));
+				component->ncp = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 'f': ++(*source); {
-				component->far = (parse_void(source), parse_r32(source));
+				component->fcp = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 's': ++(*source); {

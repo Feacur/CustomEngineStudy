@@ -1,3 +1,5 @@
+#include "custom_pch.h"
+
 #include "engine/api/internal/names_lookup.h"
 #include "engine/api/internal/component_types.h"
 #include "engine/impl/array.h"

@@ -17,8 +17,8 @@ struct Transform
 struct Camera
 {
 	typedef custom::graphics::Clear_Flag Clear_Flag;
-	r32 near  = 0.1f;
-	r32 far   = 100;
+	r32 ncp   = 0.1f;
+	r32 fcp   = 100;
 	r32 scale = 1;
 	r32 ortho = 0;
 	Clear_Flag clear = Clear_Flag::Color | Clear_Flag::Depth;
