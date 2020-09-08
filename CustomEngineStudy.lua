@@ -47,7 +47,6 @@ workspace "CustomEngineStudy"
 			"-Wno-unused-parameter",
 			"-Wno-missing-braces",
 			"-Wno-invalid-constexpr",
-			-- "-Wno-unused-function",
 			"-Wno-switch",
 			"-Wno-unused-function",
 			"-Wno-unused-variable",

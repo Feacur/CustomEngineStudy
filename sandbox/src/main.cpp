@@ -116,7 +116,7 @@ static bool on_app_close() {
 }
 
 int main(int argc, char * argv[]) {
-	CUSTOM_TRACE("__cplusplus: %d", __cplusplus);
+	CUSTOM_TRACE("__cplusplus: %d", (u32)__cplusplus);
 	custom::application::set_init_callback(&on_app_init);
 	custom::application::set_viewport_callback(&on_app_viewport);
 	custom::application::set_update_callback(&on_app_update);

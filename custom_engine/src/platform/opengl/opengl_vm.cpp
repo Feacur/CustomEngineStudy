@@ -389,7 +389,7 @@ inline static bool has_allocated_mesh(u32 id) {
 //
 
 #if !defined(PLATFORM_INIT_DEBUG)
-static void opengl_message_callback(
+static void __stdcall opengl_message_callback(
 	GLenum source,
 	GLenum type,
 	GLuint id,
@@ -454,7 +454,7 @@ static void PLATFORM_INIT_DEBUG()
 	if (glDebugMessageCallback) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(opengl_message_callback, NULL);
+		glDebugMessageCallback(&opengl_message_callback, NULL);
 		if (glDebugMessageControl) {
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 		}

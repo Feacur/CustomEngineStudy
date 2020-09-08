@@ -18,14 +18,25 @@
 // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer
 // @Todo: scope each frame or scope entire runtime?
 #if defined(TIMER_ADJUST_PRECISION)
-	#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
-		CUSTOM_WARNING("failed to adjust timer precision");\
-	}\
+	#if defined(CUSTOM_CLANG)
+		#define TIME_BEGIN() if (timeBeginPeriod_dll(system_timer_period) != TIMERR_NOERROR) {\
+			CUSTOM_WARNING("failed to adjust timer precision");\
+		}\
 
-	#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
-		CUSTOM_WARNING("failed to adjust timer precision");\
-	}\
+		#define TIME_END() if (timeEndPeriod_dll(system_timer_period) != TIMERR_NOERROR) {\
+			CUSTOM_WARNING("failed to adjust timer precision");\
+		}\
 
+	#else
+		#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
+			CUSTOM_WARNING("failed to adjust timer precision");\
+		}\
+
+		#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
+			CUSTOM_WARNING("failed to adjust timer precision");\
+		}\
+
+	#endif
 #else
 	#define TIME_BEGIN() (void)0
 	#define TIME_END() (void)0
@@ -55,10 +66,27 @@ static UINT     platform_get_resolution(void);
 static LONGLONG platform_get_frequency(void);
 static LONGLONG platform_get_counter(void);
 
+#if defined(CUSTOM_CLANG)
+HINSTANCE winmm_handle;
+typedef MMRESULT timeGetDevCaps_func(LPTIMECAPS ptc, UINT cbtc);
+typedef MMRESULT timeBeginPeriod_func(UINT uPeriod);
+typedef MMRESULT timeEndPeriod_func(UINT uPeriod);
+static timeGetDevCaps_func * timeGetDevCaps_dll;
+static timeBeginPeriod_func * timeBeginPeriod_dll;
+static timeEndPeriod_func * timeEndPeriod_dll;
+#endif
+
 namespace custom {
 namespace timer {
 
 void init(void) {
+#if defined(CUSTOM_CLANG)
+	winmm_handle = LoadLibrary(TEXT("winmm.dll"));
+	CUSTOM_ASSERT(winmm_handle, "can't load `winmm.dll`");
+	timeGetDevCaps_dll = (timeGetDevCaps_func *)GetProcAddress(winmm_handle, "timeGetDevCaps");
+	CUSTOM_ASSERT(timeGetDevCaps_dll, "can't get `timeGetDevCaps` proc address");
+#endif
+
 	ticks_per_second = (u64)platform_get_frequency();
 	system_timer_period = platform_get_resolution();
 	snapshot();
@@ -78,8 +106,7 @@ u64 snapshot(void) {
 	return frame_ticks;
 }
 
-u64 wait_next_frame(u64 duration, u64 precision)
-{
+u64 wait_next_frame(u64 duration, u64 precision) {
 	u64 duration_ticks = mul_div(duration, ticks_per_second, precision);
 	u64 frame_end_ticks = frame_start_ticks + duration_ticks;
 	u64 current_ticks;
@@ -122,12 +149,14 @@ u64 wait_next_frame(u64 duration, u64 precision)
 //
 
 static UINT platform_get_resolution(void) {
-	#if defined(CUSTOM_CLANG)
-		return 1;
-	#else
+#if defined(TIMER_ADJUST_PRECISION)
 
 	TIMECAPS timecaps;
+#if defined(CUSTOM_CLANG)
+	MMRESULT status = timeGetDevCaps_dll(&timecaps, sizeof(timecaps));
+#else
 	MMRESULT status = timeGetDevCaps(&timecaps, sizeof(timecaps));
+#endif
 	if (status != MMSYSERR_NOERROR) {
 		LOG_LAST_ERROR();
 		CUSTOM_WARNING("failed to retrieve timer resolution");
@@ -135,7 +164,9 @@ static UINT platform_get_resolution(void) {
 	}
 	return timecaps.wPeriodMin;
 
-	#endif
+#else
+	return 1;
+#endif
 }
 
 static LONGLONG platform_get_frequency(void) {

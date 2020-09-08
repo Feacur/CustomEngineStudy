@@ -107,7 +107,7 @@ project "custom_engine"
 		}
 
 	-- @Todo: build setup issue? clang issue? UNABLE to link
-	filter { "system:windows", "toolset:not msc-ClangCL" }
+	filter { "system:windows", "toolset:msc-ClangCL" }
 		links {
 			-- "user32",
 			-- "gdi32",
