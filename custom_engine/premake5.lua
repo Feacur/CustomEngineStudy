@@ -107,6 +107,9 @@ project "custom_engine"
 		}
 
 	-- @Todo: build setup issue? clang issue? UNABLE to link
+	-- @Note: this helps `msbuild` to overcome the problem, but looks like cheating:
+	--        -p:LibToolPath="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x64"
+	--        -p:LibToolExe=lib.exe
 	filter { "system:windows", "toolset:msc-ClangCL" }
 		links {
 			-- "user32",

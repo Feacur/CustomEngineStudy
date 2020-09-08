@@ -68,6 +68,10 @@ rem -target:sandbox:Run,...
 
 call GenerateProjects.bat "vs2019"
 
+rem force libs processing with the MSVC tool
+rem -p:LibToolPath="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x64"
+rem -p:LibToolExe=lib.exe
+
 echo ---- BUILD SOLUTION: START ---- %time%
 msbuild %solution% -property:Configuration=%configuration% -target:%actions% -maxCpuCount %log_console% %log_file%
 echo ---- BUILD SOLUTION: DONE  ---- %time%
