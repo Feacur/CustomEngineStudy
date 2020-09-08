@@ -105,8 +105,8 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	component->dynamic      = 1;
 	component->mass         = 1;
 	component->restitution  = 0;
-	component->acceleration = {0, 0};
 	component->velocity     = {0, 0};
+	component->acceleration = {0, 0};
 	component->mesh = {custom::empty_ref, custom::empty_index};
 }
 

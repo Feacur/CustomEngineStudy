@@ -30,9 +30,7 @@ struct Physical_Blob {
 	vec2 scale;
 	complex rotation;
 	// Phys2d
-	r32 dynamic;
-	r32 mass;
-	r32 inverse_mass;
+	r32 dynamic, inverse_mass;
 	r32 restitution;
 	vec2 velocity;
 	vec2 acceleration;
@@ -128,11 +126,10 @@ void ecs_update_physics(r32 dt) {
 
 		//
 		blob->dynamic      = entity.physical->dynamic;
-		blob->mass         = entity.physical->mass;
 		blob->inverse_mass = entity.physical->dynamic / entity.physical->mass;
 		blob->restitution  = entity.physical->restitution;
-		blob->acceleration = entity.physical->acceleration;
 		blob->velocity     = entity.physical->velocity;
+		blob->acceleration = entity.physical->acceleration;
 		blob->mesh         = entity.physical->mesh.ref.get_fast();
 	}
 
@@ -151,8 +148,7 @@ void ecs_update_physics(r32 dt) {
 			0, 0, complex_get_radians(physical.rotation)
 		});
 		//
-		entity.physical->acceleration = physical.acceleration;
-		entity.physical->velocity     = physical.velocity;
+		entity.physical->velocity = physical.velocity;
 	}
 }
 
@@ -214,12 +210,8 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
-		phys.velocity += (phys.acceleration + global_gravity) * (phys.dynamic * dt);
-	}
-
-	for (u32 i = 0; i < physicals.count; ++i) {
-		Physical_Blob & phys = physicals[i];
-		phys.position += phys.velocity * dt;
+		phys.velocity += (global_gravity + phys.acceleration) * (phys.dynamic * dt);
+		phys.position += phys.velocity * (phys.dynamic * dt);
 	}
 
 	// @Todo: broad phase; at least, global AABB for the time being

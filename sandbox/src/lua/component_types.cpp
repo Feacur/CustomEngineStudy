@@ -73,6 +73,8 @@ static luaL_Reg const Lua_Script_meta[] = {
 	{"__index", Lua_Script_index},
 	{"__newindex", Lua_Script_newindex},
 	{"__eq", Lua_Script_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
@@ -182,6 +184,8 @@ static luaL_Reg const Visual_meta[] = {
 	{"__index", Visual_index},
 	{"__newindex", Visual_newindex},
 	{"__eq", Visual_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
@@ -240,6 +244,8 @@ static luaL_Reg const Physical_meta[] = {
 	{"__index", Physical_index},
 	{"__newindex", Physical_newindex},
 	{"__eq", Physical_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
@@ -341,10 +347,46 @@ static int Phys2d_eq(lua_State * L) {
 	return 1;
 }
 
+static int Phys2d_add_impulse(lua_State * L) {
+	typedef custom::RefT<Phys2d> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Phys2d", 1);
+	LUA_ASSERT_USERDATA("vec2", 2);
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	vec2 const * value = (vec2 const *)lua_touserdata(L, 2);
+	object->get_fast()->add_impulse(*value);
+
+	return 0;
+}
+
+static int Phys2d_add_force(lua_State * L) {
+	typedef custom::RefT<Phys2d> Ref;
+
+	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
+	LUA_ASSERT_USERDATA("Phys2d", 1);
+	LUA_ASSERT_USERDATA("vec2", 2);
+
+	Ref * object = (Ref *)lua_touserdata(L, 1);
+	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
+
+	vec2 const * value = (vec2 const *)lua_touserdata(L, 2);
+	object->get_fast()->add_force(*value);
+
+	return 0;
+}
+
 static luaL_Reg const Phys2d_meta[] = {
 	{"__index", Phys2d_index},
 	{"__newindex", Phys2d_newindex},
 	{"__eq", Phys2d_eq},
+	// instance:###
+	{"add_impulse", Phys2d_add_impulse},
+	{"add_force", Phys2d_add_force},
+	// Type.###
 	//
 	{NULL, NULL},
 };

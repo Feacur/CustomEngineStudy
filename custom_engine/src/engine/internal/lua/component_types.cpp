@@ -102,6 +102,8 @@ static luaL_Reg const Transform_meta[] = {
 	{"__index", Transform_index},
 	{"__newindex", Transform_newindex},
 	{"__eq", Transform_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
@@ -171,6 +173,8 @@ static luaL_Reg const Camera_meta[] = {
 	{"__index", Camera_index},
 	{"__newindex", Camera_newindex},
 	{"__eq", Camera_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
@@ -238,6 +242,8 @@ static luaL_Reg const Hierarchy_meta[] = {
 	{"__index", Hierarchy_index},
 	{"__newindex", Hierarchy_newindex},
 	{"__eq", Hierarchy_eq},
+	// instance:###
+	// Type.###
 	//
 	{NULL, NULL},
 };
