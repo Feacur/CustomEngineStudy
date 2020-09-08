@@ -27,6 +27,7 @@ static void platform_raw_input_shutdown(HWND hwnd);
 static ivec2 platform_get_window_size(HWND hwnd);
 static ATOM platform_register_window_class(void);
 static HWND platform_create_window(void);
+static void platform_toggle_borderless_fullscreen(HWND hwnd);
 
 static inline void keyboard_update(custom::window::Internal_Data * data);
 static inline void mouse_update(custom::window::Internal_Data * data);
@@ -124,6 +125,11 @@ u16 get_refresh_rate(Internal_Data * data, u16 default_value) {
 	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
 	s32 monitor_hz = GetDeviceCaps(GetDC(data->hwnd), VREFRESH);
 	return (monitor_hz > 0) ? (u16)monitor_hz : default_value;
+}
+
+void toggle_borderless_fullscreen(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
+	platform_toggle_borderless_fullscreen(data->hwnd);
 }
 
 void set_header(Internal_Data * data, cstring value) {
@@ -254,6 +260,38 @@ static HWND platform_create_window(void) {
 	return hwnd;
 }
 
+static void platform_toggle_borderless_fullscreen(HWND hwnd) {
+	static WINDOWPLACEMENT normal_window_position;
+	
+	DWORD window_style = GetWindowLong(hwnd, GWL_STYLE);
+	if(BITS_ARE_SET(window_style, WS_OVERLAPPEDWINDOW)) {
+		if(!GetWindowPlacement(hwnd, &normal_window_position)) { return; }
+
+		MONITORINFO monitor_info = {};
+		monitor_info.cbSize = sizeof(MONITORINFO);
+		if(!GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info)) { return; }
+
+		SetWindowLong(hwnd, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
+		SetWindowPos(
+			hwnd, HWND_TOP,
+			monitor_info.rcMonitor.left, monitor_info.rcMonitor.top,
+			monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+			monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+		);
+		return;
+	}
+
+	// Restore windowed mode
+	SetWindowLong(hwnd, GWL_STYLE, window_style | WS_OVERLAPPEDWINDOW);
+	SetWindowPlacement(hwnd, &normal_window_position);
+	SetWindowPos(
+		hwnd, 0,
+		0, 0, 0, 0,
+		SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED
+	);
+}
+
 //
 // input
 //
@@ -307,7 +345,7 @@ static LRESULT CALLBACK window_procedure(HWND hwnd, UINT message, WPARAM wParam,
 		case WM_KEYUP:
 		case WM_KEYDOWN: {
 			process_message_keyboard(window, wParam, lParam);
-			// @Note: [alt]+[f4] won't result with a WM_CLOSE
+			// @Note: [alt]+[f4] won't result with a WM_CLOSE if messages are not passed through
 			return 0; // An application should return zero if it processes this message.
 		} break;
 		

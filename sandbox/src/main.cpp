@@ -106,8 +106,12 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_update_physics(dt);
 	sandbox::ecs_update_renderer();
 
-	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key(custom::Key_Code::F4)) {
+	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key_transition(custom::Key_Code::F4, true)) {
 		custom::system::should_close = true;
+	}
+
+	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key_transition(custom::Key_Code::Enter, true)) {
+		custom::application::toggle_borderless_fullscreen();
 	}
 }
 

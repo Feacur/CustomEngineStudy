@@ -12,6 +12,7 @@ namespace application {
 
 void run(void);
 void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_display);
+void toggle_borderless_fullscreen(void);
 
 // data
 ivec2 const & get_viewport_size(void);

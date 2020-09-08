@@ -239,6 +239,10 @@ void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_dis
 	if (app.window) { custom::window::set_vsync(app.window, app.refresh_rate.vsync); }
 }
 
+void toggle_borderless_fullscreen(void) {
+	custom::window::toggle_borderless_fullscreen(app.window);
+}
+
 // data
 ivec2 const & get_viewport_size(void) {
 	return app.viewport_size;

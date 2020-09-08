@@ -17,6 +17,7 @@ void update(Internal_Data * data);
 void set_vsync(Internal_Data * data, u8 value);
 bool check_vsync(Internal_Data * data);
 u16 get_refresh_rate(Internal_Data * data, u16 default_value);
+void toggle_borderless_fullscreen(Internal_Data * data);
 
 void set_header(Internal_Data * data, cstring value);
 ivec2 const & get_size(Internal_Data * data);
