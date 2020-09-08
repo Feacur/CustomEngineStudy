@@ -86,7 +86,7 @@ static void process_message_keyboard(Window * window, WPARAM wParam, LPARAM lPar
 	// bool is_dialogue = BITS_ARE_SET(flag, KF_DLGMODE);
 	// bool is_menu     = BITS_ARE_SET(flag, KF_MENUMODE);
 	// bool is_alt      = BITS_ARE_SET(flag, KF_ALTDOWN);
-	bool was_pressed = BITS_ARE_SET(flag, KF_REPEAT);
+	// bool was_pressed = BITS_ARE_SET(flag, KF_REPEAT);
 	bool is_released = BITS_ARE_SET(flag, KF_UP);
 
 	// bool is_transition      = (was_pressed == is_released);
@@ -100,7 +100,7 @@ static void raw_input_callback(Window * window, RAWKEYBOARD const & data) {
 
 	// bool scan_e0_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E0);
 	// bool scan_e1_prefix = BITS_ARE_SET(data.Flags, RI_KEY_E1);
-	bool was_pressed    = BITS_ARE_SET(data.Flags, RI_KEY_MAKE);
+	// bool was_pressed    = BITS_ARE_SET(data.Flags, RI_KEY_MAKE);
 	bool is_released    = BITS_ARE_SET(data.Flags, RI_KEY_BREAK);
 	
 	// bool is_transition  = (was_pressed == is_released);

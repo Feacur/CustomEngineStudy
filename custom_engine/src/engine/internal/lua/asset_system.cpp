@@ -35,7 +35,7 @@ typedef custom::Ref Ref;
 static int Asset_index(lua_State * L) {
 	LUA_INDEX_RAWGET_IMPL(Asset);
 
-	Asset const * object = (Asset const *)lua_touserdata(L, 1);
+	// Asset const * object = (Asset const *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 
@@ -44,7 +44,7 @@ static int Asset_index(lua_State * L) {
 }
 
 static int Asset_newindex(lua_State * L) {
-	Asset * object = (Asset *)lua_touserdata(L, 1);
+	// Asset * object = (Asset *)lua_touserdata(L, 1);
 
 	cstring id = lua_tostring(L, 2);
 

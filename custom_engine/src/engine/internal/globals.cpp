@@ -29,8 +29,11 @@ namespace custom {
 }
 
 namespace custom {
+	template struct Array<file::Action>;
+}
+
+namespace custom {
 namespace file {
-	template struct Array<Action>;
 
 	Strings_Storage strings;
 	Array<Action> actions;

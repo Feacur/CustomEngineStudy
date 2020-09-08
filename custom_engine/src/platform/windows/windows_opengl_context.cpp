@@ -149,6 +149,8 @@ Internal_Data * create(window::Internal_Data * window) {
 	platform_init_wgl();
 
 	Internal_Data * data = (Internal_Data *)calloc(1, sizeof(Internal_Data));
+	CUSTOM_ASSERT(data, "failed to allocate context");
+
 	data->hdc = window::get_hdc(window);
 	data->hrc = platform_create_context(data->hdc, NULL);
 
@@ -177,17 +179,19 @@ Internal_Data * create(window::Internal_Data * window) {
 }
 
 void destroy(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hdc, "context doesn't exist");
 	if (data->hrc) {
 		wgl.MakeCurrent(NULL, NULL); LOG_LAST_ERROR();
 		wgl.DeleteContext(data->hrc); LOG_LAST_ERROR();
 		data->hrc = NULL;
 	}
 	FreeLibrary(wgl.instance); LOG_LAST_ERROR();
+	free(data);
 	ZeroMemory(&wgl, sizeof(wgl));
 }
 
-void set_vsync(Internal_Data * data, u8 value)
-{
+void set_vsync(Internal_Data * data, u8 value) {
+	CUSTOM_ASSERT(data->hdc, "context doesn't exist");
 	if (wgl.pixel_format.doublebuffer) {
 		if (platform_swap_interval(data->hdc, value)) {
 			data->is_vsync = value > 0;
@@ -200,11 +204,12 @@ void set_vsync(Internal_Data * data, u8 value)
 }
 
 bool check_vsync(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hdc, "context doesn't exist");
 	return data->is_vsync;
 }
 
-void swap_buffers(Internal_Data * data)
-{
+void swap_buffers(Internal_Data * data) {
+	CUSTOM_ASSERT(data->hdc, "context doesn't exist");
 	if (wgl.pixel_format.doublebuffer) {
 		if (SwapBuffers(data->hdc)) { return; }
 		// if (wgl.SwapLayerBuffers(data->hdc, WGL_SWAP_MAIN_PLANE)) { return; }
@@ -225,9 +230,9 @@ void swap_buffers(Internal_Data * data)
 
 static void * load_ogl_function(cstring name) {
 	if (!name) { return NULL; }
-	void * address = wgl.GetProcAddress(name);
+	void * address = (void *)wgl.GetProcAddress(name);
 	if (!address) {
-		address = GetProcAddress(wgl.instance, name);
+		address = (void *)GetProcAddress(wgl.instance, name);
 	}
 	// if (!address) { CUSTOM_WARNING("missing an OpenGL function: %s", name); }
 	return address;
@@ -722,16 +727,16 @@ static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	if (!hrc) {
 		DWORD const error = GetLastError();
 		if (bits_are_set(error, ERROR_INVALID_VERSION_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid version", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid version", (u32)error);
 		}
 		else if (bits_are_set(error, ERROR_INVALID_PROFILE_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid profile", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: invalid profile", (u32)error);
 		}
 		else if (bits_are_set(error, ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB)) {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: incopatible device context", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: incopatible device context", (u32)error);
 		}
 		else {
-			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: unknown", error);
+			CUSTOM_ASSERT(false, "WGL error '0x%x': failed to create context: unknown", (u32)error);
 		}
 		return NULL;
 	} LOG_LAST_ERROR();

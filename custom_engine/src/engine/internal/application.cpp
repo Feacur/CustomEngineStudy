@@ -7,6 +7,7 @@
 #include "engine/api/platform/system.h"
 #include "engine/api/platform/timer.h"
 #include "engine/api/platform/window.h"
+#include "engine/api/platform/file.h"
 #include "engine/api/platform/graphics_vm.h"
 #include "engine/api/internal/application.h"
 #include "engine/api/internal/bytecode.h"
@@ -45,7 +46,7 @@
 			system_ms, logic_ms, render_ms,
 			dt_ms
 		);
-		CUSTOM_ASSERT(header_length >= 0 && header_length <= C_ARRAY_LENGTH(header_text), "out of bounds");
+		CUSTOM_ASSERT(header_length >= 0 && header_length <= (s32)C_ARRAY_LENGTH(header_text), "out of bounds");
 		custom::window::set_header(window, header_text);
 	}
 #else
@@ -81,9 +82,10 @@ static struct {
 	} refresh_rate;
 
 	struct {
-		init_func * init;
+		init_func     * init;
 		viewport_func * viewport;
-		update_func * update;
+		update_func   * update;
+		close_func    * close;
 	} callbacks;
 } app;
 
@@ -92,6 +94,12 @@ static void update_viewport_safely(custom::window::Internal_Data * window, ivec2
 	if (app.viewport_size == size) { return; }
 	app.viewport_size = size;
 	CALL_SAFELY(app.callbacks.viewport, size);
+}
+
+static void process_close_safely(custom::window::Internal_Data * window) {
+	if (!app.callbacks.close || (*app.callbacks.close)()) {
+		custom::system::should_close = true;
+	}
 }
 
 static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
@@ -131,10 +139,16 @@ static void consume_config(void) {
 	app.update_assets_automatically = config->get_value<bln>("update_assets_automatically", true);
 }
 
-void init(void) {
-	// @Note: init systems
+static void init(void) {
+	custom::system::init();
+	custom::timer::init();
+
+	//
 	init_asset_types();
 	init_component_types();
+
+	custom::loader::init(&app.bytecode_loader);
+	custom::renderer::init(&app.bytecode_renderer);
 
 	u32 config_id = Asset::store_string("assets/configs/engine.cfg", custom::empty_index);
 	config_ref = Asset::add<Config_Asset>(config_id);
@@ -142,42 +156,36 @@ void init(void) {
 	consume_config_init();
 	consume_config();
 
-	custom::system::init();
-	custom::timer::init();
-	custom::loader::init(&app.bytecode_loader);
-	custom::renderer::init(&app.bytecode_renderer);
-
-	// @Note: init graphics
+	//
 	app.window = custom::window::create();
+	custom::window::set_viewport_callback(app.window, &update_viewport_safely);
+	custom::window::set_close_callback(app.window, &process_close_safely);
 	custom::window::init_context(app.window);
 
-	custom::window::set_viewport_callback(app.window, &update_viewport_safely);
-
+	//
+	update_viewport_safely(app.window, custom::window::get_size(app.window));
 	CALL_SAFELY(app.callbacks.init);
 }
 
 void run(void) {
-	custom::window::set_vsync(app.window, app.refresh_rate.vsync);
+	static bool is_running = false;
+	if (is_running) { CUSTOM_ASSERT(false, "application is running already"); return; }
 
-	ivec2 size = custom::window::get_size(app.window);
-	update_viewport_safely(app.window, size);
+	init();
 
-	//
 	custom::timer::snapshot();
-	while (true) {
-		if (custom::system::should_close) { break; }
-		if (custom::window::get_should_close(app.window)) { break; }
+	while (!custom::system::should_close) {
+		if (!app.window) { CUSTOM_ASSERT(false, "application has no window"); break; }
+		if (!custom::window::get_is_active(app.window)) { CUSTOM_ASSERT(false, "application window is inactive"); break; }
 
+		//
 		u64 time_system = custom::timer::get_ticks();
+		consume_config();
 		custom::window::update(app.window);
 		custom::system::update();
-		consume_config();
-		if (app.update_assets_automatically || get_key_transition(custom::Key_Code::F5, true)) {
-			custom::Asset::update();
-		}
 		time_system = custom::timer::get_ticks() - time_system;
 
-		// prepare for a frame
+		//
 		u16 refresh_rate = app.refresh_rate.as_display
 			? custom::window::get_refresh_rate(app.window, app.refresh_rate.target)
 			: app.refresh_rate.target;
@@ -195,6 +203,7 @@ void run(void) {
 		CALL_SAFELY(app.callbacks.update, dt);
 		time_logic = custom::timer::get_ticks() - time_logic;
 
+		//
 		u64 time_render = custom::timer::get_ticks();
 		custom::graphics::consume(app.bytecode_loader);
 		custom::graphics::consume(app.bytecode_renderer);
@@ -202,17 +211,27 @@ void run(void) {
 		app.bytecode_renderer.reset();
 		time_render = custom::timer::get_ticks() - time_render;
 
+		//
 		DISPLAY_PERFORMANCE(
 			app.window,
 			time_frame,
 			time_system, time_logic, time_render,
 			custom::timer::ticks_per_second, dt
 		);
+
+		if (custom::application::get_key_transition(custom::Key_Code::F5, true)) {
+			custom::Asset::update();
+		}
+
+		if (app.update_assets_automatically) { custom::Asset::update(); }
 	}
 
+	custom::file::watch_shutdown();
 	custom::timer::shutdown();
 	custom::graphics::shutdown();
-	custom::window::destroy(app.window);
+	if (app.window) { custom::window::destroy(app.window); }
+
+	is_running = false;
 }
 
 void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_display) {
@@ -265,6 +284,10 @@ void set_viewport_callback(viewport_func * callback) {
 
 void set_update_callback(update_func * callback) {
 	app.callbacks.update = callback;
+}
+
+void set_close_callback(close_func * callback) {
+	app.callbacks.close = callback;
 }
 
 }}

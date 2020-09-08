@@ -98,12 +98,23 @@ project "custom_engine"
 			-- "NOMCX",
 		}
 
-	filter "system:windows"
+	-- @Todo: build setup issue? clang issue? CAN link
+	filter { "system:windows", "toolset:not msc-ClangCL" }
 		links {
 			-- "user32",
 			-- "gdi32",
 			"winmm",
 		}
+
+	-- @Todo: build setup issue? clang issue? UNABLE to link
+	filter { "system:windows", "toolset:not msc-ClangCL" }
+		links {
+			-- "user32",
+			-- "gdi32",
+			-- "winmm",
+		}
+
+	filter "system:windows"
 		files {
 			"src/platform/windows/**.h",
 			"src/platform/windows/**.cpp",

@@ -122,6 +122,10 @@ u64 wait_next_frame(u64 duration, u64 precision)
 //
 
 static UINT platform_get_resolution(void) {
+	#if defined(CUSTOM_CLANG)
+		return 1;
+	#else
+
 	TIMECAPS timecaps;
 	MMRESULT status = timeGetDevCaps(&timecaps, sizeof(timecaps));
 	if (status != MMSYSERR_NOERROR) {
@@ -130,6 +134,8 @@ static UINT platform_get_resolution(void) {
 		return 1;
 	}
 	return timecaps.wPeriodMin;
+
+	#endif
 }
 
 static LONGLONG platform_get_frequency(void) {

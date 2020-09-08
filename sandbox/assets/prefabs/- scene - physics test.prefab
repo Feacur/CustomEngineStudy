@@ -2,35 +2,87 @@
 	i 1 # is instance; think of it as of a unity scene
 > # child
 	# left wall
-	p assets/prefabs/cube.prefab
+	p assets/prefabs/square phys.prefab
 		o Transform
-			p 0 5 0
+			p -1 4 0
 			s 1 10 1
-			rd 0 0 5
+			rd 0 0 10
 		Phys2d
-			c assets/meshes/square_1.collider
 			d 0
-			r 0.5
 	 	~
 	# floor
-	p assets/prefabs/cube.prefab
+	p assets/prefabs/square phys.prefab
 		o Transform
-			p 5 -0.4 0
+			p 5 -0.5 0
 			s 10 1 1
-			rd 0 0 -5
 		Phys2d
-			c assets/meshes/square_1.collider
 			d 0
-			r 0.5
 		~
 	# floor
-	p assets/prefabs/cube.prefab
+	p assets/prefabs/square phys.prefab
 		o Transform
-			p 14 0.5 0
+			p 14 2 0
 			s 10 1 1
-			rd 0 0 15
+			rd 0 0 30
 		Phys2d
-			c assets/meshes/square_1.collider
 			d 0
-			r 0.5
+		~
+	# objects
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 1 0 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 2 0 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 3 0 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 4 0 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 1.5 1.5 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 2.5 1.5 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 3.5 1.5 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 2 2.5 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 3 2.5 0
+		~
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 2.5 3.5 0
+		~
+	p assets/prefabs/circle phys.prefab
+		o Transform
+			p 6 7 0
+			s 0.5 0.5 0.5
+		~
+	p assets/prefabs/circle phys.prefab
+		o Transform
+			p 8 7 0
+			s 0.5 0.5 0.5
+		~
+	# actor
+	p assets/prefabs/circle phys.prefab
+		o Transform
+			p 7 7 0
+		Lua_Script
+			a assets/scripts/script_control_phys2d.lua
+			u script_control_phys2d
 		~

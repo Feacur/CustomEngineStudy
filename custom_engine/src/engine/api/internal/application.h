@@ -10,7 +10,6 @@ namespace custom {
 namespace custom {
 namespace application {
 
-void init(void);
 void run(void);
 void set_refresh_rate(u32 target, u32 debug, u32 failsafe, u32 vsync, bln as_display);
 
@@ -30,9 +29,11 @@ vec2 const & get_mouse_wheel(void);
 typedef void init_func();
 typedef void viewport_func(ivec2);
 typedef void update_func(r32);
+typedef bool close_func();
 
 void set_init_callback(init_func * callback);
 void set_viewport_callback(viewport_func * callback);
 void set_update_callback(update_func * callback);
+void set_close_callback(close_func * callback);
 
 }}

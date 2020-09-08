@@ -187,17 +187,17 @@ constexpr inline r32 int16_to_fraction(s16 value) {
 	return (value > 0) ? (value / 32767.f) : (value / 32768.f);
 }
 
-constexpr inline r32 uint32_bits_to_float(u32 value) {
+inline r32 uint32_bits_to_float(u32 value) {
 	union { u32 x; r32 xf; }; x = value;
 	return xf;
 }
 
-constexpr inline r32 uint32_bits_to_01(u32 value) {
+inline r32 uint32_bits_to_01(u32 value) {
 	// @Note: might well mask fractional part with [0x007fffffU] instead of shifting
 	return uint32_bits_to_float((value >> 9U) | 0x3f800000U) - 1.0f; // return [1 .. 2) * (2^0) - 1
 }
 
-constexpr inline r32 uint32_bits_to_radius01(u32 value) {
+inline r32 uint32_bits_to_radius01(u32 value) {
 	// @Note: might well mask fractional part with [0x007fffffU] instead of shifting
 	return uint32_bits_to_float((value >> 9U) | 0x40000000U) - 3.0f; // [1 .. 2) * (2^1) - 3
 }

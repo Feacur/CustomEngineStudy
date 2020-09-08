@@ -20,7 +20,7 @@ namespace meta {
 	namespace meta {
 		template<typename T>
 		struct underlying_type {
-			typedef typename __underlying_type(T) type;
+			typedef __underlying_type(T) type;
 		};
 
 		template<typename T>
