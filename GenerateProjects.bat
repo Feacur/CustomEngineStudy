@@ -17,4 +17,4 @@ if [%action%] == [] (
 rem clean batch file arguments
 set action=%action:"=%
 
-call vendor\premake\premake5.exe --file=CustomEngineStudy.lua %action%
+call "vendor/premake/premake5.exe" --file=CustomEngineStudy.lua %action%

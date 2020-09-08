@@ -51,8 +51,8 @@ set configuration=%configuration:"=%
 set actions=%actions:"=%
 set actions=%actions: =,%
 
-rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
+rem pushd "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Auxiliary/Build"
+pushd "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build"
 if %architecture_compiler% == %architecture_target% (
 	call "vcvarsall.bat" %architecture_compiler%
 ) else (

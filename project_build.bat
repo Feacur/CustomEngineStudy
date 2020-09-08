@@ -74,10 +74,10 @@ set libraries=%libraries:"=%
 
 rem declare paths
 set rootdir=%~dp0.
-set sourcedir=.\code
-set outputdir=v1\custom\%target_name%
-set target_location=.\bin\%outputdir%
-set intermediate_location=.\bin-int\%outputdir%
+set sourcedir=./code
+set outputdir=v1/custom/%target_name%
+set target_location=./bin/%outputdir%
+set intermediate_location=./bin-int/%outputdir%
 
 rem //
 rem // >> COMPILER
@@ -86,11 +86,11 @@ set compiler=-std:c++17
 set compiler=%compiler% -I%sourcedir%
 
 rem Program Database File Name
-set compiler=%compiler% -Fd"%intermediate_location%\\"
+set compiler=%compiler% -Fd"%intermediate_location%/"
 rem Object File Name
-set compiler=%compiler% -Fo"%intermediate_location%\\"
+set compiler=%compiler% -Fo"%intermediate_location%/"
 rem Name Mapfile
-rem set compiler=%compiler% -Fm"%intermediate_location%\\"
+rem set compiler=%compiler% -Fm"%intermediate_location%/"
 
 set defines=%defines% -D _HAS_EXCEPTIONS=0
 rem @Note: might want to enable this only locally
@@ -270,14 +270,14 @@ rem //
 rem // >> LINKER
 rem //
 set linker=-NOLOGO
-set linker=%linker% "%intermediate_location%\*.obj"
+set linker=%linker% "%intermediate_location%/*.obj"
 set linker=%linker% %libraries%
 if %kind% == SharedLib (
-	set linker=%linker% -OUT:"%target_location%\%target_name%.dll" -DLL
+	set linker=%linker% -OUT:"%target_location%/%target_name%.dll" -DLL
 ) else if %kind% == ConsoleApp (
-	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
+	set linker=%linker% -OUT:"%target_location%/%target_name%.exe"
 ) else if %kind% == WindowedApp (
-	set linker=%linker% -OUT:"%target_location%\%target_name%.exe"
+	set linker=%linker% -OUT:"%target_location%/%target_name%.exe"
 )
 set linker=%linker% -WX
 set linker=%linker% -MACHINE:%architecture_target:x=X%
@@ -289,9 +289,9 @@ rem set linker=%linker% -DYNAMICBASE
 rem set linker=%linker% -NXCOMPAT
 
 rem Use Program Database
-set linker=%linker% -PDB:"%target_location%\%target_name%.pdb"
+set linker=%linker% -PDB:"%target_location%/%target_name%.pdb"
 rem Name Import Library
-set linker=%linker% -IMPLIB:"%intermediate_location%\%target_name%.lib"
+set linker=%linker% -IMPLIB:"%intermediate_location%/%target_name%.lib"
 
 if %configuration% == Shipping (
 	set linker=%linker% -INCREMENTAL:NO -OPT:REF -OPT:ICF -DEBUG:NONE
@@ -357,8 +357,8 @@ rem //
 rem // >> LIBRARY MANAGER
 rem //
 set lib_manager=-NOLOGO
-set lib_manager=%lib_manager% "%intermediate_location%\*.obj"
-set lib_manager=%lib_manager% -OUT:"%target_location%\%target_name%.lib"
+set lib_manager=%lib_manager% "%intermediate_location%/*.obj"
+set lib_manager=%lib_manager% -OUT:"%target_location%/%target_name%.lib"
 set lib_manager=%lib_manager% -WX
 set lib_manager=%lib_manager% -MACHINE:%architecture_target:x=X%
 
@@ -376,8 +376,8 @@ rem popd
 rem pushd %intermediate_location%
 rem popd
 
-rem pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
+rem pushd "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Auxiliary/Build"
+pushd "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build"
 if %architecture_compiler% == %architecture_target% (
 	call "vcvarsall.bat" %architecture_compiler%
 ) else (
@@ -405,10 +405,10 @@ if %kind% == StaticLib (
 ) else (
 	link %linker%
 )
-rem set compiler=%compiler% -Fe"%target_location%\%target_name%"
+rem set compiler=%compiler% -Fe"%target_location%/%target_name%"
 rem cl "%compilation_unit%" %compiler% -link %linker%
 echo ---- DONE ---- %time%
 
 if %target_name% == demo_game (
-	xcopy /Q /E /Y /I "%target_location%\demo_game*" "%target_location%\..\platform_windows"
+	xcopy /Q /E /Y /I "%target_location%/demo_game*" "%target_location%/../platform_windows"
 )
