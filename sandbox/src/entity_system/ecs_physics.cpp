@@ -350,8 +350,9 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		phys_a->position += separator * phys_a->dynamic;
-		phys_b->position -= separator * phys_b->dynamic;
+		r32 separation_weight = phys_a->dynamic + phys_b->dynamic;
+		phys_a->position += separator * (phys_a->dynamic / separation_weight);
+		phys_b->position -= separator * (phys_b->dynamic / separation_weight);
 		// @Todo: move dynamic shapes only half way; account if both shapes are static
 	}
 }

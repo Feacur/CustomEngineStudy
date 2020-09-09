@@ -47,4 +47,6 @@ struct Phys2d
 
 	void add_impulse(vec2 value);
 	void add_force(vec2 value);
+
+	// @Note: storing acceleration in here is a bit odd
 };
