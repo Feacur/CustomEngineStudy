@@ -18,6 +18,68 @@
 // https://en.wikipedia.org/wiki/Angular_momentum
 // https://en.wikipedia.org/wiki/Momentum
 
+// @Note: simplest collision response against a static object looks like
+//        velocity = reflect(velocity, normal, 1 + cor);
+//        but general case is a tiniest bit more complex:
+//        reflection factors depend on the plane of impact, masses, and relative velocity
+
+// @Note: momentum conservation, energy conservation, etc.
+//        masses:            m1, m2; constant
+//        velocities before: v1, v2
+//        velocities after:  u1, u2
+//        shape:             point; other shapes experience conversion of a portion of *impulses* into `angular momentum`
+//        ---- ---- ---- ----
+//        ---- ---- ---- ----
+//     >> express an equation for `energy conservation`
+//        m1*v1*v1/2 + m2*v2*v2/2 + other_energies = m1*u1*u1/2 + m2*u2/2 + other_energies + kinetic_energy_change
+//        ---- ---- ---- ----
+//        kinetic_energy_change * (m*v*v/2) = (m*u*u/2)
+//        kinetic_energy_change = (m*u*u/2) / (m*v*v/2)
+//        kinetic_energy_change = (u*u) / (v*v)
+//        ---- ---- ---- ----
+//        ---- ---- ---- ----
+//     >> express an equation for `momentum conservation`
+//        m1*v1 + m2*v2 = m1*u1 + m2*u2
+//        ---- ---- ---- ----
+//        m1*v1 + deformation_impulse = m1*v_impact
+//        m2*v2 - deformation_impulse = m2*v_impact
+//        m1*v_impact + restoration_impulse = m1*u1
+//        m2*v_impact - restoration_impulse = m2*u2
+//        ---- ---- ---- ----
+//        deformation_impulse = m1*v_impact - m1*v1
+//        deformation_impulse = m2*v2 - m2*v_impact
+//        restoration_impulse = m1*u1 - m1*v_impact
+//        restoration_impulse = m2*v_impact - m2*u2
+//        ---- ---- ---- ----
+//     >> express an equation for `coefficient of restitution`
+//        coefficient_of_restitution = square_root(kinetic_energy_change)
+//        coefficient_of_restitution ~ |u| / |v|
+//        ---- ---- ---- ----
+//        coefficient_of_restitution = restoration_impulse / deformation_impulse
+//        cor = (u1 - v_impact) / (v_impact - v1)
+//        cor = (v_impact - u2) / (v2 - v_impact)
+//        ---- ---- ---- ----
+//        cor = (restoration_impulse + restoration_impulse) / (deformation_impulse + deformation_impulse)
+//        cor = ((u1 - v_impact) + (v_impact - u2)) / ((v_impact - v1) + (v2 - v_impact))
+//        cor = (u1 - u2) / (v2 - v1)
+//        cor * (v2 - v1) = (u1 - u2)
+//        ---- ---- ---- ----
+//        ---- ---- ---- ----
+//     >> use the equations of `coefficient of restitution` and `momentum conservation`
+//        (m1*v1 + m2*v2 - m2*u2) / m1 = u1
+//        u2 = u1 - cor*(v1 - v2)
+//        ---- ---- ---- ----
+//        (m1*v1 + m2*v2 - m2*(u1 - cor*(v1 - v2))) / m1  = u1
+//        (m1*v1 + m2*v2 - m2*u1 - m2*cor*(v1 - v2)) / m1 = u1
+//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1 + m2*u1 / m1
+//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1*(m1 + m2) / m1
+//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / (m1 + m2)  = u1
+
+// @Note: use inverse masses for computation: the reason is presence of
+//        infinite mass objects; you do want to avoid doing `inf / inf`
+//        (v1/m2 + v2/m1 - cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u1
+//        (v1/m2 + v2/m1 + cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u2
+
 struct Entity_Blob {
 	custom::Entity   entity;
 	Transform      * transform;
@@ -175,8 +237,6 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
 		u32 axis_i_2 = (axis_i + 1) % first_points_count;
 
-		// @Note: turn the edge 90 degrees clockwise
-		//        might actually be normalized late
 		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
 		axis = normalize(vec2{-axis.y, axis.x});
 
@@ -254,68 +314,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		}
 	}
 
-	// @Note: for late normalization
-	// for (u32 i = 0; i < collisions.count; ++i) {
-	// 	collisions[i].normal = normalize(collisions[i].normal);
-	// }
-
-	// @Note: momentum conservation, energy conservation, etc.
-	//        masses:            m1, m2; constant
-	//        velocities before: v1, v2
-	//        velocities after:  u1, u2
-	//        shape:             point; other shapes experience conversion of a portion of *impulses* into `angular momentum`
-	//        ---- ---- ---- ----
-	//        ---- ---- ---- ----
-	//     >> express an equation for `energy conservation`
-	//        m1*v1*v1/2 + m2*v2*v2/2 + other_energies = m1*u1*u1/2 + m2*u2/2 + other_energies + kinetic_energy_change
-	//        ---- ---- ---- ----
-	//        kinetic_energy_change * (m*v*v/2) = (m*u*u/2)
-	//        kinetic_energy_change = (m*u*u/2) / (m*v*v/2)
-	//        kinetic_energy_change = (u*u) / (v*v)
-	//        ---- ---- ---- ----
-	//        ---- ---- ---- ----
-	//     >> express an equation for `momentum conservation`
-	//        m1*v1 + m2*v2 = m1*u1 + m2*u2
-	//        ---- ---- ---- ----
-	//        m1*v1 + deformation_impulse = m1*v_impact
-	//        m2*v2 - deformation_impulse = m2*v_impact
-	//        m1*v_impact + restoration_impulse = m1*u1
-	//        m2*v_impact - restoration_impulse = m2*u2
-	//        ---- ---- ---- ----
-	//        deformation_impulse = m1*v_impact - m1*v1
-	//        deformation_impulse = m2*v2 - m2*v_impact
-	//        restoration_impulse = m1*u1 - m1*v_impact
-	//        restoration_impulse = m2*v_impact - m2*u2
-	//        ---- ---- ---- ----
-	//     >> express an equation for `coefficient of restitution`
-	//        coefficient_of_restitution = square_root(kinetic_energy_change)
-	//        coefficient_of_restitution ~ |u| / |v|
-	//        ---- ---- ---- ----
-	//        coefficient_of_restitution = restoration_impulse / deformation_impulse
-	//        cor = (u1 - v_impact) / (v_impact - v1)
-	//        cor = (v_impact - u2) / (v2 - v_impact)
-	//        ---- ---- ---- ----
-	//        cor = (restoration_impulse + restoration_impulse) / (deformation_impulse + deformation_impulse)
-	//        cor = ((u1 - v_impact) + (v_impact - u2)) / ((v_impact - v1) + (v2 - v_impact))
-	//        cor = (u1 - u2) / (v2 - v1)
-	//        cor * (v2 - v1) = (u1 - u2)
-	//        ---- ---- ---- ----
-	//        ---- ---- ---- ----
-	//     >> use the equations of `coefficient of restitution` and `momentum conservation`
-	//        (m1*v1 + m2*v2 - m2*u2) / m1 = u1
-	//        u2 = u1 - cor*(v1 - v2)
-	//        ---- ---- ---- ----
-	//        (m1*v1 + m2*v2 - m2*(u1 - cor*(v1 - v2))) / m1  = u1
-	//        (m1*v1 + m2*v2 - m2*u1 - m2*cor*(v1 - v2)) / m1 = u1
-	//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1 + m2*u1 / m1
-	//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1*(m1 + m2) / m1
-	//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / (m1 + m2)  = u1
-
-	// @Note: use inverse masses for computation: the reason is presence of object of
-	//        infinite masses; you do want to avoid doing `inf / inf`
-	//        (v1/m2 + v2/m1 - cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u1
-	//        (v1/m2 + v2/m1 + cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u2
-
 	for (u32 i = 0; i < collisions.count; ++i) {
 		vec2 normal = collisions[i].normal;
 
@@ -337,11 +335,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 
 		phys_a->velocity += normal * (velocity_normal_a2 - velocity_normal_a);
 		phys_b->velocity += normal * (velocity_normal_b2 - velocity_normal_b);
-
-		// @Note: simplest collision response against a static object looks like
-		//        velocity = reflect(velocity, normal, 1 + cor);
-		//        but general case is a tiniest bit more complex:
-		//        reflection factors depend on the plane of impact, masses, and relative velocity
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
@@ -353,6 +346,5 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		r32 separation_weight = phys_a->dynamic + phys_b->dynamic;
 		phys_a->position += separator * (phys_a->dynamic / separation_weight);
 		phys_b->position -= separator * (phys_b->dynamic / separation_weight);
-		// @Todo: move dynamic shapes only half way; account if both shapes are static
 	}
 }
