@@ -43,6 +43,17 @@ struct Lock_Scoped {
 //
 //
 
+template <typename L>
+struct Defer_Scoped {
+	L callback;
+	Defer_Scoped(L lambda) : callback(lambda) {}
+	~Defer_Scoped() { callback(); }
+};
+
+//
+//
+//
+
 namespace custom {
 namespace file {
 
@@ -121,6 +132,10 @@ bool read(cstring path, Array<u8> & buffer) {
 		return false;
 	}
 
+	Defer_Scoped defer([&](){
+		CloseHandle(handle);
+	});
+
 	LARGE_INTEGER file_size_li;
 	if (!GetFileSizeEx(handle, &file_size_li)) {
 		LOG_LAST_ERROR();
@@ -152,7 +167,6 @@ bool read(cstring path, Array<u8> & buffer) {
 		return false;
 	}
 
-	CloseHandle(handle);
 	return true;
 }
 
