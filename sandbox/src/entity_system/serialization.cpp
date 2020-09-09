@@ -140,8 +140,8 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 				component->mass = (parse_void(source), parse_r32(source));
 			} break;
 
-			case 'r': ++(*source); {
-				component->restitution = (parse_void(source), parse_r32(source));
+			case 'e': ++(*source); {
+				component->elasticity = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 'c': ++(*source); {

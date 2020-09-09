@@ -18,7 +18,6 @@ struct Lua_Script
 
 struct Visual
 {
-	// @Change: use resource ids instead?
 	custom::Asset_RefT<custom::Shader_Asset>  shader  = {custom::empty_ref, custom::empty_index};
 	custom::Asset_RefT<custom::Texture_Asset> texture = {custom::empty_ref, custom::empty_index};
 	custom::Asset_RefT<custom::Mesh_Asset>    mesh    = {custom::empty_ref, custom::empty_index};
@@ -32,12 +31,19 @@ struct Physical
 
 struct Phys2d
 {
-	r32  dynamic      = 1; // no need to make the mass infinite, just set this to 0
-	r32  mass         = 1;
-	r32  restitution  = 1;
+	// material
+	r32  dynamic    = 1; // no need to make the mass infinite, just set this to 0
+	r32  mass       = 1;
+	r32  elasticity = 0.5; // a bit artificial way to state restitution for a single object
+
+	// shape
+	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
+
+	// state
+	// @Change: store momentum and force instead, so to be able to change mass,
+	//          affecting the velocity and acceleration?
 	vec2 velocity     = {0, 0};
 	vec2 acceleration = {0, 0};
-	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
 
 	void add_impulse(vec2 value);
 	void add_force(vec2 value);

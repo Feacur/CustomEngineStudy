@@ -31,7 +31,7 @@ struct Physical_Blob {
 	complex rotation;
 	// Phys2d
 	r32 dynamic, inverse_mass;
-	r32 restitution;
+	r32 elasticity;
 	vec2 velocity;
 	vec2 acceleration;
 	custom::Collider2d_Asset * mesh;
@@ -127,7 +127,7 @@ void ecs_update_physics(r32 dt) {
 		//
 		blob->dynamic      = entity.physical->dynamic;
 		blob->inverse_mass = entity.physical->dynamic / entity.physical->mass;
-		blob->restitution  = entity.physical->restitution;
+		blob->elasticity   = entity.physical->elasticity;
 		blob->velocity     = entity.physical->velocity;
 		blob->acceleration = entity.physical->acceleration;
 		blob->mesh         = entity.physical->mesh.ref.get_fast();
@@ -323,12 +323,11 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
 		// @Note: collision happens only along the normal
+		//        tangential velocity doesn't change
 		r32 const velocity_normal_a = dot_product(normal, phys_a->velocity);
 		r32 const velocity_normal_b = dot_product(normal, phys_b->velocity);
 
-		// @Note: compound restituion here is purely artificial
-		//        solve for phys_a
-		r32 const restitution = (phys_a->restitution + phys_b->restitution) / 2;
+		r32 const restitution = (phys_a->elasticity + phys_b->elasticity) / 2;
 		r32 const momentum    = (velocity_normal_a * phys_b->inverse_mass) + (velocity_normal_b * phys_a->inverse_mass);
 		r32 const velocity    = (velocity_normal_a - velocity_normal_b) * restitution;
 		r32 const mass        = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
@@ -336,7 +335,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		r32 velocity_normal_a2 = (momentum - velocity * phys_a->inverse_mass) * mass;
 		r32 velocity_normal_b2 = (momentum + velocity * phys_b->inverse_mass) * mass;
 
-		// @Note: tangential velocity doesn't change
 		phys_a->velocity += normal * (velocity_normal_a2 - velocity_normal_a);
 		phys_b->velocity += normal * (velocity_normal_b2 - velocity_normal_b);
 

@@ -3,4 +3,4 @@
 Phys2d
 	c assets/meshes/circle_1.collider
 	d 1
-	r 0.5
+	e 0.5

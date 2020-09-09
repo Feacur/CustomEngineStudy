@@ -102,12 +102,15 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 	Phys2d * component = refT.get_fast();
 
+	// material
 	component->dynamic      = 1;
 	component->mass         = 1;
-	component->restitution  = 0;
+	component->elasticity   = 0.5;
+	// shape
+	component->mesh         = {custom::empty_ref, custom::empty_index};
+	// state
 	component->velocity     = {0, 0};
 	component->acceleration = {0, 0};
-	component->mesh = {custom::empty_ref, custom::empty_index};
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
