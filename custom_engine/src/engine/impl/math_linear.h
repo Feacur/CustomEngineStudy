@@ -19,7 +19,7 @@ This code is a result of expanding the following expression
 (i * i) = (j * j) = 0 == sin(0)
 */
 template<typename T>
-constexpr inline T cross_product(xvec2<T> first, xvec2<T> second) {
+constexpr inline T cross_product(xvec2<T> const & first, xvec2<T> const & second) {
 	return first.x * second.y - first.y * second.x;
 }
 
@@ -29,7 +29,7 @@ This code is a result of expanding the following expression
 (i * i) = (j * j) = (k * k) = (i * j * k) = 0 == sin(0)
 */
 template<typename T>
-constexpr inline xvec3<T> cross_product(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> cross_product(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		first.y * second.z - first.z * second.y,
 		first.z * second.x - first.x * second.z,
@@ -44,19 +44,19 @@ constexpr inline xvec3<T> cross_product(xvec3<T> first, xvec3<T> second) {
 
 #if defined(__cplusplus) // operator xvec2<T>
 template<typename T>
-constexpr inline bool operator==(xvec2<T> first, xvec2<T> second) {
+constexpr inline bool operator==(xvec2<T> const & first, xvec2<T> const & second) {
 	return (first.x == second.x)
 	    && (first.y == second.y);
 }
 
 template<typename T>
-constexpr inline bool operator!=(xvec2<T> first, xvec2<T> second) {
+constexpr inline bool operator!=(xvec2<T> const & first, xvec2<T> const & second) {
 	return (first.x != second.x)
 	    || (first.y != second.y);
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator+(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> operator+(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		first.x + second.x,
 		first.y + second.y
@@ -64,7 +64,7 @@ constexpr inline xvec2<T> operator+(xvec2<T> first, xvec2<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator+(xvec2<T> first, T second) {
+constexpr inline xvec2<T> operator+(xvec2<T> const & first, T second) {
 	return {
 		first.x + second,
 		first.y + second
@@ -72,7 +72,7 @@ constexpr inline xvec2<T> operator+(xvec2<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator-(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> operator-(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		first.x - second.x,
 		first.y - second.y
@@ -80,7 +80,7 @@ constexpr inline xvec2<T> operator-(xvec2<T> first, xvec2<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator-(xvec2<T> first, T second) {
+constexpr inline xvec2<T> operator-(xvec2<T> const & first, T second) {
 	return {
 		first.x - second,
 		first.y - second
@@ -88,7 +88,7 @@ constexpr inline xvec2<T> operator-(xvec2<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator-(xvec2<T> value) {
+constexpr inline xvec2<T> operator-(xvec2<T> const & value) {
 	return {
 		-value.x,
 		-value.y
@@ -96,7 +96,7 @@ constexpr inline xvec2<T> operator-(xvec2<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator*(xvec2<T> first, T second) {
+constexpr inline xvec2<T> operator*(xvec2<T> const & first, T second) {
 	return {
 		first.x * second,
 		first.y * second
@@ -104,7 +104,7 @@ constexpr inline xvec2<T> operator*(xvec2<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator*(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> operator*(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		first.x * second.x,
 		first.y * second.y
@@ -112,7 +112,7 @@ constexpr inline xvec2<T> operator*(xvec2<T> first, xvec2<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator/(xvec2<T> first, T second) {
+constexpr inline xvec2<T> operator/(xvec2<T> const & first, T second) {
 	return {
 		first.x / second,
 		first.y / second
@@ -120,7 +120,7 @@ constexpr inline xvec2<T> operator/(xvec2<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> operator/(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> operator/(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		first.x / second.x,
 		first.y / second.y
@@ -190,13 +190,13 @@ This code is a result of expanding the following expression
 (i * i) = (j * j) = 1 == cos(0)
 */
 template<typename T>
-constexpr inline T dot_product(xvec2<T> first, xvec2<T> second) {
+constexpr inline T dot_product(xvec2<T> const & first, xvec2<T> const & second) {
 	return first.x * second.x
 	     + first.y * second.y;
 }
 
 template<typename T>
-constexpr inline xvec2<T> min(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> min(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y)
@@ -204,7 +204,7 @@ constexpr inline xvec2<T> min(xvec2<T> first, xvec2<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> max(xvec2<T> first, xvec2<T> second) {
+constexpr inline xvec2<T> max(xvec2<T> const & first, xvec2<T> const & second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y)
@@ -212,17 +212,17 @@ constexpr inline xvec2<T> max(xvec2<T> first, xvec2<T> second) {
 }
 
 template<typename T>
-constexpr inline T min(xvec2<T> value) {
+constexpr inline T min(xvec2<T> const & value) {
 	return min(value.x, value.y);
 }
 
 template<typename T>
-constexpr inline T max(xvec2<T> value) {
+constexpr inline T max(xvec2<T> const & value) {
 	return max(value.x, value.y);
 }
 
 template<typename T>
-constexpr inline xvec2<T> absolute(xvec2<T> value) {
+constexpr inline xvec2<T> absolute(xvec2<T> const & value) {
 	return {
 		absolute(value.x),
 		absolute(value.y)
@@ -230,7 +230,7 @@ constexpr inline xvec2<T> absolute(xvec2<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> sign(xvec2<T> value) {
+constexpr inline xvec2<T> sign(xvec2<T> const & value) {
 	return {
 		sign(value.x),
 		sign(value.y)
@@ -238,7 +238,7 @@ constexpr inline xvec2<T> sign(xvec2<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec2<T> interpolate(xvec2<T> from, xvec2<T> to, T fraction) {
+constexpr inline xvec2<T> interpolate(xvec2<T> const & from, xvec2<T> const & to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction)
@@ -246,7 +246,7 @@ constexpr inline xvec2<T> interpolate(xvec2<T> from, xvec2<T> to, T fraction) {
 }
 
 template<typename T>
-inline xvec2<T> square_root(xvec2<T> value) {
+inline xvec2<T> square_root(xvec2<T> const & value) {
 	return {
 		square_root(value.x),
 		square_root(value.y)
@@ -254,7 +254,7 @@ inline xvec2<T> square_root(xvec2<T> value) {
 }
 
 template<typename T>
-inline xvec2<T> sine(xvec2<T> value) {
+inline xvec2<T> sine(xvec2<T> const & value) {
 	return {
 		sine(value.x),
 		sine(value.y)
@@ -262,7 +262,7 @@ inline xvec2<T> sine(xvec2<T> value) {
 }
 
 template<typename T>
-inline xvec2<T> cosine(xvec2<T> value) {
+inline xvec2<T> cosine(xvec2<T> const & value) {
 	return {
 		cosine(value.x),
 		cosine(value.y)
@@ -276,21 +276,21 @@ inline xvec2<T> cosine(xvec2<T> value) {
 
 #if defined(__cplusplus) // operator xvec3<T>
 template<typename T>
-constexpr inline bool operator==(xvec3<T> first, xvec3<T> second) {
+constexpr inline bool operator==(xvec3<T> const & first, xvec3<T> const & second) {
 	return (first.x == second.x)
 	    && (first.y == second.y)
 	    && (first.z == second.z);
 }
 
 template<typename T>
-constexpr inline bool operator!=(xvec3<T> first, xvec3<T> second) {
+constexpr inline bool operator!=(xvec3<T> const & first, xvec3<T> const & second) {
 	return (first.x != second.x)
 	    || (first.y != second.y)
 	    || (first.z != second.z);
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator+(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> operator+(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		first.x + second.x,
 		first.y + second.y,
@@ -299,7 +299,7 @@ constexpr inline xvec3<T> operator+(xvec3<T> first, xvec3<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator+(xvec3<T> first, T second) {
+constexpr inline xvec3<T> operator+(xvec3<T> const & first, T second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -308,7 +308,7 @@ constexpr inline xvec3<T> operator+(xvec3<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator-(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> operator-(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		first.x - second.x,
 		first.y - second.y,
@@ -317,7 +317,7 @@ constexpr inline xvec3<T> operator-(xvec3<T> first, xvec3<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator-(xvec3<T> first, T second) {
+constexpr inline xvec3<T> operator-(xvec3<T> const & first, T second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -326,7 +326,7 @@ constexpr inline xvec3<T> operator-(xvec3<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator-(xvec3<T> value) {
+constexpr inline xvec3<T> operator-(xvec3<T> const & value) {
 	return {
 		-value.x,
 		-value.y,
@@ -335,7 +335,7 @@ constexpr inline xvec3<T> operator-(xvec3<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator*(xvec3<T> first, T second) {
+constexpr inline xvec3<T> operator*(xvec3<T> const & first, T second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -344,7 +344,7 @@ constexpr inline xvec3<T> operator*(xvec3<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator*(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> operator*(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		first.x * second.x,
 		first.y * second.y,
@@ -353,7 +353,7 @@ constexpr inline xvec3<T> operator*(xvec3<T> first, xvec3<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator/(xvec3<T> first, T second) {
+constexpr inline xvec3<T> operator/(xvec3<T> const & first, T second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -362,7 +362,7 @@ constexpr inline xvec3<T> operator/(xvec3<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> operator/(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> operator/(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		first.x / second.x,
 		first.y / second.y,
@@ -441,14 +441,14 @@ This code is a result of expanding the following expression
 (i * i) = (j * j) = (k * k) = (i * j * k) = 1 == cos(0)
 */
 template<typename T>
-constexpr inline T dot_product(xvec3<T> first, xvec3<T> second) {
+constexpr inline T dot_product(xvec3<T> const & first, xvec3<T> const & second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z;
 }
 
 template<typename T>
-constexpr inline xvec3<T> min(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> min(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y),
@@ -457,7 +457,7 @@ constexpr inline xvec3<T> min(xvec3<T> first, xvec3<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> max(xvec3<T> first, xvec3<T> second) {
+constexpr inline xvec3<T> max(xvec3<T> const & first, xvec3<T> const & second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y),
@@ -466,17 +466,17 @@ constexpr inline xvec3<T> max(xvec3<T> first, xvec3<T> second) {
 }
 
 template<typename T>
-constexpr inline T min(xvec3<T> value) {
+constexpr inline T min(xvec3<T> const & value) {
 	return min(min(value.x, value.y), value.z);
 }
 
 template<typename T>
-constexpr inline T max(xvec3<T> value) {
+constexpr inline T max(xvec3<T> const & value) {
 	return max(max(value.x, value.y), value.z);
 }
 
 template<typename T>
-constexpr inline xvec3<T> absolute(xvec3<T> value) {
+constexpr inline xvec3<T> absolute(xvec3<T> const & value) {
 	return {
 		absolute(value.x),
 		absolute(value.y),
@@ -485,7 +485,7 @@ constexpr inline xvec3<T> absolute(xvec3<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> sign(xvec3<T> value) {
+constexpr inline xvec3<T> sign(xvec3<T> const & value) {
 	return {
 		sign(value.x),
 		sign(value.y),
@@ -494,7 +494,7 @@ constexpr inline xvec3<T> sign(xvec3<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec3<T> interpolate(xvec3<T> from, xvec3<T> to, T fraction) {
+constexpr inline xvec3<T> interpolate(xvec3<T> const & from, xvec3<T> const & to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -503,7 +503,7 @@ constexpr inline xvec3<T> interpolate(xvec3<T> from, xvec3<T> to, T fraction) {
 }
 
 template<typename T>
-inline xvec3<T> square_root(xvec3<T> value) {
+inline xvec3<T> square_root(xvec3<T> const & value) {
 	return {
 		square_root(value.x),
 		square_root(value.y),
@@ -512,7 +512,7 @@ inline xvec3<T> square_root(xvec3<T> value) {
 }
 
 template<typename T>
-inline xvec3<T> sine(xvec3<T> value) {
+inline xvec3<T> sine(xvec3<T> const & value) {
 	return {
 		sine(value.x),
 		sine(value.y),
@@ -521,7 +521,7 @@ inline xvec3<T> sine(xvec3<T> value) {
 }
 
 template<typename T>
-inline xvec3<T> cosine(xvec3<T> value) {
+inline xvec3<T> cosine(xvec3<T> const & value) {
 	return {
 		cosine(value.x),
 		cosine(value.y),
@@ -536,7 +536,7 @@ inline xvec3<T> cosine(xvec3<T> value) {
 
 #if defined(__cplusplus) // operator xvec4<T>
 template<typename T>
-constexpr inline bool operator==(xvec4<T> first, xvec4<T> second) {
+constexpr inline bool operator==(xvec4<T> const & first, xvec4<T> const & second) {
 	return (first.x == second.x)
 	    && (first.y == second.y)
 	    && (first.z == second.z)
@@ -544,7 +544,7 @@ constexpr inline bool operator==(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline bool operator!=(xvec4<T> first, xvec4<T> second) {
+constexpr inline bool operator!=(xvec4<T> const & first, xvec4<T> const & second) {
 	return (first.x != second.x)
 	    || (first.y != second.y)
 	    || (first.z != second.z)
@@ -552,7 +552,7 @@ constexpr inline bool operator!=(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator+(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> operator+(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		first.x + second.x,
 		first.y + second.y,
@@ -562,7 +562,7 @@ constexpr inline xvec4<T> operator+(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator+(xvec4<T> first, T second) {
+constexpr inline xvec4<T> operator+(xvec4<T> const & first, T second) {
 	return {
 		first.x + second,
 		first.y + second,
@@ -572,7 +572,7 @@ constexpr inline xvec4<T> operator+(xvec4<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator-(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> operator-(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		first.x - second.x,
 		first.y - second.y,
@@ -582,7 +582,7 @@ constexpr inline xvec4<T> operator-(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator-(xvec4<T> first, T second) {
+constexpr inline xvec4<T> operator-(xvec4<T> const & first, T second) {
 	return {
 		first.x - second,
 		first.y - second,
@@ -592,7 +592,7 @@ constexpr inline xvec4<T> operator-(xvec4<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator-(xvec4<T> value) {
+constexpr inline xvec4<T> operator-(xvec4<T> const & value) {
 	return {
 		-value.x,
 		-value.y,
@@ -602,7 +602,7 @@ constexpr inline xvec4<T> operator-(xvec4<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator*(xvec4<T> first, T second) {
+constexpr inline xvec4<T> operator*(xvec4<T> const & first, T second) {
 	return {
 		first.x * second,
 		first.y * second,
@@ -612,7 +612,7 @@ constexpr inline xvec4<T> operator*(xvec4<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator*(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> operator*(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		first.x * second.x,
 		first.y * second.y,
@@ -622,7 +622,7 @@ constexpr inline xvec4<T> operator*(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator/(xvec4<T> first, T second) {
+constexpr inline xvec4<T> operator/(xvec4<T> const & first, T second) {
 	return {
 		first.x / second,
 		first.y / second,
@@ -632,7 +632,7 @@ constexpr inline xvec4<T> operator/(xvec4<T> first, T second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> operator/(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> operator/(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		first.x / second.x,
 		first.y / second.y,
@@ -715,7 +715,7 @@ constexpr inline xvec4<T> & operator/=(xvec4<T> & first, T second) {
 #endif // defined(__cplusplus) // operator xvec4<T>
 
 template<typename T>
-constexpr inline T dot_product(xvec4<T> first, xvec4<T> second) {
+constexpr inline T dot_product(xvec4<T> const & first, xvec4<T> const & second) {
 	return first.x * second.x
 	     + first.y * second.y
 	     + first.z * second.z
@@ -723,7 +723,7 @@ constexpr inline T dot_product(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> min(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> min(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		min(first.x, second.x),
 		min(first.y, second.y),
@@ -733,7 +733,7 @@ constexpr inline xvec4<T> min(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> max(xvec4<T> first, xvec4<T> second) {
+constexpr inline xvec4<T> max(xvec4<T> const & first, xvec4<T> const & second) {
 	return {
 		max(first.x, second.x),
 		max(first.y, second.y),
@@ -743,17 +743,17 @@ constexpr inline xvec4<T> max(xvec4<T> first, xvec4<T> second) {
 }
 
 template<typename T>
-constexpr inline T min(xvec4<T> value) {
+constexpr inline T min(xvec4<T> const & value) {
 	return min(min(min(value.x, value.y), value.z), value.w);
 }
 
 template<typename T>
-constexpr inline T max(xvec4<T> value) {
+constexpr inline T max(xvec4<T> const & value) {
 	return max(max(max(value.x, value.y), value.z), value.w);
 }
 
 template<typename T>
-constexpr inline xvec4<T> absolute(xvec4<T> value) {
+constexpr inline xvec4<T> absolute(xvec4<T> const & value) {
 	return {
 		absolute(value.x),
 		absolute(value.y),
@@ -763,7 +763,7 @@ constexpr inline xvec4<T> absolute(xvec4<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> sign(xvec4<T> value) {
+constexpr inline xvec4<T> sign(xvec4<T> const & value) {
 	return {
 		sign(value.x),
 		sign(value.y),
@@ -773,7 +773,7 @@ constexpr inline xvec4<T> sign(xvec4<T> value) {
 }
 
 template<typename T>
-constexpr inline xvec4<T> interpolate(xvec4<T> from, xvec4<T> to, T fraction) {
+constexpr inline xvec4<T> interpolate(xvec4<T> const & from, xvec4<T> const & to, T fraction) {
 	return {
 		interpolate(from.x, to.x, fraction),
 		interpolate(from.y, to.y, fraction),
@@ -783,7 +783,7 @@ constexpr inline xvec4<T> interpolate(xvec4<T> from, xvec4<T> to, T fraction) {
 }
 
 template<typename T>
-inline xvec4<T> square_root(xvec4<T> value) {
+inline xvec4<T> square_root(xvec4<T> const & value) {
 	return {
 		square_root(value.x),
 		square_root(value.y),
@@ -793,7 +793,7 @@ inline xvec4<T> square_root(xvec4<T> value) {
 }
 
 template<typename T>
-inline xvec4<T> sine(xvec4<T> value) {
+inline xvec4<T> sine(xvec4<T> const & value) {
 	return {
 		sine(value.x),
 		sine(value.y),
@@ -803,7 +803,7 @@ inline xvec4<T> sine(xvec4<T> value) {
 }
 
 template<typename T>
-inline xvec4<T> cosine(xvec4<T> value) {
+inline xvec4<T> cosine(xvec4<T> const & value) {
 	return {
 		cosine(value.x),
 		cosine(value.y),
@@ -816,11 +816,11 @@ inline xvec4<T> cosine(xvec4<T> value) {
 // icomplex routines
 //
 
-constexpr inline icomplex complex_conjugate(icomplex value) {
+constexpr inline icomplex complex_conjugate(icomplex const & value) {
 	return {value.x, -value.y};
 }
 
-constexpr inline icomplex complex_product(icomplex first, icomplex second) {
+constexpr inline icomplex complex_product(icomplex const & first, icomplex const & second) {
 	return {
 		first.x * second.x - first.y * second.y,
 		first.x * second.y + first.y * second.x
@@ -849,24 +849,24 @@ inline complex complex_from_radians(r32 radians) {
 	return {cosine(radians), sine(radians)};
 }
 
-constexpr inline complex complex_conjugate(complex value) {
+constexpr inline complex complex_conjugate(complex const & value) {
 	return {value.x, -value.y};
 }
 
 // @Note: normalized value do not need reciprocal: a conjugate suffice
-constexpr inline r32 magnitude_squared(vec2 value);
-constexpr inline complex complex_reciprocal(complex value) {
+constexpr inline r32 magnitude_squared(vec2 const & value);
+constexpr inline complex complex_reciprocal(complex const & value) {
 	return complex_conjugate(value) / magnitude_squared(value);
 }
 
-constexpr inline complex complex_product(complex first, complex second) {
+constexpr inline complex complex_product(complex const & first, complex const & second) {
 	return {
 		first.x * second.x - first.y * second.y,
 		first.x * second.y + first.y * second.x
 	};
 }
 
-inline r32 complex_get_radians(complex value) {
+inline r32 complex_get_radians(complex const & value) {
 	return atan2f(value.y, value.x);
 }
 
@@ -935,17 +935,17 @@ quaternion rotation formula (by angle A around axis N)
 > > also that's why we specifically use (half_radians = euler_radians / 2) in the code
 */
 
-constexpr inline quat quat_conjugate(quat value) {
+constexpr inline quat quat_conjugate(quat const & value) {
 	return {-value.x, -value.y, -value.z, value.w};
 }
 
 // @Note: normalized value do not need reciprocal: a conjugate suffice
-constexpr inline r32 magnitude_squared(vec4 value);
+constexpr inline r32 magnitude_squared(vec4 const & value);
 constexpr inline quat quat_reciprocal(quat value) {
 	return quat{-value.x, -value.y, -value.z, value.w} / magnitude_squared(value);
 }
 
-inline quat quat_from_axis(vec3 axis, r32 radians) {
+inline quat quat_from_axis(vec3 const & axis, r32 radians) {
 	r32 half_radians = radians / 2;
 	r32 s = sine(half_radians);
 	r32 c = cosine(half_radians);
@@ -957,7 +957,7 @@ This code is a result of expanding the following expression
 (x1*i + y1*j + z1*k + w1) * (x2*i + y2*j + z2*k + w2)
 (i * i) = (j * j) = (k * k) = (i * j * k) = -1 == cos(pi)
 */
-constexpr inline quat quat_product(quat first, quat second) {
+constexpr inline quat quat_product(quat const & first, quat const & second) {
 	return {
 		cross_product(first.xyz, second.xyz) + first.xyz * second.w + second.xyz * first.w,
 		first.w * second.w - dot_product(first.xyz, second.xyz)
@@ -976,7 +976,7 @@ return quat_product(
 	quat_from_axis({0, 0, 1}, euler_radians.z),
 );
 */
-inline quat quat_from_radians(vec3 euler_radians) {
+inline quat quat_from_radians(vec3 const & euler_radians) {
 	auto half_radians = euler_radians / (r32)2;
 	auto s = sine(half_radians);
 	auto c = cosine(half_radians);
@@ -997,7 +997,7 @@ return quat_product(
 	quat_reciprocal(quat)
 );
 */
-constexpr inline vec3 quat_rotate(quat q, vec3 vector) {
+constexpr inline vec3 quat_rotate(quat const & q, vec3 const & vector) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis = cross_product(q.xyz, vector) + vector * q.w;
@@ -1014,7 +1014,7 @@ right   = quat_rotate(quat, {1, 0, 0});
 up      = quat_rotate(quat, {0, 1, 0});
 forward = quat_rotate(quat, {0, 0, 1});
 */
-constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forward) {
+constexpr inline void quat_get_axes(quat const & q, vec3 & right, vec3 & up, vec3 & forward) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 
@@ -1034,7 +1034,7 @@ constexpr inline void quat_get_axes(quat q, vec3 & right, vec3 & up, vec3 & forw
 	        - reciprocal.xyz * q.z;
 };
 
-constexpr inline vec3 quat_get_right(quat q) {
+constexpr inline vec3 quat_get_right(quat const & q) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_a = {q.w, q.z, -q.y};
@@ -1043,7 +1043,7 @@ constexpr inline vec3 quat_get_right(quat q) {
 	     - reciprocal.xyz * q.x;
 };
 
-constexpr inline vec3 quat_get_up(quat q) {
+constexpr inline vec3 quat_get_up(quat const & q) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_b = {-q.z, q.w, q.x};
@@ -1052,7 +1052,7 @@ constexpr inline vec3 quat_get_up(quat q) {
 	     - reciprocal.xyz * q.y;
 };
 
-constexpr inline vec3 quat_get_forward(quat q) {
+constexpr inline vec3 quat_get_forward(quat const & q) {
 	// @Note: normalized value do not need reciprocal: a conjugate suffice
 	quat reciprocal = quat_conjugate(q);
 	vec3 product_axis_c = {q.y, -q.x, q.w};
@@ -1066,7 +1066,7 @@ constexpr inline vec3 quat_get_forward(quat q) {
 // https://github.com/g-truc/glm/blob/master/glm/gtc/quaternion.inl
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-inline constexpr bool quat_is_singularity(quat q) {
+inline constexpr bool quat_is_singularity(quat const & q) {
 	if (2 * absolute(q.y * q.z + q.x * q.w) <= epsilon) {
 		if (absolute((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) <= epsilon) {
 			return true;
@@ -1089,7 +1089,7 @@ inline constexpr bool quat_is_singularity(quat q) {
 	return false;
 }
 
-inline r32 quat_get_radians_x(quat q) {
+inline r32 quat_get_radians_x(quat const & q) {
 	// if (axis_sin == 0 && axis_cos == 0) { return 2 * atan2f(q.x, q.w); }
 	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 2 * atan2f(q.x, q.w); }
 	return atan2f(
@@ -1106,7 +1106,7 @@ inline r32 quat_get_radians_y(quat q) {
 	);
 };
 
-inline r32 quat_get_radians_z(quat q) {
+inline r32 quat_get_radians_z(quat const & q) {
 	// if (axis_sin == 0 && axis_cos == 0) { return 0; }
 	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 0; }
 	return atan2f(
@@ -1120,21 +1120,21 @@ inline r32 quat_get_radians_z(quat q) {
 // mat2 routines
 //
 
-constexpr inline mat2 mat_transpose(mat2 value) {
+constexpr inline mat2 mat_transpose(mat2 const & value) {
 	return {
 		vec2{value.x.x, value.y.x},
 		vec2{value.x.y, value.y.y}
 	};
 }
 
-constexpr inline vec2 mat_product(mat2 mat, vec2 v) {
+constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & v) {
 	return {
 		dot_product(mat.x, v),
 		dot_product(mat.y, v)
 	};
 }
 
-constexpr inline mat2 mat_product(mat2 first, mat2 second) {
+constexpr inline mat2 mat_product(mat2 const & first, mat2 const & second) {
 	mat2 t = mat_transpose(second);
 	return {
 		mat_product(t, first.x),
@@ -1153,7 +1153,7 @@ constexpr inline mat2 interpolate(mat2 const & first, mat2 const & second, r32 f
 // mat3 routines
 //
 
-constexpr inline mat3 mat_transpose(mat3 value) {
+constexpr inline mat3 mat_transpose(mat3 const & value) {
 	return {
 		vec3{value.x.x, value.y.x, value.z.x},
 		vec3{value.x.y, value.y.y, value.z.y},
@@ -1161,7 +1161,7 @@ constexpr inline mat3 mat_transpose(mat3 value) {
 	};
 }
 
-constexpr inline vec3 mat_product(mat3 mat, vec3 v) {
+constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & v) {
 	return {
 		dot_product(mat.x, v),
 		dot_product(mat.y, v),
@@ -1169,7 +1169,7 @@ constexpr inline vec3 mat_product(mat3 mat, vec3 v) {
 	};
 }
 
-constexpr inline mat3 mat_product(mat3 first, mat3 second) {
+constexpr inline mat3 mat_product(mat3 const & first, mat3 const & second) {
 	mat3 t = mat_transpose(second);
 	return {
 		mat_product(t, first.x),
@@ -1186,7 +1186,7 @@ constexpr inline mat3 interpolate(mat3 const & first, mat3 const & second, r32 f
 	};
 }
 
-constexpr inline mat3 mat_inverse_transform(mat3 value) {
+constexpr inline mat3 mat_inverse_transform(mat3 const & value) {
 	mat3 t = mat_transpose(value);
 	return {
 		vec3{t.x.xy, 0},
@@ -1199,7 +1199,7 @@ constexpr inline mat3 mat_inverse_transform(mat3 value) {
 	};
 }
 
-constexpr inline mat3 mat_position_scale(vec2 p, vec2 s) {
+constexpr inline mat3 mat_position_scale(vec2 const & p, vec2 const & s) {
 	return {
 		vec3{s.x, 0,   0},
 		vec3{0,   s.y, 0},
@@ -1211,7 +1211,7 @@ constexpr inline mat3 mat_position_scale(vec2 p, vec2 s) {
 // mat4 routines
 //
 
-constexpr inline mat4 mat_transpose(mat4 value) {
+constexpr inline mat4 mat_transpose(mat4 const & value) {
 	return {
 		vec4{value.x.x, value.y.x, value.z.x, value.w.x},
 		vec4{value.x.y, value.y.y, value.z.y, value.w.y},
@@ -1220,7 +1220,7 @@ constexpr inline mat4 mat_transpose(mat4 value) {
 	};
 }
 
-constexpr inline vec4 mat_product(mat4 mat, vec4 v) {
+constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & v) {
 	return {
 		dot_product(mat.x, v),
 		dot_product(mat.y, v),
@@ -1229,7 +1229,7 @@ constexpr inline vec4 mat_product(mat4 mat, vec4 v) {
 	};
 }
 
-constexpr inline mat4 mat_product(mat4 first, mat4 second) {
+constexpr inline mat4 mat_product(mat4 const & first, mat4 const & second) {
 	mat4 t = mat_transpose(second);
 	return {
 		mat_product(t, first.x),
@@ -1248,7 +1248,7 @@ constexpr inline mat4 interpolate(mat4 const & first, mat4 const & second, r32 f
 	};
 }
 
-constexpr inline mat4 mat_inverse_transform(mat4 value) {
+constexpr inline mat4 mat_inverse_transform(mat4 const & value) {
 	mat4 t = mat_transpose(value);
 	return {
 		vec4{t.x.xyz, 0},
@@ -1263,7 +1263,7 @@ constexpr inline mat4 mat_inverse_transform(mat4 value) {
 	};
 }
 
-constexpr inline mat4 mat_position_scale(vec3 p, vec3 s) {
+constexpr inline mat4 mat_position_scale(vec3 const & p, vec3 const & s) {
 	return {
 		vec4{s.x, 0,   0,   0},
 		vec4{0,   s.y, 0,   0},
@@ -1339,7 +1339,7 @@ Perspective projection:
 
 */
 
-constexpr inline mat4 mat_persp(vec2 scale, r32 ncp, r32 fcp) {
+constexpr inline mat4 mat_persp(vec2 const & scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
@@ -1353,7 +1353,7 @@ constexpr inline mat4 mat_persp(vec2 scale, r32 ncp, r32 fcp) {
 	return result;
 }
 
-constexpr inline mat4 mat_ortho(vec2 scale, r32 ncp, r32 fcp) {
+constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
@@ -1405,30 +1405,40 @@ inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const &
 		return clamp(from + delta, from, to);\
 	}\
 
+#define CLAMP_VEC_IMPL(T)\
+	constexpr inline T clamp(T const & value, T low, T high) {\
+		return min(max(value, low), high);\
+	}\
+
+#define MOVE_TOWARDS_CLAMPED_VEC_IMPL(T)\
+	constexpr inline T move_towards_clamped(T const & from, T to, T delta) {\
+		return clamp(from + delta, from, to);\
+	}\
+
 #define VECTOR_MAGNITUDE_SQUARED_IMPL(T, S)\
-	constexpr inline S magnitude_squared(T value) {\
+	constexpr inline S magnitude_squared(T const & value) {\
 		return dot_product(value, value);\
 	}\
 
 #define VECTOR_MAGNITUDE_IMPL(T)\
-	inline r32 magnitude(T value) {\
+	inline r32 magnitude(T const & value) {\
 		return square_root(magnitude_squared(value));\
 	}\
 
 #define VECTOR_NORMALIZE_IMPL(T)\
-	inline T normalize(T value) {\
+	inline T normalize(T const & value) {\
 		return value / magnitude(value);\
 	}\
 
 #define VECTOR_REFLECT_IMPL(T)\
-	constexpr inline T reflect(T incident, T normal, r32 factor) {\
+	constexpr inline T reflect(T const & incident, T const & normal, r32 factor) {\
 		r32 incident_cosine = dot_product(incident, normal);\
 		r32 normal_factor   = incident_cosine * factor;\
 		return incident - normal * normal_factor;\
 	}\
 
 #define VECTOR_REFRACT_IMPL(T)\
-	inline T refract(T incident, T normal, r32 factor) {\
+	inline T refract(T const & incident, T const & normal, r32 factor) {\
 		r32 incident_cosine = dot_product(incident, normal);\
 		r32 incident_sine_squared = 1 - incident_cosine * incident_cosine;\
 		r32 refracted_sine_squared = factor * factor * incident_sine_squared;\
@@ -1441,7 +1451,7 @@ inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const &
 	}\
 
 #define VECTOR_MOVE_TOWARDS_CLAMPED_IMPL(T)\
-	inline T move_towards_clamped(T from, T to, r32 delta) {\
+	inline T move_towards_clamped(T const & from, T const & to, r32 delta) {\
 		T direction = to - from;\
 		r32 distance = magnitude(direction);\
 		if (delta <= 0) { return from; }\
@@ -1450,7 +1460,7 @@ inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const &
 	}\
 
 #define VECTOR_CLAMP_MAGNITUDE_IMPL(T)\
-	inline T clamp_magnitude(T value, r32 low, r32 high) {\
+	inline T clamp_magnitude(T const & value, r32 low, r32 high) {\
 		r32 length = magnitude(value);\
 		if (length < low) { return (value / length) * low; }\
 		if (length > high) { return (value / length) * high; }\
@@ -1458,16 +1468,24 @@ inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const &
 	}\
 
 CLAMP_IMPL(s32)
-CLAMP_IMPL(ivec2)
-CLAMP_IMPL(ivec3)
+CLAMP_VEC_IMPL(ivec2)
+CLAMP_VEC_IMPL(ivec3)
+CLAMP_VEC_IMPL(ivec4)
 
 CLAMP_IMPL(r32)
-CLAMP_IMPL(vec2)
-CLAMP_IMPL(vec3)
-CLAMP_IMPL(vec4)
+CLAMP_VEC_IMPL(vec2)
+CLAMP_VEC_IMPL(vec3)
+CLAMP_VEC_IMPL(vec4)
 
 MOVE_TOWARDS_CLAMPED_IMPL(s32);
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(ivec2)
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(ivec3)
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(ivec4)
+
 MOVE_TOWARDS_CLAMPED_IMPL(r32);
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(vec2)
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(vec3)
+MOVE_TOWARDS_CLAMPED_VEC_IMPL(vec4)
 
 VECTOR_MAGNITUDE_SQUARED_IMPL(ivec2, s32)
 VECTOR_MAGNITUDE_SQUARED_IMPL(ivec3, s32)
