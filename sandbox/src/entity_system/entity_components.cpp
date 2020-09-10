@@ -105,6 +105,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	// material
 	component->dynamic    = 1;
 	component->mass       = 1;
+	// component->inertia    = 1;
 	component->elasticity = 0.5;
 	component->roughness  = 0.3;
 	component->stickiness = 0.6;
@@ -113,6 +114,8 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	// state
 	component->velocity     = {0, 0};
 	component->acceleration = {0, 0};
+	// r32  angular_velocity     = 0;
+	// r32  angular_acceleration = 0;
 }
 
 template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {

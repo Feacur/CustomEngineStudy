@@ -34,6 +34,7 @@ struct Phys2d
 	// material
 	r32  dynamic    = 1; // no need to make the mass infinite, just set this to 0
 	r32  mass       = 1;
+	// r32  inertia    = 1;
 	r32  elasticity = 0.5; // a bit artificial way to state restitution for a single object
 	r32  roughness  = 0.3; // a bit artificial way to state dynamic friction for a single object
 	r32  stickiness = 0.6; // a bit artificial way to state static friction for a single object
@@ -46,6 +47,8 @@ struct Phys2d
 	//          affecting the velocity and acceleration?
 	vec2 velocity     = {0, 0};
 	vec2 acceleration = {0, 0};
+	// r32  angular_velocity     = 0;
+	// r32  angular_acceleration = 0;
 
 	void add_impulse(vec2 value);
 	void add_force(vec2 value);

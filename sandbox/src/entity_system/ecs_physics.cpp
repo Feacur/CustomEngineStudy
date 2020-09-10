@@ -19,6 +19,11 @@
 // https://en.wikipedia.org/wiki/Angular_momentum
 // https://en.wikipedia.org/wiki/Momentum
 // https://en.wikipedia.org/wiki/Friction
+// https://en.wikipedia.org/wiki/Angular_acceleration
+// https://stackoverflow.com/questions/31106438/calculate-moment-of-inertia-given-an-arbitrary-convex-2d-polygon
+// https://stackoverflow.com/questions/41592034/computing-tensor-of-inertia-in-2d
+// https://en.wikipedia.org/wiki/Moment_of_inertia
+// https://en.wikipedia.org/wiki/Second_moment_of_area
 
 // @Note: simplest collision response against a static object looks like
 //        velocity = reflect(velocity, normal, 1 + cor);
@@ -85,18 +90,17 @@ struct Entity_Blob {
 
 struct Physical_Blob {
 	// Transform
-	vec2 position;
-	vec2 scale;
+	vec2 position, scale;
 	complex rotation;
 	// Phys2d
-	r32 dynamic, inverse_mass;
-	r32 elasticity;
-	r32 roughness;
-	r32 stickiness;
+	r32 dynamic, inverse_mass, inverse_inertia;
+	r32 elasticity, roughness, stickiness;
 	custom::Collider2d_Asset * mesh;
 	//
 	vec2 velocity;
 	vec2 acceleration;
+	r32  angular_velocity;
+	r32  angular_acceleration;
 
 	void add_impulse(vec2 value) {
 		velocity += value * inverse_mass;
@@ -199,16 +203,19 @@ void ecs_update_physics(r32 dt) {
 		);
 
 		//
-		blob->dynamic      = entity.physical->dynamic;
-		blob->inverse_mass = entity.physical->dynamic / entity.physical->mass;
-		blob->elasticity   = entity.physical->elasticity;
-		blob->roughness    = entity.physical->roughness;
-		blob->stickiness   = entity.physical->stickiness;
+		blob->dynamic         = entity.physical->dynamic;
+		blob->inverse_mass    = entity.physical->dynamic / entity.physical->mass;
+		// blob->inverse_inertia = entity.physical->dynamic / entity.physical->inertia;
+		blob->elasticity      = entity.physical->elasticity;
+		blob->roughness       = entity.physical->roughness;
+		blob->stickiness      = entity.physical->stickiness;
 		//
 		blob->mesh = entity.physical->mesh.ref.get_fast();
 		//
 		blob->velocity     = entity.physical->velocity;
 		blob->acceleration = entity.physical->acceleration;
+		// blob->angular_velocity     = entity.physical->angular_velocity;
+		// blob->angular_acceleration = entity.physical->angular_acceleration;
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -227,6 +234,9 @@ void ecs_update_physics(r32 dt) {
 		});
 		//
 		entity.physical->velocity = physical.velocity;
+		entity.physical->acceleration = {0, 0};
+		// entity.physical->angular_velocity = physical.angular_velocity;
+		// entity.physical->angular_acceleration = 0;
 	}
 }
 
@@ -235,6 +245,18 @@ void ecs_update_physics(r32 dt) {
 //
 //
 //
+
+// for (u32 i = 0; i < transformed_points.count; ++i) {
+// 	vec2 const * points = transformed_points_buffer.data + transformed_points[i].offset;
+// 	u32 const    points_count = transformed_points[i].count;
+// 
+// 	r32 area = 0;
+// 	for (u32 point_a = 0; point_a < points_count; ++point_a) {
+// 		u32 point_b = (point_a + 1) % points_count;
+// 		area += cross_product(points[point_b], points[point_a]);
+// 	}
+// 	area /= 2;
+// }
 
 // constexpr static bool collide(aabb2 first, aabb2 second) {
 // 	vec2 position = first.position - second.position;
@@ -389,3 +411,130 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		phys_b->position -= separator * (phys_b->inverse_mass * mass);
 	}
 }
+
+/*
+% Combined total area of all triangles
+total_area = SUM( area(i), i=1:n )
+total_mass = SUM( mass(i), i=1:n )
+% Combined centroid (center of mass) coordinates
+combined_centroid_x = SUM( mass(i)*centroid_x(i), i=1:n)/total_mass
+combined_centroid_y = SUM( mass(i)*centroid_y(i), i=1:n)/total_mass
+% Each distance to triangle (squared)
+centroid_distance_sq(i) = centroid_x(i)*centroid_x(i)+centroid_y(i)*centroid_y(i)
+% Combined mass moment of inertia
+combined_mmoi = SUM(mmoi(i)+mass(i)*centroid_distance_sq(i), i=1:n)
+*/
+
+/*
+public static RigidBody2 FromShape(double mass, params Vector2[] polygon)
+{
+    double area = 0;
+    Vector2 center = Vector2.Zero;
+    double mmoi = 0;
+
+    int prev = polygon.Length-1;
+    for (int index = 0; index < polygon.Length; index++)
+    {
+        var a = polygon[prev];
+        var b = polygon[index];
+
+        var area_step = Vector2.Cross(a, b)/2;
+        var center_step = (a+b)/3;
+        var mmoi_step = area_step*(Vector2.Dot(a, a)+Vector2.Dot(b, b)+Vector2.Dot(a, b))/6;
+
+        center = (center*area + center_step * area_step)/(area + area_step);
+        area += area_step;
+        mmoi += mmoi_step;
+
+        prev = index;
+    }
+
+    double density = mass/area;
+    mmoi *= density;
+    mmoi -= mass * Vector2.Dot(center, center);
+
+    return new RigidBody2(mass, mmoi, center);
+}
+*/
+
+/*
+polygon(Vector[] points, double depth, double density)
+{
+    // Accumulate the following values
+    double area = 0.0;
+    double mass = 0.0;
+    Vector center = [0.0, 0.0];
+    double mmoi = 0.0;
+
+    // Take each vertex pair starting from the last-first vertex
+    // in order to consider all sides.
+    int count = points.Length;
+    int prev = count - 1;
+    for(int index=0; index<count; index++)
+    {
+        Vector a = points[prev];
+        Vector b = points[index];
+
+        double area_step = TriangleArea(a,b);
+        double mass_step = density * area_step * depth;
+        Vector center_step = TriangleCenter(a,b);
+        double mmoi_step = TriangleMmoi(a,b, mass_step);
+
+        area += area_step;
+        center = (mass*center + mass_step*center_step)/(mass+mass_step);
+        mass += mass_step;
+        mmoi += mmoi_step;
+
+        prev = index;
+    }
+
+    // Transfer mass moment of inertia from the origin to the center of mass
+    mmoi -= mass*dot(center,center);
+
+    // use area, mass, center and mmoi
+}
+
+double TriangleArea(Vector a, Vector b)
+{
+    return cross(a,b)/2;
+}
+double TriangleCenter(Vector a, Vector b)
+{
+    return (a+b)/3;
+{
+double TriangleMmoi(Vector a, Vector b, double triangleMass)
+{
+    return triangleMass/6*(dot(a,a)+dot(b.b)+dot(a.b));
+}
+*/
+
+/*
+for (u32 i = 0; i < transformed_points.count; ++i) {
+	vec2 const * points = transformed_points_buffer.data + transformed_points[i].offset;
+	u32 const    points_count = transformed_points[i].count;
+
+	vec2 centre            = {0, 0};
+	r32  area              = 0;
+	r32  moment_of_inertia = 0;
+
+	for (u32 point_a = 0; point_a < points_count; ++point_a) {
+		u32 point_b = (point_a + 1) % points_count;
+		vec2 a = points[point_a];
+		vec2 b = points[point_b];
+
+		vec2 triangle_centre            = (a + b) / 3.0f;
+		r32  triangle_area              = cross_product(b, a) / 2;
+		r32  triangle_moment_of_inertia = triangle_area * (
+			dot_product(a, a) + dot_product(b, b) + dot_product(a, b)
+		) / 6;
+
+		centre            += (centre * area + triangle_centre * triangle_area) / (area + triangle_area);
+		area              += triangle_area;
+		moment_of_inertia += triangle_moment_of_inertia;
+	}
+
+	Physical_Blob & phys = physicals[i];
+
+	moment_of_inertia *= (1 - area * dot_product(centre, centre)) / (area * phys.inverse_mass);
+}
+*/

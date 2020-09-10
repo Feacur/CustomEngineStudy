@@ -265,9 +265,10 @@ static int Phys2d_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "dynamic")     == 0) { lua_pushnumber(L, object->get_fast()->dynamic);    return 1; }
-	if (strcmp(id, "mass")        == 0) { lua_pushnumber(L, object->get_fast()->mass);       return 1; }
-	if (strcmp(id, "elasticity") == 0)  { lua_pushnumber(L, object->get_fast()->elasticity); return 1; }
+	if (strcmp(id, "dynamic")    == 0) { lua_pushnumber(L, object->get_fast()->dynamic);    return 1; }
+	if (strcmp(id, "mass")       == 0) { lua_pushnumber(L, object->get_fast()->mass);       return 1; }
+	// if (strcmp(id, "inertia")    == 0) { lua_pushnumber(L, object->get_fast()->inertia);    return 1; }
+	if (strcmp(id, "elasticity") == 0) { lua_pushnumber(L, object->get_fast()->elasticity); return 1; }
 
 	if (strcmp(id, "acceleration") == 0) {
 		vec2 * udata = (vec2 *)lua_newuserdatauv(L, sizeof(vec2), 0);
@@ -282,6 +283,9 @@ static int Phys2d_index(lua_State * L) {
 		*udata = object->get_fast()->velocity;
 		return 1;
 	}
+
+	// if (strcmp(id, "angular_velocity")     == 0) { lua_pushnumber(L, object->get_fast()->angular_velocity);     return 1; }
+	// if (strcmp(id, "angular_acceleration") == 0) { lua_pushnumber(L, object->get_fast()->angular_acceleration); return 1; }
 
 	if (strcmp(id, "mesh") == 0) {
 		typedef custom::Asset_RefT<custom::Collider2d_Asset> Asset_Ref;
@@ -304,9 +308,10 @@ static int Phys2d_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "dynamic")     == 0) { object->get_fast()->dynamic     = (r32)lua_tonumber(L, 3); return 0; }
-	if (strcmp(id, "mass")        == 0) { object->get_fast()->mass        = (r32)lua_tonumber(L, 3); return 0; }
-	if (strcmp(id, "elasticity") == 0)  { object->get_fast()->elasticity = (r32)lua_tonumber(L, 3);  return 0; }
+	if (strcmp(id, "dynamic")    == 0) { object->get_fast()->dynamic    = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "mass")       == 0) { object->get_fast()->mass       = (r32)lua_tonumber(L, 3); return 0; }
+	// if (strcmp(id, "inertia")    == 0) { object->get_fast()->inertia    = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "elasticity") == 0) { object->get_fast()->elasticity = (r32)lua_tonumber(L, 3); return 0; }
 
 	if (strcmp(id, "acceleration") == 0) {
 		LUA_ASSERT_USERDATA("vec2", 3);
@@ -321,6 +326,9 @@ static int Phys2d_newindex(lua_State * L) {
 		object->get_fast()->velocity = *value;
 		return 0;
 	}
+
+	// if (strcmp(id, "angular_velocity")     == 0) { object->get_fast()->angular_velocity     = (r32)lua_tonumber(L, 3); return 0; }
+	// if (strcmp(id, "angular_acceleration") == 0) { object->get_fast()->angular_acceleration = (r32)lua_tonumber(L, 3); return 0; }
 
 	if (strcmp(id, "mesh") == 0) {
 		typedef custom::Asset_RefT<custom::Collider2d_Asset> Asset_Ref;
