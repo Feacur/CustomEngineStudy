@@ -120,6 +120,8 @@ struct Collision {
 struct Physics_Settings {
 	u32  frequency = 50;
 	vec2 gravity   = {0, -9.81f};
+	r32 separation_fraction = 0.5f;
+	r32 separation_bias     = 0.01f;
 };
 
 static Physics_Settings settings;
@@ -154,6 +156,8 @@ static void consume_config(void) {
 		config->get_value<r32>("physics_gravity_x", 0),
 		config->get_value<r32>("physics_gravity_y", -9.81f),
 	};
+	settings.separation_fraction = config->get_value<r32>("physics_separation_fraction", 0.8f);
+	settings.separation_bias     = config->get_value<r32>("physics_separation_bias", 0.01f);
 }
 
 void ecs_update_physics(r32 dt) {
@@ -368,13 +372,14 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
+		if (collisions[i].overlap < settings.separation_bias) { continue; }
 		vec2 separator = collisions[i].normal * collisions[i].overlap;
 
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		r32 separation_weight = phys_a->dynamic + phys_b->dynamic;
-		phys_a->position += separator * (phys_a->dynamic / separation_weight);
-		phys_b->position -= separator * (phys_b->dynamic / separation_weight);
+		r32 mass = settings.separation_fraction / (phys_a->inverse_mass + phys_b->inverse_mass);
+		phys_a->position += separator * (phys_a->inverse_mass * mass);
+		phys_b->position -= separator * (phys_b->inverse_mass * mass);
 	}
 }
