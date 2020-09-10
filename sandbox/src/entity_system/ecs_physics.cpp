@@ -337,38 +337,44 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		// @Todo: account angular motion
 		vec2 contact_velocity = phys_b->velocity - phys_a->velocity;
 
-		// @Note: do not collide separating objects
 		vec2 const normal = collisions[i].normal;
 		r32 contact_velocity_normal = dot_product(contact_velocity, normal);
+
+		// do not collide separating objects
 		if (contact_velocity_normal <= 0) { continue; }
 
-		// common data
-		r32 const contact_mass = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
+		r32 const contact_mass   = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
+		r32 const restitution    = square_root(phys_a->elasticity * phys_b->elasticity);
+		r32 const normal_impulse = contact_velocity_normal * contact_mass * (1 + restitution);
 
-		// normal impulse
-		r32 const  restitution           = square_root(phys_a->elasticity * phys_b->elasticity);
-		r32 const  normal_impulse        = contact_velocity_normal * contact_mass * (1 + restitution);
-		vec2 const normal_impulse_vector = normal * normal_impulse;
-		phys_a->add_impulse(normal_impulse_vector);
-		phys_b->add_impulse(-normal_impulse_vector);
+		{
+			vec2 const normal_impulse_vector = normal * normal_impulse;
+			phys_a->add_impulse(normal_impulse_vector);
+			phys_b->add_impulse(-normal_impulse_vector);
+		}
 
-		// tangent impulse
-		vec2 const tangent_velocity       = contact_velocity - normal * contact_velocity_normal;
-		r32 const  tangent_axis_magnitude = magnitude_squared(tangent_velocity);
-		if (tangent_axis_magnitude == 0) { continue; }
+		vec2 const contact_velocity_tangent_vector  = contact_velocity - normal * contact_velocity_normal;
+		r32 const  contact_velocity_tangent_squared = magnitude_squared(contact_velocity_tangent_vector);
 
-		r32 const contact_velocity_tangent = square_root(tangent_axis_magnitude);
-		vec2 tangent_axis = tangent_velocity / contact_velocity_tangent;
+		// do not collide relatively static objects
+		if (contact_velocity_tangent_squared == 0) { continue; }
 
-		r32 const friction  = square_root(phys_a->roughness * phys_b->roughness);
-		r32 const stiction  = square_root(phys_a->stickiness * phys_b->stickiness);
+		r32 const friction = square_root(phys_a->roughness * phys_b->roughness);
+		r32 const stiction = square_root(phys_a->stickiness * phys_b->stickiness);
+
+		r32 const contact_velocity_tangent = square_root(contact_velocity_tangent_squared);
+		vec2 tangent_axis = contact_velocity_tangent_vector / contact_velocity_tangent;
+
 		r32 tangent_impulse = contact_velocity_tangent * contact_mass;
 		tangent_impulse = (tangent_impulse < normal_impulse * stiction)
 			? tangent_impulse * stiction
 			: normal_impulse  * friction;
-		vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
-		phys_a->add_impulse(tangent_impulse_vector);
-		phys_b->add_impulse(-tangent_impulse_vector);
+
+		{
+			vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
+			phys_a->add_impulse(tangent_impulse_vector);
+			phys_b->add_impulse(-tangent_impulse_vector);
+		}
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
