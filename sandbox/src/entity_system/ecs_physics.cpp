@@ -11,12 +11,14 @@
 // https://www.youtube.com/watch?v=7Ik2vowGcU0
 // https://gafferongames.com/post/integration_basics/
 // https://github.com/erincatto/box2d-lite
+// https://github.com/RandyGaul/ImpulseEngine
 // https://en.wikipedia.org/wiki/Coefficient_of_restitution
 // https://www.youtube.com/watch?v=fdZfddO7YTs
 // https://en.wikipedia.org/wiki/Conservation_of_momentum
 // https://en.wikipedia.org/wiki/Conservation_of_energy
 // https://en.wikipedia.org/wiki/Angular_momentum
 // https://en.wikipedia.org/wiki/Momentum
+// https://en.wikipedia.org/wiki/Friction
 
 // @Note: simplest collision response against a static object looks like
 //        velocity = reflect(velocity, normal, 1 + cor);
@@ -34,7 +36,6 @@
 //        m1*v1*v1/2 + m2*v2*v2/2 + other_energies = m1*u1*u1/2 + m2*u2/2 + other_energies + kinetic_energy_change
 //        ---- ---- ---- ----
 //        kinetic_energy_change * (m*v*v/2) = (m*u*u/2)
-//        kinetic_energy_change = (m*u*u/2) / (m*v*v/2)
 //        kinetic_energy_change = (u*u) / (v*v)
 //        ---- ---- ---- ----
 //        ---- ---- ---- ----
@@ -46,11 +47,6 @@
 //        m1*v_impact + restoration_impulse = m1*u1
 //        m2*v_impact - restoration_impulse = m2*u2
 //        ---- ---- ---- ----
-//        deformation_impulse = m1*v_impact - m1*v1
-//        deformation_impulse = m2*v2 - m2*v_impact
-//        restoration_impulse = m1*u1 - m1*v_impact
-//        restoration_impulse = m2*v_impact - m2*u2
-//        ---- ---- ---- ----
 //     >> express an equation for `coefficient of restitution`
 //        coefficient_of_restitution = square_root(kinetic_energy_change)
 //        coefficient_of_restitution ~ |u| / |v|
@@ -61,24 +57,25 @@
 //        ---- ---- ---- ----
 //        cor = (restoration_impulse + restoration_impulse) / (deformation_impulse + deformation_impulse)
 //        cor = ((u1 - v_impact) + (v_impact - u2)) / ((v_impact - v1) + (v2 - v_impact))
-//        cor = (u1 - u2) / (v2 - v1)
 //        cor * (v2 - v1) = (u1 - u2)
 //        ---- ---- ---- ----
 //        ---- ---- ---- ----
 //     >> use the equations of `coefficient of restitution` and `momentum conservation`
-//        (m1*v1 + m2*v2 - m2*u2) / m1 = u1
-//        u2 = u1 - cor*(v1 - v2)
+//        u1 = (m1*v1 + m2*v2 - m2*u2) / m1
+//        u2 = u1 + cor*(v1 - v2)
 //        ---- ---- ---- ----
-//        (m1*v1 + m2*v2 - m2*(u1 - cor*(v1 - v2))) / m1  = u1
-//        (m1*v1 + m2*v2 - m2*u1 - m2*cor*(v1 - v2)) / m1 = u1
-//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1 + m2*u1 / m1
-//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / m1         = u1*(m1 + m2) / m1
-//        (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / (m1 + m2)  = u1
+//        u1 = (m1*v1 + m2*v2 - m2*cor*(v1 - v2)) / (m1 + m2)
+//        u1 = v1 +  m2 * (v2 - v1) * (1 + cor) / (m1 + m2)
+//        ---- ---- ---- ----
+//        impulse = (v2 - v1) * (1 + cor) / (m1 + m2)
+//
 
-// @Note: use inverse masses for computation: the reason is presence of
-//        infinite mass objects; you do want to avoid doing `inf / inf`
-//        (v1/m2 + v2/m1 - cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u1
-//        (v1/m2 + v2/m1 + cor*(v1 - v2)/m1) / (1/m2 + 1/m1) = u2
+// @Note: use inverse masses for computation:
+//        the reason is presence of infinite mass objects; you do want to avoid doing `inf / inf`;
+//        additionally, each object operates an impulse and its mass only
+//        impulse = (v2 - v1) * (1 + cor) / (1 / m1 + 1 / m2)
+//        u1 = v1 + impulse * (1 / m1)
+//        u2 = v2 - impulse * (1 / m2)
 
 struct Entity_Blob {
 	custom::Entity   entity;
@@ -94,9 +91,20 @@ struct Physical_Blob {
 	// Phys2d
 	r32 dynamic, inverse_mass;
 	r32 elasticity;
+	r32 roughness;
+	r32 stickiness;
+	custom::Collider2d_Asset * mesh;
+	//
 	vec2 velocity;
 	vec2 acceleration;
-	custom::Collider2d_Asset * mesh;
+
+	void add_impulse(vec2 value) {
+		velocity += value * inverse_mass;
+	}
+
+	void add_force(vec2 value) {
+		acceleration += value * inverse_mass;
+	}
 };
 
 struct Points_Blob {
@@ -190,9 +198,13 @@ void ecs_update_physics(r32 dt) {
 		blob->dynamic      = entity.physical->dynamic;
 		blob->inverse_mass = entity.physical->dynamic / entity.physical->mass;
 		blob->elasticity   = entity.physical->elasticity;
+		blob->roughness    = entity.physical->roughness;
+		blob->stickiness   = entity.physical->stickiness;
+		//
+		blob->mesh = entity.physical->mesh.ref.get_fast();
+		//
 		blob->velocity     = entity.physical->velocity;
 		blob->acceleration = entity.physical->acceleration;
-		blob->mesh         = entity.physical->mesh.ref.get_fast();
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -315,26 +327,44 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
-		vec2 normal = collisions[i].normal;
-
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		// @Note: collision happens only along the normal
-		//        tangential velocity doesn't change
-		r32 const velocity_normal_a = dot_product(normal, phys_a->velocity);
-		r32 const velocity_normal_b = dot_product(normal, phys_b->velocity);
+		// @Todo: account angular motion
+		vec2 contact_velocity = phys_b->velocity - phys_a->velocity;
 
-		r32 const restitution = (phys_a->elasticity + phys_b->elasticity) / 2;
-		r32 const momentum    = (velocity_normal_a * phys_b->inverse_mass) + (velocity_normal_b * phys_a->inverse_mass);
-		r32 const velocity    = (velocity_normal_a - velocity_normal_b) * restitution;
-		r32 const mass        = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
+		// @Note: do not collide separating objects
+		vec2 const normal = collisions[i].normal;
+		r32 contact_velocity_normal = dot_product(contact_velocity, normal);
+		if (contact_velocity_normal <= 0) { continue; }
 
-		r32 velocity_normal_a2 = (momentum - velocity * phys_a->inverse_mass) * mass;
-		r32 velocity_normal_b2 = (momentum + velocity * phys_b->inverse_mass) * mass;
+		// common data
+		r32 const contact_mass = 1 / (phys_a->inverse_mass + phys_b->inverse_mass);
 
-		phys_a->velocity += normal * (velocity_normal_a2 - velocity_normal_a);
-		phys_b->velocity += normal * (velocity_normal_b2 - velocity_normal_b);
+		// normal impulse
+		r32 const  restitution           = square_root(phys_a->elasticity * phys_b->elasticity);
+		r32 const  normal_impulse        = contact_velocity_normal * contact_mass * (1 + restitution);
+		vec2 const normal_impulse_vector = normal * normal_impulse;
+		phys_a->add_impulse(normal_impulse_vector);
+		phys_b->add_impulse(-normal_impulse_vector);
+
+		// tangent impulse
+		vec2 const tangent_velocity       = contact_velocity - normal * contact_velocity_normal;
+		r32 const  tangent_axis_magnitude = magnitude_squared(tangent_velocity);
+		if (tangent_axis_magnitude == 0) { continue; }
+
+		r32 const contact_velocity_tangent = square_root(tangent_axis_magnitude);
+		vec2 tangent_axis = tangent_velocity / contact_velocity_tangent;
+
+		r32 const friction  = square_root(phys_a->roughness * phys_b->roughness);
+		r32 const stiction  = square_root(phys_a->stickiness * phys_b->stickiness);
+		r32 tangent_impulse = contact_velocity_tangent * contact_mass;
+		tangent_impulse = (tangent_impulse < normal_impulse * stiction)
+			? tangent_impulse * stiction
+			: normal_impulse  * friction;
+		vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
+		phys_a->add_impulse(tangent_impulse_vector);
+		phys_b->add_impulse(-tangent_impulse_vector);
 	}
 
 	for (u32 i = 0; i < collisions.count; ++i) {
