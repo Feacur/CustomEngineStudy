@@ -109,6 +109,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	component->elasticity = 0.5;
 	component->roughness  = 0.3;
 	component->stickiness = 0.6;
+	component->stillness  = 0.8;
 	// shape
 	component->mesh         = {custom::empty_ref, custom::empty_index};
 	// state

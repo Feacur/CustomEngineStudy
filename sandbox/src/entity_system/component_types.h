@@ -38,6 +38,7 @@ struct Phys2d
 	r32  elasticity = 0.5; // a bit artificial way to state restitution for a single object
 	r32  roughness  = 0.3; // a bit artificial way to state dynamic friction for a single object
 	r32  stickiness = 0.6; // a bit artificial way to state static friction for a single object
+	r32  stillness  = 0.8; // a bit artificial way to state static friction factor for a single object
 
 	// shape
 	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
