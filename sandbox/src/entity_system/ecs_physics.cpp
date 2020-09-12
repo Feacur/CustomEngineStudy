@@ -32,6 +32,11 @@
 // https://en.wikipedia.org/wiki/Moment_of_inertia
 // https://en.wikipedia.org/wiki/Second_moment_of_area
 // https://www.gdcvault.com/play/1017646/Physics-for-Game-Programmers:-The-Separating-Axis-Test-between-Convex-Polyhedra-by-Dirk Gregorius
+// https://www.dyn4j.org/2010/01/sat/
+// https://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
+// https://www.dyn4j.org/2010/04/gjk-distance-closest-points/
+// https://www.dyn4j.org/2010/05/epa-expanding-polytope-algorithm/
+// https://www.dyn4j.org/2011/11/contact-points-using-clipping/
 
 // @Note: from here I shorten `coefficient of restitution` to `restitution`,
 //        the same goes for `friction` and `stiction`
@@ -143,7 +148,7 @@ struct Physical_Blob {
 	vec2 position, scale;
 	complex rotation;
 	// Phys2d
-	r32 dynamic, inverse_mass, inverse_inertia;
+	r32 dynamic, inverse_mass, inverse_angular_mass;
 	r32 elasticity, roughness, stickiness, stillness;
 	custom::Collider2d_Asset * mesh;
 	//
@@ -154,12 +159,12 @@ struct Physical_Blob {
 
 	void add_impulse(vec2 value, vec2 radius) {
 		velocity += value * inverse_mass;
-		angular_velocity += cross_product(radius, value) * inverse_inertia;
+		angular_velocity += cross_product(radius, value) * inverse_angular_mass;
 	}
 
 	void add_force(vec2 value, vec2 radius) {
 		acceleration += value * inverse_mass;
-		angular_acceleration += cross_product(radius, value) * inverse_inertia;
+		angular_acceleration += cross_product(radius, value) * inverse_angular_mass;
 	}
 };
 
@@ -258,18 +263,18 @@ void ecs_update_physics(r32 dt) {
 		);
 
 		//
-		blob->dynamic         = entity.physical->dynamic;
-		blob->inverse_mass    = entity.physical->dynamic / entity.physical->mass;
-		blob->inverse_inertia = entity.physical->dynamic / entity.physical->inertia;
-		blob->elasticity      = entity.physical->elasticity;
-		blob->roughness       = entity.physical->roughness;
-		blob->stickiness      = entity.physical->stickiness;
-		blob->stillness       = entity.physical->stillness;
+		blob->dynamic              = entity.physical->dynamic;
+		blob->inverse_mass         = entity.physical->dynamic / entity.physical->mass;
+		blob->inverse_angular_mass = entity.physical->dynamic / (entity.physical->mass * entity.physical->shape);
+		blob->elasticity           = entity.physical->elasticity;
+		blob->roughness            = entity.physical->roughness;
+		blob->stickiness           = entity.physical->stickiness;
+		blob->stillness            = entity.physical->stillness;
 		//
 		blob->mesh = entity.physical->mesh.ref.get_fast();
 		//
-		blob->velocity     = entity.physical->velocity;
-		blob->acceleration = entity.physical->acceleration;
+		blob->velocity             = entity.physical->velocity;
+		blob->acceleration         = entity.physical->acceleration;
 		blob->angular_velocity     = entity.physical->angular_velocity;
 		blob->angular_acceleration = entity.physical->angular_acceleration;
 	}
@@ -481,11 +486,16 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		// do not collide separating contacts
 		if (contact_velocity_normal <= 0) { continue; }
 
-		r32 const radius_normal_a = dot_product(radius_a, normal);
-		r32 const radius_normal_b = dot_product(radius_b, normal);
+		// r32 const radius_normal_a = dot_product(radius_a, normal);
+		// r32 const radius_normal_b = dot_product(radius_b, normal);
+		// r32 const inertia_a = dot_product(radius_a, radius_a) - radius_normal_a * radius_normal_a;
+		// r32 const inertia_b = dot_product(radius_b, radius_b) - radius_normal_b * radius_normal_b;
+
+		r32 const inertia_a = dot_product(cross_product(cross_product(radius_a, normal), radius_a), normal);
+		r32 const inertia_b = dot_product(cross_product(cross_product(radius_b, normal), radius_b), normal);
 		r32 const contact_mass_inverse = (phys_a->inverse_mass + phys_b->inverse_mass) + (
-			(dot_product(radius_a, radius_a) - radius_normal_a * radius_normal_a) * phys_a->inverse_inertia +
-			(dot_product(radius_b, radius_b) - radius_normal_b * radius_normal_b) * phys_b->inverse_inertia
+			inertia_a * phys_a->inverse_angular_mass +
+			inertia_b * phys_b->inverse_angular_mass
 		);
 		r32 const contact_mass = 1 / contact_mass_inverse;
 

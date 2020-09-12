@@ -31,23 +31,29 @@ struct Physical
 
 struct Phys2d
 {
+	// meta
+	// @Note: no need to make the mass infinite, just set this to 0
+	// @Change: might factor this into XY and angle settings
+	r32 dynamic = 1;
+
 	// material
-	r32  dynamic    = 1; // no need to make the mass infinite, just set this to 0
-	r32  mass       = 1;
-	r32  inertia    = 1;
-	r32  elasticity = 0.5; // a bit artificial way to state restitution for a single object
-	r32  roughness  = 0.3; // a bit artificial way to state dynamic friction for a single object
-	r32  stickiness = 0.6; // a bit artificial way to state static friction for a single object
-	r32  stillness  = 0.8; // a bit artificial way to state static friction factor for a single object
+	r32 mass       = 1;
+	r32 elasticity = 0.5;
+	r32 roughness  = 0.3;
+	r32 stickiness = 0.6;
+	r32 stillness  = 0.8;
 
 	// shape
+	// @Note: represents `angular mass`, `moment of inertia`, `rotational inertia`
+	//        without mass itself; thus, it's only `area`, not `mass` * `area`
+	r32 shape = 1;
 	custom::Asset_RefT<custom::Collider2d_Asset> mesh = {custom::empty_ref, custom::empty_index};
 
 	// state
 	// @Change: store momentum and force instead, so to be able to change mass,
 	//          affecting the velocity and acceleration?
-	vec2 velocity     = {0, 0};
-	vec2 acceleration = {0, 0};
+	vec2 velocity             = {0, 0};
+	vec2 acceleration         = {0, 0};
 	r32  angular_velocity     = 0;
 	r32  angular_acceleration = 0;
 
