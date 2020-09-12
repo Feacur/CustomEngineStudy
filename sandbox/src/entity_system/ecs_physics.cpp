@@ -25,6 +25,7 @@
 // https://en.wikipedia.org/wiki/Momentum
 // https://en.wikipedia.org/wiki/Friction
 // https://en.wikipedia.org/wiki/Stiction
+// https://en.wikipedia.org/wiki/Angular_velocity
 // https://en.wikipedia.org/wiki/Angular_acceleration
 // https://stackoverflow.com/questions/31106438/calculate-moment-of-inertia-given-an-arbitrary-convex-2d-polygon
 // https://stackoverflow.com/questions/41592034/computing-tensor-of-inertia-in-2d
@@ -119,10 +120,13 @@
 //        angular accelerations:     @1, @2
 //        angular momentums:         L1, L2
 //        angular forces:            T1, T2; or `torque`
+//        some radii:                r1, r2
+//        tangent vilocities:        V1, V2
 //        ---- ---- ---- ----
 //        L   = I*w
 //        T   = I*@
 //        Ekr = I*w*w/2
+//        V   = w*r
 //        ---- ---- ---- ----
 //        ---- ---- ---- ----
 //
@@ -162,7 +166,7 @@ struct Points_Blob {
 
 struct Collision {
 	Physical_Blob * phys_a, * phys_b;
-	vec2 point;
+	vec2 contact;
 	vec2 normal;
 	r32  overlap;
 };
@@ -322,8 +326,9 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
 		u32 axis_i_2 = (axis_i + 1) % first_points_count;
 
-		vec2 axis = first_points[axis_i_2] - first_points[axis_i];
-		axis = normalize(vec2{-axis.y, axis.x});
+		vec2 axis = normalize(
+			cross_product(1.0f, first_points[axis_i_2] - first_points[axis_i])
+		);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
 		for (u32 p = 0; p < first_points_count; ++p) {
@@ -394,41 +399,39 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
 			if (overlap == 0) { continue; }
 
+			// @Todo: extract contact point
+			vec2 contact = (phys_a.position + phys_b.position) / 2.0f;
 			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
-			collisions.push({&phys_a, &phys_b, {0, 0}, separator, overlap});
+			collisions.push({&phys_a, &phys_b, contact, separator, overlap});
 		}
 	}
+	
 
 	for (u32 i = 0; i < collisions.count; ++i) {
+		vec2 const normal = collisions[i].normal;
+
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		vec2 radius_a = collisions[i].point - phys_a->position;
-		vec2 radius_b = collisions[i].point - phys_b->position;
+		vec2 const radius_a = collisions[i].contact - phys_a->position;
+		vec2 const radius_b = collisions[i].contact - phys_b->position;
 
-		vec2 radius_tangent_a = {-radius_a.y, radius_a.x};
-		vec2 radius_tangent_b = {-radius_b.y, radius_b.x};
-
-		// @Todo: account angular motion
 		vec2 contact_velocity = (phys_b->velocity - phys_a->velocity) + (
-			radius_tangent_a * phys_a->angular_velocity - radius_tangent_b * phys_b->angular_velocity
+			cross_product(phys_a->angular_velocity, radius_a) -
+			cross_product(phys_b->angular_velocity, radius_b)
 		);
-
-		vec2 const normal = collisions[i].normal;
 		r32 contact_velocity_normal = dot_product(contact_velocity, normal);
 
-		// do not collide separating objects
+		// do not collide separating contacts
 		if (contact_velocity_normal <= 0) { continue; }
 
-		r32 radius_normal_a = dot_product(radius_a, normal);
-		r32 radius_normal_b = dot_product(radius_b, normal);
+		r32 const radius_normal_a = dot_product(radius_a, normal);
+		r32 const radius_normal_b = dot_product(radius_b, normal);
 		r32 const contact_mass_inverse = (phys_a->inverse_mass + phys_b->inverse_mass) + (
 			(dot_product(radius_a, radius_a) - radius_normal_a * radius_normal_a) * phys_a->inverse_inertia +
 			(dot_product(radius_b, radius_b) - radius_normal_b * radius_normal_b) * phys_b->inverse_inertia
 		);
 		r32 const contact_mass = 1 / contact_mass_inverse;
-		CUSTOM_ASSERT(!isnan(contact_mass_inverse), "");
-		CUSTOM_ASSERT(!isnan(contact_mass), "");
 
 		r32 const restitution    = square_root(phys_a->elasticity * phys_b->elasticity);
 		r32 const normal_impulse = contact_velocity_normal * contact_mass * (1 + restitution);
@@ -439,10 +442,17 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			phys_b->add_impulse(-normal_impulse_vector);
 		}
 
+		// @Note: it is important due to angular motion
+		contact_velocity = (phys_b->velocity - phys_a->velocity) + (
+			cross_product(phys_a->angular_velocity, radius_a) -
+			cross_product(phys_b->angular_velocity, radius_b)
+		);
+		contact_velocity_normal = dot_product(contact_velocity, normal);
+
 		vec2 const contact_velocity_tangent_vector  = contact_velocity - normal * contact_velocity_normal;
 		r32 const  contact_velocity_tangent_squared = magnitude_squared(contact_velocity_tangent_vector);
 
-		// do not collide tangentially still objects
+		// do not collide tangentially still contacts
 		if (contact_velocity_tangent_squared == 0) { continue; }
 
 		r32 const friction  = square_root(phys_a->roughness * phys_b->roughness);

@@ -11,12 +11,21 @@ vector 3d math representation
 (i * j) = -(j * i) = k
 (j * k) = -(k * j) = i
 (k * i) = -(i * k) = j
+
+---- cross product ----
+(i * i) = (j * j) = (k * k) = (i * j * k) =  0 == sin(0)
+
+----  dot product  ----
+(i * i) = (j * j) = (k * k) = (i * j * k) =  1 == cos(0)
+
+----   quaternion  ----
+(i * i) = (j * j) = (k * k) = (i * j * k) = -1 == cos(180)
 */
 
 /*
 This code is a result of expanding the following expression
 (x1*i + y1*j) * (x2*i + y2*j)
-(i * i) = (j * j) = 0 == sin(0)
+this function is a shortcut through vec2 instead of vec3
 */
 template<typename T>
 constexpr inline T cross_product(xvec2<T> const & first, xvec2<T> const & second) {
@@ -25,8 +34,27 @@ constexpr inline T cross_product(xvec2<T> const & first, xvec2<T> const & second
 
 /*
 This code is a result of expanding the following expression
+(x1*i + y1*j) * (x2*k)
+this function is a shortcut through vec2 instead of vec3
+*/
+template<typename T>
+constexpr inline xvec2<T> cross_product(xvec2<T> const & first, T second) {
+	return {first.y * second, -first.x * second};
+}
+
+/*
+This code is a result of expanding the following expression
+(x1*k) * (x2*i + y2*j)
+this function is a shortcut through vec2 instead of vec3
+*/
+template<typename T>
+constexpr inline xvec2<T> cross_product(T first, xvec2<T> const & second) {
+	return {-first * second.y, first * second.x};
+}
+
+/*
+This code is a result of expanding the following expression
 (x1*i + y1*j + z1*k) * (x2*i + y2*j + z2*k)
-(i * i) = (j * j) = (k * k) = (i * j * k) = 0 == sin(0)
 */
 template<typename T>
 constexpr inline xvec3<T> cross_product(xvec3<T> const & first, xvec3<T> const & second) {
@@ -438,7 +466,6 @@ constexpr inline xvec3<T> & operator/=(xvec3<T> & first, T second) {
 /*
 This code is a result of expanding the following expression
 (x1*i + y1*j + z1*k) * (x2*i + y2*j + z2*k)
-(i * i) = (j * j) = (k * k) = (i * j * k) = 1 == cos(0)
 */
 template<typename T>
 constexpr inline T dot_product(xvec3<T> const & first, xvec3<T> const & second) {
@@ -881,12 +908,6 @@ quat = (w + x * i) + (y + z * i) * j
 quat = w + (x * i) + (y * j) + (z * k)
 quat = e ^ (angle * axis)
 quat = cos(angle) + axis * sin(angle)
-
-(i * j) = -(j * i) = k
-(j * k) = -(k * j) = i
-(k * i) = -(i * k) = j
-
-(i * i) = (j * j) = (k * k) = (i * j * k) = -1
 
 * https://en.wikipedia.org/wiki/Quaternion
 * https://www.youtube.com/watch?v=UaK2q22mMEg
@@ -1374,7 +1395,7 @@ constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
 inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 const & scale) {
 	return mat3{
 		vec3{rotation * scale.x, 0},
-		vec3{vec2{-rotation.y, rotation.x} * scale.y, 0},
+		vec3{cross_product(1.0f, rotation) * scale.y, 0},
 		vec3{position, 1}
 	};
 }
