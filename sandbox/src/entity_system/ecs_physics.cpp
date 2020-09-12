@@ -449,12 +449,14 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 			separator = separator * sign(dot_product(separator, phys_b.position - phys_a.position));
 
 			// collision happened, find contact
-			u32 face_a_i = find_closest_face(ai, separator);
-			u32 face_b_i = find_closest_face(bi, -separator);
+			Face faces[2];
+			fill_face(ai, find_closest_face(ai, separator), faces[0]);
+			fill_face(bi, find_closest_face(bi, -separator), faces[1]);
 
-			Face face_a, face_b;
-			fill_face(ai, face_a_i, face_a);
-			fill_face(bi, face_b_i, face_b);
+			u32 face_reference =
+				absolute(dot_product(faces[0].vertices[1] - faces[0].vertices[0], separator)) >=
+				absolute(dot_product(faces[1].vertices[1] - faces[1].vertices[0], separator));
+			u32 face_incident  = 1 - face_reference;
 
 			// @Todo:
 			vec2 contact = (phys_a.position + phys_b.position) / 2.0f;
