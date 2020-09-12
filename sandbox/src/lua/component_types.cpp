@@ -366,7 +366,7 @@ static int Phys2d_add_impulse(lua_State * L) {
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	vec2 const * value = (vec2 const *)lua_touserdata(L, 2);
-	object->get_fast()->add_impulse(*value);
+	object->get_fast()->add_impulse(*value, {0, 0});
 
 	return 0;
 }
@@ -382,7 +382,7 @@ static int Phys2d_add_force(lua_State * L) {
 	CUSTOM_LUA_ASSERT(object->exists(), "object doesn't exist");
 
 	vec2 const * value = (vec2 const *)lua_touserdata(L, 2);
-	object->get_fast()->add_force(*value);
+	object->get_fast()->add_force(*value, {0, 0});
 
 	return 0;
 }

@@ -152,12 +152,14 @@ struct Physical_Blob {
 	r32  angular_velocity;
 	r32  angular_acceleration;
 
-	void add_impulse(vec2 value) {
+	void add_impulse(vec2 value, vec2 radius) {
 		velocity += value * inverse_mass;
+		angular_velocity += cross_product(radius, value) * inverse_inertia;
 	}
 
-	void add_force(vec2 value) {
+	void add_force(vec2 value, vec2 radius) {
 		acceleration += value * inverse_mass;
+		angular_acceleration += cross_product(radius, value) * inverse_inertia;
 	}
 };
 
@@ -256,7 +258,7 @@ void ecs_update_physics(r32 dt) {
 		//
 		blob->dynamic         = entity.physical->dynamic;
 		blob->inverse_mass    = entity.physical->dynamic / entity.physical->mass;
-		blob->inverse_inertia = 0; // entity.physical->dynamic / entity.physical->inertia;
+		blob->inverse_inertia = entity.physical->dynamic / entity.physical->inertia;
 		blob->elasticity      = entity.physical->elasticity;
 		blob->roughness       = entity.physical->roughness;
 		blob->stickiness      = entity.physical->stickiness;
@@ -266,8 +268,8 @@ void ecs_update_physics(r32 dt) {
 		//
 		blob->velocity     = entity.physical->velocity;
 		blob->acceleration = entity.physical->acceleration;
-		blob->angular_velocity     = 0; // entity.physical->angular_velocity;
-		blob->angular_acceleration = 0; // entity.physical->angular_acceleration;
+		blob->angular_velocity     = entity.physical->angular_velocity;
+		blob->angular_acceleration = entity.physical->angular_acceleration;
 	}
 
 	static r32 elapsed = 0; elapsed += dt;
@@ -287,8 +289,8 @@ void ecs_update_physics(r32 dt) {
 		//
 		entity.physical->velocity = physical.velocity;
 		entity.physical->acceleration = {0, 0};
-		// entity.physical->angular_velocity = physical.angular_velocity;
-		// entity.physical->angular_acceleration = 0;
+		entity.physical->angular_velocity = physical.angular_velocity;
+		entity.physical->angular_acceleration = 0;
 	}
 }
 
@@ -361,8 +363,15 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
+
 		phys.velocity += (global_gravity + phys.acceleration) * (phys.dynamic * dt);
+		phys.angular_velocity += (phys.angular_acceleration) * (phys.dynamic * dt);
+
 		phys.position += phys.velocity * (phys.dynamic * dt);
+		phys.rotation = complex_product(
+			phys.rotation,
+			complex_from_radians(phys.angular_velocity * (phys.dynamic * dt))
+		);
 	}
 
 	// @Todo: broad phase; at least, global AABB for the time being
@@ -413,8 +422,8 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		vec2 const radius_a = collisions[i].contact - phys_a->position;
-		vec2 const radius_b = collisions[i].contact - phys_b->position;
+		vec2 const radius_a = {0, 0};//collisions[i].contact - phys_a->position;
+		vec2 const radius_b = {0, 0};//collisions[i].contact - phys_b->position;
 
 		vec2 contact_velocity = (phys_b->velocity - phys_a->velocity) + (
 			cross_product(phys_a->angular_velocity, radius_a) -
@@ -438,8 +447,8 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 
 		{
 			vec2 const normal_impulse_vector = normal * normal_impulse;
-			phys_a->add_impulse(normal_impulse_vector);
-			phys_b->add_impulse(-normal_impulse_vector);
+			phys_a->add_impulse(normal_impulse_vector, radius_a);
+			phys_b->add_impulse(-normal_impulse_vector, radius_b);
 		}
 
 		// @Note: it is important due to angular motion
@@ -469,8 +478,8 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 
 		{
 			vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
-			phys_a->add_impulse(tangent_impulse_vector);
-			phys_b->add_impulse(-tangent_impulse_vector);
+			phys_a->add_impulse(tangent_impulse_vector, radius_a);
+			phys_b->add_impulse(-tangent_impulse_vector, radius_b);
 		}
 	}
 
