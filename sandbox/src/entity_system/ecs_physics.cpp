@@ -31,6 +31,7 @@
 // https://stackoverflow.com/questions/41592034/computing-tensor-of-inertia-in-2d
 // https://en.wikipedia.org/wiki/Moment_of_inertia
 // https://en.wikipedia.org/wiki/Second_moment_of_area
+// https://www.gdcvault.com/play/1017646/Physics-for-Game-Programmers:-The-Separating-Axis-Test-between-Convex-Polyhedra-by-Dirk Gregorius
 
 // @Note: from here I shorten `coefficient of restitution` to `restitution`,
 //        the same goes for `friction` and `stiction`
@@ -327,7 +328,7 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 		u32 axis_i_2 = (axis_i + 1) % first_points_count;
 
 		vec2 axis = normalize(
-			cross_product(1.0f, first_points[axis_i_2] - first_points[axis_i])
+			cross_product(first_points[axis_i_2] - first_points[axis_i], 1.0f)
 		);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
@@ -397,7 +398,6 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 			r32 overlap = INFINITY; vec2 separator;
 			if (!overlap_sat(ai, bi, overlap, separator)) { continue; }
 			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
-			if (overlap == 0) { continue; }
 
 			// @Todo: extract contact point
 			vec2 contact = (phys_a.position + phys_b.position) / 2.0f;
