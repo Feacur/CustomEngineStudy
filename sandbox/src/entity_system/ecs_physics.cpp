@@ -181,11 +181,13 @@ struct Physics_Settings {
 	r32  separation_bias     = 0.01f;
 };
 
+struct Face { vec2 vertices[2]; };
+
 static Physics_Settings settings;
 static custom::Array<Points_Blob> transformed_points;
 static custom::Array<vec2>        transformed_points_buffer;
 
-void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
+static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals);
 
 //
 //
@@ -319,30 +321,29 @@ void ecs_update_physics(r32 dt) {
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
 
-static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator) {
+static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator, u32 & face) {
 	vec2 const * first_points = transformed_points_buffer.data + transformed_points[first_i].offset;
 	u32 const    first_points_count = transformed_points[first_i].count;
 
 	vec2 const * second_points = transformed_points_buffer.data + transformed_points[second_i].offset;
 	u32 const    second_points_count = transformed_points[second_i].count;
 
-	for (u32 axis_i = 0; axis_i < first_points_count; ++axis_i) {
-		u32 axis_i_2 = (axis_i + 1) % first_points_count;
-
-		vec2 axis = normalize(
-			cross_product(first_points[axis_i_2] - first_points[axis_i], 1.0f)
+	for (u32 face_i = 0; face_i < first_points_count; ++face_i) {
+		u32 face_i_2 = (face_i + 1) % first_points_count;
+		vec2 normal = normalize(
+			cross_product(first_points[face_i_2] - first_points[face_i], 1.0f)
 		);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
 		for (u32 p = 0; p < first_points_count; ++p) {
-			r32 projection = dot_product(axis, first_points[p]);
+			r32 projection = dot_product(normal, first_points[p]);
 			min1 = min(min1, projection);
 			max1 = max(max1, projection);
 		}
 
 		r32 min2 = INFINITY, max2 = -INFINITY;
 		for (u32 p = 0; p < second_points_count; ++p) {
-			r32 projection = dot_product(axis, second_points[p]);
+			r32 projection = dot_product(normal, second_points[p]);
 			min2 = min(min2, projection);
 			max2 = max(max2, projection);
 		}
@@ -353,13 +354,44 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 		r32 projection_overlap = min(max1, max2) - max(min1, min2);
 		if (overlap > projection_overlap) {
 			overlap = projection_overlap;
-			separator = axis;
+			separator = normal;
+			face = face_i;
 		}
 	}
 	return true;
 }
 
-void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
+static u32 find_closest_face(u32 phys_i, vec2 reference_normal) {
+	vec2 const * points = transformed_points_buffer.data + transformed_points[phys_i].offset;
+	u32 const    points_count = transformed_points[phys_i].count;
+
+	u32 face     = custom::empty_index;
+	r32 face_dot = -INFINITY;
+	for (u32 face_i = 0; face_i < points_count; ++face_i) {
+		u32 face_i_2 = (face_i + 1) % points_count;
+		vec2 normal = normalize(
+			cross_product(points[face_i_2] - points[face_i], 1.0f)
+		);
+
+		r32 dot = dot_product(normal, reference_normal);
+		if (face_dot < dot) {
+			face_dot = dot;
+			face = face_i;
+		}
+	}
+	return face;
+}
+
+static void fill_face(u32 phys_i, u32 face_i, Face & face) {
+	vec2 const * points = transformed_points_buffer.data + transformed_points[phys_i].offset;
+	u32 const    points_count = transformed_points[phys_i].count;
+
+	u32 face_i_2 = (face_i + 1) % points_count;
+	face.vertices[0] = points[face_i];
+	face.vertices[1] = points[face_i_2];
+}
+
+static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
 	vec2 const global_gravity = settings.gravity;
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
@@ -404,12 +436,27 @@ void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physica
 
 			if (phys_a.dynamic == 0 && phys_b.dynamic == 0) { continue; }
 
+			//
 			r32 overlap = INFINITY; vec2 separator;
-			if (!overlap_sat(ai, bi, overlap, separator)) { continue; }
-			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
+			u32 face_a = custom::empty_index, face_b = custom::empty_index;
+			if (!overlap_sat(ai, bi, overlap, separator, face_a)) { continue; }
+			if (!overlap_sat(bi, ai, overlap, separator, face_b)) { continue; }
 
-			// @Todo: extract contact point
+			// collision happened, find contact
+			u32 phys_base     = (face_b == custom::empty_index) ? ai : bi;
+			u32 phys_incident = (face_b == custom::empty_index) ? bi : ai;
+
+			u32 face_base_i     = (face_b == custom::empty_index) ? face_a : face_b;
+			u32 face_incident_i = find_closest_face(phys_incident, -separator);
+
+			Face face_base, face_incident;
+			fill_face(phys_base, face_base_i, face_base);
+			fill_face(phys_incident, face_incident_i, face_incident);
+
+			// @Todo:
 			vec2 contact = (phys_a.position + phys_b.position) / 2.0f;
+
+			//
 			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
 			collisions.push({&phys_a, &phys_b, contact, separator, overlap});
 		}

@@ -28,7 +28,7 @@ struct Renderable_Blob {
 	Visual const    * visual;
 };
 
-void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables);
+static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables);
 
 //
 //
@@ -74,7 +74,7 @@ void ecs_update_renderer(void) {
 //
 //
 
-void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables) {
+static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderers, custom::Array<Renderable_Blob> & renderables) {
 	static u32 const u_Resolution      = custom::uniform_names.store_string("u_Resolution", custom::empty_index);
 	static u32 const u_View_Projection = custom::uniform_names.store_string("u_View_Projection", custom::empty_index);
 	static u32 const u_Transform       = custom::uniform_names.store_string("u_Transform", custom::empty_index);
