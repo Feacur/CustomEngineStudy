@@ -326,7 +326,7 @@ void ecs_update_physics(r32 dt) {
 // 	    && position.x >= -size.x && position.y >= -size.y;
 // }
 
-static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator, u32 & face) {
+static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separator) {
 	vec2 const * first_points = transformed_points_buffer.data + transformed_points[first_i].offset;
 	u32 const    first_points_count = transformed_points[first_i].count;
 
@@ -360,7 +360,6 @@ static bool overlap_sat(u32 first_i, u32 second_i, r32 & overlap, vec2 & separat
 		if (overlap > projection_overlap) {
 			overlap = projection_overlap;
 			separator = normal;
-			face = face_i;
 		}
 	}
 	return true;
@@ -443,26 +442,24 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 
 			//
 			r32 overlap = INFINITY; vec2 separator;
-			u32 face_a = custom::empty_index, face_b = custom::empty_index;
-			if (!overlap_sat(ai, bi, overlap, separator, face_a)) { continue; }
-			if (!overlap_sat(bi, ai, overlap, separator, face_b)) { continue; }
+			if (!overlap_sat(ai, bi, overlap, separator)) { continue; }
+			if (!overlap_sat(bi, ai, overlap, separator)) { continue; }
+
+			// force separation to be ralative to `ai`
+			separator = separator * sign(dot_product(separator, phys_b.position - phys_a.position));
 
 			// collision happened, find contact
-			u32 phys_base     = (face_b == custom::empty_index) ? ai : bi;
-			u32 phys_incident = (face_b == custom::empty_index) ? bi : ai;
+			u32 face_a_i = find_closest_face(ai, separator);
+			u32 face_b_i = find_closest_face(bi, -separator);
 
-			u32 face_base_i     = (face_b == custom::empty_index) ? face_a : face_b;
-			u32 face_incident_i = find_closest_face(phys_incident, -separator);
-
-			Face face_base, face_incident;
-			fill_face(phys_base, face_base_i, face_base);
-			fill_face(phys_incident, face_incident_i, face_incident);
+			Face face_a, face_b;
+			fill_face(ai, face_a_i, face_a);
+			fill_face(bi, face_b_i, face_b);
 
 			// @Todo:
 			vec2 contact = (phys_a.position + phys_b.position) / 2.0f;
 
 			//
-			separator = separator * sign(dot_product(separator, phys_a.position - phys_b.position));
 			collisions.push({&phys_a, &phys_b, contact, separator, overlap});
 		}
 	}
@@ -477,7 +474,7 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		vec2 const radius_a = {0, 0};//collisions[i].contact - phys_a->position;
 		vec2 const radius_b = {0, 0};//collisions[i].contact - phys_b->position;
 
-		vec2 contact_velocity = (phys_b->velocity - phys_a->velocity) + (
+		vec2 contact_velocity = (phys_a->velocity - phys_b->velocity) + (
 			cross_product(phys_a->angular_velocity, radius_a) -
 			cross_product(phys_b->angular_velocity, radius_b)
 		);
@@ -504,12 +501,12 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 
 		{
 			vec2 const normal_impulse_vector = normal * normal_impulse;
-			phys_a->add_impulse(normal_impulse_vector, radius_a);
-			phys_b->add_impulse(-normal_impulse_vector, radius_b);
+			phys_a->add_impulse(-normal_impulse_vector, radius_a);
+			phys_b->add_impulse(normal_impulse_vector, radius_b);
 		}
 
 		// @Note: it is important due to angular motion
-		contact_velocity = (phys_b->velocity - phys_a->velocity) + (
+		contact_velocity = (phys_a->velocity - phys_b->velocity) + (
 			cross_product(phys_a->angular_velocity, radius_a) -
 			cross_product(phys_b->angular_velocity, radius_b)
 		);
@@ -535,8 +532,8 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 
 		{
 			vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
-			phys_a->add_impulse(tangent_impulse_vector, radius_a);
-			phys_b->add_impulse(-tangent_impulse_vector, radius_b);
+			phys_a->add_impulse(-tangent_impulse_vector, radius_a);
+			phys_b->add_impulse(tangent_impulse_vector, radius_b);
 		}
 	}
 
@@ -548,8 +545,8 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
 		r32 mass = settings.separation_fraction / (phys_a->inverse_mass + phys_b->inverse_mass);
-		phys_a->position += separator * (phys_a->inverse_mass * mass);
-		phys_b->position -= separator * (phys_b->inverse_mass * mass);
+		phys_a->position -= separator * (phys_a->inverse_mass * mass);
+		phys_b->position += separator * (phys_b->inverse_mass * mass);
 	}
 }
 
