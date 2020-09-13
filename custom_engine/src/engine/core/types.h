@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
-// #include <inttypes.h>
+#include <inttypes.h>
+#include <limits.h>
 
 typedef int8_t   s8;  // signed char
 typedef int16_t  s16; // short

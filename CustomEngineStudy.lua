@@ -126,7 +126,9 @@ workspace "CustomEngineStudy"
 
 	filter {}
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+-- no need of using a complex directory names for now
+-- outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+outputdir = "%{cfg.buildcfg}"
 target_location = ("bin/" .. outputdir)
 intermediate_location = ("bin-int/" .. outputdir)
 enginename = "custom_engine"

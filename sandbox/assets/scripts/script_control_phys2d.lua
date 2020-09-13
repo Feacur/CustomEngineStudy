@@ -7,7 +7,7 @@ function script_control_phys2d(entity, dt)
 		(Input.get_key(Key_Code.W) and 1 or 0) - (Input.get_key(Key_Code.S) and 1 or 0)
 	);
 
-	local move_speed = (Input.get_key(Key_Code.Shift) and 20 or 10)
-
-	phys2d.velocity = phys2d.velocity + direction * (move_speed * dt);
+	local acceleration = (Input.get_key(Key_Code.Shift) and 20 or 10)
+	phys2d.acceleration = direction * acceleration
+	-- phys2d:add_impulse(direction * (acceleration * dt)) -- impulse mass == 1
 end

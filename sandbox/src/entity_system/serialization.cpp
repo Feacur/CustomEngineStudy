@@ -132,16 +132,21 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 	while (!done && **source) {
 		skip_to_eol(source); parse_eol(source);
 		switch ((parse_void(source), **source)) {
-			case 'd': ++(*source); {
-				component->dynamic = (parse_void(source), parse_r32(source));
+			case 'd': ++(*source); switch (**source) {
+				case ' ':              component->dynamic         = (parse_void(source), parse_r32(source)); break;
+				case 'a': ++(*source); component->angular_dynamic = (parse_void(source), parse_r32(source)); break;
 			} break;
 
 			case 'm': ++(*source); {
 				component->mass = (parse_void(source), parse_r32(source));
 			} break;
 
-			case 'r': ++(*source); {
-				component->restitution = (parse_void(source), parse_r32(source));
+			case 'e': ++(*source); {
+				component->elasticity = (parse_void(source), parse_r32(source));
+			} break;
+
+			case 's': ++(*source); {
+				component->shape = (parse_void(source), parse_r32(source));
 			} break;
 
 			case 'c': ++(*source); {

@@ -9,6 +9,7 @@
 			rd 0 0 10
 		Phys2d
 			d 0
+			da 0
 	 	~
 	# floor
 	p assets/prefabs/square phys.prefab
@@ -17,6 +18,7 @@
 			s 10 1 1
 		Phys2d
 			d 0
+			da 0
 		~
 	# floor
 	p assets/prefabs/square phys.prefab
@@ -26,8 +28,9 @@
 			rd 0 0 30
 		Phys2d
 			d 0
+			da 0
 		~
-	# objects
+	# stack of boxes
 	p assets/prefabs/square phys.prefab
 		o Transform
 			p 1 0 0
@@ -68,15 +71,20 @@
 		o Transform
 			p 2.5 3.5 0
 		~
+	# some small spheres
 	p assets/prefabs/circle phys.prefab
 		o Transform
 			p 6 7 0
 			s 0.5 0.5 0.5
+		Phys2d
+			m 0.25
 		~
 	p assets/prefabs/circle phys.prefab
 		o Transform
 			p 8 7 0
 			s 0.5 0.5 0.5
+		Phys2d
+			m 0.25
 		~
 	# actor
 	p assets/prefabs/circle phys.prefab

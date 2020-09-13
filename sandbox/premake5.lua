@@ -1,5 +1,4 @@
 project "sandbox"
-	-- location "."
 	kind "ConsoleApp" -- WindowedApp
 	-- entrypoint "mainCRTStartup"
 	language "C++"
