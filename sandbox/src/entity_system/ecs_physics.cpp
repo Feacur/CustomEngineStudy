@@ -148,7 +148,8 @@ struct Physical_Blob {
 	vec2 position, scale;
 	complex rotation;
 	// Phys2d
-	r32 dynamic, inverse_mass, inverse_angular_mass;
+	r32 dynamic, angular_dynamic;
+	r32 inverse_mass, inverse_angular_mass;
 	r32 elasticity, roughness, stickiness, stillness;
 	custom::Collider2d_Asset * mesh;
 	//
@@ -264,8 +265,10 @@ void ecs_update_physics(r32 dt) {
 
 		//
 		blob->dynamic              = entity.physical->dynamic;
+		blob->angular_dynamic      = entity.physical->angular_dynamic;
+		//
 		blob->inverse_mass         = entity.physical->dynamic / entity.physical->mass;
-		blob->inverse_angular_mass = entity.physical->dynamic / (entity.physical->mass * entity.physical->shape);
+		blob->inverse_angular_mass = entity.physical->angular_dynamic / (entity.physical->mass * entity.physical->shape);
 		blob->elasticity           = entity.physical->elasticity;
 		blob->roughness            = entity.physical->roughness;
 		blob->stickiness           = entity.physical->stickiness;
@@ -414,12 +417,12 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		Physical_Blob & phys = physicals[i];
 
 		phys.velocity += (global_gravity + phys.acceleration) * (phys.dynamic * dt);
-		phys.angular_velocity += (phys.angular_acceleration) * (phys.dynamic * dt);
+		phys.angular_velocity += (phys.angular_acceleration) * (phys.angular_dynamic * dt);
 
 		phys.position += phys.velocity * (phys.dynamic * dt);
 		phys.rotation = complex_product(
 			phys.rotation,
-			complex_from_radians(phys.angular_velocity * (phys.dynamic * dt))
+			complex_from_radians(phys.angular_velocity * (phys.angular_dynamic * dt))
 		);
 	}
 
@@ -471,8 +474,8 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		vec2 const radius_a = {0, 0};//collisions[i].contact - phys_a->position;
-		vec2 const radius_b = {0, 0};//collisions[i].contact - phys_b->position;
+		vec2 const radius_a = collisions[i].contact - phys_a->position;
+		vec2 const radius_b = collisions[i].contact - phys_b->position;
 
 		vec2 contact_velocity = (phys_a->velocity - phys_b->velocity) + (
 			cross_product(phys_a->angular_velocity, radius_a) -

@@ -33,8 +33,8 @@ struct Phys2d
 {
 	// meta
 	// @Note: no need to make the mass infinite, just set this to 0
-	// @Change: might factor this into XY and angle settings
 	r32 dynamic = 1;
+	r32 angular_dynamic = 0;
 
 	// material
 	r32 mass       = 1;
