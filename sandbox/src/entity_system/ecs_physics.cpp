@@ -442,23 +442,14 @@ static u32 find_contacts(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap,
 
 	vec2 normal_ref = cross_product(1.0f, plane_normal);
 
-	// clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0], normal_a);
+	if (clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0], normal_ref) < 2) {
+		return 0;
+	}
 
 	u32 contacts_count = 0;
+	face.vertices[contacts_count++] = faces[face_incident].vertices[0];
+	face.vertices[contacts_count++] = faces[face_incident].vertices[1];
 
-	r32 distance_origin  = dot_product(normal_ref, faces[face_reference].vertices[0]);
-
-	r32 asd = dot_product(normal_ref, faces[face_incident].vertices[0]) - distance_origin;
-	if (absolute(asd - overlap) <= epsilon) {
-		face.vertices[contacts_count++] = faces[face_incident].vertices[0];
-	}
-
-	r32 zxc = dot_product(normal_ref, faces[face_incident].vertices[1]) - distance_origin;
-	if (absolute(zxc - overlap) <= epsilon) {
-		face.vertices[contacts_count++] = faces[face_incident].vertices[1];
-	}
-
-	CUSTOM_ASSERT(contacts_count, "");
 	return contacts_count;
 }
 
