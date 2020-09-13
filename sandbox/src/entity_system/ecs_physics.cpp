@@ -173,9 +173,11 @@ struct Points_Blob {
 	u32 offset, count;
 };
 
+struct Face { vec2 vertices[2]; };
+
 struct Collision {
 	Physical_Blob * phys_a, * phys_b;
-	vec2 contact;
+	Face contacts; u32 contacts_count;
 	vec2 normal;
 	r32  overlap;
 };
@@ -186,8 +188,6 @@ struct Physics_Settings {
 	r32  separation_fraction = 0.5f;
 	r32  separation_bias     = 0.01f;
 };
-
-struct Face { vec2 vertices[2]; };
 
 static Physics_Settings settings;
 static custom::Array<Points_Blob> transformed_points;
@@ -398,23 +398,29 @@ static void fill_face(u32 phys_i, u32 face_i, Face & face) {
 	face.vertices[1] = points[face_i_2];
 }
 
-static void clip_points_with_plane(Face & face, vec2 origin, vec2 normal) {
+static u32 clip_points_with_plane(Face & face, vec2 origin, vec2 normal) {
+	vec2 out[2];
+	u32  count = 0;
+
 	r32 distance_origin  = dot_product(normal, origin);
 	r32 distance_point_0 = dot_product(normal, face.vertices[0]) - distance_origin;
 	r32 distance_point_1 = dot_product(normal, face.vertices[1]) - distance_origin;
 
-	if (distance_point_0 * distance_point_1 >= 0) { return; }
+	if (distance_point_0 >= 0) { out[count++] = face.vertices[0]; }
+	if (distance_point_1 >= 0) { out[count++] = face.vertices[1]; }
 
-	if (distance_point_0 < 0) {
-		face.vertices[0] += (face.vertices[1] - face.vertices[0]) * (distance_point_0 / (distance_point_0 - distance_point_1));
+	if (distance_point_0 * distance_point_1 < 0) {
+		out[count++] = face.vertices[0] + (face.vertices[1] - face.vertices[0]) * (distance_point_0 / (distance_point_0 - distance_point_1));
 	}
 
-	if (distance_point_1 < 0) {
-		face.vertices[1] += (face.vertices[1] - face.vertices[0]) * (distance_point_1 / (distance_point_0 - distance_point_1));
-	}
+	face.vertices[0] = out[0];
+	face.vertices[1] = out[1];
+
+	CUSTOM_ASSERT(count != 3, "");
+	return count;
 }
 
-static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap) {
+static u32 find_contacts(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap, Face & face) {
 	Face faces[2];
 	fill_face(phys_a_i, find_face_with_best_normal(phys_a_i,  normal_a), faces[0]);
 	fill_face(phys_b_i, find_face_with_best_normal(phys_b_i, -normal_a), faces[1]);
@@ -424,24 +430,36 @@ static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap)
 		absolute(dot_product(faces[1].vertices[1] - faces[1].vertices[0], normal_a));
 	u32 face_incident  = 1 - face_reference;
 
-	normal_a *= (1 - 2 * (r32)face_reference);
-
 	vec2 const plane_normal = normalize(faces[face_reference].vertices[1] - faces[face_reference].vertices[0]);
-	clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0],  plane_normal);
-	clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[1], -plane_normal);
+	
+	if (clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0],  plane_normal) < 2) {
+		return 0;
+	}
+
+	if (clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[1], -plane_normal) < 2) {
+		return 0;
+	}
+
+	vec2 normal_ref = cross_product(1.0f, plane_normal);
+
 	// clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0], normal_a);
 
-	r32 asd = dot_product(normal_a, faces[face_incident].vertices[0]);
-	if (asd > overlap) {
-		return faces[face_incident].vertices[1];
+	u32 contacts_count = 0;
+
+	r32 distance_origin  = dot_product(normal_ref, faces[face_reference].vertices[0]);
+
+	r32 asd = dot_product(normal_ref, faces[face_incident].vertices[0]) - distance_origin;
+	if (absolute(asd - overlap) <= epsilon) {
+		face.vertices[contacts_count++] = faces[face_incident].vertices[0];
 	}
 
-	r32 zxc = dot_product(normal_a, faces[face_incident].vertices[1]);
-	if (zxc > overlap) {
-		return faces[face_incident].vertices[0];
+	r32 zxc = dot_product(normal_ref, faces[face_incident].vertices[1]) - distance_origin;
+	if (absolute(zxc - overlap) <= epsilon) {
+		face.vertices[contacts_count++] = faces[face_incident].vertices[1];
 	}
 
-	return (faces[face_incident].vertices[0] + faces[face_incident].vertices[1]) / 2.0f;
+	CUSTOM_ASSERT(contacts_count, "");
+	return contacts_count;
 }
 
 static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
@@ -494,21 +512,29 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 			if (!overlap_sat(phys_b_i, phys_a_i, overlap, separator)) { continue; }
 
 			vec2 const normal_a = separator * sign(dot_product(separator, phys_b.position - phys_a.position));
-			vec2 const contact  = find_contact(phys_a_i, phys_b_i, normal_a, overlap);
 
-			collisions.push({&phys_a, &phys_b, contact, normal_a, overlap});
+			Face face;
+			u32 contacts_count = find_contacts(phys_a_i, phys_b_i, normal_a, overlap, face);
+			if (contacts_count == 0) { continue; }
+
+			collisions.push({&phys_a, &phys_b, face, contacts_count, normal_a, overlap});
 		}
 	}
 	
 
 	for (u32 i = 0; i < collisions.count; ++i) {
 		vec2 const normal = collisions[i].normal;
+		Face const contacts = collisions[i].contacts;
+		u32 const contacts_count = collisions[i].contacts_count;
 
 		Physical_Blob * phys_a = collisions[i].phys_a;
 		Physical_Blob * phys_b = collisions[i].phys_b;
 
-		vec2 const radius_a = collisions[i].contact - phys_a->position;
-		vec2 const radius_b = collisions[i].contact - phys_b->position;
+		for (u32 ci = 0; ci < contacts_count; ++ci) {
+		vec2 contact = contacts.vertices[ci];
+		
+		vec2 const radius_a = contact - phys_a->position;
+		vec2 const radius_b = contact - phys_b->position;
 
 		vec2 contact_velocity = (phys_a->velocity - phys_b->velocity) + (
 			cross_product(phys_a->angular_velocity, radius_a) -
@@ -533,7 +559,7 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		r32 const contact_mass = 1 / contact_mass_inverse;
 
 		r32 const restitution    = square_root(phys_a->elasticity * phys_b->elasticity);
-		r32 const normal_impulse = contact_velocity_normal * contact_mass * (1 + restitution);
+		r32 const normal_impulse = contact_velocity_normal * contact_mass * (1 + restitution) / contacts_count;
 
 		{
 			vec2 const normal_impulse_vector = normal * normal_impulse;
@@ -565,11 +591,14 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		tangent_impulse = (tangent_impulse < normal_impulse * stiction)
 			? tangent_impulse * stillness // this is not particularly correct, though
 			: normal_impulse  * friction;
+		tangent_impulse /= contacts_count;
 
 		{
 			vec2 const tangent_impulse_vector = tangent_axis * tangent_impulse;
 			phys_a->add_impulse(-tangent_impulse_vector, radius_a);
 			phys_b->add_impulse(tangent_impulse_vector, radius_b);
+		}
+
 		}
 	}
 
