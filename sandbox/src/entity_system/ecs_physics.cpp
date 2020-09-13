@@ -32,11 +32,11 @@
 // https://en.wikipedia.org/wiki/Moment_of_inertia
 // https://en.wikipedia.org/wiki/Second_moment_of_area
 // https://www.gdcvault.com/play/1017646/Physics-for-Game-Programmers:-The-Separating-Axis-Test-between-Convex-Polyhedra-by-Dirk Gregorius
-// https://www.dyn4j.org/2010/01/sat/
-// https://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
-// https://www.dyn4j.org/2010/04/gjk-distance-closest-points/
-// https://www.dyn4j.org/2010/05/epa-expanding-polytope-algorithm/
-// https://www.dyn4j.org/2011/11/contact-points-using-clipping/
+// http://www.dyn4j.org/2010/01/sat/
+// http://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
+// http://www.dyn4j.org/2010/04/gjk-distance-closest-points/
+// http://www.dyn4j.org/2010/05/epa-expanding-polytope-algorithm/
+// http://www.dyn4j.org/2011/11/contact-points-using-clipping/
 
 // @Note: from here I shorten `coefficient of restitution` to `restitution`,
 //        the same goes for `friction` and `stiction`
@@ -338,20 +338,20 @@ static bool overlap_sat(u32 phys_a_i, u32 phys_b_i, r32 & overlap, vec2 & separa
 
 	for (u32 face_i = 0; face_i < first_points_count; ++face_i) {
 		u32 face_i_2 = (face_i + 1) % first_points_count;
-		vec2 normal = normalize(
+		vec2 face_normal = normalize(
 			cross_product(first_points[face_i_2] - first_points[face_i], 1.0f)
 		);
 
 		r32 min1 = INFINITY, max1 = -INFINITY;
 		for (u32 p = 0; p < first_points_count; ++p) {
-			r32 projection = dot_product(normal, first_points[p]);
+			r32 projection = dot_product(face_normal, first_points[p]);
 			min1 = min(min1, projection);
 			max1 = max(max1, projection);
 		}
 
 		r32 min2 = INFINITY, max2 = -INFINITY;
 		for (u32 p = 0; p < second_points_count; ++p) {
-			r32 projection = dot_product(normal, second_points[p]);
+			r32 projection = dot_product(face_normal, second_points[p]);
 			min2 = min(min2, projection);
 			max2 = max(max2, projection);
 		}
@@ -362,7 +362,7 @@ static bool overlap_sat(u32 phys_a_i, u32 phys_b_i, r32 & overlap, vec2 & separa
 		r32 projection_overlap = min(max1, max2) - max(min1, min2);
 		if (overlap > projection_overlap) {
 			overlap = projection_overlap;
-			separator = normal;
+			separator = face_normal;
 		}
 	}
 	return true;
@@ -407,6 +407,18 @@ static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a) {
 		absolute(dot_product(faces[0].vertices[1] - faces[0].vertices[0], normal_a)) >=
 		absolute(dot_product(faces[1].vertices[1] - faces[1].vertices[0], normal_a));
 	u32 face_incident  = 1 - face_reference;
+
+	normal_a *= (1 - 2 * (r32)face_reference);
+
+	vec2 const   vector_reference = normalize(faces[face_reference].vertices[1] - faces[face_reference].vertices[0]);
+	vec2 const   vector_incident  = normalize(faces[face_incident].vertices[1]  - faces[face_incident].vertices[0]);
+	vec2       * points_incident  = faces[face_incident].vertices;
+
+	r32 distance_point_0 = dot_product(vector_reference, points_incident[0]);
+	r32 distance_point_1 = dot_product(vector_reference, points_incident[1]);
+
+	// points_incident[0] -= vector_reference * distance_point_0;
+	// points_incident[1] -= vector_reference * distance_point_1;
 
 	return {0, 0};
 }
@@ -461,7 +473,7 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 			if (!overlap_sat(phys_b_i, phys_a_i, overlap, separator)) { continue; }
 
 			vec2 const normal_a = separator * sign(dot_product(separator, phys_b.position - phys_a.position));
-			vec2 const contact  = find_contact(phys_a_i, phys_b_i, separator);
+			vec2 const contact  = find_contact(phys_a_i, phys_b_i, normal_a);
 
 			collisions.push({&phys_a, &phys_b, contact, normal_a, overlap});
 		}
