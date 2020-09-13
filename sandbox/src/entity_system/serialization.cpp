@@ -145,6 +145,10 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 				component->elasticity = (parse_void(source), parse_r32(source));
 			} break;
 
+			case 's': ++(*source); {
+				component->shape = (parse_void(source), parse_r32(source));
+			} break;
+
 			case 'c': ++(*source); {
 				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
