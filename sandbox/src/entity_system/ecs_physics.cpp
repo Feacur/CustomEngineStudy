@@ -368,7 +368,7 @@ static bool overlap_sat(u32 phys_a_i, u32 phys_b_i, r32 & overlap, vec2 & separa
 	return true;
 }
 
-static u32 find_closest_face(u32 phys_i, vec2 reference_normal) {
+static u32 find_face_with_best_normal(u32 phys_i, vec2 reference_normal) {
 	vec2 const * points = transformed_points_buffer.data + transformed_points[phys_i].offset;
 	u32 const    points_count = transformed_points[phys_i].count;
 
@@ -398,10 +398,26 @@ static void fill_face(u32 phys_i, u32 face_i, Face & face) {
 	face.vertices[1] = points[face_i_2];
 }
 
-static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a) {
+static void clip_points_with_plane(Face & face, vec2 origin, vec2 normal) {
+	r32 distance_origin  = dot_product(normal, origin);
+	r32 distance_point_0 = dot_product(normal, face.vertices[0]) - distance_origin;
+	r32 distance_point_1 = dot_product(normal, face.vertices[1]) - distance_origin;
+
+	if (distance_point_0 * distance_point_1 >= 0) { return; }
+
+	if (distance_point_0 < 0) {
+		face.vertices[0] += (face.vertices[1] - face.vertices[0]) * (distance_point_0 / (distance_point_0 - distance_point_1));
+	}
+
+	if (distance_point_1 < 0) {
+		face.vertices[1] += (face.vertices[1] - face.vertices[0]) * (distance_point_1 / (distance_point_0 - distance_point_1));
+	}
+}
+
+static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap) {
 	Face faces[2];
-	fill_face(phys_a_i, find_closest_face(phys_a_i,  normal_a), faces[0]);
-	fill_face(phys_b_i, find_closest_face(phys_b_i, -normal_a), faces[1]);
+	fill_face(phys_a_i, find_face_with_best_normal(phys_a_i,  normal_a), faces[0]);
+	fill_face(phys_b_i, find_face_with_best_normal(phys_b_i, -normal_a), faces[1]);
 
 	u32 face_reference =
 		absolute(dot_product(faces[0].vertices[1] - faces[0].vertices[0], normal_a)) >=
@@ -410,17 +426,22 @@ static vec2 find_contact(u32 phys_a_i, u32 phys_b_i, vec2 normal_a) {
 
 	normal_a *= (1 - 2 * (r32)face_reference);
 
-	vec2 const   vector_reference = normalize(faces[face_reference].vertices[1] - faces[face_reference].vertices[0]);
-	vec2 const   vector_incident  = normalize(faces[face_incident].vertices[1]  - faces[face_incident].vertices[0]);
-	vec2       * points_incident  = faces[face_incident].vertices;
+	vec2 const plane_normal = normalize(faces[face_reference].vertices[1] - faces[face_reference].vertices[0]);
+	clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0],  plane_normal);
+	clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[1], -plane_normal);
+	// clip_points_with_plane(faces[face_incident], faces[face_reference].vertices[0], normal_a);
 
-	r32 distance_point_0 = dot_product(vector_reference, points_incident[0]);
-	r32 distance_point_1 = dot_product(vector_reference, points_incident[1]);
+	r32 asd = dot_product(normal_a, faces[face_incident].vertices[0]);
+	if (asd > overlap) {
+		return faces[face_incident].vertices[1];
+	}
 
-	// points_incident[0] -= vector_reference * distance_point_0;
-	// points_incident[1] -= vector_reference * distance_point_1;
+	r32 zxc = dot_product(normal_a, faces[face_incident].vertices[1]);
+	if (zxc > overlap) {
+		return faces[face_incident].vertices[0];
+	}
 
-	return {0, 0};
+	return (faces[face_incident].vertices[0] + faces[face_incident].vertices[1]) / 2.0f;
 }
 
 static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & physicals) {
@@ -473,7 +494,7 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 			if (!overlap_sat(phys_b_i, phys_a_i, overlap, separator)) { continue; }
 
 			vec2 const normal_a = separator * sign(dot_product(separator, phys_b.position - phys_a.position));
-			vec2 const contact  = find_contact(phys_a_i, phys_b_i, normal_a);
+			vec2 const contact  = find_contact(phys_a_i, phys_b_i, normal_a, overlap);
 
 			collisions.push({&phys_a, &phys_b, contact, normal_a, overlap});
 		}

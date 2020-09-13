@@ -6,7 +6,7 @@ function global_init_physics_test()
 	local camera_prefab = Asset.add(Prefab_Asset.type, "assets/prefabs/camera.prefab")
 	local camera = Prefab_Asset.promote_to_instance(camera_prefab)
 
-	Asset.add(Prefab_Asset.type, "assets/prefabs/- scene - physics test.prefab")
+	Asset.add(Prefab_Asset.type, "assets/prefabs/- scene - physics test 2.prefab")
 
 	-- set up
 	local camera_transform = camera:get_component(Transform.type)

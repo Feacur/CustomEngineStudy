@@ -104,7 +104,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 
 	// meta
 	component->dynamic         = 1;
-	component->angular_dynamic = 0;
+	component->angular_dynamic = 1;
 	// material
 	component->mass       = 1;
 	component->elasticity = 0.5;

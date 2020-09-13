@@ -1,0 +1,40 @@
+! # entity
+	i 1 # is instance; think of it as of a unity scene
+> # child
+	# left wall
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p -1 4 0
+			s 1 10 1
+			rd 0 0 10
+		Phys2d
+			d 0
+			da 0
+	 	~
+	# floor
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 5 -0.5 0
+			s 10 1 1
+		Phys2d
+			d 0
+			da 0
+		~
+	# floor
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 14 2 0
+			s 10 1 1
+			rd 0 0 30
+		Phys2d
+			d 0
+			da 0
+		~
+	# actor
+	p assets/prefabs/square phys.prefab
+		o Transform
+			p 7 7 0
+		Lua_Script
+			a assets/scripts/script_control_phys2d.lua
+			u script_control_phys2d
+		~

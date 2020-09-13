@@ -3,4 +3,5 @@
 Phys2d
 	c assets/meshes/square_1.collider
 	d 1
+	da 1
 	e 0.5
