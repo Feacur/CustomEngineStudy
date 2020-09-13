@@ -1,3 +1,14 @@
+# September 13, 2020
+- implement crude friction response
+- implement crude angualar motion physics
+- store collider meshes counterclockwise
+- expose new physics settings into the config file
+- improve VSCode errors reporting
+- fix potential compilation failure
+- handle linear math types as const references
+- correctly close file handles
+- simplify build target names
+
 # September 06, 2020
 - fixed buf with memory relocations during prefab assets loading
 - basic semi-implicit euler integration, physics response

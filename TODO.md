@@ -1,12 +1,14 @@
 # Immediate tasks
-- improve physics response, integration, etc.
-  - study [box2d-lite](https://github.com/erincatto/box2d-lite)
+- stabilize physics resolution, response, etc.
+- clean up physics code
+- explore existing practicies
 
 # Near plans
 - extend application of `Config_Asset`
   - (?) put Lua callbacks there (assets, init, update, etc.)
   - (?) file watcher folder path
 - allow correct physics processing in presence of `Hierarchy` components
+- study and integrate [box2d-lite](https://github.com/erincatto/box2d-lite)
 
 # Bugfix
 - investigate nested and inline prefabs instantiation
