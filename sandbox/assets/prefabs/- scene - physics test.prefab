@@ -33,19 +33,19 @@
 	# stack of boxes
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 1 0 0
+			p 1 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 2 0 0
+			p 2 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 3 0 0
+			p 3 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 4 0 0
+			p 4 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform

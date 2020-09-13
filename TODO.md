@@ -2,6 +2,7 @@
 - stabilize physics resolution, response, etc.
 - clean up physics code
 - explore existing practicies
+- probably, should do a clear start with physics, and iteratively reimplement it more stable?
 
 # Near plans
 - extend application of `Config_Asset`

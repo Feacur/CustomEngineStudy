@@ -414,7 +414,7 @@ static u32 find_contacts(u32 phys_a_i, u32 phys_b_i, vec2 normal_a, r32 overlap,
 	fill_face(phys_b_i, find_face_with_best_normal(phys_b_i, -normal_a), faces[1]);
 
 	u32 face_reference =
-		absolute(dot_product(faces[0].vertices[1] - faces[0].vertices[0], normal_a)) >=
+		absolute(dot_product(faces[0].vertices[1] - faces[0].vertices[0], normal_a)) >
 		absolute(dot_product(faces[1].vertices[1] - faces[1].vertices[0], normal_a));
 	u32 face_incident = 1 - face_reference;
 
