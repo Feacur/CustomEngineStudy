@@ -7,6 +7,7 @@
 #include "entity_system/ecs_lua_runner.h"
 // #include "entity_system/ecs_physics_no_angular.h"
 // #include "entity_system/ecs_physics_with_angular.h"
+#include "entity_system/ecs_physics_clean.h"
 #include "entity_system/ecs_renderer.h"
 
 #include <lua.hpp>
@@ -92,6 +93,7 @@ static void on_app_init() {
 	//
 	// sandbox::ecs_init_physics_no_angular();
 	// sandbox::ecs_init_physics_with_angular();
+	sandbox::ecs_init_physics_clean();
 
 	// @Note: call Lua init
 	sandbox::lua_function(L, init_lua_callback);
@@ -107,6 +109,7 @@ static void on_app_update(r32 dt) {
 	sandbox::ecs_update_lua(L, dt);
 	// sandbox::ecs_update_physics_no_angular(dt);
 	// sandbox::ecs_update_physics_with_angular(dt);
+	sandbox::ecs_update_physics_clean(dt);
 	sandbox::ecs_update_renderer();
 
 	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key_transition(custom::Key_Code::F4, true)) {
