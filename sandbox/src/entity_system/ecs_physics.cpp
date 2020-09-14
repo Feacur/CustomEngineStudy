@@ -148,7 +148,7 @@ struct Physical_Blob {
 	vec2 position, scale;
 	complex rotation;
 	// Phys2d
-	r32 dynamic, angular_dynamic;
+	r32 movable, rotatable;
 	r32 inverse_mass, inverse_angular_mass;
 	r32 elasticity, roughness, stickiness, stillness;
 	custom::Collider2d_Asset * mesh;
@@ -264,11 +264,11 @@ void ecs_update_physics(r32 dt) {
 		);
 
 		//
-		blob->dynamic              = entity.physical->dynamic;
-		blob->angular_dynamic      = entity.physical->angular_dynamic;
+		blob->movable   = entity.physical->movable;
+		blob->rotatable = entity.physical->rotatable;
 		//
-		blob->inverse_mass         = entity.physical->dynamic / entity.physical->mass;
-		blob->inverse_angular_mass = entity.physical->angular_dynamic / (entity.physical->mass * entity.physical->shape);
+		blob->inverse_mass         = entity.physical->movable / entity.physical->mass;
+		blob->inverse_angular_mass = entity.physical->rotatable / (entity.physical->mass * entity.physical->shape);
 		blob->elasticity           = entity.physical->elasticity;
 		blob->roughness            = entity.physical->roughness;
 		blob->stickiness           = entity.physical->stickiness;
@@ -439,13 +439,13 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 	for (u32 i = 0; i < physicals.count; ++i) {
 		Physical_Blob & phys = physicals[i];
 
-		phys.velocity += (global_gravity + phys.acceleration) * (phys.dynamic * dt);
-		phys.angular_velocity += (phys.angular_acceleration) * (phys.angular_dynamic * dt);
+		phys.velocity += (global_gravity + phys.acceleration) * (phys.movable * dt);
+		phys.angular_velocity += (phys.angular_acceleration) * (phys.rotatable * dt);
 
-		phys.position += phys.velocity * (phys.dynamic * dt);
+		phys.position += phys.velocity * (phys.movable * dt);
 		phys.rotation = complex_product(
 			phys.rotation,
-			complex_from_radians(phys.angular_velocity * (phys.angular_dynamic * dt))
+			complex_from_radians(phys.angular_velocity * (phys.rotatable * dt))
 		);
 	}
 
@@ -477,7 +477,7 @@ static void ecs_update_physics_iteration(r32 dt, custom::Array<Physical_Blob> & 
 		for (u32 phys_b_i = phys_a_i + 1; phys_b_i < physicals.count; ++phys_b_i) {
 			Physical_Blob & phys_b = physicals[phys_b_i];
 
-			if (phys_a.dynamic == 0 && phys_b.dynamic == 0) { continue; }
+			if (phys_a.movable == 0 && phys_a.rotatable == 0 && phys_b.movable == 0 && phys_b.rotatable == 0) { continue; }
 
 			r32 overlap = INFINITY; vec2 separator;
 			if (!overlap_sat(phys_a_i, phys_b_i, overlap, separator)) { continue; }

@@ -126,38 +126,82 @@ namespace serialization {
 template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 
+	char const key_movable[]    = "movable ";
+	char const key_rotatable[]  = "rotatable ";
+	char const key_mass[]       = "mass ";
+	char const key_elasticity[] = "elasticity ";
+	char const key_roughness[]  = "roughness ";
+	char const key_stickiness[] = "stickiness ";
+	char const key_stillness[]  = "stillness ";
+	char const key_shape[]      = "shape ";
+	char const key_collider[]   = "collider ";
+
 	Phys2d * component = refT.get_fast();
 
-	bool done = false;
-	while (!done && **source) {
+	while (**source) {
 		skip_to_eol(source); parse_eol(source);
-		switch ((parse_void(source), **source)) {
-			case 'd': ++(*source); switch (**source) {
-				case ' ':              component->dynamic         = (parse_void(source), parse_r32(source)); break;
-				case 'a': ++(*source); component->angular_dynamic = (parse_void(source), parse_r32(source)); break;
-			} break;
 
-			case 'm': ++(*source); {
-				component->mass = (parse_void(source), parse_r32(source));
-			} break;
+		parse_void(source);
 
-			case 'e': ++(*source); {
-				component->elasticity = (parse_void(source), parse_r32(source));
-			} break;
+		if (**source == '#') { continue; }
 
-			case 's': ++(*source); {
-				component->shape = (parse_void(source), parse_r32(source));
-			} break;
-
-			case 'c': ++(*source); {
-				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
-				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-				component->mesh = Asset::add<Collider2d_Asset>(id);
-			} break;
-
-			case '#': break;
-			default: done = true; break;
+		if (strncmp(*source, key_movable, C_ARRAY_LENGTH(key_movable) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_movable) - 1;
+			component->movable = (parse_void(source), parse_r32(source));
+			continue;
 		}
+
+		if (strncmp(*source, key_rotatable, C_ARRAY_LENGTH(key_rotatable) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_rotatable) - 1;
+			component->rotatable = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_mass, C_ARRAY_LENGTH(key_mass) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_mass) - 1;
+			component->mass = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_elasticity, C_ARRAY_LENGTH(key_elasticity) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_elasticity) - 1;
+			component->elasticity = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_roughness, C_ARRAY_LENGTH(key_roughness) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_roughness) - 1;
+			component->roughness = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_stickiness, C_ARRAY_LENGTH(key_stickiness) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_stickiness) - 1;
+			component->stickiness = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_stillness, C_ARRAY_LENGTH(key_stillness) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_stillness) - 1;
+			component->stillness = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_shape, C_ARRAY_LENGTH(key_shape) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_shape) - 1;
+			component->shape = (parse_void(source), parse_r32(source));
+			continue;
+		}
+
+		if (strncmp(*source, key_collider, C_ARRAY_LENGTH(key_collider) - 1) == 0) {
+			*source += C_ARRAY_LENGTH(key_collider) - 1;
+			cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
+			component->mesh = Asset::add<Collider2d_Asset>(id);
+			continue;
+		}
+
+		break;
 	}
 }
 

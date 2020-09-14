@@ -9,11 +9,11 @@
 //
 
 void Phys2d::add_impulse(vec2 value, vec2 radius) {
-	velocity += value * (dynamic / mass);
-	angular_velocity += cross_product(radius, value) * (dynamic / (mass * shape));
+	velocity += value * (movable / mass);
+	angular_velocity += cross_product(radius, value) * (movable / (mass * shape));
 }
 
 void Phys2d::add_force(vec2 value, vec2 radius) {
-	acceleration += value * (dynamic / mass);
-	angular_acceleration += cross_product(radius, value) * (dynamic / (mass * shape));
+	acceleration += value * (movable / mass);
+	angular_acceleration += cross_product(radius, value) * (movable / (mass * shape));
 }

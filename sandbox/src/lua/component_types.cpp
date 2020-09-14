@@ -265,11 +265,14 @@ static int Phys2d_index(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "dynamic")         == 0) { lua_pushnumber(L, object->get_fast()->dynamic);         return 1; }
-	if (strcmp(id, "angular_dynamic") == 0) { lua_pushnumber(L, object->get_fast()->angular_dynamic); return 1; }
+	if (strcmp(id, "movable")   == 0) { lua_pushnumber(L, object->get_fast()->movable);   return 1; }
+	if (strcmp(id, "rotatable") == 0) { lua_pushnumber(L, object->get_fast()->rotatable); return 1; }
 
 	if (strcmp(id, "mass")       == 0) { lua_pushnumber(L, object->get_fast()->mass);       return 1; }
 	if (strcmp(id, "elasticity") == 0) { lua_pushnumber(L, object->get_fast()->elasticity); return 1; }
+	if (strcmp(id, "roughness")  == 0) { lua_pushnumber(L, object->get_fast()->roughness);  return 1; }
+	if (strcmp(id, "stickiness") == 0) { lua_pushnumber(L, object->get_fast()->stickiness); return 1; }
+	if (strcmp(id, "stillness")  == 0) { lua_pushnumber(L, object->get_fast()->stillness);  return 1; }
 
 	if (strcmp(id, "shape") == 0) { lua_pushnumber(L, object->get_fast()->shape); return 1; }
 	if (strcmp(id, "mesh")  == 0) {
@@ -310,11 +313,14 @@ static int Phys2d_newindex(lua_State * L) {
 	cstring id = lua_tostring(L, 2);
 
 	// @Optimize?
-	if (strcmp(id, "dynamic")         == 0) { object->get_fast()->dynamic         = (r32)lua_tonumber(L, 3); return 0; }
-	if (strcmp(id, "angular_dynamic") == 0) { object->get_fast()->angular_dynamic = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "movable")   == 0) { object->get_fast()->movable   = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "rotatable") == 0) { object->get_fast()->rotatable = (r32)lua_tonumber(L, 3); return 0; }
 
 	if (strcmp(id, "mass")       == 0) { object->get_fast()->mass       = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "elasticity") == 0) { object->get_fast()->elasticity = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "roughness")  == 0) { object->get_fast()->roughness  = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "stickiness") == 0) { object->get_fast()->stickiness = (r32)lua_tonumber(L, 3); return 0; }
+	if (strcmp(id, "stillness")  == 0) { object->get_fast()->stillness  = (r32)lua_tonumber(L, 3); return 0; }
 
 	if (strcmp(id, "shape") == 0) { object->get_fast()->shape = (r32)lua_tonumber(L, 3); return 0; }
 	if (strcmp(id, "mesh")  == 0) {
