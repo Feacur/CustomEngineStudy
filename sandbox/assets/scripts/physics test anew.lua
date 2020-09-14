@@ -1,4 +1,4 @@
-function global_init_physics_test()
+function global_init_physics_test_anew()
 	-- camera to debug the scene
 	-- Asset.add(Prefab_Asset.type, "assets/prefabs/camera flying.prefab")
 
@@ -18,5 +18,5 @@ function global_init_physics_test()
 	camera_component.scale = 0.08
 end
 
-function global_update_physics_test()
+function global_update_physics_test_anew()
 end

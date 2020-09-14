@@ -3,7 +3,10 @@ local function local_init()
 	Entity.reset_system()
 	
 	Asset.add(Lua_Asset.type, "assets/scripts/physics test anew.lua")
-	global_init_physics_test()
+	global_init_physics_test_anew()
+	
+	-- Asset.add(Lua_Asset.type, "assets/scripts/physics test.lua")
+	-- global_init_physics_test()
 	
 	-- Asset.add(Lua_Asset.type, "assets/scripts/prefabs test.lua")
 	-- global_init_prefab_test()

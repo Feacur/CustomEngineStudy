@@ -10,6 +10,11 @@
 #include "../asset_system/asset_types.h"
 #include "component_types.h"
 
+template<u16 N>
+inline static int strncmp_auto(cstring first, char const (& second)[N]) {
+	return strncmp(first, second, N - 1);
+}
+
 //
 // Visual
 //
@@ -126,16 +131,6 @@ namespace serialization {
 template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 
-	char const key_movable[]    = "movable ";
-	char const key_rotatable[]  = "rotatable ";
-	char const key_mass[]       = "mass ";
-	char const key_elasticity[] = "elasticity ";
-	char const key_roughness[]  = "roughness ";
-	char const key_stickiness[] = "stickiness ";
-	char const key_stillness[]  = "stillness ";
-	char const key_shape[]      = "shape ";
-	char const key_collider[]   = "collider ";
-
 	Phys2d * component = refT.get_fast();
 
 	while (**source) {
@@ -145,57 +140,17 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 
 		if (**source == '#') { continue; }
 
-		if (strncmp(*source, key_movable, C_ARRAY_LENGTH(key_movable) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_movable) - 1;
-			component->movable = (parse_void(source), parse_r32(source));
-			continue;
-		}
+		if (strncmp_auto(*source, "movable ")    == 0) { component->movable    = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "rotatable ")  == 0) { component->rotatable  = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "mass ")       == 0) { component->mass       = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "elasticity ") == 0) { component->elasticity = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "roughness ")  == 0) { component->roughness  = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "stickiness ") == 0) { component->stickiness = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "stillness ")  == 0) { component->stillness  = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
+		if (strncmp_auto(*source, "shape ")      == 0) { component->shape      = (skip_to_void(source), parse_void(source), parse_r32(source)); continue; }
 
-		if (strncmp(*source, key_rotatable, C_ARRAY_LENGTH(key_rotatable) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_rotatable) - 1;
-			component->rotatable = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_mass, C_ARRAY_LENGTH(key_mass) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_mass) - 1;
-			component->mass = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_elasticity, C_ARRAY_LENGTH(key_elasticity) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_elasticity) - 1;
-			component->elasticity = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_roughness, C_ARRAY_LENGTH(key_roughness) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_roughness) - 1;
-			component->roughness = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_stickiness, C_ARRAY_LENGTH(key_stickiness) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_stickiness) - 1;
-			component->stickiness = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_stillness, C_ARRAY_LENGTH(key_stillness) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_stillness) - 1;
-			component->stillness = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_shape, C_ARRAY_LENGTH(key_shape) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_shape) - 1;
-			component->shape = (parse_void(source), parse_r32(source));
-			continue;
-		}
-
-		if (strncmp(*source, key_collider, C_ARRAY_LENGTH(key_collider) - 1) == 0) {
-			*source += C_ARRAY_LENGTH(key_collider) - 1;
-			cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
+		if (strncmp_auto(*source, "collider ") == 0) {
+			cstring line_end = (skip_to_void(source), parse_void(source), *source); skip_to_eol(&line_end);
 			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
 			component->mesh = Asset::add<Collider2d_Asset>(id);
 			continue;
