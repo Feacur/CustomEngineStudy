@@ -1,12 +1,12 @@
 ! # entity
 	p assets/prefabs/sphere.prefab
 Phys2d
-	movable 1
-	rotatable 1
-	mass 10
+	movable    1
+	rotatable  1
+	mass       10
 	elasticity 0.5
-	roughness 0.3
+	roughness  0.3
 	stickiness 0.6
-	stillness 0.8
-	shape 0.5
-	collider assets/meshes/circle_1.collider
+	stillness  0.8
+	shape      0.5
+	collider   assets/meshes/circle_1.collider

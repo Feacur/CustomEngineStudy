@@ -4,93 +4,93 @@
 	# left wall
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p -1 4 0
-			s 1 10 1
-			rd 0 0 10
+			position -1 4 0
+			scale    1 10 1
+			degrees  0 0 10
 		Phys2d
-			movable 0
+			movable   0
 			rotatable 0
 	 	~
 	# floor
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 5 -0.5 0
-			s 10 1 1
+			position 5 -0.5 0
+			scale    10 1 1
 		Phys2d
-			movable 0
+			movable   0
 			rotatable 0
 		~
 	# slope
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 14 2 0
-			s 10 1 1
-			rd 0 0 30
+			position 14 2 0
+			scale    10 1 1
+			degrees  0 0 30
 		Phys2d
-			movable 0
+			movable   0
 			rotatable 0
 		~
 	# stack of boxes
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 1 0.5 0
+			position 1 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 2 0.5 0
+			position 2 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 3 0.5 0
+			position 3 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 4 0.5 0
+			position 4 0.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 1.5 1.5 0
+			position 1.5 1.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 2.5 1.5 0
+			position 2.5 1.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 3.5 1.5 0
+			position 3.5 1.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 2 2.5 0
+			position 2 2.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 3 2.5 0
+			position 3 2.5 0
 		~
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 2.5 3.5 0
+			position 2.5 3.5 0
 		~
 	# some small spheres
 	p assets/prefabs/circle phys.prefab
 		o Transform
-			p 6 7 0
-			s 0.5 0.5 0.5
+			position 6 7 0
+			scale    0.5 0.5 0.5
 		Phys2d
 			mass 2.5
 		~
 	p assets/prefabs/circle phys.prefab
 		o Transform
-			p 8 7 0
-			s 0.5 0.5 0.5
+			position 8 7 0
+			scale    0.5 0.5 0.5
 		Phys2d
 			mass 2.5
 		~
 	# actor
 	p assets/prefabs/circle phys.prefab
 		o Transform
-			p 7 7 0
+			position 7 7 0
 		Lua_Script
-			a assets/scripts/script_control_phys2d.lua
-			u script_control_phys2d
+			asset assets/scripts/script_control_phys2d.lua
+			update script_control_phys2d
 		~

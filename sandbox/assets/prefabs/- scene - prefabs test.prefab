@@ -2,49 +2,49 @@
 	i 1 # is instance; think of it as of a unity scene
 > # child
 	! Transform
-			p 0 0 0
-			r 0 0 0 1
-			s 10 10 10
+			position 0 0 0
+			scale    10 10 10
+			rotation 0 0 0 1
 		Visual
-			s assets/shaders/v3_texture_tint.glsl
-			t assets/textures/proto_blue.png
-			m assets/meshes/plane_xz_1.obj
-			l 0
+			shader  assets/shaders/v3_texture_tint.glsl
+			texture assets/textures/proto_blue.png
+			mesh    assets/meshes/plane_xz_1.obj
+			layer   0
 	~ # stop parsing inlined prefab
 	p assets/prefabs/cube.prefab
 		o Transform
-			p -4 0.5 -4
+			position -4 0.5 -4
 		~ # stop parsing override
 	p assets/prefabs/cone.prefab
 		o Transform
-			p -4 0 4
+			position -4 0 4
 		~ # stop parsing override
 	p assets/prefabs/sphere.prefab
 		o Transform
-			p 4 0.5 -4
+			position 4 0.5 -4
 		~ # stop parsing override
 	p assets/prefabs/cylinder.prefab
 		o Transform
-			p 4 0.5 4
+			position 4 0.5 4
 		~ # stop parsing override
 	p assets/prefabs/suzanne.prefab
 		o Transform
-			p 0 1 0
+			position 0 1 0
 		Lua_Script
-			a assets/scripts/script_rotate.lua
-			u script_rotate
+			asset  assets/scripts/script_rotate.lua
+			update script_rotate
 		> # child
 			p assets/prefabs/suzanne.prefab
 				o Transform
-					p 0 1.5 1
-					s 0.25 0.25 0.25
+					position 0 1.5 -1
+					scale    0.25 0.25 0.25
 				~ # stop parsing override
 			p assets/prefabs/suzanne.prefab
 				o Transform
-					p 0 1.5 -1
-					s 0.25 0.25 0.25
+					position 0 1.5 1
+					scale    0.25 0.25 0.25
 				Lua_Script
-					a assets/scripts/script_rotate.lua
-					u script_rotate
+					asset  assets/scripts/script_rotate.lua
+					update script_rotate
 				~ # stop parsing override
 		~ # stop parsing override

@@ -1,12 +1,12 @@
 ! # entity
 Transform
-	p 0 0 0
-	s 1 1 1
-	r 0 0 0 1
+	positiom 0 0 0
+	scale    1 1 1
+	rotation 0 0 0 1
 Camera
-	n 0.1
-	f 100
-	s 1
-	o 0
-	c 3 # clear flags: color | depth == 1 | 2
-	l 0
+	near  0.1
+	far   100
+	scale 1
+	ortho 0
+	clear 3 # clear flags: color | depth == 1 | 2
+	layer 0

@@ -4,9 +4,9 @@
 	# floor
 	p assets/prefabs/square phys.prefab
 		o Transform
-			p 0 -0.5 0
-			s 50 1 1
+			position 0 -0.5 0
+			scale 50 1 1
 		Phys2d
-			movable 0
+			movable   0
 			rotatable 0
 		~

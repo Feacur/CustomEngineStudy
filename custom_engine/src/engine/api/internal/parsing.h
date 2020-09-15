@@ -1,7 +1,8 @@
+#pragma once
 #include "engine/core/types.h"
 #include "engine/core/math_types.h"
 
-inline static bool IS_VOID(char value) { return (value == ' ')  || (value == '\t'); }
+inline static bool IS_VOID(char value)  { return (value == ' ')  || (value == '\t'); }
 inline static bool IS_EOL(char value)   { return (value == '\r') || (value == '\n'); }
 inline static bool IS_DIGIT(char value) { return (value >= '0')  && (value <= '9'); }
 

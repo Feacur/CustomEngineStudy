@@ -1,9 +1,9 @@
 Transform
-	p 0 0 0
-	s 1 1 1
-	r 0 0 0 1
+	position 0 0 0
+	scale    1 1 1
+	rotation 0 0 0 1
 Visual
-	s assets/shaders/v3_texture_tint.glsl
-	t assets/textures/checkerboard.png
-	m assets/meshes/cone_1.obj
-	l 0
+	shader  assets/shaders/v3_texture_tint.glsl
+	texture assets/textures/checkerboard.png
+	mesh    assets/meshes/cone_1.obj
+	layer   0
