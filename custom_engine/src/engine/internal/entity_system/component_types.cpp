@@ -5,6 +5,39 @@
 #include "engine/api/internal/component_types.h"
 #include "engine/api/internal/entity_system.h"
 #include "engine/impl/array.h"
+#include "engine/impl/math_linear.h"
+
+//
+// Transform
+//
+
+mat4 Transform::to_matrix(void) const {
+	return ::to_matrix(position, scale, rotation);
+}
+
+vec3 Transform::transform(vec3 const & value) const {
+	return quat_rotate(rotation, value) * scale + position;
+}
+
+Transform Transform::transform(Transform const & value) const {
+	Transform result;
+	result.position = position + quat_rotate(rotation, value.position * scale);
+	result.scale    = scale * value.scale;
+	result.rotation = quat_product(rotation, value.rotation);
+	return result;
+}
+
+//
+// Camera
+//
+
+mat4 Camera::to_matrix(r32 aspect) const {
+	return interpolate(
+		mat_persp({scale, scale * aspect}, ncp, fcp),
+		mat_ortho({scale, scale * aspect}, ncp, fcp),
+		ortho
+	);
+}
 
 //
 // Hierarchy

@@ -1157,11 +1157,11 @@ constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & v) {
 	};
 }
 
-constexpr inline mat2 mat_product(mat2 const & first, mat2 const & second) {
-	mat2 t = mat_transpose(second);
+constexpr inline mat2 mat_product(mat2 const & mat, mat2 const & value) {
+	mat2 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y)
+		mat_product(t, value.x),
+		mat_product(t, value.y)
 	};
 }
 
@@ -1192,12 +1192,12 @@ constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & v) {
 	};
 }
 
-constexpr inline mat3 mat_product(mat3 const & first, mat3 const & second) {
-	mat3 t = mat_transpose(second);
+constexpr inline mat3 mat_product(mat3 const & mat, mat3 const & value) {
+	mat3 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y),
-		mat_product(t, first.z)
+		mat_product(t, value.x),
+		mat_product(t, value.y),
+		mat_product(t, value.z)
 	};
 }
 
@@ -1252,13 +1252,13 @@ constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & v) {
 	};
 }
 
-constexpr inline mat4 mat_product(mat4 const & first, mat4 const & second) {
-	mat4 t = mat_transpose(second);
+constexpr inline mat4 mat_product(mat4 const & mat, mat4 const & value) {
+	mat4 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y),
-		mat_product(t, first.z),
-		mat_product(t, first.w)
+		mat_product(t, value.x),
+		mat_product(t, value.y),
+		mat_product(t, value.z),
+		mat_product(t, value.w)
 	};
 }
 
@@ -1394,7 +1394,7 @@ constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
 // conversions
 //
 
-inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 const & scale) {
+inline mat3 to_matrix(vec2 const & position, vec2 const & scale, complex const & rotation) {
 	return mat3{
 		vec3{rotation * scale.x, 0},
 		vec3{cross_product(1.0f, rotation) * scale.y, 0},
@@ -1402,7 +1402,7 @@ inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 cons
 	};
 }
 
-inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const & scale) {
+inline mat4 to_matrix(vec3 const & position, vec3 const & scale, quat const & rotation) {
 	mat4 mat; // = {};
 	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
 	mat.x.xyz *= scale.x; mat.x.w = 0;

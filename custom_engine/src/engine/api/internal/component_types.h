@@ -12,17 +12,23 @@ struct Transform
 	vec3 position = {0, 0, 0};
 	vec3 scale    = {1, 1, 1};
 	quat rotation = {0, 0, 0, 1};
+
+	mat4 to_matrix(void) const;
+	vec3 transform(vec3 const & value) const;
+	Transform transform(Transform const & value) const;
 };
 
 struct Camera
 {
 	typedef custom::graphics::Clear_Flag Clear_Flag;
-	r32 ncp   = 0.1f;
-	r32 fcp   = 100;
-	r32 scale = 1;
-	r32 ortho = 0;
+	r32        ncp   = 0.1f;
+	r32        fcp   = 100;
+	r32        scale = 1;
+	r32        ortho = 0;
 	Clear_Flag clear = Clear_Flag::Color | Clear_Flag::Depth;
-	u8 layer = 0;
+	u8         layer = 0;
+
+	mat4 to_matrix(r32 aspect) const;
 };
 
 struct Hierarchy {

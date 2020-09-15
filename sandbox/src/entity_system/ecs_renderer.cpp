@@ -97,10 +97,10 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		renderer_ids_limit = max(renderer_ids_limit, renderers[i].entity.id);
 	}
 
-	custom::Array<mat4> renderer_locals(renderer_ids_limit + 1);
+	custom::Array<Transform> renderer_locals(renderer_ids_limit + 1);
 	for (u32 i = 0; i < renderers.count; ++i) {
 		Renderer_Blob & renderer = renderers[i];
-		renderer_locals.get(renderer.entity.id) = to_matrix(renderer.transform->position, renderer.transform->rotation, renderer.transform->scale);
+		renderer_locals.get(renderer.entity.id) = *renderer.transform;
 	}
 
 	// @Todo: revisit nesting
@@ -112,9 +112,9 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		if (!hierarchy->parent.exists()) { continue; }
 		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
-		mat4 & renderer_local = renderer_locals.get(renderer.entity.id);
-		mat4 const & renderer_parent = renderer_locals.get(hierarchy->parent.id);
-		renderer_local = mat_product(renderer_local, renderer_parent);
+		Transform & renderer_local = renderer_locals.get(renderer.entity.id);
+		Transform const & renderer_parent = renderer_locals.get(hierarchy->parent.id);
+		renderer_local = renderer_parent.transform(renderer_local);
 	}
 
 	// @Todo: revisit sorting
@@ -133,10 +133,10 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		renderable_ids_limit = max(renderable_ids_limit, renderables[i].entity.id);
 	}
 
-	custom::Array<mat4> renderable_locals(renderable_ids_limit + 1);
+	custom::Array<Transform> renderable_locals(renderable_ids_limit + 1);
 	for (u32 i = 0; i < renderables.count; ++i) {
 		Renderable_Blob & renderable = renderables[i];
-		renderable_locals.get(renderable.entity.id) = to_matrix(renderable.transform->position, renderable.transform->rotation, renderable.transform->scale);
+		renderable_locals.get(renderable.entity.id) = *renderable.transform;
 	}
 
 	// @Todo: revisit nesting
@@ -148,9 +148,9 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		if (!hierarchy->parent.exists()) { continue; }
 		if (!hierarchy->parent.has_component<Transform>()) { continue; }
 
-		mat4 & renderable_local = renderable_locals.get(renderable.entity.id);
-		mat4 const & renderable_parent = renderable_locals.get(hierarchy->parent.id);
-		renderable_local = mat_product(renderable_local, renderable_parent);
+		Transform & renderable_local = renderable_locals.get(renderable.entity.id);
+		Transform const & renderable_parent = renderable_locals.get(hierarchy->parent.id);
+		renderable_local = renderable_parent.transform(renderable_local);
 	}
 
 	// @Todo: revisit sorting
@@ -170,12 +170,8 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		Renderer_Blob const & renderer = renderers[camera_i];
 
 		mat4 const camera_matrix = mat_product(
-			mat_inverse_transform(renderer_locals.get(renderer.entity.id)),
-			interpolate(
-				mat_persp({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->ncp, renderer.camera->fcp),
-				mat_ortho({renderer.camera->scale, renderer.camera->scale * aspect}, renderer.camera->ncp, renderer.camera->fcp),
-				renderer.camera->ortho
-			)
+			renderer.camera->to_matrix(aspect),
+			mat_inverse_transform(renderer_locals.get(renderer.entity.id).to_matrix())
 		);
 
 		u32 last_renderable_i = renderable_i;
@@ -199,7 +195,7 @@ static void ecs_update_renderer_internal(custom::Array<Renderer_Blob> & renderer
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
-			mat4 const transform_matrix = renderable_locals.get(renderable.entity.id);
+			mat4 const transform_matrix = renderable_locals.get(renderable.entity.id).to_matrix();
 
 			if (shader_id != renderable.visual->shader.ref.id) {
 				shader_id = renderable.visual->shader.ref.id;
