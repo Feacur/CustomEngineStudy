@@ -11,13 +11,12 @@ namespace timer {
 
 // @Note: a static instance; Timer::instance would be the same data-wise
 extern u64 ticks_per_second;
-extern u64 frame_start_ticks;
 
 void init(void);
 void shutdown(void);
 u64  get_ticks(void);
-u64  snapshot(void);
-u64  wait_next_frame(u64 duration, u64 precision);
+void idle_till_next_frame(u64 frame_start_ticks, u64 duration, u64 precision);
+void sleep_till_next_frame(u64 frame_start_ticks, u64 duration, u64 precision);
 
 constexpr static u64 const millisecond = 1000;
 constexpr static u64 const microsecond = 1000000;

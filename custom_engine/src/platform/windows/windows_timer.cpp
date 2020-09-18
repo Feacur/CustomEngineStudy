@@ -89,7 +89,6 @@ void init(void) {
 
 	ticks_per_second = (u64)platform_get_frequency();
 	system_timer_period = platform_get_resolution();
-	snapshot();
 }
 
 void shutdown(void) {
@@ -99,14 +98,7 @@ u64 get_ticks(void) {
 	return (u64)platform_get_counter();
 }
 
-u64 snapshot(void) {
-	u64 current_ticks = (u64)platform_get_counter();
-	u64 frame_ticks = current_ticks - frame_start_ticks;
-	frame_start_ticks = current_ticks;
-	return frame_ticks;
-}
-
-u64 wait_next_frame(u64 duration, u64 precision) {
+void idle_till_next_frame(u64 frame_start_ticks, u64 duration, u64 precision) {
 	u64 duration_ticks = mul_div(duration, ticks_per_second, precision);
 	u64 frame_end_ticks = frame_start_ticks + duration_ticks;
 	u64 current_ticks;
@@ -114,33 +106,36 @@ u64 wait_next_frame(u64 duration, u64 precision) {
 	while (true) {
 		current_ticks = (u64)platform_get_counter();
 		if (current_ticks >= frame_end_ticks) { break; }
-
-		// @Todo: figure out a better way (?)
-		//        - Sleep(0), Sleep(1), Sleep(>= 2)
-		//        - SetWaitableTimer()
-		//        - SwitchToThread()
-		//        - _mm_pause(), YieldProcessor()
-
+		// Sleep(0);
 		YieldProcessor();
-
-		// Sleep((DWORD)mul_div(frame_end_ticks - current_ticks, millisecond, ticks_per_second));
-
-		// HANDLE timer_handle = CreateWaitableTimer(NULL, TRUE, NULL);
-		// if(timer_handle) {
-		// 	// @Note: The time after which the state of the timer is to be set to signaled, in 100 nanosecond intervals
-		// 	LARGE_INTEGER due_time;
-		// 	due_time.QuadPart = -(s64)mul_div(frame_end_ticks - current_ticks, nanosecond / 100, ticks_per_second);
-		// 	if (SetWaitableTimer(timer_handle, &due_time, 0, NULL, NULL, FALSE)) {
-		// 		WaitForSingleObject(timer_handle, INFINITE);
-		// 	}
-		// 	CloseHandle(timer_handle);
-		// }
 	}
 	TIME_END();
-	u64 frame_ticks = current_ticks - frame_start_ticks;
-	frame_start_ticks = current_ticks;
-	return frame_ticks;
 }
+
+void sleep_till_next_frame(u64 frame_start_ticks, u64 duration, u64 precision) {
+	u64 duration_ticks = mul_div(duration, ticks_per_second, precision);
+	u64 frame_end_ticks = frame_start_ticks + duration_ticks;
+	u64 current_ticks;
+	TIME_BEGIN();
+	while (true) {
+		current_ticks = (u64)platform_get_counter();
+		if (current_ticks >= frame_end_ticks) { break; }
+		// Sleep(1);
+		Sleep((DWORD)mul_div(frame_end_ticks - current_ticks, millisecond, ticks_per_second));
+	}
+	TIME_END();
+}
+
+// HANDLE timer_handle = CreateWaitableTimer(NULL, TRUE, NULL);
+// if(timer_handle) {
+// 	// @Note: The time after which the state of the timer is to be set to signaled, in 100 nanosecond intervals
+// 	LARGE_INTEGER due_time;
+// 	due_time.QuadPart = -(s64)mul_div(frame_end_ticks - current_ticks, nanosecond / 100, ticks_per_second);
+// 	if (SetWaitableTimer(timer_handle, &due_time, 0, NULL, NULL, FALSE)) {
+// 		WaitForSingleObject(timer_handle, INFINITE);
+// 	}
+// 	CloseHandle(timer_handle);
+// }
 
 }}
 

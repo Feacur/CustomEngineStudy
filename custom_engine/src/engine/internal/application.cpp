@@ -53,10 +53,17 @@
 	#define DISPLAY_PERFORMANCE(window, time_frame, time_system, time_logic, time_render, precision, dt) (void)0
 #endif
 
-static u64 get_last_frame_ticks(bool vsync, u16 refresh_rate) {
-	if (vsync) { return custom::timer::snapshot(); }
-	static u64 const precision = custom::timer::nanosecond;
-	return custom::timer::wait_next_frame(precision / (u64)refresh_rate, precision);
+static u64 wait_till_next_frame(u64 frame_start_ticks, u16 refresh_rate, bool vsync, bool sleep_while_waiting) {
+	static constexpr u64 const precision = custom::timer::nanosecond;
+	if (!vsync) {
+		if (sleep_while_waiting) {
+			custom::timer::sleep_till_next_frame(frame_start_ticks, precision / (u64)refresh_rate, precision);
+		}
+		else {
+			custom::timer::idle_till_next_frame(frame_start_ticks, precision / (u64)refresh_rate, precision);
+		}
+	}
+	return custom::timer::get_ticks() - frame_start_ticks;
 }
 
 void init_asset_types(void);
@@ -70,7 +77,10 @@ static struct {
 	custom::Bytecode bytecode_renderer;
 	custom::window::Internal_Data * window;
 
+	u64 frame_start_ticks;
+
 	ivec2 viewport_size;
+	bln sleep_while_waiting         = true;
 	bln update_assets_automatically = true;
 
 	struct {
@@ -136,6 +146,7 @@ static void consume_config(void) {
 	if (version == config->version) { return; }
 	version = config->version;
 
+	app.sleep_while_waiting         = config->get_value<bln>("sleep_while_waiting", false);
 	app.update_assets_automatically = config->get_value<bln>("update_assets_automatically", true);
 }
 
@@ -163,6 +174,7 @@ static void init(void) {
 	custom::window::init_context(app.window);
 
 	//
+	app.frame_start_ticks = custom::timer::get_ticks();
 	update_viewport_safely(app.window, custom::window::get_size(app.window));
 	CALL_SAFELY(app.callbacks.init);
 }
@@ -173,7 +185,6 @@ void run(void) {
 
 	init();
 
-	custom::timer::snapshot();
 	while (!custom::system::should_close) {
 		if (!app.window) { CUSTOM_ASSERT(false, "application has no window"); break; }
 		if (!custom::window::get_is_active(app.window)) { CUSTOM_ASSERT(false, "application window is inactive"); break; }
@@ -190,9 +201,10 @@ void run(void) {
 			? custom::window::get_refresh_rate(app.window, app.refresh_rate.target)
 			: app.refresh_rate.target;
 
-		u64 time_frame = get_last_frame_ticks(
-			custom::window::check_vsync(app.window), refresh_rate
+		u64 time_frame = wait_till_next_frame(
+			app.frame_start_ticks, refresh_rate, custom::window::check_vsync(app.window), app.sleep_while_waiting
 		);
+		app.frame_start_ticks = custom::timer::get_ticks();
 
 		r32 dt = (r32)time_frame / custom::timer::ticks_per_second;
 		if (dt > (r32)app.refresh_rate.debug / refresh_rate) { dt = 1.0f / refresh_rate; }

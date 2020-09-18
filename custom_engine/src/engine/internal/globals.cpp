@@ -14,7 +14,6 @@ namespace system {
 namespace custom {
 namespace timer {
 	u64 ticks_per_second;
-	u64 frame_start_ticks;
 }}
 
 namespace custom {
