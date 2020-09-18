@@ -78,7 +78,7 @@ void ecs_update_renderer(void) {
 //
 
 static void build_transforms_map(custom::Array<Transform> & id_to_transform) {
-	custom::Array<Transforms_Blob> transforms(8);
+	custom::Array<Transforms_Blob> transforms(custom::Entity::state.instances.count);
 	for (u32 i = 0; i < custom::Entity::state.instances.count; ++i) {
 		custom::Entity const entity = custom::Entity::state.instances[i];
 		if (!entity.exists()) { continue; }
@@ -88,6 +88,7 @@ static void build_transforms_map(custom::Array<Transform> & id_to_transform) {
 
 		transforms.push({entity, transform});
 	}
+	// transforms.set_capacity(transforms.count);
 
 	// @Todo: use actual map structure?
 	//        be more optimal fetching parents?
@@ -98,10 +99,9 @@ static void build_transforms_map(custom::Array<Transform> & id_to_transform) {
 
 	id_to_transform.set_capacity(transform_ids_limit + 1);
 	for (u32 i = 0; i < transforms.count; ++i) {
-		Transforms_Blob & transform = transforms[i];
+		Transforms_Blob const & transform = transforms[i];
 		id_to_transform.get(transform.entity.id) = *transform.transform;
 	}
-	transforms.~Array();
 
 	for (u32 i = 0; i < transforms.count; ++i) {
 		Transforms_Blob const & transform = transforms[i];
