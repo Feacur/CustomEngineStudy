@@ -8,6 +8,19 @@
 
 #include <lua.hpp>
 
+namespace {
+
+struct Script_Blob {
+	custom::Entity     entity;
+	Lua_Script const * script;
+};
+
+}
+
+//
+//
+//
+
 namespace sandbox {
 
 void lua_function(lua_State * L, cstring name) {
@@ -43,11 +56,6 @@ static void lua_function(lua_State * L, cstring name, custom::Entity const & ent
 		return;
 	}
 }
-
-struct Script_Blob {
-	custom::Entity     entity;
-	Lua_Script const * script;
-};
 
 void ecs_update_lua(lua_State * L, r32 dt) {
 	custom::Array<Script_Blob> scripts(8);

@@ -5,6 +5,7 @@
 #include "engine/api/internal/asset_types.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/array.h"
+#include "engine/impl/parsing.h"
 
 #include "obj_parser.h"
 
@@ -258,6 +259,7 @@ template<> s32 Config_Asset::get_value<s32>(cstring key, s32 default_value) cons
 	for (u32 i = 0; i < entries.count; ++i) {
 		if (entries[i].key == id) { return entries[i].value_s32; }
 	}
+	CUSTOM_WARNING("default %s to '%d'", key, default_value);
 	return default_value;
 }
 
@@ -266,6 +268,7 @@ template<> u32 Config_Asset::get_value<u32>(cstring key, u32 default_value) cons
 	for (u32 i = 0; i < entries.count; ++i) {
 		if (entries[i].key == id) { return entries[i].value_u32; }
 	}
+	CUSTOM_WARNING("default %s to '%d'", key, default_value);
 	return default_value;
 }
 
@@ -274,6 +277,7 @@ template<> r32 Config_Asset::get_value<r32>(cstring key, r32 default_value) cons
 	for (u32 i = 0; i < entries.count; ++i) {
 		if (entries[i].key == id) { return entries[i].value_r32; }
 	}
+	CUSTOM_WARNING("default %s to '%f'", key, default_value);
 	return default_value;
 }
 
@@ -282,6 +286,7 @@ template<> bln Config_Asset::get_value<bln>(cstring key, bln default_value) cons
 	for (u32 i = 0; i < entries.count; ++i) {
 		if (entries[i].key == id) { return (bln)entries[i].value_u32; }
 	}
+	CUSTOM_WARNING("default %s to '%d'", key, default_value);
 	return default_value;
 }
 
@@ -292,6 +297,7 @@ template<> cstring Config_Asset::get_value<cstring>(cstring key, cstring default
 			return strings.get_string(entries[i].value_u32);
 		}
 	}
+	CUSTOM_WARNING("default %s to '%s'", key, default_value);
 	return default_value;
 }
 
@@ -307,50 +313,40 @@ void Config_Asset::update(Array<u8> & file) {
 	while (*source) {
 		parse_void(&source);
 
-		if (strncmp(source, "s32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			s32 value = (parse_void(&source), parse_s32(&source));
-			set_value(cache.get_string(key), value);
+		if (*source == '#') {
+			skip_to_eol(&source); parse_eol(&source);
+			continue;
 		}
 
-		if (strncmp(source, "u32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
+		u32     type_length = to_identifier_length(&source);
+		cstring type        = source;
+		skip_to_void(&source);
 
-			source = string_end;
-			u32 value = (parse_void(&source), parse_u32(&source));
-			set_value(cache.get_string(key), value);
+		u32 key_length = to_identifier_length(&source);
+		u32 key_id     = cache.store_string(source, key_length);
+		skip_to_void(&source);
+
+		if (false) { /**/ }
+		else if (strncmp_auto(type, "s32") == 0) {
+			s32 value = to_s32(&source);
+			set_value(cache.get_string(key_id), value);
 		}
-
-		if (strncmp(source, "r32", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			r32 value = (parse_void(&source), parse_r32(&source));
-			set_value(cache.get_string(key), value);
+		else if (strncmp_auto(type, "u32") == 0) {
+			u32 value = to_u32(&source);
+			set_value(cache.get_string(key_id), value);
 		}
-
-		if (strncmp(source, "bln", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			bln value = (parse_void(&source), parse_bln(&source));
-			set_value(cache.get_string(key), value);
+		else if (strncmp_auto(type, "r32") == 0) {
+			r32 value = to_r32(&source);
+			set_value(cache.get_string(key_id), value);
 		}
-
-		if (strncmp(source, "str", 3) == 0) { source += 3;
-			cstring string_end = (parse_void(&source), source); skip_to_void(&string_end);
-			u32 key = cache.store_string(source, (u32)(string_end - source));
-
-			source = string_end;
-			cstring line_end = (parse_void(&source), source); skip_to_eol(&line_end);
-			u32 value = cache.store_string(source, (u32)(line_end - source));
-			set_value(cache.get_string(key), cache.get_string(value));
+		else if (strncmp_auto(type, "bln") == 0) {
+			bln value = to_bln(&source);
+			set_value(cache.get_string(key_id), value);
+		}
+		else if (strncmp_auto(type, "str") == 0) {
+			u32 value_length = to_string_length(&source);
+			u32 value_id     = cache.store_string(source, value_length);
+			set_value(cache.get_string(key_id), cache.get_string(value_id));
 		}
 
 		skip_to_eol(&source); parse_eol(&source);

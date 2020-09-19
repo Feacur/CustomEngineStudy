@@ -86,7 +86,7 @@ void Entity::serialization_read(cstring * source) {
 
 		if (**source == '~') { break; };
 
-		if (**source == '#') { // a comment
+		if (**source == '#') {
 			skip_to_eol(source); parse_eol(source);
 			continue;
 		};
@@ -109,7 +109,7 @@ void Entity::serialization_read(cstring * source) {
 
 		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
 		if (type == custom::empty_index) {
-			// @Note: any unrecognized line is silently skipped
+			CUSTOM_ASSERT(false, "unrecognized instruction");
 			skip_to_eol(source); parse_eol(source);
 			continue;
 		}

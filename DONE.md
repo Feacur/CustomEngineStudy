@@ -1,3 +1,11 @@
+# September 19, 2020
+- extended `Config_Asset`: Lua callbacks there (assets, init, update, etc.)
+- extended `Config_Asset`: file watcher folder path
+- made strings and identifiers more strict in the assets
+- parsing wrappers don't consume previous identifiers, but void part only
+- alert in debug mode about potentially erroneous assets
+- warn about missing configuration options
+
 # September 13, 2020
 - implement crude friction response
 - implement crude angualar motion physics

@@ -11,6 +11,10 @@ inline static r32 construct_r32(s8 sign, u32 mantissa, s32 exponent_10);
 
 namespace custom {
 
+void skip_to_blank(cstring * source) {
+	while (**source && !IS_BLANK(**source)) { ++(*source); }
+}
+
 void skip_to_eol(cstring * source) {
 	while (**source && !IS_EOL(**source)) { ++(*source); }
 }
@@ -23,16 +27,24 @@ void skip_to_digit(cstring * source) {
 	while (**source && !IS_DIGIT(**source)) { ++(*source); }
 }
 
-void skip_to(cstring * source, char value) {
-	while (**source && (**source != value)) { ++(*source); }
+void skip_to_single_line_string_end(cstring * source) {
+	while (**source && !IS_SINGLE_LINE_STRING_END(**source)) { ++(*source); }
+}
+
+void parse_blank(cstring * source) {
+	while (IS_BLANK(**source)) { ++(*source); }
+}
+
+void parse_eol(cstring * source) {
+	while (IS_EOL(**source)) { ++(*source); }
 }
 
 void parse_void(cstring * source) {
 	while (IS_VOID(**source)) { ++(*source); }
 }
 
-void parse_eol(cstring * source) {
-	while (IS_EOL(**source)) { ++(*source); }
+void parse_identifier(cstring * source) {
+	while (IS_IDENTIFIER_SYMBOL(**source)) { ++(*source); }
 }
 
 u32 parse_u32(cstring * source) {

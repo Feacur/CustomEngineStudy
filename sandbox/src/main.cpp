@@ -5,7 +5,9 @@
 #include "asset_system/asset_types.h"
 
 #include "entity_system/ecs_lua_runner.h"
-#include "entity_system/ecs_physics.h"
+// #include "entity_system/ecs_physics_no_angular.h"
+// #include "entity_system/ecs_physics_with_angular.h"
+#include "entity_system/ecs_physics_clean.h"
 #include "entity_system/ecs_renderer.h"
 
 #include <lua.hpp>
@@ -17,15 +19,17 @@
 static lua_State * L;
 static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
 
-cstring init_lua_asset = "assets/scripts/main.lua";
-cstring init_lua_callback = "global_init";
+static cstring file_watcher_target = ".";
+static cstring init_lua_asset      = "assets/scripts/main.lua";
+static cstring init_lua_callback   = "global_init";
 
 static void consume_config_init(void) {
 	custom::Config_Asset const * config = config_ref.ref.get_safe();
 	CUSTOM_ASSERT(config, "no config");
 
-	init_lua_asset    = config->get_value<cstring>("init_lua_asset",    "assets/scripts/main.lua");
-	init_lua_callback = config->get_value<cstring>("init_lua_callback", "global_init");
+	file_watcher_target = config->get_value<cstring>("file_watcher_target", ".");
+	init_lua_asset      = config->get_value<cstring>("init_lua_asset",      "assets/scripts/main.lua");
+	init_lua_callback   = config->get_value<cstring>("init_lua_callback",   "global_init");
 }
 
 cstring update_lua_callback = "global_update";
@@ -68,7 +72,7 @@ static void on_app_init() {
 	consume_config_init();
 	consume_config();
 
-	custom::file::watch_init(".", true);
+	custom::file::watch_init(file_watcher_target, true);
 
 	// @Note: init Lua
 	L = luaL_newstate();
@@ -89,7 +93,9 @@ static void on_app_init() {
 	custom::Asset::add<Lua_Asset>(lua_id);
 
 	//
-	sandbox::ecs_init_physics();
+	// sandbox::ecs_init_physics_no_angular();
+	// sandbox::ecs_init_physics_with_angular();
+	sandbox::ecs_init_physics_clean();
 
 	// @Note: call Lua init
 	sandbox::lua_function(L, init_lua_callback);
@@ -103,7 +109,9 @@ static void on_app_update(r32 dt) {
 	consume_config();
 	sandbox::lua_function(L, update_lua_callback);
 	sandbox::ecs_update_lua(L, dt);
-	sandbox::ecs_update_physics(dt);
+	// sandbox::ecs_update_physics_no_angular(dt);
+	// sandbox::ecs_update_physics_with_angular(dt);
+	sandbox::ecs_update_physics_clean(dt);
 	sandbox::ecs_update_renderer();
 
 	if (custom::application::get_key(custom::Key_Code::Alt) && custom::application::get_key_transition(custom::Key_Code::F4, true)) {

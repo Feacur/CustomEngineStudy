@@ -1,9 +1,12 @@
 ! # entity
-	p assets/prefabs/sphere.prefab
+	p "assets/prefabs/sphere.prefab"
 Phys2d
-	s 0.5
-	c assets/meshes/circle_1.collider
-	m 1
-	d 1
-	da 1
-	e 0.5
+	movable    1
+	rotatable  1
+	mass       10
+	elasticity 0.5
+	roughness  0.3
+	stickiness 0.6
+	stillness  0.8
+	shape      0.5
+	collider   "assets/meshes/circle_1.collider"

@@ -1088,53 +1088,55 @@ constexpr inline vec3 quat_get_forward(quat const & q) {
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
 inline constexpr bool quat_is_singularity(quat const & q) {
-	if (2 * absolute(q.y * q.z + q.x * q.w) <= epsilon) {
+	if (absolute(q.y * q.z + q.x * q.w) * 2 <= epsilon) {
 		if (absolute((q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)) <= epsilon) {
 			return true;
 		}
-		if (absolute(1 - 2 * (q.x * q.x + q.y * q.y)) <= epsilon) {
+		if (absolute(1 - (q.x * q.x + q.y * q.y) * 2) <= epsilon) {
 			return true;
 		}
 	}
-	if (2 * absolute(q.x * q.y + q.z * q.w) <= epsilon) {
+	if (absolute(q.x * q.y + q.z * q.w) * 2 <= epsilon) {
 		if (absolute((q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z)) <= epsilon) {
 			return true;
 		}
-		if (absolute(1 - 2 * (q.y * q.y + q.z * q.z)) <= epsilon) {
+		if (absolute(1 - (q.y * q.y + q.z * q.z) * 2) <= epsilon) {
 			return true;
 		}
 	}
-	if (1 - 2 * absolute(q.y * q.w - q.x * q.z) <= epsilon) {
+	if (1 - absolute(q.y * q.w - q.x * q.z) * 2 <= epsilon) {
 		return true;
 	}
 	return false;
 }
 
+inline constexpr r32 clamp(r32 value, r32 low, r32 high);
+inline vec3 quat_get_radians(quat const & q) {
+	r32 const w2_m_y2 = q.w * q.w - q.y * q.y;
+	r32 const z2_m_x2 = q.z * q.z - q.x * q.x;
+	return {
+		atan2f((q.y * q.z + q.x * q.w) * 2, w2_m_y2 + z2_m_x2),
+		asinf(clamp((q.y * q.w - q.x * q.z) * 2, -1.0f, 1.0f)),
+		atan2f((q.x * q.y + q.z * q.w) * 2, w2_m_y2 - z2_m_x2),
+	};
+}
+
 inline r32 quat_get_radians_x(quat const & q) {
 	// if (axis_sin == 0 && axis_cos == 0) { return 2 * atan2f(q.x, q.w); }
 	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 2 * atan2f(q.x, q.w); }
-	return atan2f(
-		2 * (q.y * q.z + q.x * q.w),
-		(q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y)
-		// @Note: alternatively `1 - 2 * (q.x * q.x + q.y * q.y)`?
-	);
+	// @Note: alternatively `1 - 2 * (q.x * q.x + q.y * q.y)` as the `cos` part?
+	return atan2f((q.y * q.z + q.x * q.w) * 2, (q.z * q.z + q.w * q.w) - (q.x * q.x + q.y * q.y));
 };
 
-inline constexpr r32 clamp(r32 value, r32 low, r32 high);
 inline r32 quat_get_radians_y(quat q) {
-	return asinf(
-		clamp(2 * (q.y * q.w - q.x * q.z), -1.0f, 1.0f)
-	);
+	return asinf(clamp((q.y * q.w - q.x * q.z) * 2, -1.0f, 1.0f));
 };
 
 inline r32 quat_get_radians_z(quat const & q) {
 	// if (axis_sin == 0 && axis_cos == 0) { return 0; }
 	// if (absolute(q.y * q.w - q.x * q.z) >= 1) { return 0; }
-	return atan2f(
-		2 * (q.x * q.y + q.z * q.w),
-		(q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z)
-		// @Note: alternatively `1 - 2 * (q.y * q.y + q.z * q.z)`?
-	);
+	// @Note: alternatively `1 - 2 * (q.y * q.y + q.z * q.z)` as the `cos` part?
+	return atan2f((q.x * q.y + q.z * q.w) * 2, (q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z));
 };
 
 //
@@ -1155,11 +1157,11 @@ constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & v) {
 	};
 }
 
-constexpr inline mat2 mat_product(mat2 const & first, mat2 const & second) {
-	mat2 t = mat_transpose(second);
+constexpr inline mat2 mat_product(mat2 const & mat, mat2 const & value) {
+	mat2 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y)
+		mat_product(t, value.x),
+		mat_product(t, value.y)
 	};
 }
 
@@ -1190,12 +1192,12 @@ constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & v) {
 	};
 }
 
-constexpr inline mat3 mat_product(mat3 const & first, mat3 const & second) {
-	mat3 t = mat_transpose(second);
+constexpr inline mat3 mat_product(mat3 const & mat, mat3 const & value) {
+	mat3 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y),
-		mat_product(t, first.z)
+		mat_product(t, value.x),
+		mat_product(t, value.y),
+		mat_product(t, value.z)
 	};
 }
 
@@ -1250,13 +1252,13 @@ constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & v) {
 	};
 }
 
-constexpr inline mat4 mat_product(mat4 const & first, mat4 const & second) {
-	mat4 t = mat_transpose(second);
+constexpr inline mat4 mat_product(mat4 const & mat, mat4 const & value) {
+	mat4 t = mat_transpose(mat);
 	return {
-		mat_product(t, first.x),
-		mat_product(t, first.y),
-		mat_product(t, first.z),
-		mat_product(t, first.w)
+		mat_product(t, value.x),
+		mat_product(t, value.y),
+		mat_product(t, value.z),
+		mat_product(t, value.w)
 	};
 }
 
@@ -1392,7 +1394,7 @@ constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
 // conversions
 //
 
-inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 const & scale) {
+inline mat3 to_matrix(vec2 const & position, vec2 const & scale, complex const & rotation) {
 	return mat3{
 		vec3{rotation * scale.x, 0},
 		vec3{cross_product(1.0f, rotation) * scale.y, 0},
@@ -1400,7 +1402,7 @@ inline mat3 to_matrix(vec2 const & position, complex const & rotation, vec2 cons
 	};
 }
 
-inline mat4 to_matrix(vec3 const & position, quat const & rotation, vec3 const & scale) {
+inline mat4 to_matrix(vec3 const & position, vec3 const & scale, quat const & rotation) {
 	mat4 mat; // = {};
 	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
 	mat.x.xyz *= scale.x; mat.x.w = 0;
