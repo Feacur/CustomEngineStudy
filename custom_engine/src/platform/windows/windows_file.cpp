@@ -27,6 +27,8 @@
 //
 //
 
+namespace {
+
 struct Lock {
 	volatile bool locked;
 	void acquire() { CUSTOM_ASSERT(!locked, ""); locked = true; }
@@ -39,16 +41,14 @@ struct Lock_Scoped {
 	~Lock_Scoped() { instance->release(); }
 };
 
-//
-//
-//
-
 template <typename L>
 struct Defer_Scoped {
 	L callback;
 	Defer_Scoped(L lambda) : callback(lambda) {}
 	~Defer_Scoped() { callback(); }
 };
+
+}
 
 //
 //

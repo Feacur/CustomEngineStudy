@@ -8,10 +8,14 @@
 
 #include "component_types.h"
 
+namespace {
+
 struct Physics_Settings {
 	u32  frequency = 50;
 	vec2 gravity   = {0, -9.81f};
 };
+
+}
 
 static Physics_Settings settings;
 

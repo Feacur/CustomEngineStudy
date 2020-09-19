@@ -16,6 +16,8 @@
 //        - proactively bind textures pending to rendering
 //        - batch and rebind if running out of slots/units
 
+namespace {
+
 struct Transforms_Blob {
 	custom::Entity    entity;
 	Transform const * transform;
@@ -30,6 +32,8 @@ struct Renderable_Blob {
 	u32            id;
 	Visual const * visual;
 };
+
+}
 
 static void build_transforms_map(custom::Array<Transform> & id_to_transform);
 static void ecs_update_renderer_internal(custom::Array<Transform> const & id_to_transform, custom::Array<Renderer_Blob> const & renderers, custom::Array<Renderable_Blob> const & renderables);

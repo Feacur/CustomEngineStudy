@@ -19,12 +19,10 @@
 // 2 bytes: 0b 00000000 00000000 00000xxx xxxxxxxx ( range is 0x 00000080-000007ff )
 // 1 byte:  0b 00000000 00000000 00000000 0xxxxxxx ( range is 0x 00000000-0000007f )
 
+namespace { struct decoding { u8 signature, mask, leading, continuation; }; }
+
 namespace custom {
 namespace unicode {
-
-struct decoding {
-	u8 signature, mask, leading, continuation;
-};
 
 constexpr static decoding const table[] = {
 	// signature  mask        lead. byte  cont. byte

@@ -53,7 +53,7 @@ constexpr u32 const empty_gl_id = 0;
 
 typedef GLchar const * glstring;
 
-namespace opengl {
+namespace {
 
 struct Field
 {
@@ -239,16 +239,16 @@ struct Data
 
 }
 
-template struct custom::Array<opengl::Program>;
-template struct custom::Array<opengl::Texture>;
-template struct custom::Array<opengl::Sampler>;
-template struct custom::Array<opengl::Mesh>;
-template struct custom::Array<opengl::Target>;
+template struct custom::Array<Program>;
+template struct custom::Array<Texture>;
+template struct custom::Array<Sampler>;
+template struct custom::Array<Mesh>;
+template struct custom::Array<Target>;
 
-static opengl::Data ogl;
+static Data ogl;
 
-static opengl::Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
-	opengl::Program const * program = &ogl.programs.get(program_id);
+static Field const * find_uniform_field(u32 program_id, u32 uniform_id) {
+	Program const * program = &ogl.programs.get(program_id);
 	for (u16 i = 0; i < program->uniforms.count; ++i) {
 		if (program->uniforms[i].id == uniform_id) {
 			return &program->uniforms[i];
@@ -282,20 +282,11 @@ static u32 find_empty_unit(u32 default_unit) {
 // API implementation
 //
 
-struct Program_Field
-{
-	GLchar name[32];
-	GLsizei name_count;
-	GLint size;
-	GLenum type;
-	GLint location;
-};
-
 namespace custom {
 namespace graphics {
 
 void init(void) {
-	new (&ogl) opengl::Data;
+	new (&ogl) Data;
 
 	GLint version_major;
 	GLint version_minor;
@@ -333,7 +324,7 @@ void init(void) {
 }
 
 void shutdown(void) {
-	ogl.opengl::Data::~Data();
+	ogl.Data::~Data();
 }
 
 #define INSTRUCTION_IMPL(T) static void platform_##T(Bytecode const & bc);
@@ -568,6 +559,8 @@ static bool platform_verify_program(GLuint id, GLenum parameter)
 	return false;
 }
 
+namespace {
+
 struct GL_String { GLint count; glstring data; };
 struct Shader_Props
 {
@@ -575,6 +568,8 @@ struct Shader_Props
 	GL_String version;
 	GL_String defines;
 };
+
+}
 
 static u8 fill_props(GL_String source, Shader_Props * props, u8 cap)
 {
@@ -700,6 +695,19 @@ static bool platform_link_program(GLuint program_id, GL_String source)
 // 	);
 // 	buffer.location = glGetAttribLocation(id, buffer.name);
 // }
+
+namespace {
+
+struct Program_Field
+{
+	GLchar name[32];
+	GLsizei name_count;
+	GLint size;
+	GLenum type;
+	GLint location;
+};
+
+}
 
 static void platform_get_active_uniform(GLuint id, GLuint index, Program_Field & buffer)
 {
@@ -981,14 +989,14 @@ static GLenum get_data_type(Data_Type value) {
 
 extern u16 get_type_size(Data_Type value);
 
-struct C_Memory { u32 count; cmemory data; };
+namespace { struct C_Memory { u32 count; cmemory data; }; }
 static C_Memory read_cmemory(Bytecode const & bc, Data_Type type) {
 	u32 count = *bc.read<u32>();
 	cmemory data = bc.read<u8>(count * get_type_size(type));
 	return { count, (cmemory)data };
 }
 
-struct C_String { u32 count; cstring data; };
+namespace { struct C_String { u32 count; cstring data; }; }
 static C_String read_cstring(Bytecode const & bc) {
 	u32 count = *bc.read<u32>();
 	cstring data = bc.read<char>(count);
@@ -1187,20 +1195,20 @@ static void platform_Allocate_Shader(Bytecode const & bc) {
 	// Shader_Asset const * asset = ref.get_fast();
 
 	ogl.programs_ensure_capacity(ref.id);
-	opengl::Program * resource = &ogl.programs.get(ref.id);
+	Program * resource = &ogl.programs.get(ref.id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_TRACE("shader %d already exists", ref.id);
 		return;
 	}
 
-	new (resource) opengl::Program;
+	new (resource) Program;
 	resource->gen = ref.gen;
 
 	resource->id = glCreateProgram();
 }
 
-static void platform_consume_texture_params(Texture_Asset const * asset, opengl::Texture * resource) {
-	new (resource) opengl::Texture;
+static void platform_consume_texture_params(Texture_Asset const * asset, Texture * resource) {
+	new (resource) Texture;
 	resource->target       = GL_TEXTURE_2D;
 	resource->is_dynamic   = asset->is_dynamic;
 	resource->size         = asset->size;
@@ -1221,7 +1229,7 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 	Texture_Asset const * asset = ref.get_fast();
 
 	ogl.textures_ensure_capacity(ref.id);
-	opengl::Texture * resource = &ogl.textures.get(ref.id);
+	Texture * resource = &ogl.textures.get(ref.id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_TRACE("texture %d already exists", ref.id);
 		return;
@@ -1279,9 +1287,9 @@ static void platform_Allocate_Texture(Bytecode const & bc) {
 static void platform_Allocate_Sampler(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
 	ogl.samplers_ensure_capacity(asset_id);
-	opengl::Sampler * resource = &ogl.samplers.get(asset_id);
+	Sampler * resource = &ogl.samplers.get(asset_id);
 	if (resource->id != empty_gl_id) { CUSTOM_TRACE("sampler %d already exists", asset_id); return; }
-	new (resource) opengl::Sampler;
+	new (resource) Sampler;
 
 	resource->min_tex = *bc.read<Filter_Mode>();
 	resource->min_mip = *bc.read<Filter_Mode>();
@@ -1303,14 +1311,14 @@ static void platform_Allocate_Sampler(Bytecode const & bc) {
 	glSamplerParameteri(resource->id, GL_TEXTURE_WRAP_T, get_wrap_mode(resource->wrap_y));
 }
 
-static void platform_consume_mesh_params(Mesh_Asset const * asset, opengl::Mesh * resource) {
-	new (resource) opengl::Mesh;
+static void platform_consume_mesh_params(Mesh_Asset const * asset, Mesh * resource) {
+	new (resource) Mesh;
 
 	// resource->buffers.set_capacity(asset->buffers.count);
 	CUSTOM_ASSERT(asset->buffers.count <= resource->buffers.capacity, "too many buffers");
 	for (u32 i = 0; i < asset->buffers.count; ++i) {
 		resource->buffers.push();
-		opengl::Buffer * buffer = new (&resource->buffers[(u16)i]) opengl::Buffer;
+		Buffer * buffer = new (&resource->buffers[(u16)i]) Buffer;
 
 		Mesh_Asset::Buffer const & in_buffer = asset->buffers[i];
 		buffer->is_index  = in_buffer.is_index;
@@ -1324,7 +1332,7 @@ static void platform_consume_mesh_params(Mesh_Asset const * asset, opengl::Mesh 
 		CUSTOM_ASSERT(in_buffer.attributes.count <= buffer->attributes.capacity, "too many attributes");
 		for (u32 attr_i = 0; attr_i < in_buffer.attributes.count; ++attr_i) {
 			buffer->attributes.push();
-			opengl::Attribute * attribute = new (&buffer->attributes[(u16)attr_i]) opengl::Attribute;
+			Attribute * attribute = new (&buffer->attributes[(u16)attr_i]) Attribute;
 			attribute->count = in_buffer.attributes[attr_i];
 		}
 		if (in_buffer.is_index) { resource->index_buffer = (u8)i; }
@@ -1338,7 +1346,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	Mesh_Asset const * asset = ref.get_fast();
 
 	ogl.meshes_ensure_capacity(ref.id);
-	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
+	Mesh * resource = &ogl.meshes.get(ref.id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_TRACE("mesh %d already exists", ref.id);
 		return;
@@ -1353,7 +1361,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glCreateVertexArrays(1, &resource->id);
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[i];
+			Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			glCreateBuffers(1, &buffer.id);
 			glNamedBufferData(
@@ -1371,7 +1379,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		glGenVertexArrays(1, &resource->id);
 		glBindVertexArray(resource->id);
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[i];
+			Buffer & buffer = resource->buffers[i];
 			GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 			glGenBuffers(1, &buffer.id);
@@ -1387,13 +1395,13 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	// -- chart memory --
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[i];
+			Buffer & buffer = resource->buffers[i];
 			u16 element_size = get_type_size(buffer.type);
 			GLenum element_type = get_data_type(buffer.type);
 
 			GLsizei stride = 0;
 			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-				opengl::Attribute & attr = buffer.attributes[attr_i];
+				Attribute & attr = buffer.attributes[attr_i];
 				stride += attr.count * element_size;
 			}
 
@@ -1405,7 +1413,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 			glVertexArrayVertexBuffer(resource->id, i, buffer.id, 0, stride);
 			GLuint attrib_offset = 0;
 			for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-				opengl::Attribute & attr = buffer.attributes[attr_i];
+				Attribute & attr = buffer.attributes[attr_i];
 				glEnableVertexArrayAttrib(resource->id, attr_i);
 				glVertexArrayAttribFormat(
 					resource->id,
@@ -1419,13 +1427,13 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	else {
 		if (ogl.version >= COMPILE_VERSION(4, 3)) {
 			for (u16 i = 0; i < resource->buffers.count; ++i) {
-				opengl::Buffer & buffer = resource->buffers[i];
+				Buffer & buffer = resource->buffers[i];
 				u16 element_size = get_type_size(buffer.type);
 				GLenum element_type = get_data_type(buffer.type);
 
 				GLsizei stride = 0;
 				for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-					opengl::Attribute & attr = buffer.attributes[attr_i];
+					Attribute & attr = buffer.attributes[attr_i];
 					stride += attr.count * element_size;
 				}
 
@@ -1434,7 +1442,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 				glBindVertexBuffer(i, buffer.id, 0, stride);
 				GLuint attrib_offset = 0;
 				for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-					opengl::Attribute & attr = buffer.attributes[attr_i];
+					Attribute & attr = buffer.attributes[attr_i];
 					glEnableVertexAttribArray(attr_i);
 					glVertexAttribFormat(
 						attr_i, attr.count, element_type, false, attrib_offset
@@ -1446,13 +1454,13 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 		}
 		else {
 			for (u16 i = 0; i < resource->buffers.count; ++i) {
-				opengl::Buffer & buffer = resource->buffers[i];
+				Buffer & buffer = resource->buffers[i];
 				u16 element_size = get_type_size(buffer.type);
 				GLenum element_type = get_data_type(buffer.type);
 		
 				GLsizei stride = 0;
 				for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-					opengl::Attribute & attr = buffer.attributes[attr_i];
+					Attribute & attr = buffer.attributes[attr_i];
 					stride += attr.count * element_size;
 				}
 		
@@ -1460,7 +1468,7 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 				glBindBuffer(target, buffer.id);
 				uptr attrib_offset = 0;
 				for (u8 attr_i = 0; attr_i < buffer.attributes.count; ++attr_i) {
-					opengl::Attribute & attr = buffer.attributes[attr_i];
+					Attribute & attr = buffer.attributes[attr_i];
 					glEnableVertexAttribArray(attr_i);
 					glVertexAttribPointer(
 						attr_i, attr.count, element_type, false,
@@ -1473,8 +1481,8 @@ static void platform_Allocate_Mesh(Bytecode const & bc) {
 	}
 }
 
-static void platform_consume_target_params(Bytecode const & bc, opengl::Target * resource) {
-	new (resource) opengl::Target;
+static void platform_consume_target_params(Bytecode const & bc, Target * resource) {
+	new (resource) Target;
 	resource->target = GL_FRAMEBUFFER;
 
 	u8 next_index = 0;
@@ -1484,11 +1492,11 @@ static void platform_consume_target_params(Bytecode const & bc, opengl::Target *
 	CUSTOM_ASSERT(textures_count <= resource->textures.capacity, "too many textures");
 	for (u16 i = 0; i < textures_count; ++i) {
 		u32 texture_id = texture_ids[i];
-		opengl::Texture const * texture = &ogl.textures.get(texture_id);
+		Texture const * texture = &ogl.textures.get(texture_id);
 		CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
 
 		resource->textures.push();
-		opengl::Render_Texture * render_texture = new (&resource->textures[i]) opengl::Render_Texture;
+		Render_Texture * render_texture = new (&resource->textures[i]) Render_Texture;
 		render_texture->asset_id = GL_RENDERBUFFER;
 
 		bool is_color = texture->texture_type == Texture_Type::Color;
@@ -1500,7 +1508,7 @@ static void platform_consume_target_params(Bytecode const & bc, opengl::Target *
 	CUSTOM_ASSERT(buffers_count <= resource->buffers.capacity, "too many buffers");
 	for (u16 i = 0; i < buffers_count; ++i) {
 		resource->buffers.push();
-		opengl::Render_Buffer * buffer = new (&resource->buffers[i]) opengl::Render_Buffer;
+		Render_Buffer * buffer = new (&resource->buffers[i]) Render_Buffer;
 		buffer->target       = GL_RENDERBUFFER;
 		buffer->size         = *bc.read<ivec2>();
 		buffer->data_type    = *bc.read<Data_Type>();
@@ -1516,10 +1524,10 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	// @Todo
 	u32 asset_id = *bc.read<u32>();
 	ogl.targets_ensure_capacity(asset_id);
-	opengl::Target * resource = &ogl.targets.get(asset_id);
+	Target * resource = &ogl.targets.get(asset_id);
 	if (resource->id != empty_gl_id) {
 		CUSTOM_TRACE("target %d already exists", asset_id);
-		opengl::Target default_resource;
+		Target default_resource;
 		platform_consume_target_params(bc, &default_resource);
 		return;
 	}
@@ -1535,8 +1543,8 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	//        process version correctly
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->textures.count; ++i) {
-			opengl::Render_Texture const * render_texture = &resource->textures[i];
-			opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
+			Render_Texture const * render_texture = &resource->textures[i];
+			Texture * texture = &ogl.textures.get(render_texture->asset_id);
 			CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
 			GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 			GLint mipmap = 0; 
@@ -1551,8 +1559,8 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 		glBindFramebuffer(resource->target, resource->id);
 		if (ogl.version >= COMPILE_VERSION(3, 2)) {
 			for (u16 i = 0; i < resource->textures.count; ++i) {
-				opengl::Render_Texture const * render_texture = &resource->textures[i];
-				opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
+				Render_Texture const * render_texture = &resource->textures[i];
+				Texture * texture = &ogl.textures.get(render_texture->asset_id);
 				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
 				GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 				GLint mipmap = 0;
@@ -1561,8 +1569,8 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 		}
 		else {
 			for (u16 i = 0; i < resource->textures.count; ++i) {
-				opengl::Render_Texture const * render_texture = &resource->textures[i];
-				opengl::Texture * texture = &ogl.textures.get(render_texture->asset_id);
+				Render_Texture const * render_texture = &resource->textures[i];
+				Texture * texture = &ogl.textures.get(render_texture->asset_id);
 				CUSTOM_ASSERT(texture->id != empty_gl_id, "texture doesn't exist");
 				GLenum attachment = get_attachment_format(texture->texture_type, render_texture->index);
 				GLint mipmap = 0;
@@ -1573,13 +1581,13 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 
 	//
 	for (u16 i = 0; i < resource->buffers.count; ++i) {
-		opengl::Render_Buffer * buffer = &resource->buffers[i];
+		Render_Buffer * buffer = &resource->buffers[i];
 		glGenRenderbuffers(1, &buffer->id);
 	}
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Render_Buffer const * buffer = &resource->buffers[i];
+			Render_Buffer const * buffer = &resource->buffers[i];
 			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
 			GLenum attachment = get_attachment_format(buffer->texture_type, buffer->index);
 			glNamedRenderbufferStorage(buffer->id, internal_format, buffer->size.x, buffer->size.y);
@@ -1588,7 +1596,7 @@ static void platform_Allocate_Target(Bytecode const & bc) {
 	}
 	else {
 		for (u16 i = 0; i < resource->buffers.count; ++i) {
-			opengl::Render_Buffer const * buffer = &resource->buffers[i];
+			Render_Buffer const * buffer = &resource->buffers[i];
 			GLenum internal_format = get_texture_internal_format(buffer->texture_type, buffer->data_type, 0);
 			GLenum attachment = get_attachment_format(buffer->texture_type, buffer->index);
 			glBindRenderbuffer(buffer->target, buffer->id);
@@ -1623,7 +1631,7 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 	unit_id & unit_id = ogl.unit_ids.get(unit);
 
 	unit_id.texture = asset_id.texture;
-	opengl::Texture * texture = &ogl.textures.get(asset_id.texture);
+	Texture * texture = &ogl.textures.get(asset_id.texture);
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		glBindTextureUnit(unit, texture->id);
 	}
@@ -1633,7 +1641,7 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 	}
 
 	if (asset_id.sampler != custom::empty_ref.id) {
-		opengl::Sampler * sampler = &ogl.samplers.get(asset_id.sampler);
+		Sampler * sampler = &ogl.samplers.get(asset_id.sampler);
 		unit_id.sampler = asset_id.sampler;
 		glBindSampler(unit, sampler->id);
 	}
@@ -1642,7 +1650,7 @@ static void platform_Allocate_Unit(Bytecode const & bc) {
 static void platform_Free_Shader(Bytecode const & bc) {
 	RefT<Shader_Asset> const ref = *(RefT<Shader_Asset> *)bc.read<Ref>();
 
-	opengl::Program * resource = &ogl.programs.get(ref.id);
+	Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't match"); return; }
@@ -1658,7 +1666,7 @@ static void platform_Free_Shader(Bytecode const & bc) {
 static void platform_Free_Texture(Bytecode const & bc) {
 	RefT<Texture_Asset> const ref = *(RefT<Texture_Asset> *)bc.read<Ref>();
 
-	opengl::Texture * resource = &ogl.textures.get(ref.id);
+	Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't match"); return; }
@@ -1689,7 +1697,7 @@ static void platform_Free_Texture(Bytecode const & bc) {
 
 static void platform_Free_Sampler(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
-	opengl::Sampler * resource = &ogl.samplers.get(asset_id);
+	Sampler * resource = &ogl.samplers.get(asset_id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "sampler doesn't exist");
 	glDeleteSamplers(1, &resource->id);
 
@@ -1707,7 +1715,7 @@ static void platform_Free_Sampler(Bytecode const & bc) {
 static void platform_Free_Mesh(Bytecode const & bc) {
 	RefT<Mesh_Asset> const ref = *(RefT<Mesh_Asset> *)bc.read<Ref>();
 
-	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
+	Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't match"); return; }
@@ -1725,7 +1733,7 @@ static void platform_Free_Mesh(Bytecode const & bc) {
 
 static void platform_Free_Target(Bytecode const & bc) {
 	u32 asset_id = *bc.read<u32>();
-	opengl::Target * resource = &ogl.targets.get(asset_id);
+	Target * resource = &ogl.targets.get(asset_id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
 	// @Todo: textures fate?
 	// for (u16 i = 0; i < resource->textures.count; ++i) {
@@ -1755,7 +1763,7 @@ static void platform_Free_Unit(Bytecode const & bc) {
 			glBindTextureUnit(unit, 0);
 		}
 		else {
-			opengl::Texture * texture = &ogl.textures.get(asset_id.texture);
+			Texture * texture = &ogl.textures.get(asset_id.texture);
 			glActiveTexture(GL_TEXTURE0 + unit);
 			glBindTexture(texture->target, 0);
 		}
@@ -1783,7 +1791,7 @@ static void platform_Use_Shader(Bytecode const & bc) {
 		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
 		return;
 	}
-	opengl::Program const * resource = &ogl.programs.get(asset_id);
+	Program const * resource = &ogl.programs.get(asset_id);
 	glUseProgram(resource->id);
 }
 
@@ -1802,7 +1810,7 @@ static void platform_Use_Mesh(Bytecode const & bc) {
 		CUSTOM_WARNING("skipping mesh %d: it is not allocated", asset_id);
 		return;
 	}
-	opengl::Mesh const * resource = &ogl.meshes.get(asset_id);
+	Mesh const * resource = &ogl.meshes.get(asset_id);
 	glBindVertexArray(resource->id);
 }
 
@@ -1817,7 +1825,7 @@ static void platform_Use_Target(Bytecode const & bc) {
 		return;
 	}
 
-	opengl::Target const * resource = &ogl.targets.get(asset_id);
+	Target const * resource = &ogl.targets.get(asset_id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
 	glBindFramebuffer(resource->target, resource->id);
 }
@@ -1828,7 +1836,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 	Shader_Asset const * asset = ref.get_fast();
 
-	opengl::Program * resource = &ogl.programs.get(ref.id);
+	Program * resource = &ogl.programs.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "shader doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "shader asset doesn't match"); return; }
@@ -1851,7 +1859,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	// // resource->attributes.set_capacity(attributes_capacity);
 	// for (GLint i = 0; i < attributes_capacity; ++i) {
 	// 	// resource->attributes.push();
-	// 	// opengl::Field * field = new (&resource->attributes[i]) opengl::Field;
+	// 	// Field * field = new (&resource->attributes[i]) Field;
 	// 	platform_get_active_attribute(resource->id, i, field_buffer);
 	// 	// CUSTOM_TRACE(
 	// 	// 	"  - attribute 0x%x '%s' [%d]; // ind %d, loc %d",
@@ -1868,7 +1876,7 @@ static void platform_Load_Shader(Bytecode const & bc) {
 	// resource->uniforms.set_capacity(uniforms_count);
 	for (GLint i = 0; i < uniforms_count; ++i) {
 		resource->uniforms.push();
-		opengl::Field * field = new (&resource->uniforms[(u16)i]) opengl::Field;
+		Field * field = new (&resource->uniforms[(u16)i]) Field;
 		platform_get_active_uniform(resource->id, i, field_buffer);
 		// CUSTOM_TRACE(
 		// 	"  - uniform 0x%x '%s' [%d]; // ind %d, loc %d",
@@ -1890,7 +1898,7 @@ static void platform_Load_Texture(Bytecode const & bc) {
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 	Texture_Asset const * asset = ref.get_fast();
 
-	opengl::Texture * resource = &ogl.textures.get(ref.id);
+	Texture * resource = &ogl.textures.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "texture doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "texture asset doesn't match"); return; }
@@ -1942,14 +1950,14 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 	if (!ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 	Mesh_Asset const * asset = ref.get_fast();
 
-	opengl::Mesh * resource = &ogl.meshes.get(ref.id);
+	Mesh * resource = &ogl.meshes.get(ref.id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "mesh doesn't exist");
 
 	if (resource->gen != ref.gen) { CUSTOM_ASSERT(false, "mesh asset doesn't match"); return; }
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[(u16)i];
+			Buffer & buffer = resource->buffers[(u16)i];
 			// GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			// GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
@@ -1985,7 +1993,7 @@ static void platform_Load_Mesh(Bytecode const & bc) {
 			ogl.active_mesh = custom::empty_ref.id;
 		}
 		for (u32 i = 0; i < asset->buffers.count; ++i) {
-			opengl::Buffer & buffer = resource->buffers[(u16)i];
+			Buffer & buffer = resource->buffers[(u16)i];
 			// GLenum usage = get_mesh_usage(buffer.frequency, buffer.access);
 			GLenum const target = buffer.is_index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
@@ -2031,9 +2039,9 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 		CUSTOM_WARNING("skipping shader %d: it is not allocated", asset_id);
 		return;
 	}
-	opengl::Program const * resource = &ogl.programs.get(asset_id);
+	Program const * resource = &ogl.programs.get(asset_id);
 
-	opengl::Field const * field = find_uniform_field(asset_id, uniform_id);
+	Field const * field = find_uniform_field(asset_id, uniform_id);
 
 	// @Todo: compare types and size?
 
@@ -2136,6 +2144,8 @@ static void platform_Clear(Bytecode const & bc) {
 	glClear(gl_clear_flags);
 }
 
+namespace {
+
 struct Clear_Target_Data {
 	Texture_Type texture_type;
 	Data_Type data_type;
@@ -2148,6 +2158,8 @@ struct Clear_Target_Data {
 		uvec4 udata;
 	};
 };
+
+}
 
 static void platform_consume_clear_target_params(Bytecode const & bc, Array_Fixed<Clear_Target_Data, 2> & data) {
 	u8 count = *bc.read<u8>();
@@ -2190,7 +2202,7 @@ static void platform_Clear_Target(Bytecode const & bc) {
 
 	CUSTOM_ASSERT(ogl.version >= COMPILE_VERSION(3, 0), "frame buffers are not supported");
 
-	opengl::Target const * resource = &ogl.targets.get(asset_id);
+	Target const * resource = &ogl.targets.get(asset_id);
 	CUSTOM_ASSERT(resource->id != empty_gl_id, "target doesn't exist");
 
 	if (ogl.version >= COMPILE_VERSION(4, 5)) {
@@ -2275,15 +2287,15 @@ static void platform_Draw(Bytecode const & bc) {
 		return;
 	}
 
-	// opengl::Program const * program = &ogl.programs.get(ogl.active_program);
-	opengl::Mesh const * mesh = &ogl.meshes.get(ogl.active_mesh);
+	// Program const * program = &ogl.programs.get(ogl.active_program);
+	Mesh const * mesh = &ogl.meshes.get(ogl.active_mesh);
 
 	// // GLint program_id;
 	// // glGetIntegerv(GL_CURRENT_PROGRAM, &program_id);
 	// glValidateProgram(program->id);
 	// platform_verify_program(program->id, GL_VALIDATE_STATUS);
 
-	opengl::Buffer const & indices = mesh->buffers[mesh->index_buffer];
+	Buffer const & indices = mesh->buffers[mesh->index_buffer];
 	GLenum data_type = get_data_type(indices.type);
 	glDrawElements(GL_TRIANGLES, indices.count, data_type, NULL);
 }

@@ -8,6 +8,8 @@
 
 #include "component_types.h"
 
+namespace {
+
 struct Entity_Blob {
 	custom::Entity   entity;
 	Transform      * transform;
@@ -52,6 +54,8 @@ struct Physics_Settings {
 	r32  separation_fraction = 0.5f;
 	r32  separation_bias     = 0.01f;
 };
+
+}
 
 static Physics_Settings settings;
 static custom::Array<Points_Blob> transformed_points;
