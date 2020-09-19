@@ -1,5 +1,5 @@
 ! # entity
-	p assets/prefabs/cube.prefab
+	p "assets/prefabs/cube.prefab"
 Phys2d
 	movable    1
 	rotatable  1
@@ -9,4 +9,4 @@ Phys2d
 	stickiness 0.6
 	stillness  0.8
 	shape      0.16
-	collider   assets/meshes/square_1.collider
+	collider   "assets/meshes/square_1.collider"

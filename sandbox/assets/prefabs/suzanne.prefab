@@ -3,7 +3,7 @@ Transform
 	scale    1 1 1
 	rotation 0 0 0 1
 Visual
-	shader  assets/shaders/v3_texture_tint.glsl
-	texture assets/textures/checkerboard.png
-	mesh    assets/meshes/suzanne.obj
+	shader  "assets/shaders/v3_texture_tint.glsl"
+	texture "assets/textures/checkerboard.png"
+	mesh    "assets/meshes/suzanne.obj"
 	layer   0

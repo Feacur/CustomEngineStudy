@@ -5,11 +5,10 @@
 - probably, should do a clear start with physics, and iteratively reimplement it more stable?
 
 # Near plans
-- extend application of `Config_Asset`
-  - (?) put Lua callbacks there (assets, init, update, etc.)
-  - (?) file watcher folder path
 - allow correct physics processing in presence of `Hierarchy` components
+  - now I can reuse renderer's fetcher
 - study and integrate [box2d-lite](https://github.com/erincatto/box2d-lite)
+- study how parsers out there work
 
 # Bugfix
 - investigate nested and inline prefabs instantiation

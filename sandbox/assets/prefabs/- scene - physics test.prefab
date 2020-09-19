@@ -2,7 +2,7 @@
 	i 1 # is instance; think of it as of a unity scene
 > # child
 	# left wall
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position -1 4 0
 			scale    1 10 1
@@ -12,7 +12,7 @@
 			rotatable 0
 	 	~
 	# floor
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 5 -0.5 0
 			scale    10 1 1
@@ -21,7 +21,7 @@
 			rotatable 0
 		~
 	# slope
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 14 2 0
 			scale    10 1 1
@@ -31,55 +31,55 @@
 			rotatable 0
 		~
 	# stack of boxes
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 1 0.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 2 0.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 3 0.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 4 0.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 1.5 1.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 2.5 1.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 3.5 1.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 2 2.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 3 2.5 0
 		~
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 2.5 3.5 0
 		~
 	# some small spheres
-	p assets/prefabs/circle phys.prefab
+	p "assets/prefabs/circle phys.prefab"
 		o Transform
 			position 6 7 0
 			scale    0.5 0.5 0.5
 		Phys2d
 			mass 2.5
 		~
-	p assets/prefabs/circle phys.prefab
+	p "assets/prefabs/circle phys.prefab"
 		o Transform
 			position 8 7 0
 			scale    0.5 0.5 0.5
@@ -87,10 +87,10 @@
 			mass 2.5
 		~
 	# actor
-	p assets/prefabs/circle phys.prefab
+	p "assets/prefabs/circle phys.prefab"
 		o Transform
 			position 7 7 0
 		Lua_Script
-			asset assets/scripts/script_control_phys2d.lua
-			update script_control_phys2d
+			asset "assets/scripts/script_control_phys2d.lua"
+			update "script_control_phys2d"
 		~

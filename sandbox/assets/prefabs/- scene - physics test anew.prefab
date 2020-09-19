@@ -2,7 +2,7 @@
 	i 1 # is instance; think of it as of a unity scene
 > # child
 	# floor
-	p assets/prefabs/square phys.prefab
+	p "assets/prefabs/square phys.prefab"
 		o Transform
 			position 0 -0.5 0
 			scale 50 1 1

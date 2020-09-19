@@ -1,10 +1,10 @@
 ! # entity
 	i 1 # is instance
-	p assets/prefabs/camera.prefab
+	p "assets/prefabs/camera.prefab"
 		o Transform
 			position 0 6 -10
 			degrees  30 0 0
 		~
 Lua_Script
-	asset  assets/scripts/script_fly.lua
-	update script_fly
+	asset  "assets/scripts/script_fly.lua"
+	update "script_fly"

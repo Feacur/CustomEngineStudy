@@ -3,7 +3,7 @@ Transform
 	scale    1 1 1
 	rotation 0 0 0 1
 Visual
-	shader  assets/shaders/v3_texture_tint.glsl
-	texture assets/textures/proto_blue.png
-	mesh    assets/meshes/plane_xz_1.obj
+	shader  "assets/shaders/v3_texture_tint.glsl"
+	texture "assets/textures/proto_blue.png"
+	mesh    "assets/meshes/plane_xz_1.obj"
 	layer   0

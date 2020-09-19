@@ -32,9 +32,9 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 			} break;
 
 			case 'p': ++(*source); {
-				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
-				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(id);
+				u32 path_length = to_string_length(source);
+				u32 path_id     = Asset::store_string(*source, path_length);
+				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(path_id);
 
 				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
 				Entity source_entity = prefab_asset->entity;
@@ -65,9 +65,9 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 			} break;
 
 			case 'p': ++(*source); {
-				cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
-				u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(id);
+				u32 path_length = to_string_length(source);
+				u32 path_id     = Asset::store_string(*source, path_length);
+				Asset_RefT<Prefab_Asset> prefab_asset_ref = Asset::add<Prefab_Asset>(path_id);
 
 				Prefab_Asset * prefab_asset = prefab_asset_ref.ref.get_fast();
 				Entity child = prefab_asset->entity.copy(is_instance);
@@ -101,19 +101,23 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 
 	Transform * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
-		if (strncmp_auto(*source, "position ") == 0) { component->position = to_vec3(source); continue; }
-		if (strncmp_auto(*source, "scale ")    == 0) { component->scale    = to_vec3(source); continue; }
-		if (strncmp_auto(*source, "rotation ") == 0) { component->rotation = to_vec4(source); continue; }
-		if (strncmp_auto(*source, "radians ")  == 0) { component->rotation = quat_from_radians(to_vec3(source)); continue; }
-		if (strncmp_auto(*source, "degrees ")  == 0) { component->rotation = quat_from_radians(to_vec3(source) * deg_to_rad); continue; }
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
 
-		break;
+		if (strncmp_auto(key, "position ") == 0) { component->position = to_vec3(source); continue; }
+		if (strncmp_auto(key, "scale ")    == 0) { component->scale    = to_vec3(source); continue; }
+		if (strncmp_auto(key, "rotation ") == 0) { component->rotation = to_vec4(source); continue; }
+		if (strncmp_auto(key, "radians ")  == 0) { component->rotation = quat_from_radians(to_vec3(source)); continue; }
+		if (strncmp_auto(key, "degrees ")  == 0) { component->rotation = quat_from_radians(to_vec3(source) * deg_to_rad); continue; }
+
+		*source = key; break;
 	}
 }
 
@@ -131,21 +135,24 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 	Camera * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
-
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
+
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
 
 		// @Todo: parse enums
-		if (strncmp_auto(*source, "near ")  == 0) { component->ncp   = to_r32(source); continue; }
-		if (strncmp_auto(*source, "far ")   == 0) { component->fcp   = to_r32(source); continue; }
-		if (strncmp_auto(*source, "scale ") == 0) { component->scale = to_r32(source); continue; }
-		if (strncmp_auto(*source, "ortho ") == 0) { component->ortho = to_r32(source); continue; }
-		if (strncmp_auto(*source, "clear ") == 0) { component->clear = (graphics::Clear_Flag)to_u32(source); continue; }
-		if (strncmp_auto(*source, "layer ") == 0) { component->layer = (u8)to_u32(source); continue; }
+		if (strncmp_auto(key, "near ")  == 0) { component->ncp   = to_r32(source); continue; }
+		if (strncmp_auto(key, "far ")   == 0) { component->fcp   = to_r32(source); continue; }
+		if (strncmp_auto(key, "scale ") == 0) { component->scale = to_r32(source); continue; }
+		if (strncmp_auto(key, "ortho ") == 0) { component->ortho = to_r32(source); continue; }
+		if (strncmp_auto(key, "clear ") == 0) { component->clear = (graphics::Clear_Flag)to_u32(source); continue; }
+		if (strncmp_auto(key, "layer ") == 0) { component->layer = (u8)to_u32(source); continue; }
 
-		break;
+		*source = key; break;
 	}
 }
 

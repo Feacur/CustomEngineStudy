@@ -23,36 +23,40 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 
 	Visual * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
-		if (strncmp_auto(*source, "shader ") == 0) {
-			cstring line_end = to_eol(source);
-			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-			component->shader = Asset::add<Shader_Asset>(id);
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
+
+		if (strncmp_auto(key, "shader ") == 0) {
+			u32 path_length = to_string_length(source);
+			u32 path_id     = Asset::store_string(*source, path_length);
+			component->shader = Asset::add<Shader_Asset>(path_id);
 			continue;
 		}
 
-		if (strncmp_auto(*source, "texture ") == 0) {
-			cstring line_end = to_eol(source);
-			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-			component->texture = Asset::add<Texture_Asset>(id);
+		if (strncmp_auto(key, "texture ") == 0) {
+			u32 path_length = to_string_length(source);
+			u32 path_id     = Asset::store_string(*source, path_length);
+			component->texture = Asset::add<Texture_Asset>(path_id);
 			continue;
 		}
 
-		if (strncmp_auto(*source, "mesh ") == 0) {
-			cstring line_end = to_eol(source);
-			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-			component->mesh = Asset::add<Mesh_Asset>(id);
+		if (strncmp_auto(key, "mesh ") == 0) {
+			u32 path_length = to_string_length(source);
+			u32 path_id     = Asset::store_string(*source, path_length);
+			component->mesh = Asset::add<Mesh_Asset>(path_id);
 			continue;
 		}
 
-		if (strncmp_auto(*source, "layer ") == 0) { component->layer = (u8)to_u32(source); continue; }
+		if (strncmp_auto(key, "layer ") == 0) { component->layer = (u8)to_u32(source); continue; }
 
-		break;
+		*source = key; break;
 	}
 }
 
@@ -70,26 +74,30 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 
 	Lua_Script * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
-		if (strncmp_auto(*source, "asset ") == 0) {
-			cstring line_end = to_eol(source);
-			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-			Asset::add<Lua_Asset>(id);
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
+
+		if (strncmp_auto(key, "asset ") == 0) {
+			u32 path_length = to_string_length(source);
+			u32 path_id     = Asset::store_string(*source, path_length);
+			Asset::add<Lua_Asset>(path_id);
 			continue;
 		}
 
-		if (strncmp_auto(*source, "update ") == 0) {
-			cstring line_end = to_eol(source);
-			component->update_string_id = Entity::store_string(*source, (u32)(line_end - *source));
+		if (strncmp_auto(key, "update ") == 0) {
+			u32 value_length = to_string_length(source);
+			component->update_string_id = Entity::store_string(*source, value_length);
 			continue;
 		}
 
-		break;
+		*source = key; break;
 	}
 }
 
@@ -107,13 +115,17 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 
 	Physical * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
-		break;
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
+
+		*source = key; break;
 	}
 }
 
@@ -131,29 +143,33 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 
 	Phys2d * component = refT.get_fast();
 
-	while (**source) {
-		skip_to_eol(source); parse_eol(source);
+	while ((skip_to_eol(source), parse_eol(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
+		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
-		if (strncmp_auto(*source, "movable ")    == 0) { component->movable    = to_r32(source); continue; }
-		if (strncmp_auto(*source, "rotatable ")  == 0) { component->rotatable  = to_r32(source); continue; }
-		if (strncmp_auto(*source, "mass ")       == 0) { component->mass       = to_r32(source); continue; }
-		if (strncmp_auto(*source, "elasticity ") == 0) { component->elasticity = to_r32(source); continue; }
-		if (strncmp_auto(*source, "roughness ")  == 0) { component->roughness  = to_r32(source); continue; }
-		if (strncmp_auto(*source, "stickiness ") == 0) { component->stickiness = to_r32(source); continue; }
-		if (strncmp_auto(*source, "stillness ")  == 0) { component->stillness  = to_r32(source); continue; }
-		if (strncmp_auto(*source, "shape ")      == 0) { component->shape      = to_r32(source); continue; }
+		u32 key_length = to_identifier_length(source);
+		cstring key    = *source;
+		skip_to_void(source);
 
-		if (strncmp_auto(*source, "collider ") == 0) {
-			cstring line_end = to_eol(source);
-			u32 id = Asset::store_string(*source, (u32)(line_end - *source));
-			component->mesh = Asset::add<Collider2d_Asset>(id);
+		if (strncmp_auto(key, "movable ")    == 0) { component->movable    = to_r32(source); continue; }
+		if (strncmp_auto(key, "rotatable ")  == 0) { component->rotatable  = to_r32(source); continue; }
+		if (strncmp_auto(key, "mass ")       == 0) { component->mass       = to_r32(source); continue; }
+		if (strncmp_auto(key, "elasticity ") == 0) { component->elasticity = to_r32(source); continue; }
+		if (strncmp_auto(key, "roughness ")  == 0) { component->roughness  = to_r32(source); continue; }
+		if (strncmp_auto(key, "stickiness ") == 0) { component->stickiness = to_r32(source); continue; }
+		if (strncmp_auto(key, "stillness ")  == 0) { component->stillness  = to_r32(source); continue; }
+		if (strncmp_auto(key, "shape ")      == 0) { component->shape      = to_r32(source); continue; }
+
+		if (strncmp_auto(key, "collider ") == 0) {
+			u32 path_length = to_string_length(source);
+			u32 path_id     = Asset::store_string(*source, path_length);
+			component->mesh = Asset::add<Collider2d_Asset>(path_id);
 			continue;
 		}
 
-		break;
+		*source = key; break;
 	}
 }
 

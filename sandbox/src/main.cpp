@@ -19,15 +19,17 @@
 static lua_State * L;
 static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
 
-cstring init_lua_asset = "assets/scripts/main.lua";
-cstring init_lua_callback = "global_init";
+static cstring file_watcher_target = ".";
+static cstring init_lua_asset      = "assets/scripts/main.lua";
+static cstring init_lua_callback   = "global_init";
 
 static void consume_config_init(void) {
 	custom::Config_Asset const * config = config_ref.ref.get_safe();
 	CUSTOM_ASSERT(config, "no config");
 
-	init_lua_asset    = config->get_value<cstring>("init_lua_asset",    "assets/scripts/main.lua");
-	init_lua_callback = config->get_value<cstring>("init_lua_callback", "global_init");
+	file_watcher_target = config->get_value<cstring>("file_watcher_target", ".");
+	init_lua_asset      = config->get_value<cstring>("init_lua_asset",      "assets/scripts/main.lua");
+	init_lua_callback   = config->get_value<cstring>("init_lua_callback",   "global_init");
 }
 
 cstring update_lua_callback = "global_update";
@@ -70,7 +72,7 @@ static void on_app_init() {
 	consume_config_init();
 	consume_config();
 
-	custom::file::watch_init(".", true);
+	custom::file::watch_init(file_watcher_target, true);
 
 	// @Note: init Lua
 	L = luaL_newstate();
