@@ -4,6 +4,7 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/api/internal/names_lookup.h"
 #include "engine/impl/array.h"
+#include "engine/impl/parsing.h"
 
 namespace custom {
 
@@ -86,10 +87,7 @@ void Entity::serialization_read(cstring * source) {
 
 		if (**source == '~') { break; };
 
-		if (**source == '#') {
-			skip_to_eol(source); parse_eol(source);
-			continue;
-		};
+		if (**source == '#') { to_next_line(source); continue; };
 
 		if (**source == '!') {
 			serialization::serialization_read_Entity_block(*this, source);
@@ -110,14 +108,12 @@ void Entity::serialization_read(cstring * source) {
 		u32 type = custom::component_names.get_id(*source, (u32)(line_end - *source));
 		if (type == custom::empty_index) {
 			CUSTOM_ASSERT(false, "unrecognized instruction");
-			skip_to_eol(source); parse_eol(source);
-			continue;
+			to_next_line(source); continue;
 		}
 
 		if (remove_component) {
 			if (has_component(type)) { rem_component(type); }
-			skip_to_eol(source); parse_eol(source);
-			continue;
+			to_next_line(source); continue;
 		}
 
 		// @Note: component readers are assumed to early out upon discovery of

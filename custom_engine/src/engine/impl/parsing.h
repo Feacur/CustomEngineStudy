@@ -67,4 +67,8 @@ inline static vec4 to_vec4(cstring * source) {
 	return (parse_void(source), parse_vec4(source));
 }
 
+inline static void to_next_line(cstring * source) {
+	skip_to_eol(source); parse_eol(source);
+}
+
 }

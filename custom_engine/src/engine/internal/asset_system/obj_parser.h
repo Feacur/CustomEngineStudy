@@ -79,7 +79,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 
 			case 'f': ++count_buffer_f; break;
 		}
-		skip_to_eol(&source); parse_eol(&source);
+		to_next_line(&source);
 	}
 
 	Array<vec3> packed_v(count_buffer_v);
@@ -106,7 +106,7 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 				);
 			} break;
 		}
-		skip_to_eol(&source); parse_eol(&source);
+		to_next_line(&source);
 	}
 
 	// @Note: unpack vertices

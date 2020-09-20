@@ -159,14 +159,14 @@ void Collider2d_Asset::update(Array<u8> & file) {
 	source = (cstring)file.data;
 	while (*source) {
 		++vertices_capacity;
-		skip_to_eol(&source); parse_eol(&source);
+		to_next_line(&source);
 	}
 
 	Array<vec2> vertices(vertices_capacity);
 	source = (cstring)file.data;
 	while (*source) {
 		vertices.push(parse_vec2(&source));
-		skip_to_eol(&source); parse_eol(&source);
+		to_next_line(&source);
 	}
 
 	if (!vertices.count) { CUSTOM_ASSERT(false, "mesh has no vertices"); return; }
@@ -273,10 +273,7 @@ void Config_Asset::update(Array<u8> & file) {
 	while (*source) {
 		parse_void(&source);
 
-		if (*source == '#') {
-			skip_to_eol(&source); parse_eol(&source);
-			continue;
-		}
+		if (*source == '#') { to_next_line(&source); continue; }
 
 		u32     type_length = to_identifier_length(&source);
 		cstring type        = source;
@@ -309,7 +306,7 @@ void Config_Asset::update(Array<u8> & file) {
 			set_value(cache.get_string(key_id), cache.get_string(value_id));
 		}
 
-		skip_to_eol(&source); parse_eol(&source);
+		to_next_line(&source);
 	}
 
 	++version;

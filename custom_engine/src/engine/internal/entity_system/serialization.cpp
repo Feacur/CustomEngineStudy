@@ -20,7 +20,7 @@ namespace serialization {
 void serialization_read_Entity_block(Entity & entity, cstring * source) {
 	bool done = false;
 	while (!done && *source) {
-		skip_to_eol(source); parse_eol(source);
+		to_next_line(source);
 		switch ((parse_void(source), **source)) {
 			case 'i': ++(*source); {
 				bool is_instance = (bool)(parse_void(source), parse_u32(source));
@@ -55,7 +55,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 
 	bool done = false;
 	while (!done && *source) {
-		skip_to_eol(source); parse_eol(source);
+		to_next_line(source);
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
 				Entity child = Entity::create(is_instance);
@@ -101,7 +101,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 
 	Transform * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
@@ -135,7 +135,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 	Camera * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 		parse_void(source);
 		if (**source == '#') { continue; }
 		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }

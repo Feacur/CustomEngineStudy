@@ -23,7 +23,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 
 	Visual * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
@@ -74,7 +74,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 
 	Lua_Script * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
@@ -115,7 +115,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 
 	Physical * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
@@ -143,7 +143,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 
 	Phys2d * component = refT.get_fast();
 
-	while ((skip_to_eol(source), parse_eol(source), **source)) {
+	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
 		if (**source == '#') { continue; }
