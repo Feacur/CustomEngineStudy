@@ -144,7 +144,6 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 		cstring key    = *source;
 		skip_to_void(source);
 
-		// @Todo: parse enums
 		if (strncmp_auto(key, "near ")  == 0) { component->ncp   = to_r32(source); continue; }
 		if (strncmp_auto(key, "far ")   == 0) { component->fcp   = to_r32(source); continue; }
 		if (strncmp_auto(key, "scale ") == 0) { component->scale = to_r32(source); continue; }

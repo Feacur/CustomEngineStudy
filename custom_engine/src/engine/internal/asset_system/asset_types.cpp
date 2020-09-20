@@ -231,16 +231,17 @@ template<> void Config_Asset::set_value<cstring>(cstring key, cstring value) {
 }
 
 //
-#define GET_VALUE_IMPL(T)                                                       \
-template<> T Config_Asset::get_value<T>(cstring key, T default_value) const {   \
-	u32 id = strings.store_string(key, custom::empty_index);                    \
-	for (u32 i = 0; i < entries.count; ++i) {                                   \
-		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }       \
-		if (entries[i].key == id) { return entries[i].value_##T; }              \
-	}                                                                           \
-	CUSTOM_WARNING("config doesn't contain key %s : " #T "; use default", key); \
-	return default_value;                                                       \
-}                                                                               \
+#define GET_VALUE_IMPL(T)                                                     \
+template<> T Config_Asset::get_value<T>(cstring key, T default_value) const { \
+	u32 id = strings.store_string(key, custom::empty_index);                  \
+	for (u32 i = 0; i < entries.count; ++i) {                                 \
+		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }     \
+		if (entries[i].key == id) { return entries[i].value_##T; }            \
+	}                                                                         \
+	CUSTOM_WARNING("config doesn't contain key '%s : " #T "'", key);          \
+	CUSTOM_WARNING("... using default value of '%g'", (r32)default_value);    \
+	return default_value;                                                     \
+}                                                                             \
 
 GET_VALUE_IMPL(s32)
 GET_VALUE_IMPL(u32)
@@ -254,7 +255,8 @@ template<> cstring Config_Asset::get_value<cstring>(cstring key, cstring default
 		if (entries[i].type != Config_Asset::Value_Type::str) { continue; }
 		if (entries[i].key == id) { return strings.get_string(entries[i].value_str); }
 	}
-	CUSTOM_WARNING("config doesn't contain key %s : str; use default", key);
+	CUSTOM_WARNING("config doesn't contain key '%s : str'", key);
+	CUSTOM_WARNING("... using default value of '%s'", default_value);
 	return default_value;
 }
 
