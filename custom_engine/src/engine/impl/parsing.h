@@ -33,9 +33,15 @@ inline static u32 to_string_length(cstring * source) {
 		skip_to_eol(source); return 0;
 	}
 
-	++(*source);
-	cstring string_end = *source; skip_to_single_line_string_end(&string_end);
+	cstring string_end = *source; parse_string(&string_end);
 
+	--string_end;
+	if (*string_end != '"') {
+		CUSTOM_ASSERT(false, "invalid string end");
+		skip_to_eol(source); return 0;
+	}
+
+	++(*source);
 	return (u32)(string_end - *source);
 }
 

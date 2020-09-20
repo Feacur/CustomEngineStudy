@@ -27,10 +27,6 @@ void skip_to_digit(cstring * source) {
 	while (**source && !IS_DIGIT(**source)) { ++(*source); }
 }
 
-void skip_to_single_line_string_end(cstring * source) {
-	while (**source && !IS_SINGLE_LINE_STRING_END(**source)) { ++(*source); }
-}
-
 void parse_blank(cstring * source) {
 	while (IS_BLANK(**source)) { ++(*source); }
 }
@@ -45,6 +41,15 @@ void parse_void(cstring * source) {
 
 void parse_identifier(cstring * source) {
 	while (IS_IDENTIFIER_SYMBOL(**source)) { ++(*source); }
+}
+
+void parse_string(cstring * source) {
+	if (**source != '"') { return; }
+	while ((++(*source), **source) && !IS_EOL(**source)) {
+		bool is_escape = false;
+		if (**source == '\\') { is_escape = true; ++(*source); }
+		if (!is_escape && **source == '"') { ++(*source); break; }
+	}
 }
 
 u32 parse_u32(cstring * source) {
