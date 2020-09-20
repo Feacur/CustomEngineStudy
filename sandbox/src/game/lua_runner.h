@@ -1,4 +1,5 @@
 #pragma once
+#include "engine/core/types.h"
 
 struct lua_State;
 

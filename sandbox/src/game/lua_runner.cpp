@@ -4,7 +4,7 @@
 #include "engine/api/internal/entity_system.h"
 #include "engine/impl/array.h"
 
-#include "component_types.h"
+#include "../entity_system/component_types.h"
 
 #include <lua.hpp>
 

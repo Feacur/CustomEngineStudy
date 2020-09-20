@@ -4,11 +4,11 @@
 
 #include "asset_system/asset_types.h"
 
-#include "entity_system/ecs_lua_runner.h"
-// #include "entity_system/ecs_physics_no_angular.h"
-// #include "entity_system/ecs_physics_with_angular.h"
-#include "entity_system/ecs_physics_clean.h"
-#include "entity_system/ecs_renderer.h"
+#include "game/lua_runner.h"
+// #include "game/physics_no_angular.h"
+// #include "game/physics_with_angular.h"
+#include "game/physics_clean.h"
+#include "game/renderer.h"
 
 #include <lua.hpp>
 

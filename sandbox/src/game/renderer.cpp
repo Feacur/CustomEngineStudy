@@ -7,7 +7,7 @@
 #include "engine/impl/array.h"
 #include "engine/impl/math_linear.h"
 
-#include "component_types.h"
+#include "../entity_system/component_types.h"
 
 #include <stdlib.h>
 
