@@ -110,12 +110,12 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 	}
 
 	// @Note: unpack vertices
-	#define PUSH_STRIDE_IMPL(array)\
-		if (array.count > 0) {\
-			u8 elements_count = (u8)(sizeof(*array.data) / sizeof(r32));\
-			elements_per_vertex += elements_count;\
-			vertex_attributes.push(elements_count);\
-		}\
+	#define PUSH_STRIDE_IMPL(array)                                  \
+	if (array.count > 0) {                                           \
+	    u8 elements_count = (u8)(sizeof(*array.data) / sizeof(r32)); \
+	    elements_per_vertex += elements_count;                       \
+	    vertex_attributes.push(elements_count);                      \
+	}                                                                \
 
 	u32 elements_per_vertex = 0;
 	vertex_attributes.set_capacity(3);
@@ -148,10 +148,11 @@ static void parse(Array<u8> const & file, Array<u8> & vertex_attributes, Array<r
 		if (index == custom::empty_index) {
 			index = next_index++;
 			packed_indices.data[i] = index;
-			#define PUSH_VERTEX_IMPL(array, i)\
-				if (array.count > 0) {\
-					vertices.push_range((r32 *)&array.data[i], (sizeof(*array.data) / sizeof(r32)));\
-				}\
+
+			#define PUSH_VERTEX_IMPL(array, i)                                                   \
+			if (array.count > 0) {                                                               \
+			    vertices.push_range((r32 *)&array.data[i], (sizeof(*array.data) / sizeof(r32))); \
+			}                                                                                    \
 
 			PUSH_VERTEX_IMPL(packed_v, fi.v);
 			PUSH_VERTEX_IMPL(packed_vt, fi.t);

@@ -18,31 +18,34 @@
 
 #if defined(LUA_REPORT_ENABLED)
 
-#define LUA_REPORT_INDEX() do {\
-	lua_getfield(L, 1, "__name");\
-	cstring index_name = lua_tostring(L, -1); lua_pop(L, 1);\
-	CUSTOM_LUA_ASSERT(false, "%s '%s' doesn't contain '%s'", luaL_typename(L, 1), index_name, id);\
-} while (0)\
+#define LUA_REPORT_INDEX() do {                                                                    \
+    lua_getfield(L, 1, "__name");                                                                  \
+    cstring index_name = lua_tostring(L, -1); lua_pop(L, 1);                                       \
+    CUSTOM_LUA_ASSERT(false, "%s '%s' doesn't contain '%s'", luaL_typename(L, 1), index_name, id); \
+} while (0)                                                                                        \
 
-#define LUA_ASSERT_TYPE(T, index)\
-	CUSTOM_LUA_ASSERT(lua_type(L, index) == T, "expected '%s' at index %d; got %s", #T, index, luaL_typename(L, index))
+#define LUA_ASSERT_TYPE(T, index)                                 \
+CUSTOM_LUA_ASSERT(                                                \
+    lua_type(L, index) == T, "expected '%s' at index %d; got %s", \
+    #T, index, luaL_typename(L, index)                            \
+)                                                                 \
 
-#define LUA_ASSERT_USERDATA(name, index) do {\
-	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);\
-	if (lua_getmetatable(L, index)) {\
-		if (luaL_getmetatable(L, name) == LUA_TTABLE) {\
-			bool is_correct_metatable = lua_rawequal(L, -1, -2); lua_pop(L, 2);\
-			CUSTOM_LUA_ASSERT(is_correct_metatable, "expected '%s' at index %d", name, index);\
-		}\
-		else {\
-			lua_pop(L, 2);\
-			CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", name);\
-		}\
-	}\
-	else {\
-		CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);\
-	}\
-} while (0)\
+#define LUA_ASSERT_USERDATA(name, index) do {                                                  \
+    LUA_ASSERT_TYPE(LUA_TUSERDATA, index);                                                     \
+    if (lua_getmetatable(L, index)) {                                                          \
+        if (luaL_getmetatable(L, name) == LUA_TTABLE) {                                        \
+            bool is_correct_metatable = lua_rawequal(L, -1, -2); lua_pop(L, 2);                \
+            CUSTOM_LUA_ASSERT(is_correct_metatable, "expected '%s' at index %d", name, index); \
+        }                                                                                      \
+        else {                                                                                 \
+            lua_pop(L, 2);                                                                     \
+            CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", name);                    \
+        }                                                                                      \
+    }                                                                                          \
+    else {                                                                                     \
+        CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);   \
+    }                                                                                          \
+} while (0)                                                                                    \
 
 #else
 	#define LUA_REPORT_INDEX() (void)0
@@ -50,31 +53,30 @@
 	#define LUA_ASSERT_USERDATA(name, index) (void)0
 #endif
 
-#define LUA_AUX_IMPL(T)\
-	luaL_newlib(L, T##_aux);\
-	lua_setglobal(L, #T);\
+#define LUA_AUX_IMPL(T) {    \
+    luaL_newlib(L, T##_aux); \
+    lua_setglobal(L, #T);    \
+} while (0);                 \
 
 // @Note: metatable contains metamethods, instance functions, static functions;
 //        also it becomes a global value
-#define LUA_META_IMPL(T)\
-	if (luaL_newmetatable(L, #T)) {\
-		luaL_setfuncs(L, T##_meta, 0);\
-		\
-		lua_setglobal(L, #T);\
-	}\
-	else { lua_pop(L, 1); }\
+#define LUA_META_IMPL(T)           \
+if (luaL_newmetatable(L, #T)) {    \
+    luaL_setfuncs(L, T##_meta, 0); \
+    lua_setglobal(L, #T);          \
+}                                  \
+else { lua_pop(L, 1); }            \
 
 // @Note: seek for a value in the corresponding metatable first,
 //        then pass execution further to the rest of the index method
-#define LUA_INDEX_RAWGET_IMPL(T) do {\
-	(void)(T *)0;\
-	LUA_ASSERT_USERDATA(#T, 1);\
-	if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }\
-	\
-	lua_pushvalue(L, 2);\
-	if (lua_rawget(L, -2) != LUA_TNIL) { lua_remove(L, -2); return 1; }\
-	lua_pop(L, 2);\
-} while (0)\
+#define LUA_INDEX_RAWGET_IMPL(T) do {                                   \
+    (void)(T *)0;                                                       \
+    LUA_ASSERT_USERDATA(#T, 1);                                         \
+    if (!lua_getmetatable(L, 1)) { lua_pushnil(L); return 1; }          \
+    lua_pushvalue(L, 2);                                                \
+    if (lua_rawget(L, -2) != LUA_TNIL) { lua_remove(L, -2); return 1; } \
+    lua_pop(L, 2);                                                      \
+} while (0)                                                             \
 
 /*
 #define LUA_META_INDEX_SELF_IMPL(T)\

@@ -47,14 +47,13 @@ static void allocate_extensions_string(custom::Array<char> & buffer) {
 
 typedef void * load_func(cstring name);
 
-#define CHECK_EXTENSION(name)\
-	bool const name = contains_full_word(buffer.data, "GL_" #name)\
+#define CHECK_EXTENSION(name) bool const name = contains_full_word(buffer.data, "GL_" #name)
 
-#define LOAD_EXTENSION(func, name)\
-	if (!func && name) {\
-		glad_##func = (decltype(func))load(#func);\
-		CUSTOM_TRACE("load '" #func "' as an extension '" #name "'");\
-	}\
+#define LOAD_EXTENSION(func, name)                                \
+if (!func && name) {                                              \
+    glad_##func = (decltype(func))load(#func);                    \
+    CUSTOM_TRACE("load '" #func "' as an extension '" #name "'"); \
+}                                                                 \
 
 void load_extensions(load_func * load) {
 	custom::Array<char> buffer;

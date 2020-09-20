@@ -53,10 +53,10 @@ template struct Array<bool_ref_func *>;
 // @Note: initialize compile-time structs (Bytecode)
 namespace custom {
 
-#define BYTECODE_IMPL(T)                                         \
-	template void Bytecode::write<T>(T const * data, u32 count); \
-	template T const * Bytecode::read<T>(u32 count) const;       \
-	template void Bytecode::copy<T>(T * out, u32 count) const;   \
+#define BYTECODE_IMPL(T)                                     \
+template void Bytecode::write<T>(T const * data, u32 count); \
+template T const * Bytecode::read<T>(u32 count) const;       \
+template void Bytecode::copy<T>(T * out, u32 count) const;   \
 
 BYTECODE_IMPL(char)
 BYTECODE_IMPL(cstring)

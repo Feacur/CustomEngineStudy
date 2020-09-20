@@ -14,22 +14,22 @@ typedef custom::Asset Asset;
 typedef custom::Ref Ref;
 
 #define LUA_ASSERT_ASSET_TYPE(index) do {                                                                       \
-	LUA_ASSERT_TYPE(LUA_TUSERDATA, index);                                                                      \
-	if (lua_getmetatable(L, index)) {                                                                           \
-		bool is_an_asset = false;                                                                               \
-		for (u32 type = 0; !is_an_asset && type < custom::asset_names.get_count(); ++type) {                    \
-			if (luaL_getmetatable(L, custom::asset_names.get_string(type)) != LUA_TTABLE) {                     \
-				CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", custom::asset_names.get_string(type)); \
-			}                                                                                                   \
-			is_an_asset = lua_rawequal(L, -1, -2);                                                              \
-			lua_pop(L, 1);                                                                                      \
-		}                                                                                                       \
-		lua_pop(L, 1);                                                                                          \
-		CUSTOM_LUA_ASSERT(is_an_asset, "expected an asset at index %d", index);                                 \
-	}                                                                                                           \
-	else {                                                                                                      \
-		CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);                    \
-	}                                                                                                           \
+    LUA_ASSERT_TYPE(LUA_TUSERDATA, index);                                                                      \
+    if (lua_getmetatable(L, index)) {                                                                           \
+        bool is_an_asset = false;                                                                               \
+        for (u32 type = 0; !is_an_asset && type < custom::asset_names.get_count(); ++type) {                    \
+            if (luaL_getmetatable(L, custom::asset_names.get_string(type)) != LUA_TTABLE) {                     \
+                CUSTOM_LUA_ASSERT(false, "metatable '%s' doesn't exist", custom::asset_names.get_string(type)); \
+            }                                                                                                   \
+            is_an_asset = lua_rawequal(L, -1, -2);                                                              \
+            lua_pop(L, 1);                                                                                      \
+        }                                                                                                       \
+        lua_pop(L, 1);                                                                                          \
+        CUSTOM_LUA_ASSERT(is_an_asset, "expected an asset at index %d", index);                                 \
+    }                                                                                                           \
+    else {                                                                                                      \
+        CUSTOM_LUA_ASSERT(false, "expected a userdata with a metatable at index %d", index);                    \
+    }                                                                                                           \
 } while (0)                                                                                                     \
 
 static int Asset_index(lua_State * L) {

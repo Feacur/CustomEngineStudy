@@ -12,11 +12,11 @@ namespace custom {
 namespace lua {
 
 void init_graphics_params(lua_State * L) {
-	lua_newtable(L);
-	#define CLEAR_FLAG_IMPL(T, i)                        \
-		lua_pushinteger(L, (u8)graphics::Clear_Flag::T); \
-		lua_setfield(L, -2, #T);                         \
+	#define CLEAR_FLAG_IMPL(T, i)                    \
+	lua_pushinteger(L, (u8)graphics::Clear_Flag::T); \
+	lua_setfield(L, -2, #T);                         \
 
+	lua_newtable(L);
 	#include "engine/registry_impl/clear_flag.h"
 	lua_setglobal(L, "Clear_Flag");
 }

@@ -198,15 +198,15 @@ Strings_Storage Config_Asset::strings;
 
 #define SET_VALUE_IMPL(T)                                                   \
 template<> void Config_Asset::set_value<T>(cstring key, T value) {          \
-	u32 id = strings.store_string(key, custom::empty_index);                \
-	for (u32 i = 0; i < entries.count; ++i) {                               \
-		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }   \
-		if (entries[i].key == id) { entries[i].value_##T = value; return; } \
-	}                                                                       \
-	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);     \
-	entry->key       = id;                                                  \
-	entry->type      = Value_Type::T;                                       \
-	entry->value_##T = value;                                               \
+    u32 id = strings.store_string(key, custom::empty_index);                \
+    for (u32 i = 0; i < entries.count; ++i) {                               \
+        if (entries[i].type != Config_Asset::Value_Type::T) { continue; }   \
+        if (entries[i].key == id) { entries[i].value_##T = value; return; } \
+    }                                                                       \
+    Entry * entry = (entries.push(), &entries.data[entries.count - 1]);     \
+    entry->key       = id;                                                  \
+    entry->type      = Value_Type::T;                                       \
+    entry->value_##T = value;                                               \
 }                                                                           \
 
 SET_VALUE_IMPL(s32)
@@ -233,14 +233,14 @@ template<> void Config_Asset::set_value<cstring>(cstring key, cstring value) {
 //
 #define GET_VALUE_IMPL(T)                                                     \
 template<> T Config_Asset::get_value<T>(cstring key, T default_value) const { \
-	u32 id = strings.store_string(key, custom::empty_index);                  \
-	for (u32 i = 0; i < entries.count; ++i) {                                 \
-		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }     \
-		if (entries[i].key == id) { return entries[i].value_##T; }            \
-	}                                                                         \
-	CUSTOM_WARNING("config doesn't contain key '%s : " #T "'", key);          \
-	CUSTOM_WARNING("... using default value of '%g'", (r32)default_value);    \
-	return default_value;                                                     \
+    u32 id = strings.store_string(key, custom::empty_index);                  \
+    for (u32 i = 0; i < entries.count; ++i) {                                 \
+        if (entries[i].type != Config_Asset::Value_Type::T) { continue; }     \
+        if (entries[i].key == id) { return entries[i].value_##T; }            \
+    }                                                                         \
+    CUSTOM_WARNING("config doesn't contain key '%s : " #T "'", key);          \
+    CUSTOM_WARNING("... using default value of '%g'", (r32)default_value);    \
+    return default_value;                                                     \
 }                                                                             \
 
 GET_VALUE_IMPL(s32)

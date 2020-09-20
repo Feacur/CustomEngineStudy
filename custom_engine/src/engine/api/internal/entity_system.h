@@ -27,8 +27,8 @@ typedef ENTITY_FROM_TO_FUNC(entity_from_to_func);
 #define ENTITY_LOADING_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, bool only_component)
 typedef ENTITY_LOADING_FUNC(entity_loading_func);
 
-#define SERIALIZATION_READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)
-typedef SERIALIZATION_READ_FUNC(serialization_read_func);
+#define READ_FUNC(ROUTINE_NAME) void ROUTINE_NAME(Entity & entity, Ref & ref, cstring * source)
+typedef READ_FUNC(read_func);
 
 }
 
@@ -64,7 +64,7 @@ struct Entity : public Ref
 		Array<entity_from_to_func *> copy;
 		Array<entity_loading_func *> load;
 		Array<entity_loading_func *> unload;
-		Array<serialization_read_func *> serialization_read;
+		Array<read_func *> read;
 	};
 	static State state;
 	static VTable vtable;
@@ -79,7 +79,7 @@ struct Entity : public Ref
 
 	// entity API
 	static Entity create(bool is_instance);
-	void serialization_read(cstring * source);
+	void read(cstring * source);
 	void override_with(Entity const & source);
 	void destroy(void);
 	bool is_instance() const;

@@ -264,12 +264,12 @@ static void platform_toggle_borderless_fullscreen(HWND hwnd) {
 	static WINDOWPLACEMENT normal_window_position;
 	
 	DWORD window_style = GetWindowLong(hwnd, GWL_STYLE);
-	if(BITS_ARE_SET(window_style, WS_OVERLAPPEDWINDOW)) {
-		if(!GetWindowPlacement(hwnd, &normal_window_position)) { return; }
+	if (BITS_ARE_SET(window_style, WS_OVERLAPPEDWINDOW)) {
+		if (!GetWindowPlacement(hwnd, &normal_window_position)) { return; }
 
 		MONITORINFO monitor_info = {};
 		monitor_info.cbSize = sizeof(MONITORINFO);
-		if(!GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info)) { return; }
+		if (!GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY), &monitor_info)) { return; }
 
 		SetWindowLong(hwnd, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
 		SetWindowPos(

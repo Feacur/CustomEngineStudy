@@ -16,7 +16,7 @@ template<typename T> ENTITY_LOADING_FUNC(component_pool_unload);
 namespace custom {
 namespace serialization {
 
-template<typename T> SERIALIZATION_READ_FUNC(component_pool_serialization_read);
+template<typename T> READ_FUNC(component_pool_read);
 
 }}
 

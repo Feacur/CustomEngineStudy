@@ -239,9 +239,9 @@ static void * load_ogl_function(cstring name) {
 }
 
 #define LOAD_FUNCTION(name, required) {                                                              \
-	wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);                             \
-	CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME); \
-}                                                                                                    \
+    wgl.name = (name##_func *)GetProcAddress(wgl.instance, "wgl" #name);                             \
+    CUSTOM_ASSERT(wgl.name || !required, "failed to load 'wgl" #name "' from " OPENGL_LIBRARY_NAME); \
+} while (0)                                                                                          \
 
 static void load_wgl_simple_functions(void) {
 	LOAD_FUNCTION(CreateContext,  true);
@@ -342,10 +342,10 @@ static void load_extensions(HDC hdc) {
 	wgl.DeleteContext(hrc); LOG_LAST_ERROR();
 }
 
-#define ADD_ATTRIBUTE_KEY(key) {                               \
-	CUSTOM_ASSERT(count < cap, "attributes capacity reached"); \
-	keys[count++] = key;                                       \
-}                                                              \
+#define ADD_ATTRIBUTE_KEY(key) do {                            \
+    CUSTOM_ASSERT(count < cap, "attributes capacity reached"); \
+    keys[count++] = key;                                       \
+} while (0);                                                   \
 
 static int add_atribute_keys(int * keys, int cap) {
 	ZeroMemory(keys, cap * sizeof(*keys));
@@ -644,11 +644,11 @@ static custom::Pixel_Format choose_pixel_format(HDC hdc) {
 	return pf;
 }
 
-#define SET_ATTRIBUTE(key, value) {                                      \
-	CUSTOM_ASSERT(attr_count < attr_cap, "attributes capacity reached"); \
-	attr_pair[attr_count++] = key;                                       \
-	attr_pair[attr_count++] = value;                                     \
-}                                                                        \
+#define SET_ATTRIBUTE(key, value) do {                                   \
+    CUSTOM_ASSERT(attr_count < attr_cap, "attributes capacity reached"); \
+    attr_pair[attr_count++] = key;                                       \
+    attr_pair[attr_count++] = value;                                     \
+} while (0);                                                             \
 
 static HGLRC create_context_arb(HDC hdc, HGLRC share_hrc) {
 	int const attr_cap = 64 * 2;

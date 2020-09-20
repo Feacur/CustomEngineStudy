@@ -21,23 +21,23 @@
 	#if defined(CUSTOM_CLANG)
 		#define TIME_BEGIN()                                              \
 		if (timeBeginPeriod_dll(system_timer_period) != TIMERR_NOERROR) { \
-			CUSTOM_WARNING("failed to adjust timer precision");           \
+		    CUSTOM_WARNING("failed to adjust timer precision");           \
 		}                                                                 \
 
 		#define TIME_END()                                              \
 		if (timeEndPeriod_dll(system_timer_period) != TIMERR_NOERROR) { \
-			CUSTOM_WARNING("failed to adjust timer precision");         \
+		    CUSTOM_WARNING("failed to adjust timer precision");         \
 		}                                                               \
 
 	#else
 		#define TIME_BEGIN()                                          \
 		if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) { \
-			CUSTOM_WARNING("failed to adjust timer precision");       \
+		    CUSTOM_WARNING("failed to adjust timer precision");       \
 		}                                                             \
 
 		#define TIME_END()                                          \
 		if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) { \
-			CUSTOM_WARNING("failed to adjust timer precision");     \
+		    CUSTOM_WARNING("failed to adjust timer precision");     \
 		}                                                           \
 
 	#endif
@@ -131,7 +131,7 @@ void sleep_till_next_frame(u64 frame_start_ticks, u64 duration, u64 precision) {
 }
 
 // HANDLE timer_handle = CreateWaitableTimer(NULL, TRUE, NULL);
-// if(timer_handle) {
+// if (timer_handle) {
 // 	// @Note: The time after which the state of the timer is to be set to signaled, in 100 nanosecond intervals
 // 	LARGE_INTEGER due_time;
 // 	due_time.QuadPart = -(s64)mul_div(frame_end_ticks - current_ticks, nanosecond / 100, ticks_per_second);

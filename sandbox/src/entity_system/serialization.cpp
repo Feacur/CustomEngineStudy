@@ -18,7 +18,7 @@
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
+template<> READ_FUNC(component_pool_read<Visual>) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 
 	Visual * component = refT.get_fast();
@@ -70,7 +70,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>) {
+template<> READ_FUNC(component_pool_read<Lua_Script>) {
 	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 
 	Lua_Script * component = refT.get_fast();
@@ -112,7 +112,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) {
+template<> READ_FUNC(component_pool_read<Physical>) {
 	RefT<Physical> & refT = (RefT<Physical> &)ref;
 
 	Physical * component = refT.get_fast();
@@ -141,7 +141,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
+template<> READ_FUNC(component_pool_read<Phys2d>) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 
 	Phys2d * component = refT.get_fast();

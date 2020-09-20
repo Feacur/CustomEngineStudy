@@ -52,8 +52,8 @@ void entity_do_before_reset_system(void);
 namespace custom {
 namespace serialization {
 
-void serialization_read_Entity_block(Entity & entity, cstring * source);
-void serialization_read_Child_block(Entity & entity, cstring * source);
+void read_Entity_block(Entity & entity, cstring * source);
+void read_Child_block(Entity & entity, cstring * source);
 
 }}
 
@@ -81,7 +81,7 @@ Entity Entity::create(bool is_instance) {
 	return entity;
 }
 
-void Entity::serialization_read(cstring * source) {
+void Entity::read(cstring * source) {
 	while (**source) {
 		cstring line_end = (parse_void(source), *source); skip_to_eol(&line_end);
 
@@ -90,12 +90,12 @@ void Entity::serialization_read(cstring * source) {
 		if (**source == '#') { to_next_line(source); continue; };
 
 		if (**source == '!') {
-			serialization::serialization_read_Entity_block(*this, source);
+			serialization::read_Entity_block(*this, source);
 			continue;
 		}
 
 		if (**source == '>') {
-			serialization::serialization_read_Child_block(*this, source);
+			serialization::read_Child_block(*this, source);
 			continue;
 		}
 
@@ -119,7 +119,7 @@ void Entity::serialization_read(cstring * source) {
 		// @Note: component readers are assumed to early out upon discovery of
 		//        any unrecognized non-whitespace sequence
 		Ref component_ref = has_component(type) ? get_component(type) : add_component(type);
-		(*Entity::vtable.serialization_read[type])(*this, component_ref, source);
+		(*Entity::vtable.read[type])(*this, component_ref, source);
 	}
 }
 

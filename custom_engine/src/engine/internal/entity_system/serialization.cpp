@@ -17,7 +17,7 @@
 namespace custom {
 namespace serialization {
 
-void serialization_read_Entity_block(Entity & entity, cstring * source) {
+void read_Entity_block(Entity & entity, cstring * source) {
 	bool done = false;
 
 	CUSTOM_ASSERT(**source == '!', "");
@@ -30,7 +30,7 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 			} break;
 
 			case 'o': ++(*source); {
-				entity.serialization_read(source);
+				entity.read(source);
 			} break;
 
 			case 'p': ++(*source); {
@@ -50,7 +50,7 @@ void serialization_read_Entity_block(Entity & entity, cstring * source) {
 	}
 }
 
-void serialization_read_Child_block(Entity & entity, cstring * source) {
+void read_Child_block(Entity & entity, cstring * source) {
 	Entity last_child = {custom::empty_ref};
 
 	bool is_instance = entity.is_instance();
@@ -63,7 +63,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 		switch ((parse_void(source), **source)) {
 			case '!': ++(*source); {
 				Entity child = Entity::create(is_instance);
-				child.serialization_read(source);
+				child.read(source);
 				Hierarchy::set_parent(child, entity);
 				last_child = child;
 			} break;
@@ -82,7 +82,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 
 			case 'o': ++(*source); {
 				Entity child = last_child;
-				child.serialization_read(source);
+				child.read(source);
 			} break;
 
 			case '#': break;
@@ -100,7 +100,7 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>) {
+template<> READ_FUNC(component_pool_read<Transform>) {
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 
 	Transform * component = refT.get_fast();
@@ -135,7 +135,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
+template<> READ_FUNC(component_pool_read<Camera>) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 
 	Camera * component = refT.get_fast();
@@ -170,7 +170,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 namespace custom {
 namespace serialization {
 
-template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Hierarchy>) {
+template<> READ_FUNC(component_pool_read<Hierarchy>) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();

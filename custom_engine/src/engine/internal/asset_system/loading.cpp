@@ -325,12 +325,12 @@ template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
 namespace custom {
 namespace loading {
 
-Entity entity_serialization_read(Array<u8> & file) {
+Entity entity_read(Array<u8> & file) {
 	file.push('\0'); --file.count;
 
 	cstring source = (cstring)file.data;
 	Entity entity = Entity::create(false);
-	entity.serialization_read(&source);
+	entity.read(&source);
 
 	return entity;
 	// @Note: some weird behaviour occured here, 29 August 2020;
@@ -356,7 +356,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	if (!file.count) { return; }
 
 	Prefab_Asset * asset = refT.get_fast();
-	Entity prefab_entity = entity_serialization_read(file);
+	Entity prefab_entity = entity_read(file);
 
 	// @Note: memory might have been relocated
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
@@ -396,7 +396,7 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 	// @Note: memory might have been relocated
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
 	asset = refT.get_fast();
-	Entity prefab_entity = entity_serialization_read(file);
+	Entity prefab_entity = entity_read(file);
 
 	// @Note: memory might have been relocated
 	if (!refT.exists()) { CUSTOM_ASSERT(false, "asset doesn exist"); }
