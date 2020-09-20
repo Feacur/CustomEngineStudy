@@ -7,19 +7,17 @@
 
 #include "asset_types.h"
 
-#define ASSET_IMPL(T)\
-	/* @Note: initialize compile-time structs: */\
-	template struct custom::Array<T>;\
-	template struct custom::RefT<T>;\
+#define ASSET_IMPL(T)                     \
+	template struct custom::Array<T>;     \
+	template struct custom::RefT<T>;      \
 	template struct custom::Asset_RefT<T>;\
 
 #include "../registry_impl/asset_types.h"
 
 void init_client_asset_types(void) {
-	// @Note: initialize runtime assets' data:
-	#define ASSET_IMPL(T)\
+	#define ASSET_IMPL(T)                                                 \
 		custom::Asset_Registry<T>::type = custom::asset_names.get_count();\
-		custom::asset_names.store_string(#T, custom::empty_index);\
+		custom::asset_names.store_string(#T, custom::empty_index);        \
 
 	#include "../registry_impl/asset_types.h"
 
@@ -29,13 +27,13 @@ void init_client_asset_types(void) {
 	custom::Asset::vtable.load.set_capacity(custom::asset_names.get_count());
 	custom::Asset::vtable.unload.set_capacity(custom::asset_names.get_count());
 	custom::Asset::vtable.update.set_capacity(custom::asset_names.get_count());
-	#define ASSET_IMPL(T)\
-		custom::Asset::vtable.create.push(&custom::ref_pool_create<T>);\
-		custom::Asset::vtable.destroy.push(&custom::ref_pool_destroy<T>);\
-		custom::Asset::vtable.contains.push(&custom::ref_pool_contains<T>);\
-		custom::Asset::vtable.load.push(&custom::loading::asset_pool_load<T>);\
-		custom::Asset::vtable.unload.push(&custom::loading::asset_pool_unload<T>);\
-		custom::Asset::vtable.update.push(&custom::loading::asset_pool_update<T>);\
+	#define ASSET_IMPL(T)                                                          \
+		custom::Asset::vtable.create.push(&custom::ref_pool_create<T>);            \
+		custom::Asset::vtable.destroy.push(&custom::ref_pool_destroy<T>);          \
+		custom::Asset::vtable.contains.push(&custom::ref_pool_contains<T>);        \
+		custom::Asset::vtable.load.push(&custom::loading::asset_pool_load<T>);     \
+		custom::Asset::vtable.unload.push(&custom::loading::asset_pool_unload<T>); \
+		custom::Asset::vtable.update.push(&custom::loading::asset_pool_update<T>); \
 
 	#include "../registry_impl/asset_types.h"
 }

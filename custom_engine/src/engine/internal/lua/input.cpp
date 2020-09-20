@@ -115,17 +115,17 @@ void init_input(lua_State * L) {
 	LUA_AUX_IMPL(Input)
 
 	lua_newtable(L);
-	#define KEY_CODE_IMPL(T)\
-		lua_pushinteger(L, (u8)custom::Key_Code::T);\
-		lua_setfield(L, -2, #T);\
+	#define KEY_CODE_IMPL(T)                         \
+		lua_pushinteger(L, (u8)custom::Key_Code::T); \
+		lua_setfield(L, -2, #T);                     \
 
 	#include "engine/registry_impl/key_codes.h"
 	lua_setglobal(L, "Key_Code");
 
 	lua_newtable(L);
-	#define MOUSE_CODE_IMPL(T)\
-		lua_pushinteger(L, (u8)custom::Mouse_Code::T);\
-		lua_setfield(L, -2, #T);\
+	#define MOUSE_CODE_IMPL(T)                         \
+		lua_pushinteger(L, (u8)custom::Mouse_Code::T); \
+		lua_setfield(L, -2, #T);                       \
 
 	#include "engine/registry_impl/mouse_codes.h"
 	lua_setglobal(L, "Mouse_Code");

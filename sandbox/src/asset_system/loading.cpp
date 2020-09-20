@@ -28,10 +28,10 @@ static void read_file_safely(cstring path, Array<u8> & buffer) {
 // @Note: direct asset to the Lua
 //        alternative to `luaL_dostring(L, (cstring)asset->source.data)`,
 //        assuming NULL-termination is there
-#define CUSTOM_LOAD() (\
-	luaL_loadbufferx(L, (cstring)asset->source.data, asset->source.count, path, NULL)\
-	|| lua_pcall(L, 0, LUA_MULTRET, 0)\
-)\
+#define CUSTOM_LOAD() (                                                               \
+	luaL_loadbufferx(L, (cstring)asset->source.data, asset->source.count, path, NULL) \
+	|| lua_pcall(L, 0, LUA_MULTRET, 0)                                                \
+)                                                                                     \
 
 //
 //

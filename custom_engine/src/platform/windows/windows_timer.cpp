@@ -19,22 +19,26 @@
 // @Todo: scope each frame or scope entire runtime?
 #if defined(TIMER_ADJUST_PRECISION)
 	#if defined(CUSTOM_CLANG)
-		#define TIME_BEGIN() if (timeBeginPeriod_dll(system_timer_period) != TIMERR_NOERROR) {\
-			CUSTOM_WARNING("failed to adjust timer precision");\
-		}\
+		#define TIME_BEGIN()                                              \
+		if (timeBeginPeriod_dll(system_timer_period) != TIMERR_NOERROR) { \
+			CUSTOM_WARNING("failed to adjust timer precision");           \
+		}                                                                 \
 
-		#define TIME_END() if (timeEndPeriod_dll(system_timer_period) != TIMERR_NOERROR) {\
-			CUSTOM_WARNING("failed to adjust timer precision");\
-		}\
+		#define TIME_END()                                              \
+		if (timeEndPeriod_dll(system_timer_period) != TIMERR_NOERROR) { \
+			CUSTOM_WARNING("failed to adjust timer precision");         \
+		}                                                               \
 
 	#else
-		#define TIME_BEGIN() if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) {\
-			CUSTOM_WARNING("failed to adjust timer precision");\
-		}\
+		#define TIME_BEGIN()                                          \
+		if (timeBeginPeriod(system_timer_period) != TIMERR_NOERROR) { \
+			CUSTOM_WARNING("failed to adjust timer precision");       \
+		}                                                             \
 
-		#define TIME_END() if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) {\
-			CUSTOM_WARNING("failed to adjust timer precision");\
-		}\
+		#define TIME_END()                                          \
+		if (timeEndPeriod(system_timer_period) != TIMERR_NOERROR) { \
+			CUSTOM_WARNING("failed to adjust timer precision");     \
+		}                                                           \
 
 	#endif
 #else

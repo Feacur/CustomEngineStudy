@@ -113,12 +113,13 @@ void draw(void) {
 namespace custom {
 namespace renderer {
 
-#define DATA_TYPE_IMPL(T) template<> void set_uniform<T>(RefT<Shader_Asset> const & shader, u32 uniform, T const & value) {\
-	set_uniform_bytes(\
-		shader, uniform,\
-		(u8 *)&value, 1, graphics::get_data_type<T>()\
-	);\
-}\
+#define DATA_TYPE_IMPL(T)                                                                         \
+template<> void set_uniform<T>(RefT<Shader_Asset> const & shader, u32 uniform, T const & value) { \
+	set_uniform_bytes(                                                                            \
+		shader, uniform,                                                                          \
+		(u8 *)&value, 1, graphics::get_data_type<T>()                                             \
+	);                                                                                            \
+}                                                                                                 \
 
 #include "engine/registry_impl/data_type.h"
 
