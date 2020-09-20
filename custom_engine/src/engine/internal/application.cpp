@@ -88,7 +88,7 @@ static struct {
 		u8 debug      = 20;
 		u8 failsafe   = 10;
 		u8 vsync      = 1;
-		b8 as_display = false;
+		b8 as_display = true;
 	} refresh_rate;
 
 	struct {
@@ -127,14 +127,14 @@ static void consume_config_init(void) {
 
 	// pixel_format_hint
 	custom::pixel_format_hint = {};
-	custom::pixel_format_hint.red_bits     = config->get_value<s32>("pixel_format_red_bits",     8);
-	custom::pixel_format_hint.green_bits   = config->get_value<s32>("pixel_format_green_bits",   8);
-	custom::pixel_format_hint.blue_bits    = config->get_value<s32>("pixel_format_blue_bits",    8);
-	custom::pixel_format_hint.alpha_bits   = config->get_value<s32>("pixel_format_alpha_bits",   8);
-	custom::pixel_format_hint.depth_bits   = config->get_value<s32>("pixel_format_depth_bits",   8);
-	custom::pixel_format_hint.stencil_bits = config->get_value<s32>("pixel_format_stencil_bits", 24);
+	custom::pixel_format_hint.red_bits     = config->get_value<u32>("pixel_format_red_bits",     8);
+	custom::pixel_format_hint.green_bits   = config->get_value<u32>("pixel_format_green_bits",   8);
+	custom::pixel_format_hint.blue_bits    = config->get_value<u32>("pixel_format_blue_bits",    8);
+	custom::pixel_format_hint.alpha_bits   = config->get_value<u32>("pixel_format_alpha_bits",   8);
+	custom::pixel_format_hint.depth_bits   = config->get_value<u32>("pixel_format_depth_bits",   8);
+	custom::pixel_format_hint.stencil_bits = config->get_value<u32>("pixel_format_stencil_bits", 24);
 	custom::pixel_format_hint.doublebuffer = config->get_value<bln>("pixel_format_doublebuffer", true);
-	custom::pixel_format_hint.swap         = config->get_value<s32>("pixel_format_swap",         1);
+	custom::pixel_format_hint.swap         = config->get_value<u32>("pixel_format_swap",         1);
 }
 
 static void consume_config(void) {

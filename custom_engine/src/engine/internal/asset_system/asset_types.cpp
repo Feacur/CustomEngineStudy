@@ -196,111 +196,69 @@ namespace custom {
 template struct Array<Config_Asset::Entry>;
 Strings_Storage Config_Asset::strings;
 
-template<> void Config_Asset::set_value<s32>(cstring key, s32 value) {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { entries[i].value_s32 = value; return; }
-	}
-	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);
-	entry->key = id;
-	entry->type = Value_Type::s32;
-	entry->value_s32 = value;
-}
+#define SET_VALUE_IMPL(T)                                                   \
+template<> void Config_Asset::set_value<T>(cstring key, T value) {          \
+	u32 id = strings.store_string(key, custom::empty_index);                \
+	for (u32 i = 0; i < entries.count; ++i) {                               \
+		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }   \
+		if (entries[i].key == id) { entries[i].value_##T = value; return; } \
+	}                                                                       \
+	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);     \
+	entry->key       = id;                                                  \
+	entry->type      = Value_Type::T;                                       \
+	entry->value_##T = value;                                               \
+}                                                                           \
 
-template<> void Config_Asset::set_value<u32>(cstring key, u32 value) {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { entries[i].value_u32 = value; return; }
-	}
-	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);
-	entry->key = id;
-	entry->type = Value_Type::u32;
-	entry->value_u32 = value;
-}
-
-template<> void Config_Asset::set_value<r32>(cstring key, r32 value) {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { entries[i].value_r32 = value; return; }
-	}
-	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);
-	entry->key = id;
-	entry->type = Value_Type::r32;
-	entry->value_r32 = value;
-}
-
-template<> void Config_Asset::set_value<bool>(cstring key, bln value) {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { entries[i].value_u32 = value ? 1 : 0; return; }
-	}
-	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);
-	entry->key = id;
-	entry->type = Value_Type::bln;
-	entry->value_u32 = value ? 1 : 0;
-}
+SET_VALUE_IMPL(s32)
+SET_VALUE_IMPL(u32)
+SET_VALUE_IMPL(r32)
+SET_VALUE_IMPL(bln)
+#undef SET_VALUE_IMPL
 
 template<> void Config_Asset::set_value<cstring>(cstring key, cstring value) {
 	u32 id = strings.store_string(key, custom::empty_index);
 	for (u32 i = 0; i < entries.count; ++i) {
+		if (entries[i].type != Config_Asset::Value_Type::str) { continue; }
 		if (entries[i].key == id) {
-			entries[i].value_u32 = strings.store_string(value, custom::empty_index);
+			entries[i].value_str = strings.store_string(value, custom::empty_index);
 			return;
 		}
 	}
 	Entry * entry = (entries.push(), &entries.data[entries.count - 1]);
 	entry->key = id;
 	entry->type = Value_Type::str;
-	entry->value_u32 = strings.store_string(value, custom::empty_index);
+	entry->value_str = strings.store_string(value, custom::empty_index);
 }
 
-template<> s32 Config_Asset::get_value<s32>(cstring key, s32 default_value) const {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { return entries[i].value_s32; }
-	}
-	CUSTOM_WARNING("default %s to '%d'", key, default_value);
-	return default_value;
-}
+//
+#define GET_VALUE_IMPL(T)                                                       \
+template<> T Config_Asset::get_value<T>(cstring key, T default_value) const {   \
+	u32 id = strings.store_string(key, custom::empty_index);                    \
+	for (u32 i = 0; i < entries.count; ++i) {                                   \
+		if (entries[i].type != Config_Asset::Value_Type::T) { continue; }       \
+		if (entries[i].key == id) { return entries[i].value_##T; }              \
+	}                                                                           \
+	CUSTOM_WARNING("config doesn't contain key %s : " #T "; use default", key); \
+	return default_value;                                                       \
+}                                                                               \
 
-template<> u32 Config_Asset::get_value<u32>(cstring key, u32 default_value) const {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { return entries[i].value_u32; }
-	}
-	CUSTOM_WARNING("default %s to '%d'", key, default_value);
-	return default_value;
-}
-
-template<> r32 Config_Asset::get_value<r32>(cstring key, r32 default_value) const {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { return entries[i].value_r32; }
-	}
-	CUSTOM_WARNING("default %s to '%f'", key, default_value);
-	return default_value;
-}
-
-template<> bln Config_Asset::get_value<bln>(cstring key, bln default_value) const {
-	u32 id = strings.store_string(key, custom::empty_index);
-	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) { return (bln)entries[i].value_u32; }
-	}
-	CUSTOM_WARNING("default %s to '%d'", key, default_value);
-	return default_value;
-}
+GET_VALUE_IMPL(s32)
+GET_VALUE_IMPL(u32)
+GET_VALUE_IMPL(r32)
+GET_VALUE_IMPL(bln)
+#undef GET_VALUE_IMPL
 
 template<> cstring Config_Asset::get_value<cstring>(cstring key, cstring default_value) const {
 	u32 id = strings.store_string(key, custom::empty_index);
 	for (u32 i = 0; i < entries.count; ++i) {
-		if (entries[i].key == id) {
-			return strings.get_string(entries[i].value_u32);
-		}
+		if (entries[i].type != Config_Asset::Value_Type::str) { continue; }
+		if (entries[i].key == id) { return strings.get_string(entries[i].value_str); }
 	}
-	CUSTOM_WARNING("default %s to '%s'", key, default_value);
+	CUSTOM_WARNING("config doesn't contain key %s : str; use default", key);
 	return default_value;
 }
 
+//
 void Config_Asset::update(Array<u8> & file) {
 	file.push('\0'); --file.count;
 

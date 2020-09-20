@@ -72,6 +72,8 @@ struct Config_Asset {
 			s32 value_s32;
 			u32 value_u32;
 			r32 value_r32;
+			bln value_bln;
+			u32 value_str;
 		};
 		Value_Type type;
 	};

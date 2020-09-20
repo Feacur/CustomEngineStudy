@@ -58,7 +58,7 @@ struct Collision {
 struct Physics_Settings {
 	u32  frequency           = 50;
 	vec2 gravity             = {0, -9.81f};
-	r32  separation_fraction = 0.5f;
+	r32  separation_fraction = 0.8f;
 	r32  separation_bias     = 0.01f;
 };
 
