@@ -19,6 +19,8 @@ namespace serialization {
 
 void serialization_read_Entity_block(Entity & entity, cstring * source) {
 	bool done = false;
+
+	CUSTOM_ASSERT(**source == '!', "");
 	while (!done && *source) {
 		to_next_line(source);
 		switch ((parse_void(source), **source)) {
@@ -54,6 +56,8 @@ void serialization_read_Child_block(Entity & entity, cstring * source) {
 	bool is_instance = entity.is_instance();
 
 	bool done = false;
+
+	CUSTOM_ASSERT(**source == '>', "");
 	while (!done && *source) {
 		to_next_line(source);
 		switch ((parse_void(source), **source)) {
@@ -101,6 +105,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Transform>)
 
 	Transform * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Transform") == 0, "");
 	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
@@ -135,6 +140,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Camera>) {
 
 	Camera * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Camera") == 0, "");
 	while ((to_next_line(source), **source)) {
 		parse_void(source);
 		if (**source == '#') { continue; }

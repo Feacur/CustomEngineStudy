@@ -23,6 +23,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Visual>) {
 
 	Visual * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Visual") == 0, "");
 	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
@@ -74,6 +75,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Lua_Script>
 
 	Lua_Script * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Lua_Script") == 0, "");
 	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
@@ -115,6 +117,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Physical>) 
 
 	Physical * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Physical") == 0, "");
 	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
@@ -143,6 +146,7 @@ template<> SERIALIZATION_READ_FUNC(component_pool_serialization_read<Phys2d>) {
 
 	Phys2d * component = refT.get_fast();
 
+	CUSTOM_ASSERT(strncmp_auto(*source, "Phys2d") == 0, "");
 	while ((to_next_line(source), **source)) {
 
 		parse_void(source);
