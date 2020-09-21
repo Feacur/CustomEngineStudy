@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/types.h"
+#include "engine/core/collection_types.h"
 #include "engine/api/internal/strings_storage.h"
 
 namespace custom {
