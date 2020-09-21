@@ -71,7 +71,7 @@ namespace sandbox {
 
 static custom::Asset_RefT<custom::Config_Asset> config_ref = {custom::empty_ref, custom::empty_index};
 void ecs_init_physics_no_angular(void) {
-	u32 config_id = custom::Asset::get_resource("assets/configs/client.cfg", custom::empty_index);
+	u32 config_id = custom::Asset::get_id("assets/configs/client.cfg", custom::empty_index);
 	config_ref = custom::Asset::add<custom::Config_Asset>(config_id);
 }
 

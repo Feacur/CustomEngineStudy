@@ -2,6 +2,7 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
+#include "engine/api/internal/asset_system.h"
 #include "engine/api/internal/asset_types.h"
 #include "engine/api/internal/parsing.h"
 #include "engine/impl/array.h"
@@ -264,49 +265,45 @@ template<> cstring Config_Asset::get_value<cstring>(cstring key, cstring default
 void Config_Asset::update(Array<u8> & file) {
 	file.push('\0'); --file.count;
 
+	static u32 const type_s32 = Asset::store_string("s32", custom::empty_index);
+	static u32 const type_u32 = Asset::store_string("u32", custom::empty_index);
+	static u32 const type_r32 = Asset::store_string("r32", custom::empty_index);
+	static u32 const type_bln = Asset::store_string("bln", custom::empty_index);
+	static u32 const type_str = Asset::store_string("str", custom::empty_index);
+
 	entries.count = 0;
 
 	// @Todo: factor a common allocator out?
-	Strings_Storage cache;
+	Strings_Storage local_cache;
 
 	cstring source = (cstring)file.data;
-	while (*source) {
+	while ((to_next_line(&source), *source)) {
 		parse_void(&source);
 
-		if (*source == '#') { to_next_line(&source); continue; }
+		if (*source == '#') { continue; }
 
 		u32     type_length = to_identifier_length(&source);
-		cstring type        = source;
-		skip_to_void(&source);
+		cstring type        = source; skip_to_void(&source);
+		u32     type_id     = Asset::get_id(type, type_length);
+		if (type_id == custom::empty_index) { CUSTOM_ASSERT(false, ""); continue; }
 
-		u32 key_length = to_identifier_length(&source);
-		u32 key_id     = cache.store_string(source, key_length);
-		skip_to_void(&source);
+		u32     key_length = to_identifier_length(&source);
+		cstring key        = source; skip_to_void(&source);
+		u32     key_id     = local_cache.store_string(key, key_length);
 
-		if (false) { /**/ }
-		else if (strncmp_auto(type, "s32") == 0) {
-			s32 value = to_s32(&source);
-			set_value(cache.get_string(key_id), value);
-		}
-		else if (strncmp_auto(type, "u32") == 0) {
-			u32 value = to_u32(&source);
-			set_value(cache.get_string(key_id), value);
-		}
-		else if (strncmp_auto(type, "r32") == 0) {
-			r32 value = to_r32(&source);
-			set_value(cache.get_string(key_id), value);
-		}
-		else if (strncmp_auto(type, "bln") == 0) {
-			bln value = to_bln(&source);
-			set_value(cache.get_string(key_id), value);
-		}
-		else if (strncmp_auto(type, "str") == 0) {
+		if (type_id == type_s32) { set_value(local_cache.get_string(key_id), to_s32(&source)); continue; }
+		if (type_id == type_u32) { set_value(local_cache.get_string(key_id), to_u32(&source)); continue; }
+		if (type_id == type_r32) { set_value(local_cache.get_string(key_id), to_r32(&source)); continue; }
+		if (type_id == type_bln) { set_value(local_cache.get_string(key_id), to_bln(&source)); continue; }
+
+		if (type_id == type_str) {
 			u32 value_length = to_string_length(&source);
-			u32 value_id     = cache.store_string(source, value_length);
-			set_value(cache.get_string(key_id), cache.get_string(value_id));
+			u32 value_id     = local_cache.store_string(source, value_length);
+			set_value(local_cache.get_string(key_id), local_cache.get_string(value_id));
+			continue;
 		}
 
-		to_next_line(&source);
+		CUSTOM_ASSERT(false, "");
 	}
 
 	++version;

@@ -72,6 +72,7 @@ struct Entity : public Ref
 
 	// strings API
 	static u32 store_string(cstring data, u32 length);
+	static u32 get_id(cstring data, u32 length);
 	static cstring get_string(u32 id);
 
 	// system API
