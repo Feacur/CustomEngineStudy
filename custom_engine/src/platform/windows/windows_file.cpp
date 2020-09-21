@@ -116,7 +116,7 @@ u64 get_time(cstring path) {
 	large.HighPart = find_file_data.ftLastWriteTime.dwHighDateTime;
 
 	FindClose(handle);
-	return (u64)large.QuadPart;
+	return large.QuadPart ? (u64)large.QuadPart : 1;
 }
 
 bool read(cstring path, Array<u8> & buffer) {

@@ -16,7 +16,7 @@ namespace custom {
 // @Todo: revisit
 static void read_file_safely(cstring path, Array<u8> & buffer) {
 	constexpr u32 count = 4;
-	// if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 	for (u32 i = 0; i < count; ++i) {
 		if (file::read(path, buffer)) { return; }
 	}
