@@ -56,7 +56,7 @@ void init(Bytecode * bytecode) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
+LOADING_FUNC(asset_pool_load_Shader_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
@@ -78,7 +78,7 @@ template<> LOADING_FUNC(asset_pool_load<Shader_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
+LOADING_FUNC(asset_pool_unload_Shader_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
@@ -93,7 +93,7 @@ template<> LOADING_FUNC(asset_pool_unload<Shader_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
+LOADING_FUNC(asset_pool_update_Shader_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "shader asset doesn't exist"); return; }
 
 	RefT<Shader_Asset> & refT = (RefT<Shader_Asset> &)asset_ref;
@@ -127,7 +127,7 @@ template<> LOADING_FUNC(asset_pool_update<Shader_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
+LOADING_FUNC(asset_pool_load_Texture_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
@@ -149,7 +149,7 @@ template<> LOADING_FUNC(asset_pool_load<Texture_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
+LOADING_FUNC(asset_pool_unload_Texture_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
@@ -164,7 +164,7 @@ template<> LOADING_FUNC(asset_pool_unload<Texture_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
+LOADING_FUNC(asset_pool_update_Texture_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "texture asset doesn't exist"); return; }
 
 	RefT<Texture_Asset> & refT = (RefT<Texture_Asset> &)asset_ref;
@@ -198,7 +198,7 @@ template<> LOADING_FUNC(asset_pool_update<Texture_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
+LOADING_FUNC(asset_pool_load_Mesh_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
@@ -223,7 +223,7 @@ template<> LOADING_FUNC(asset_pool_load<Mesh_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
+LOADING_FUNC(asset_pool_unload_Mesh_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
@@ -238,7 +238,7 @@ template<> LOADING_FUNC(asset_pool_unload<Mesh_Asset>) {
 	custom::loader::bc->write((Ref &)asset_ref);
 }
 
-template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
+LOADING_FUNC(asset_pool_update_Mesh_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Mesh_Asset> & refT = (RefT<Mesh_Asset> &)asset_ref;
@@ -272,7 +272,7 @@ template<> LOADING_FUNC(asset_pool_update<Mesh_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Collider2d_Asset>) {
+LOADING_FUNC(asset_pool_load_Collider2d_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
@@ -290,7 +290,7 @@ template<> LOADING_FUNC(asset_pool_load<Collider2d_Asset>) {
 	asset->update(file);
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Collider2d_Asset>) {
+LOADING_FUNC(asset_pool_unload_Collider2d_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
@@ -301,7 +301,7 @@ template<> LOADING_FUNC(asset_pool_unload<Collider2d_Asset>) {
 	asset->~Collider2d_Asset();
 }
 
-template<> LOADING_FUNC(asset_pool_update<Collider2d_Asset>) {
+LOADING_FUNC(asset_pool_update_Collider2d_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "mesh asset doesn't exist"); return; }
 
 	RefT<Collider2d_Asset> & refT = (RefT<Collider2d_Asset> &)asset_ref;
@@ -344,7 +344,7 @@ Entity entity_read(Array<u8> & file) {
 	//       just be aware
 }
 
-template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
+LOADING_FUNC(asset_pool_load_Prefab_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
@@ -364,7 +364,7 @@ template<> LOADING_FUNC(asset_pool_load<Prefab_Asset>) {
 	asset->entity = prefab_entity;
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
+LOADING_FUNC(asset_pool_unload_Prefab_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
@@ -378,7 +378,7 @@ template<> LOADING_FUNC(asset_pool_unload<Prefab_Asset>) {
 	prefab_entity.destroy();
 }
 
-template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
+LOADING_FUNC(asset_pool_update_Prefab_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Prefab_Asset> & refT = (RefT<Prefab_Asset> &)asset_ref;
@@ -413,7 +413,7 @@ template<> LOADING_FUNC(asset_pool_update<Prefab_Asset>) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
+LOADING_FUNC(asset_pool_load_Config_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "prefab asset doesn't exist"); return; }
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
@@ -433,7 +433,7 @@ template<> LOADING_FUNC(asset_pool_load<Config_Asset>) {
 	// @Note: config is a passive data storage
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
+LOADING_FUNC(asset_pool_unload_Config_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "config asset doesn't exist"); return; }
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;
@@ -444,7 +444,7 @@ template<> LOADING_FUNC(asset_pool_unload<Config_Asset>) {
 	asset->entries.~Array();
 }
 
-template<> LOADING_FUNC(asset_pool_update<Config_Asset>) {
+LOADING_FUNC(asset_pool_update_Config_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "config asset doesn't exist"); return; }
 
 	RefT<Config_Asset> & refT = (RefT<Config_Asset> &)asset_ref;

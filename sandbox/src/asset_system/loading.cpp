@@ -50,7 +50,7 @@ void init_client_loader(lua_State * lua) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
+LOADING_FUNC(asset_pool_load_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
@@ -77,7 +77,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	asset->~Lua_Asset();
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
+LOADING_FUNC(asset_pool_unload_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
@@ -90,7 +90,7 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	// @Todo: unload Lua's chunk if possible?
 }
 
-template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
+LOADING_FUNC(asset_pool_update_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
