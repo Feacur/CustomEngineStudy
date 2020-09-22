@@ -149,29 +149,25 @@ bool get_is_active(Internal_Data * data) {
 // input
 bool get_key(Internal_Data * data, Key_Code key) {
 	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
-	using U = meta::underlying_type<custom::Key_Code>::type;
-	return data->keyboard.keys[(U)key];
+	return data->keyboard.keys[(u8)key];
 }
 
 bool get_mouse_key(Internal_Data * data, Mouse_Code key) {
 	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
-	using U = meta::underlying_type<Mouse_Code>::type;
-	return data->mouse.keys[(U)key];
+	return data->mouse.keys[(u8)key];
 }
 
 bool get_key_transition(Internal_Data * data, Key_Code key, bool to_state) {
 	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
-	using U = meta::underlying_type<Key_Code>::type;
-	bool from = data->keyboard.prev[(U)key];
-	bool to = data->keyboard.keys[(U)key];
+	bool from = data->keyboard.prev[(u8)key];
+	bool to = data->keyboard.keys[(u8)key];
 	return (from != to) && (to == to_state);
 }
 
 bool get_mouse_key_transition(Internal_Data * data, Mouse_Code key, bool to_state) {
 	CUSTOM_ASSERT(data->hwnd, "window doesn't exist");
-	using U = meta::underlying_type<Mouse_Code>::type;
-	bool from = data->mouse.prev[(U)key];
-	bool to = data->mouse.keys[(U)key];
+	bool from = data->mouse.prev[(u8)key];
+	bool to = data->mouse.keys[(u8)key];
 	return (from != to) && (to == to_state);
 }
 
@@ -302,8 +298,6 @@ enum struct Input_Mode {
 	Raw,
 	Message,
 };
-UNDERLYING_TYPE_META(Input_Mode, u8)
-IS_ENUM_META(Input_Mode)
 
 static Input_Mode keyboard_mode = Input_Mode::Message;
 static Input_Mode mouse_mode    = Input_Mode::Message;

@@ -1,7 +1,6 @@
 #include "custom_pch.h"
 
 #include "engine/core/code.h"
-#include "engine/core/meta.h"
 #include "engine/debug/log.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/timer.h"
