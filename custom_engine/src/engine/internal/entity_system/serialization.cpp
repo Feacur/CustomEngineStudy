@@ -100,7 +100,7 @@ void read_Child_block(Entity & entity, cstring * source) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Transform>) {
+READ_FUNC(component_pool_read_Transform) {
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 
 	static u32 const key_position = Entity::store_string("position", custom::empty_index);
@@ -142,7 +142,7 @@ template<> READ_FUNC(component_pool_read<Transform>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Camera>) {
+READ_FUNC(component_pool_read_Camera) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 
 	static u32 const key_near  = Entity::store_string("near",  custom::empty_index);
@@ -185,7 +185,7 @@ template<> READ_FUNC(component_pool_read<Camera>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Hierarchy>) {
+READ_FUNC(component_pool_read_Hierarchy) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();

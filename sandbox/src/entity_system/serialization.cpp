@@ -18,7 +18,7 @@
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Visual>) {
+READ_FUNC(component_pool_read_Visual) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 
 	static u32 const key_shader  = Entity::store_string("shader",  custom::empty_index);
@@ -76,7 +76,7 @@ template<> READ_FUNC(component_pool_read<Visual>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Lua_Script>) {
+READ_FUNC(component_pool_read_Lua_Script) {
 	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 
 	static u32 const key_asset  = Entity::store_string("asset",  custom::empty_index);
@@ -122,7 +122,7 @@ template<> READ_FUNC(component_pool_read<Lua_Script>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Physical>) {
+READ_FUNC(component_pool_read_Physical) {
 	RefT<Physical> & refT = (RefT<Physical> &)ref;
 
 	Physical * component = refT.get_fast();
@@ -152,7 +152,7 @@ template<> READ_FUNC(component_pool_read<Physical>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Phys2d>) {
+READ_FUNC(component_pool_read_Phys2d) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 
 	static u32 const key_movable    = Entity::store_string("movable",    custom::empty_index);

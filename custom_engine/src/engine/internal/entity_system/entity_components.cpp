@@ -27,7 +27,7 @@ void entity_do_before_destroy(Entity & entity) {
 	Array<Hierarchy::Link> children;
 	Hierarchy::fetch_children(entity, children);
 
-	// @Note: might be passed to `component_pool_unload<Hierarchy>`,
+	// @Note: might be passed to `component_pool_unload_Hierarchy`,
 	//        but now for now it's batch-processed here;
 	//        it's not pretty, but for this purpose unloaders
 	//        recieve a flag `only_component`, which tells, if a component
@@ -55,14 +55,14 @@ void entity_do_before_reset_system(void) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Transform>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Transform) {
 	RefT<Transform> const & fromT = (RefT<Transform> const &)from;
 	RefT<Transform> & toT = (RefT<Transform> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Transform>) {
+ENTITY_LOADING_FUNC(component_pool_load_Transform) {
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
 	Transform * component = refT.get_fast();
 
@@ -71,7 +71,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Transform>) {
 	component->rotation = {0, 0, 0, 1};
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Transform>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Transform) {
 	// RefT<Transform> & refT = (RefT<Transform> &)ref;
 	// Transform * component = refT.get_fast();
 }
@@ -84,14 +84,14 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Transform>) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Camera>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Camera) {
 	RefT<Camera> const & fromT = (RefT<Camera> const &)from;
 	RefT<Camera> & toT = (RefT<Camera> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Camera>) {
+ENTITY_LOADING_FUNC(component_pool_load_Camera) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
 	Camera * component = refT.get_fast();
 
@@ -103,7 +103,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Camera>) {
 	component->layer = 0;
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Camera>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Camera) {
 	// RefT<Camera> & refT = (RefT<Camera> &)ref;
 	// Camera * component = refT.get_fast();
 }
@@ -116,7 +116,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Camera>) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Hierarchy) {
 	/*pass the responsibility to `entity_do_after_copy`*/
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)to;
 	Hierarchy * component = refT.get_fast();
@@ -129,14 +129,14 @@ template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Hierarchy>) {
 	component->parent = {custom::empty_ref};
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Hierarchy>) {
+ENTITY_LOADING_FUNC(component_pool_load_Hierarchy) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 	Hierarchy * component = refT.get_fast();
 
 	component->parent = {custom::empty_ref};
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Hierarchy>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Hierarchy) {
 	if (!only_component) { /*pass the responsibility to `entity_do_before_destroy`*/ return; }
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 	Hierarchy * component = refT.get_fast();
