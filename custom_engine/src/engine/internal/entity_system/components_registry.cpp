@@ -27,24 +27,26 @@ static BOOL_REF_FUNC(ref_pool_contains_##T) { return RefT<T>::pool.contains(ref)
 
 }
 
-namespace custom {
+#include "entity_components.cpp.inl"
+// namespace custom {
+// 
+// #define COMPONENT_IMPL(T)                       \
+// ENTITY_FROM_TO_FUNC(component_pool_copy_##T);   \
+// ENTITY_LOADING_FUNC(component_pool_load_##T);   \
+// ENTITY_LOADING_FUNC(component_pool_unload_##T); \
+// 
+// #include "engine/registry_impl/component_types.h"
+// 
+// }
 
-#define COMPONENT_IMPL(T)                       \
-ENTITY_FROM_TO_FUNC(component_pool_copy_##T);   \
-ENTITY_LOADING_FUNC(component_pool_load_##T);   \
-ENTITY_LOADING_FUNC(component_pool_unload_##T); \
-
-#include "engine/registry_impl/component_types.h"
-
-}
-
-namespace custom {
-namespace serialization {
-
-#define COMPONENT_IMPL(T) READ_FUNC(component_pool_read_##T);
-#include "engine/registry_impl/component_types.h"
-
-}}
+#include "serialization.cpp.inl"
+// namespace custom {
+// namespace serialization {
+// 
+// #define COMPONENT_IMPL(T) READ_FUNC(component_pool_read_##T);
+// #include "engine/registry_impl/component_types.h"
+// 
+// }}
 
 void init_component_types(void) {
 	#define COMPONENT_IMPL(T)                                                  \

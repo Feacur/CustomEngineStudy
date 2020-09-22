@@ -27,17 +27,18 @@ static BOOL_REF_FUNC(ref_pool_contains_##T) { return RefT<T>::pool.contains(ref)
 
 }
 
-namespace custom {
-namespace loading {
-
-#define ASSET_IMPL(T)                \
-LOADING_FUNC(asset_pool_load_##T);   \
-LOADING_FUNC(asset_pool_unload_##T); \
-LOADING_FUNC(asset_pool_update_##T); \
-
-#include "engine/registry_impl/asset_types.h"
-
-}}
+#include "loading.cpp.inl"
+// namespace custom {
+// namespace loading {
+// 
+// #define ASSET_IMPL(T)                \
+// LOADING_FUNC(asset_pool_load_##T);   \
+// LOADING_FUNC(asset_pool_unload_##T); \
+// LOADING_FUNC(asset_pool_update_##T); \
+// 
+// #include "engine/registry_impl/asset_types.h"
+// 
+// }}
 
 void init_asset_types(void) {
 	#define ASSET_IMPL(T)                                              \
