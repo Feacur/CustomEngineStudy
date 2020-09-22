@@ -16,6 +16,17 @@ template struct custom::Asset_RefT<T>;        \
 
 #include "engine/registry_impl/asset_types.h"
 
+namespace custom {
+
+#define ASSET_IMPL(T)                                                               \
+static REF_VOID_FUNC(ref_pool_create_##T) { return RefT<T>::pool.create(); }        \
+static VOID_REF_FUNC(ref_pool_destroy_##T) { RefT<T>::pool.destroy(ref); }          \
+static BOOL_REF_FUNC(ref_pool_contains_##T) { return RefT<T>::pool.contains(ref); } \
+
+#include "engine/registry_impl/asset_types.h"
+
+}
+
 void init_asset_types(void) {
 	#define ASSET_IMPL(T)                                              \
 	custom::Asset_Registry<T>::type = custom::asset_names.get_count(); \
@@ -31,9 +42,9 @@ void init_asset_types(void) {
 	custom::Asset::vtable.update.set_capacity(custom::asset_names.get_count());
 
 	#define ASSET_IMPL(T)                                                      \
-	custom::Asset::vtable.create.push(&custom::ref_pool_create<T>);            \
-	custom::Asset::vtable.destroy.push(&custom::ref_pool_destroy<T>);          \
-	custom::Asset::vtable.contains.push(&custom::ref_pool_contains<T>);        \
+	custom::Asset::vtable.create.push(&custom::ref_pool_create_##T);           \
+	custom::Asset::vtable.destroy.push(&custom::ref_pool_destroy_##T);         \
+	custom::Asset::vtable.contains.push(&custom::ref_pool_contains_##T);       \
 	custom::Asset::vtable.load.push(&custom::loading::asset_pool_load<T>);     \
 	custom::Asset::vtable.unload.push(&custom::loading::asset_pool_unload<T>); \
 	custom::Asset::vtable.update.push(&custom::loading::asset_pool_update<T>); \
