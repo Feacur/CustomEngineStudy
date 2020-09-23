@@ -68,29 +68,47 @@ struct Gen_Pool
 	inline bool contains(Ref const & ref) const { return (ref.id < gens.count) && (gens[ref.id] == ref.gen); };
 };
 
-// @Todo: might want to dynamically init pools should the code be used from a DLL?
-//        not quite relates to the pool itself, but definitely to RefT and
-//        types/places that make use of it
-template<typename T>
-struct Ref_PoolT
+struct Ref_Pool
 {
-	~Ref_PoolT(void) = default;
+	Ref_Pool(u32 size);
+	~Ref_Pool(void) = default;
 
 	Gen_Pool generations;
-	Array<T> instances; // sparse; count indicates the last active object
+	Array<u8> buffer; // sparse; count indicates the last active object
+	u32 const size;
 
 	// API
-	RefT<T> create(void);
+	Ref create_void(void);
 	void destroy(Ref const & ref);
 
 	// RefT API
 	inline bool contains(Ref const & ref) const { return generations.contains(ref); };
 
-	inline T * get_fast(Ref const & ref) { return &instances[ref.id]; }
-	inline T * get_safe(Ref const & ref) { return generations.contains(ref) ? &instances[ref.id] : NULL; }
+	inline u8 * get_fast_void(Ref const & ref) { return &buffer[ref.id * size]; }
+	inline u8 * get_safe_void(Ref const & ref) { return generations.contains(ref) ? &buffer[ref.id * size] : NULL; }
 
-	inline T const * get_fast(Ref const & ref) const { return &instances[ref.id]; }
-	inline T const * get_safe(Ref const & ref) const { return generations.contains(ref) ? &instances[ref.id] : NULL; }
+	inline u8 const * get_fast_void(Ref const & ref) const { return &buffer[ref.id * size]; }
+	inline u8 const * get_safe_void(Ref const & ref) const { return generations.contains(ref) ? &buffer[ref.id * size] : NULL; }
+};
+
+// @Todo: might want to dynamically init pools should the code be used from a DLL?
+//        not quite relates to the pool itself, but definitely to RefT and
+//        types/places that make use of it
+template<typename T>
+struct Ref_PoolT : public Ref_Pool
+{
+	Ref_PoolT(void);
+	~Ref_PoolT(void) = default;
+
+	// API
+	inline RefT<T> create(void) { return {create_void()}; }
+
+	// RefT API
+	inline T * get_fast(Ref const & ref) { return (T *)get_fast_void(ref); }
+	inline T * get_safe(Ref const & ref) { return (T *)get_safe_void(ref); }
+
+	inline T const * get_fast(Ref const & ref) const { return (T const *)get_fast_void(ref); }
+	inline T const * get_safe(Ref const & ref) const { return (T const *)get_safe_void(ref); }
 };
 
 }

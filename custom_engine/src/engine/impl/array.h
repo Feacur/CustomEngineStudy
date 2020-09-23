@@ -141,6 +141,12 @@ void Array<T>::pop(void) {
 }
 
 template<typename T>
+void Array<T>::pop_range(u32 number) {
+	CUSTOM_ASSERT(count >= number, "count is zero");
+	count -= number;
+}
+
+template<typename T>
 void Array<T>::remove_at(u32 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");

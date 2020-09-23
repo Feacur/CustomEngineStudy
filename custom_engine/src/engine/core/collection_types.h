@@ -46,6 +46,7 @@ struct Array
 	void insert(u32 i, T const & value);
 
 	void pop(void);
+	void pop_range(u32 number);
 	void remove_at(u32 i);
 	void remove_at_ordered(u32 i);
 };
@@ -80,6 +81,7 @@ struct Array_Fixed
 	void insert(u16 i, T const & value);
 
 	void pop(void);
+	void pop_range(u16 number);
 	void remove_at(u16 i);
 	void remove_at_ordered(u16 i);
 };

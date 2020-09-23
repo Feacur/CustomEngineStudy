@@ -2,9 +2,8 @@
 
 #include "engine/core/code.h"
 #include "engine/debug/log.h"
-
+#include "engine/api/internal/reference.h"
 #include "engine/impl/array.h"
-#include "engine/impl/reference.h"
 
 //
 // pool
@@ -40,6 +39,27 @@ void Gen_Pool::destroy(Ref const & ref) {
 	else {
 		gaps.push(ref.id);
 	}
+}
+
+}
+
+//
+// pool
+//
+
+namespace custom {
+
+Ref_Pool::Ref_Pool(u32 size) : size(size) {}
+
+Ref Ref_Pool::create_void(void) {
+	if (generations.gaps.count == 0) { buffer.push_range(size); }
+	Ref ref = generations.create();
+	return {ref};
+}
+
+void Ref_Pool::destroy(Ref const & ref) {
+	generations.destroy(ref);
+	if ((ref.id + 1) * size == buffer.count) { buffer.pop_range(size); }
 }
 
 }

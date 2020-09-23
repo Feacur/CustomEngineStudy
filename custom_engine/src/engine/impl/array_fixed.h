@@ -97,6 +97,12 @@ void Array_Fixed<T, N>::pop(void) {
 }
 
 template<typename T, u16 N>
+void Array_Fixed<T, N>::pop_range(u16 number) {
+	CUSTOM_ASSERT(count >= number, "count is zero");
+	count -= number;
+}
+
+template<typename T, u16 N>
 void Array_Fixed<T, N>::remove_at(u16 i) {
 	CUSTOM_ASSERT(count > 0, "count is zero");
 	CUSTOM_ASSERT(i < count, "index exceeds count");
