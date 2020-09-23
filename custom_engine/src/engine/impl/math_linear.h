@@ -1144,6 +1144,28 @@ inline r32 quat_get_radians_z(quat const & q) {
 	return atan2f((q.x * q.y + q.z * q.w) * 2, (q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z));
 };
 
+/*
+matrices
+
+column-major:
+- is the API representation here; it's a bit saner code-wise
+- columns are axes
+- position is in the rightmost column
+
+row-major:
+- is an intermediate format here; it's a bit saner to construct
+- rows are axes
+- position is in the bottowm row
+
+* https://en.wikipedia.org/wiki/Matrix_multiplication
+* https://en.wikipedia.org/wiki/Transpose
+* https://en.wikipedia.org/wiki/Matrix_representation
+* https://en.wikipedia.org/wiki/Row-_and_column-major_order
+
+transpose(A * B) == transpose(B) * transpose(A)
+
+*/
+
 //
 // mat2 routines
 //
@@ -1156,7 +1178,6 @@ constexpr inline mat2 mat_transpose(mat2 const & value) {
 }
 
 constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & value) {
-	// expects a column-major matrix: position is in the rightmost column
 	return {
 		dot_product(mat.x, value),
 		dot_product(mat.y, value)
@@ -1164,8 +1185,7 @@ constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & value) {
 }
 
 constexpr inline mat2 mat_product(mat2 const & mat, mat2 const & value) {
-	// A x B == Bt x A
-	// row_new == dot(row_a, column_b)
+	// row_new_x_y == dot(row_a_y, column_b_x)
 	mat2 t = mat_transpose(value);
 	return {
 		mat_product(t, mat.x),
@@ -1193,7 +1213,6 @@ constexpr inline mat3 mat_transpose(mat3 const & value) {
 }
 
 constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & value) {
-	// expects a column-major matrix: position is in the rightmost column
 	return {
 		dot_product(mat.x, value),
 		dot_product(mat.y, value),
@@ -1202,8 +1221,7 @@ constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & value) {
 }
 
 constexpr inline mat3 mat_product(mat3 const & mat, mat3 const & value) {
-	// A x B == Bt x A
-	// row_new == dot(row_a, column_b)
+	// row_new_x_y == dot(row_a_y, column_b_x)
 	mat3 t = mat_transpose(value);
 	return {
 		mat_product(t, mat.x),
@@ -1232,7 +1250,7 @@ constexpr inline mat3 mat_inverse_transform(mat3 const & value) {
 }
 
 constexpr inline mat3 to_matrix(vec2 const & p, vec2 const & s) {
-	// constructs column-major matrix
+	// constructs a column-major matrix
 	return {
 		vec3{s.x, 0,   p.x},
 		vec3{0,   s.y, p.y},
@@ -1241,7 +1259,7 @@ constexpr inline mat3 to_matrix(vec2 const & p, vec2 const & s) {
 }
 
 inline mat3 to_matrix(vec2 const & position, vec2 const & scale, complex const & rotation) {
-	// constructs row-major matrix, then transposes it into column-major
+	// constructs a row-major matrix, then transposes it into a column-major one
 	mat3 mat; // = {};
 	complex_get_axes(rotation, mat.x.xy, mat.y.xy);
 	mat.x.xy *= scale.x; mat.x.z = 0;
@@ -1264,7 +1282,6 @@ constexpr inline mat4 mat_transpose(mat4 const & value) {
 }
 
 constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & value) {
-	// expects a column-major matrix: position is in the rightmost column
 	return {
 		dot_product(mat.x, value),
 		dot_product(mat.y, value),
@@ -1274,8 +1291,7 @@ constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & value) {
 }
 
 constexpr inline mat4 mat_product(mat4 const & mat, mat4 const & value) {
-	// A x B == Bt x A
-	// row_new == dot(row_a, column_b)
+	// row_new_x_y == dot(row_a_y, column_b_x)
 	mat4 t = mat_transpose(value);
 	return {
 		mat_product(t, mat.x),
@@ -1307,7 +1323,7 @@ constexpr inline mat4 mat_inverse_transform(mat4 const & value) {
 }
 
 constexpr inline mat4 to_matrix(vec3 const & p, vec3 const & s) {
-	// constructs column-major matrix
+	// constructs a column-major matrix
 	return {
 		vec4{s.x, 0,   0,   p.x},
 		vec4{0,   s.y, 0,   p.y},
@@ -1317,7 +1333,7 @@ constexpr inline mat4 to_matrix(vec3 const & p, vec3 const & s) {
 }
 
 inline mat4 to_matrix(vec3 const & position, vec3 const & scale, quat const & rotation) {
-	// constructs row-major matrix, then transposes it into column-major
+	// constructs a row-major matrix, then transposes it into a column-major one
 	mat4 mat; // = {};
 	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
 	mat.x.xyz *= scale.x; mat.x.w = 0;
@@ -1395,7 +1411,7 @@ Perspective projection:
 */
 
 constexpr inline mat4 mat_persp(vec2 const & scale, r32 ncp, r32 fcp) {
-	// constructs row-major matrix, then transposes it into column-major
+	// constructs a row-major matrix, then transposes it into a column-major one
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
@@ -1410,7 +1426,7 @@ constexpr inline mat4 mat_persp(vec2 const & scale, r32 ncp, r32 fcp) {
 }
 
 constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
-	// constructs row-major matrix, then transposes it into column-major
+	// constructs a row-major matrix, then transposes it into a column-major one
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
 	mat4 result = {};
