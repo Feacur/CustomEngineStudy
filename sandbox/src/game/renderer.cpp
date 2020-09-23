@@ -152,6 +152,7 @@ static void ecs_update_renderer_internal(custom::Array<Transform> const & id_to_
 	for (u32 camera_i = 0; camera_i < renderers.count; ++camera_i) {
 		Renderer_Blob const & renderer = renderers[camera_i];
 
+		// @Note: expects these to be column-major matrices
 		mat4 const camera_matrix = mat_product(
 			renderer.camera->to_matrix(aspect),
 			mat_inverse_transform(id_to_transform.get(renderer.id).to_matrix())
@@ -178,6 +179,7 @@ static void ecs_update_renderer_internal(custom::Array<Transform> const & id_to_
 		for (; renderable_i < last_renderable_i; ++renderable_i) {
 			Renderable_Blob const & renderable = renderables[renderable_i];
 
+			// @Note: expects this to be a column-major matrix
 			mat4 const transform_matrix = id_to_transform.get(renderable.id).to_matrix();
 
 			if (shader_id != renderable.visual->shader.ref.id) {

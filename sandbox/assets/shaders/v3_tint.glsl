@@ -7,7 +7,9 @@ uniform mat4 u_Transform;
 
 void main()
 {
-	gl_Position = u_View_Projection * u_Transform * vec4(a_Position, 1.0);
+	// @Note: expects column-major matrices
+	//        u_View_Projection == camera_projection * camera_inverse_transform
+	gl_Position = vec4(a_Position, 1.0) * u_Transform * u_View_Projection;
 }
 #endif // defined(VERTEX_SECTION)
 

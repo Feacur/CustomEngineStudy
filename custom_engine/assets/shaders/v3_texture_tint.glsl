@@ -12,9 +12,11 @@ out vec3 v_Normal;
 
 void main()
 {
+	// @Note: expects column-major matrices
+	//        u_View_Projection == camera_projection * camera_inverse_transform
 	v_TexCoord = a_TexCoord;
-	v_Normal = (u_Transform * vec4(a_Normal, 0.0)).xyz;
-	gl_Position = u_View_Projection * u_Transform * vec4(a_Position, 1.0);
+	v_Normal = (vec4(a_Normal, 0.0) * u_Transform).xyz;
+	gl_Position = vec4(a_Position, 1.0) * u_Transform * u_View_Projection;
 }
 #endif // defined(VERTEX_SECTION)
 

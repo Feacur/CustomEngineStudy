@@ -11,8 +11,10 @@ out vec2 v_TexCoord;
 
 void main()
 {
+	// @Note: expects column-major matrices
+	//        u_View_Projection == camera_projection * camera_inverse_transform
 	v_TexCoord = a_TexCoord;
-	vec3 position = u_View_Projection * u_Transform * vec3(a_Position, 1.0);
+	vec3 position = vec3(a_Position, 1.0) * u_Transform * u_View_Projection;
 	gl_Position = vec4(position.xy, u_Z, 1.0);
 }
 #endif // defined(VERTEX_SECTION)

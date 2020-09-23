@@ -10,8 +10,10 @@ out vec4 v_Color;
 
 void main()
 {
+	// @Note: expects column-major matrices
+	//        u_View_Projection == camera_projection * camera_inverse_transform
 	v_Color = a_Color;
-	gl_Position = u_View_Projection * u_Transform * vec4(a_Position, 1.0);
+	gl_Position = vec4(a_Position, 1.0) * u_Transform * u_View_Projection;
 }
 #endif // defined(VERTEX_SECTION)
 
