@@ -100,8 +100,14 @@ void read_Child_block(Entity & entity, cstring * source) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Transform>) {
+READ_FUNC(component_pool_read_Transform) {
 	RefT<Transform> & refT = (RefT<Transform> &)ref;
+
+	static u32 const key_position = Entity::store_string("position", custom::empty_index);
+	static u32 const key_scale    = Entity::store_string("scale",    custom::empty_index);
+	static u32 const key_rotation = Entity::store_string("rotation", custom::empty_index);
+	static u32 const key_radians  = Entity::store_string("radians",  custom::empty_index);
+	static u32 const key_degrees  = Entity::store_string("degrees",  custom::empty_index);
 
 	Transform * component = refT.get_fast();
 
@@ -113,14 +119,15 @@ template<> READ_FUNC(component_pool_read<Transform>) {
 		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
 		u32 key_length = to_identifier_length(source);
-		cstring key    = *source;
-		skip_to_void(source);
+		cstring key    = *source; skip_to_void(source);
+		u32 key_id     = Entity::get_id(key, key_length);
+		if (key_id == custom::empty_index) { *source = key; break; }
 
-		if (strncmp_auto(key, "position ") == 0) { component->position = to_vec3(source); continue; }
-		if (strncmp_auto(key, "scale ")    == 0) { component->scale    = to_vec3(source); continue; }
-		if (strncmp_auto(key, "rotation ") == 0) { component->rotation = to_vec4(source); continue; }
-		if (strncmp_auto(key, "radians ")  == 0) { component->rotation = quat_from_radians(to_vec3(source)); continue; }
-		if (strncmp_auto(key, "degrees ")  == 0) { component->rotation = quat_from_radians(to_vec3(source) * deg_to_rad); continue; }
+		if (key_id == key_position) { component->position = to_vec3(source); continue; }
+		if (key_id == key_scale)    { component->scale    = to_vec3(source); continue; }
+		if (key_id == key_rotation) { component->rotation = to_vec4(source); continue; }
+		if (key_id == key_radians)  { component->rotation = quat_from_radians(to_vec3(source)); continue; }
+		if (key_id == key_degrees)  { component->rotation = quat_from_radians(to_vec3(source) * deg_to_rad); continue; }
 
 		*source = key; break;
 	}
@@ -135,8 +142,15 @@ template<> READ_FUNC(component_pool_read<Transform>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Camera>) {
+READ_FUNC(component_pool_read_Camera) {
 	RefT<Camera> & refT = (RefT<Camera> &)ref;
+
+	static u32 const key_near  = Entity::store_string("near",  custom::empty_index);
+	static u32 const key_far   = Entity::store_string("far",   custom::empty_index);
+	static u32 const key_scale = Entity::store_string("scale", custom::empty_index);
+	static u32 const key_ortho = Entity::store_string("ortho", custom::empty_index);
+	static u32 const key_clear = Entity::store_string("clear", custom::empty_index);
+	static u32 const key_layer = Entity::store_string("layer", custom::empty_index);
 
 	Camera * component = refT.get_fast();
 
@@ -147,15 +161,16 @@ template<> READ_FUNC(component_pool_read<Camera>) {
 		if (!IS_VALID_IDENTIFIER_START(**source)) { break; }
 
 		u32 key_length = to_identifier_length(source);
-		cstring key    = *source;
-		skip_to_void(source);
+		cstring key    = *source; skip_to_void(source);
+		u32 key_id     = Entity::get_id(key, key_length);
+		if (key_id == custom::empty_index) { *source = key; break; }
 
-		if (strncmp_auto(key, "near ")  == 0) { component->ncp   = to_r32(source); continue; }
-		if (strncmp_auto(key, "far ")   == 0) { component->fcp   = to_r32(source); continue; }
-		if (strncmp_auto(key, "scale ") == 0) { component->scale = to_r32(source); continue; }
-		if (strncmp_auto(key, "ortho ") == 0) { component->ortho = to_r32(source); continue; }
-		if (strncmp_auto(key, "clear ") == 0) { component->clear = (graphics::Clear_Flag)to_u32(source); continue; }
-		if (strncmp_auto(key, "layer ") == 0) { component->layer = (u8)to_u32(source); continue; }
+		if (key_id == key_near)  { component->ncp   = to_r32(source); continue; }
+		if (key_id == key_far)   { component->fcp   = to_r32(source); continue; }
+		if (key_id == key_scale) { component->scale = to_r32(source); continue; }
+		if (key_id == key_ortho) { component->ortho = to_r32(source); continue; }
+		if (key_id == key_clear) { component->clear = (graphics::Clear_Flag)to_u32(source); continue; }
+		if (key_id == key_layer) { component->layer = (u8)to_u32(source); continue; }
 
 		*source = key; break;
 	}
@@ -170,7 +185,7 @@ template<> READ_FUNC(component_pool_read<Camera>) {
 namespace custom {
 namespace serialization {
 
-template<> READ_FUNC(component_pool_read<Hierarchy>) {
+READ_FUNC(component_pool_read_Hierarchy) {
 	RefT<Hierarchy> & refT = (RefT<Hierarchy> &)ref;
 
 	Hierarchy * component = refT.get_fast();

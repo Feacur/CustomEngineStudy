@@ -16,7 +16,7 @@ namespace custom {
 // @Todo: revisit
 static void read_file_safely(cstring path, Array<u8> & buffer) {
 	constexpr u32 count = 4;
-	// if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
+	if (!file::get_time(path)) { CUSTOM_ASSERT(false, "file doesn't exist '%s'", path); return; }
 	for (u32 i = 0; i < count; ++i) {
 		if (file::read(path, buffer)) { return; }
 	}
@@ -50,7 +50,7 @@ void init_client_loader(lua_State * lua) {
 namespace custom {
 namespace loading {
 
-template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
+LOADING_FUNC(asset_pool_load_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
@@ -77,7 +77,7 @@ template<> LOADING_FUNC(asset_pool_load<Lua_Asset>) {
 	asset->~Lua_Asset();
 }
 
-template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
+LOADING_FUNC(asset_pool_unload_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;
@@ -90,7 +90,7 @@ template<> LOADING_FUNC(asset_pool_unload<Lua_Asset>) {
 	// @Todo: unload Lua's chunk if possible?
 }
 
-template<> LOADING_FUNC(asset_pool_update<Lua_Asset>) {
+LOADING_FUNC(asset_pool_update_Lua_Asset) {
 	if (!asset_ref.exists()) { CUSTOM_ASSERT(false, "Lua asset doesn't exist"); return; }
 
 	RefT<Lua_Asset> & refT = (RefT<Lua_Asset> &)asset_ref;

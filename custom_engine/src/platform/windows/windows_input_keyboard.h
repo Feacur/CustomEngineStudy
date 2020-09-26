@@ -6,8 +6,7 @@
 // utility
 //
 static inline void keyboard_set(Window * window, custom::Key_Code key, bool is_pressed) {
-	using U = meta::underlying_type<custom::Key_Code>::type;
-	window->keyboard.keys[(U)key] = is_pressed;
+	window->keyboard.keys[(u8)key] = is_pressed;
 }
 
 static inline void keyboard_reset(Window * window) {
@@ -27,11 +26,10 @@ static bool key_test_range(
 	WPARAM min_code,
 	WPARAM max_code
 ) {
-	using U = meta::underlying_type<custom::Key_Code>::type;
 	if (virtual_key_code < min_code) { return false; }
 	if (virtual_key_code > max_code) { return false; }
-	U offset = (U)(virtual_key_code - min_code);
-	U index = (U)base + offset;
+	u8 offset = (u8)(virtual_key_code - min_code);
+	u8 index = (u8)base + offset;
 	keyboard_set(window, (custom::Key_Code)index, is_pressed);
 	return true;
 }

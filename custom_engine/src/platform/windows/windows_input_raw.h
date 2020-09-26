@@ -19,8 +19,6 @@ enum struct Raw_Input_Device : USHORT { // usage page 0x01
 	Keypad   = 0x07, // Win32  -- Exclusive
 	System   = 0x80, // Win32  -- Shared
 };
-UNDERLYING_TYPE_META(Raw_Input_Device, USHORT)
-IS_ENUM_META(Raw_Input_Device)
 
 // RIDEV_APPKEYS:      the application command keys are handled (only with keyboard's RIDEV_NOLEGACY)
 // RIDEV_NOLEGACY:     prevents mouse and keyboard from generating legacy messages
@@ -37,10 +35,9 @@ constexpr static inline RAWINPUTDEVICE raw_input_device(HWND hwnd, USHORT usage,
 
 static void platform_raw_input_set(HWND hwnd, DWORD flags, Input_Mode mode) {
 	// https://docs.microsoft.com/ru-ru/windows/win32/api/winuser/ns-winuser-rawinputdevice
-	using U = meta::underlying_type<Raw_Input_Device>::type;
 	RAWINPUTDEVICE devices[] = {
-		raw_input_device(hwnd, (U)Raw_Input_Device::Keyboard, flags),
-		raw_input_device(hwnd, (U)Raw_Input_Device::Mouse, flags),
+		raw_input_device(hwnd, (USHORT)Raw_Input_Device::Keyboard, flags),
+		raw_input_device(hwnd, (USHORT)Raw_Input_Device::Mouse, flags),
 	};
 	if (RegisterRawInputDevices(devices, C_ARRAY_LENGTH(devices), sizeof(RAWINPUTDEVICE))) {
 		keyboard_mode = mode;

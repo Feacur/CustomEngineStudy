@@ -6,8 +6,7 @@
 // utility
 //
 static inline void mouse_set(Window * window, custom::Mouse_Code key, bool is_pressed) {
-	using U = meta::underlying_type<custom::Mouse_Code>::type;
-	window->mouse.keys[(U)key] = is_pressed;
+	window->mouse.keys[(u8)key] = is_pressed;
 }
 
 static inline void mouse_reset(Window * window) {

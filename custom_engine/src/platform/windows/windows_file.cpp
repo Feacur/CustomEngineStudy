@@ -1,14 +1,9 @@
 #include "custom_pch.h"
 
 #include "engine/core/code.h"
-#include "engine/core/meta.h"
-#include "engine/core/collection_types.h"
 #include "engine/debug/log.h"
-#include "engine/api/internal/strings_storage.h"
 #include "engine/api/platform/file.h"
 #include "engine/api/platform/timer.h"
-#include "engine/impl/math_bitwise.h"
-#include "engine/impl/array.h"
 
 #if !defined(CUSTOM_PRECOMPILED_HEADER)
 	#include <Windows.h>
@@ -116,7 +111,7 @@ u64 get_time(cstring path) {
 	large.HighPart = find_file_data.ftLastWriteTime.dwHighDateTime;
 
 	FindClose(handle);
-	return (u64)large.QuadPart;
+	return large.QuadPart ? (u64)large.QuadPart : 1;
 }
 
 bool read(cstring path, Array<u8> & buffer) {
@@ -187,7 +182,7 @@ void watch_update(void) {
 	if (storage_id != watch_data.storage_id) {
 		// @Todo: threads synchronization
 		// while (watch_data.locked) { YieldProcessor(); }
-		Lock_Scoped(watch_data.lock);
+		Lock_Scoped lock_scoped(watch_data.lock);
 
 		storage_id = watch_data.storage_id;
 		strings.values.push_range(watch_data.strings.values.data, watch_data.strings.values.count);
@@ -267,7 +262,7 @@ static DWORD WINAPI watch_files_thread(LPVOID lpParam) {
 
 		// @Todo: threads synchronization
 		// while (data->lock.locked) { Sleep(100); }
-		Lock_Scoped(data->lock);
+		Lock_Scoped lock_scoped(data->lock);
 
 		u8 const * next_byte = info;
 		while (true) {

@@ -28,6 +28,10 @@ u32 Entity::store_string(cstring data, u32 length) {
 	return Entity::strings.store_string(data, length);
 }
 
+u32 Entity::get_id(cstring data, u32 length) {
+	return Entity::strings.get_id(data, length);
+}
+
 cstring Entity::get_string(u32 id) {
 	return Entity::strings.get_string(id);
 }

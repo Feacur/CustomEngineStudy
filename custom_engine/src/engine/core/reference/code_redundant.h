@@ -51,3 +51,20 @@
 	#define CUSTOM_EXTERN
 	#define CUSTOM_DLL
 #endif
+
+#if defined(_MSC_VER)
+	namespace meta {
+		template<typename T> struct underlying_type { typedef __underlying_type(T) type; };
+		template<typename T> struct is_enum         { static bool const value = __is_enum(T); };
+	}
+	#define UNDERLYING_TYPE_META(T, U)
+	#define IS_ENUM_META(T)
+#else
+	namespace meta {
+		template<typename T> struct underlying_type;
+		template<typename T> struct is_enum;
+	}
+	#define UNDERLYING_TYPE_META(T, U) namespace meta { template<> struct underlying_type<T> { typedef typename U type; }; }
+	#define IS_ENUM_META(T)            namespace meta { template<> struct is_enum<T>         { static bool const value = true; }; }
+
+#endif

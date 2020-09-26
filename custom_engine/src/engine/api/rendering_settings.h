@@ -1,6 +1,5 @@
 #pragma once
 #include "engine/core/types.h"
-#include "engine/core/meta.h"
 
 namespace custom {
 
@@ -10,8 +9,6 @@ enum struct Context_Api : u8
 	OpenGL,
 	OpenGL_ES,
 };
-UNDERLYING_TYPE_META(Context_Api, u8)
-IS_ENUM_META(Context_Api)
 
 struct Context_Settings
 {

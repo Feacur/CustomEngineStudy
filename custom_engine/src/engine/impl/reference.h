@@ -23,23 +23,3 @@ void Ref_PoolT<T>::destroy(Ref const & ref) {
 }
 
 }
-
-//
-// universal access
-//
-
-namespace custom {
-
-template<typename T> REF_VOID_FUNC(ref_pool_create) {
-	return RefT<T>::pool.create();
-}
-
-template<typename T> VOID_REF_FUNC(ref_pool_destroy) {
-	RefT<T>::pool.destroy(ref);
-}
-
-template<typename T> BOOL_REF_FUNC(ref_pool_contains) {
-	return RefT<T>::pool.contains(ref);
-}
-
-}

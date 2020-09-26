@@ -29,7 +29,7 @@ u32 Asset::store_string(cstring data, u32 length) {
 	return Asset::strings.store_string(data, length);
 }
 
-u32 Asset::get_resource(cstring data, u32 length) {
+u32 Asset::get_id(cstring data, u32 length) {
 	return Asset::strings.get_id(data, length);
 }
 

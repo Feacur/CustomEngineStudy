@@ -2,25 +2,6 @@
 #include "engine/api/internal/entity_system.h"
 
 //
-// universal access
-//
-
-namespace custom {
-
-template<typename T> ENTITY_FROM_TO_FUNC(component_pool_copy);
-template<typename T> ENTITY_LOADING_FUNC(component_pool_load);
-template<typename T> ENTITY_LOADING_FUNC(component_pool_unload);
-
-}
-
-namespace custom {
-namespace serialization {
-
-template<typename T> READ_FUNC(component_pool_read);
-
-}}
-
-//
 // entity
 //
 

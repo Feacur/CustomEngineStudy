@@ -12,14 +12,14 @@
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Visual>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Visual) {
 	RefT<Visual> const & fromT = (RefT<Visual> const &)from;
 	RefT<Visual> & toT = (RefT<Visual> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
+ENTITY_LOADING_FUNC(component_pool_load_Visual) {
 	RefT<Visual> & refT = (RefT<Visual> &)ref;
 	Visual * component = refT.get_fast();
 
@@ -28,7 +28,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Visual>) {
 	component->mesh    = {custom::empty_ref, custom::empty_index};
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Visual) {
 	// RefT<Visual> & refT = (RefT<Visual> &)ref;
 	// Visual * component = refT.get_fast();
 }
@@ -41,21 +41,21 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Visual>) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Lua_Script>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Lua_Script) {
 	RefT<Lua_Script> const & fromT = (RefT<Lua_Script> const &)from;
 	RefT<Lua_Script> & toT = (RefT<Lua_Script> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Lua_Script>) {
+ENTITY_LOADING_FUNC(component_pool_load_Lua_Script) {
 	RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 	Lua_Script * component = refT.get_fast();
 
 	component->update_string_id = custom::empty_index;
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Lua_Script) {
 	// RefT<Lua_Script> & refT = (RefT<Lua_Script> &)ref;
 	// Lua_Script * component = refT.get_fast();
 }
@@ -68,18 +68,18 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Lua_Script>) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Physical>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Physical) {
 	RefT<Physical> const & fromT = (RefT<Physical> const &)from;
 	RefT<Physical> & toT = (RefT<Physical> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Physical>) {
+ENTITY_LOADING_FUNC(component_pool_load_Physical) {
 	// RefT<Physical> & refT = (RefT<Physical> &)ref;
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Physical>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Physical) {
 	// RefT<Physical> & refT = (RefT<Physical> &)ref;
 }
 
@@ -91,14 +91,14 @@ template<> ENTITY_LOADING_FUNC(component_pool_unload<Physical>) {
 
 namespace custom {
 
-template<> ENTITY_FROM_TO_FUNC(component_pool_copy<Phys2d>) {
+ENTITY_FROM_TO_FUNC(component_pool_copy_Phys2d) {
 	RefT<Phys2d> const & fromT = (RefT<Phys2d> const &)from;
 	RefT<Phys2d> & toT = (RefT<Phys2d> &)to;
 
 	*toT.get_fast() = *fromT.get_fast();
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
+ENTITY_LOADING_FUNC(component_pool_load_Phys2d) {
 	RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 	Phys2d * component = refT.get_fast();
 
@@ -121,7 +121,7 @@ template<> ENTITY_LOADING_FUNC(component_pool_load<Phys2d>) {
 	component->angular_acceleration = 0;
 }
 
-template<> ENTITY_LOADING_FUNC(component_pool_unload<Phys2d>) {
+ENTITY_LOADING_FUNC(component_pool_unload_Phys2d) {
 	// RefT<Phys2d> & refT = (RefT<Phys2d> &)ref;
 	// Phys2d * component = refT.get_fast();
 }

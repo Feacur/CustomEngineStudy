@@ -54,7 +54,7 @@
 #endif
 
 static u64 wait_till_next_frame(u64 frame_start_ticks, u16 refresh_rate, bool vsync, bool sleep_while_waiting) {
-	static constexpr u64 const precision = custom::timer::nanosecond;
+	constexpr static u64 const precision = custom::timer::nanosecond;
 	if (!vsync) {
 		if (sleep_while_waiting) {
 			custom::timer::sleep_till_next_frame(frame_start_ticks, precision / (u64)refresh_rate, precision);

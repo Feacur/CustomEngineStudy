@@ -12,8 +12,6 @@ enum struct Clear_Flag : u8
 	#define CLEAR_FLAG_IMPL(T, i) T = BIT(u8, i),
 	#include "engine/registry_impl/clear_flag.h"
 };
-UNDERLYING_TYPE_META(Clear_Flag, u8)
-IS_ENUM_META(Clear_Flag)
 ENUM_FLAG_OPERATORS_IMPL(Clear_Flag)
 
 enum struct Comparison : u8
@@ -27,8 +25,6 @@ enum struct Comparison : u8
 	Greater,
 	True,
 };
-UNDERLYING_TYPE_META(Comparison, u8)
-IS_ENUM_META(Comparison)
 
 enum struct Color_Write : u8
 {
@@ -38,8 +34,6 @@ enum struct Color_Write : u8
 	B    = BIT(u8, 2),
 	A    = BIT(u8, 3),
 };
-UNDERLYING_TYPE_META(Color_Write, u8)
-IS_ENUM_META(Color_Write)
 ENUM_FLAG_OPERATORS_IMPL(Color_Write)
 
 enum struct Operation : u8
@@ -53,8 +47,6 @@ enum struct Operation : u8
 	Decr_Wrap,
 	Invert,
 };
-UNDERLYING_TYPE_META(Operation, u8)
-IS_ENUM_META(Operation)
 
 enum struct Blend_Mode : u8
 {
@@ -63,8 +55,6 @@ enum struct Blend_Mode : u8
 	Additive,
 	Multiply,
 };
-UNDERLYING_TYPE_META(Blend_Mode, u8)
-IS_ENUM_META(Blend_Mode)
 
 enum struct Cull_Mode : u8
 {
@@ -73,16 +63,12 @@ enum struct Cull_Mode : u8
 	Front,
 	Both,
 };
-UNDERLYING_TYPE_META(Cull_Mode, u8)
-IS_ENUM_META(Cull_Mode)
 
 enum struct Front_Face : u8
 {
 	CW,
 	CCW,
 };
-UNDERLYING_TYPE_META(Front_Face, u8)
-IS_ENUM_META(Front_Face)
 
 enum struct Texture_Type : u8
 {
@@ -92,8 +78,6 @@ enum struct Texture_Type : u8
 	DStencil,
 	Stencil,
 };
-UNDERLYING_TYPE_META(Texture_Type, u8)
-IS_ENUM_META(Texture_Type)
 
 // @Note: final sampler type is implementation defined; OpenGL takes s32
 typedef struct { u32 texture, sampler; } unit_id;
@@ -104,8 +88,6 @@ enum struct Data_Type : u8
 	#define DATA_TYPE_IMPL(T) T,
 	#include "engine/registry_impl/data_type.h"
 };
-UNDERLYING_TYPE_META(Data_Type, u8)
-IS_ENUM_META(Data_Type)
 
 enum struct Filter_Mode : u8
 {
@@ -113,8 +95,6 @@ enum struct Filter_Mode : u8
 	Point,
 	Linear,
 };
-UNDERLYING_TYPE_META(Filter_Mode, u8)
-IS_ENUM_META(Filter_Mode)
 
 enum struct Wrap_Mode : u8
 {
@@ -123,8 +103,6 @@ enum struct Wrap_Mode : u8
 	Mirror_Repeat,
 	Mirror_Clamp,
 };
-UNDERLYING_TYPE_META(Wrap_Mode, u8)
-IS_ENUM_META(Wrap_Mode)
 
 enum struct Mesh_Frequency : u8
 {
@@ -132,8 +110,6 @@ enum struct Mesh_Frequency : u8
 	Dynamic,
 	Stream,
 };
-UNDERLYING_TYPE_META(Mesh_Frequency, u8)
-IS_ENUM_META(Mesh_Frequency)
 
 enum struct Mesh_Access : u8
 {
@@ -141,24 +117,18 @@ enum struct Mesh_Access : u8
 	Read,
 	Copy,
 };
-UNDERLYING_TYPE_META(Mesh_Access, u8)
-IS_ENUM_META(Mesh_Access)
 
 enum struct Clip_Origin : u8
 {
 	Lower_Left,
 	Upper_Left,
 };
-UNDERLYING_TYPE_META(Clip_Origin, u8)
-IS_ENUM_META(Clip_Origin)
 
 enum struct Clip_Depth : u8
 {
 	Neg_One,
 	Zero_One,
 };
-UNDERLYING_TYPE_META(Clip_Depth, u8)
-IS_ENUM_META(Clip_Depth)
 
 enum struct Instruction : u8
 {
@@ -166,8 +136,6 @@ enum struct Instruction : u8
 	#define INSTRUCTION_IMPL(T) T,
 	#include "engine/registry_impl/instruction.h"
 };
-UNDERLYING_TYPE_META(Instruction, u8)
-IS_ENUM_META(Instruction)
 
 
 }}

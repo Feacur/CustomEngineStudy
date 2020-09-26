@@ -2,19 +2,6 @@
 #include "engine/api/internal/asset_system.h"
 
 //
-// universal access
-//
-
-namespace custom {
-namespace loading {
-
-template<typename T> LOADING_FUNC(asset_pool_load);
-template<typename T> LOADING_FUNC(asset_pool_unload);
-template<typename T> LOADING_FUNC(asset_pool_update);
-
-}}
-
-//
 // asset ref
 //
 

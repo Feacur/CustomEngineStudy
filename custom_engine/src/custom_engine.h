@@ -5,7 +5,6 @@
 #include "engine/core/math_types.h"
 #include "engine/core/collection_types.h"
 #include "engine/core/utf8.h"
-#include "engine/core/meta.h"
 #include "engine/core/key_codes.h"
 #include "engine/debug/log.h"
 
