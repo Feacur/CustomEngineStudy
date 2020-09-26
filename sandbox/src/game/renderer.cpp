@@ -152,7 +152,7 @@ static void ecs_update_renderer_internal(custom::Array<Transform> const & id_to_
 	for (u32 camera_i = 0; camera_i < renderers.count; ++camera_i) {
 		Renderer_Blob const & renderer = renderers[camera_i];
 
-		mat4 const camera_matrix = mat_product(
+		mat4 const camera_matrix = mat_transform(
 			renderer.camera->to_matrix(aspect),
 			mat_inverse_transform(id_to_transform.get(renderer.id).to_matrix())
 		);

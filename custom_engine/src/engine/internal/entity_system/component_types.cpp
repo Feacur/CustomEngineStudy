@@ -12,16 +12,16 @@
 //
 
 mat4 Transform::to_matrix(void) const {
-	return ::to_matrix(position, scale, rotation);
+	return mat_from_transformation(position, scale, rotation);
 }
 
 vec3 Transform::transform(vec3 const & value) const {
-	return quat_rotate(rotation, value) * scale + position;
+	return position + quat_rotate(rotation, value * scale);
 }
 
 Transform Transform::transform(Transform const & value) const {
 	Transform result;
-	result.position = position + quat_rotate(rotation, value.position * scale);
+	result.position = transform(value.position);
 	result.scale    = scale * value.scale;
 	result.rotation = quat_product(rotation, value.rotation);
 	return result;

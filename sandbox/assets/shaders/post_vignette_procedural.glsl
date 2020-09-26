@@ -1,5 +1,3 @@
-// section: VERTEX_SECTION
-#if defined(VERTEX_SECTION)
 // https://en.wikipedia.org/wiki/Stippling
 // https://en.wikipedia.org/wiki/Ordered_dithering
 // http://www.tannerhelland.com/4660/dithering-eleven-algorithms-source-code/
@@ -17,6 +15,19 @@
 // https://youtu.be/--GB9qyZJqg
 // https://digitalrune.github.io/DigitalRune-Documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm
 // https://ocias.com/blog/unity-stipple-transparency-shader/
+
+// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
+// https://twitter.com/nice_byte/status/1093355080235999232
+
+// https://www.khronos.org/opengl/wiki/Vertex_Processing
+// https://www.khronos.org/opengl/wiki/Vertex_Post-Processing
+// https://www.khronos.org/opengl/wiki/Built-in_Variable_(GLSL)
+// https://www.khronos.org/opengl/wiki/GLAPI/glDepthRange
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping?url=3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClipControl.xhtml
+
+// section: VERTEX_SECTION
+#if defined(VERTEX_SECTION)
 
 #define VERTEX_MODE 1
 
@@ -44,8 +55,6 @@ void main()
 	v_ScreenPos = TexCoord * 2 - 1;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, NearClipValue, 1);
-	// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
-	// https://twitter.com/nice_byte/status/1093355080235999232
 }
 #else
 void main()
@@ -54,12 +63,6 @@ void main()
 	v_ScreenPos = a_Position.xy * 2;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, -1, 1);
-	// https://www.khronos.org/opengl/wiki/Vertex_Processing
-	// https://www.khronos.org/opengl/wiki/Vertex_Post-Processing
-	// https://www.khronos.org/opengl/wiki/Built-in_Variable_(GLSL)
-	// https://www.khronos.org/opengl/wiki/GLAPI/glDepthRange
-	// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping?url=3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
-	// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClipControl.xhtml
 }
 #endif
 #endif // defined(VERTEX_SECTION)

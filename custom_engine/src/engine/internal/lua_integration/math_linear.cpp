@@ -802,7 +802,7 @@ static int mat4_newindex(lua_State * L) {
 	return 0;
 }
 
-static int mat4_product(lua_State * L) {
+static int mat4_transform(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("mat4", 1);
 	LUA_ASSERT_USERDATA("mat4", 2);
@@ -812,12 +812,12 @@ static int mat4_product(lua_State * L) {
 
 	mat4 * udata = (mat4 *)lua_newuserdatauv(L, sizeof(mat4), 0);
 	luaL_setmetatable(L, "mat4");
-	*udata = mat_product(*object1, *object2);
+	*udata = mat_transform(*object1, *object2);
 
 	return 1;
 }
 
-static int mat4_product_vec(lua_State * L) {
+static int mat4_transform_vec(lua_State * L) {
 	CUSTOM_LUA_ASSERT(lua_gettop(L) == 2, "expected 2 arguments");
 	LUA_ASSERT_USERDATA("mat4", 1);
 	LUA_ASSERT_USERDATA("vec4", 2);
@@ -827,7 +827,7 @@ static int mat4_product_vec(lua_State * L) {
 
 	vec4 * udata = (vec4 *)lua_newuserdatauv(L, sizeof(vec4), 0);
 	luaL_setmetatable(L, "vec4");
-	*udata = mat_product(*object1, *object2);
+	*udata = mat_transform(*object1, *object2);
 
 	return 1;
 }
@@ -872,8 +872,8 @@ static luaL_Reg const mat4_meta[] = {
 	{"__index", mat4_index},
 	{"__newindex", mat4_newindex},
 	// instance:###
-	{"product", mat4_product},
-	{"product_vec", mat4_product_vec},
+	{"transform", mat4_transform},
+	{"transform_vec", mat4_transform_vec},
 	// Type.###
 	{"persp", mat4_persp},
 	{"ortho", mat4_ortho},

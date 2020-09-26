@@ -1,5 +1,3 @@
-// section: VERTEX_SECTION
-#if defined(VERTEX_SECTION)
 // https://twitter.com/_kzr/status/829621272757755905
 // http://www.loopit.dk/banding_in_games.pdf
 // http://www.anisopteragames.com/how-to-fix-color-banding-with-dithering/
@@ -8,6 +6,19 @@
 // https://gist.github.com/pixelmager/5d25fa32987273b9608a2d2c6cc74bfa
 // https://github.com/playdeadgames/publications/blob/master/INSIDE/rendering_inside_gdc2016.pdf
 // http://momentsingraphics.de/BlueNoise.html
+
+// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
+// https://twitter.com/nice_byte/status/1093355080235999232
+
+// https://www.khronos.org/opengl/wiki/Vertex_Processing
+// https://www.khronos.org/opengl/wiki/Vertex_Post-Processing
+// https://www.khronos.org/opengl/wiki/Built-in_Variable_(GLSL)
+// https://www.khronos.org/opengl/wiki/GLAPI/glDepthRange
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping?url=3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClipControl.xhtml
+
+// section: VERTEX_SECTION
+#if defined(VERTEX_SECTION)
 
 #define VERTEX_MODE 1
 
@@ -42,8 +53,6 @@ void main()
 	v_TexCoord.x *= u_Resolution.x / u_Resolution.y;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, NearClipValue, 1);
-	// https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
-	// https://twitter.com/nice_byte/status/1093355080235999232
 }
 #else
 void main()
@@ -56,12 +65,6 @@ void main()
 	v_TexCoord.x *= u_Resolution.x / u_Resolution.y;
 	// display in front of everything
 	gl_Position = vec4(v_ScreenPos, -1, 1);
-	// https://www.khronos.org/opengl/wiki/Vertex_Processing
-	// https://www.khronos.org/opengl/wiki/Vertex_Post-Processing
-	// https://www.khronos.org/opengl/wiki/Built-in_Variable_(GLSL)
-	// https://www.khronos.org/opengl/wiki/GLAPI/glDepthRange
-	// https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping?url=3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-GPU-rendering-pipeline-clipping
-	// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClipControl.xhtml
 }
 #endif
 #endif // defined(VERTEX_SECTION)

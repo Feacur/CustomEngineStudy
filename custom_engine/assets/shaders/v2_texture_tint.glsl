@@ -1,3 +1,6 @@
+// https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
+// matrices: vector components are columns
+
 // section: VERTEX_SECTION
 #if defined(VERTEX_SECTION)
 layout(location = 0) in vec2 a_Position;

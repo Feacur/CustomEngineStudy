@@ -32,6 +32,7 @@ typedef custom::graphics::unit_id unit_id;
 #define RS_NONE    0
 #define RS_LOADED  1
 
+// https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
 // https://www.khronos.org/registry/OpenGL/index_gl.php
 // https://developer.nvidia.com/sites/default/files/akamai/gamedev/docs/OpenGL%204.x%20and%20Beyond.pdf
 // https://www.khronos.org/assets/uploads/developers/library/2014-siggraph-bof/OpenGL-Ecosystem-BOF_Aug14.pdf
@@ -2047,7 +2048,14 @@ static void platform_Set_Uniform(Bytecode const & bc) {
 
 	// @Note: even though glBindTextureUnit(...) and glBindSampler(...) takes GLuint as a unit,
 	//        glUniform1i and glUniform1iv are the only two functions that may be used to load uniform variables defined as sampler types. Loading samplers with any other function will result in a GL_INVALID_OPERATION error.
-	//        https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
+	//        * https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glProgramUniform.xhtml
+	//        * https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
+
+	// @Note: GLSL states that it has a column-major ordering: on load [X, Y, Z, W] are treated as columns;
+    //        in case those vectors are orientation axes and a translation offset, then the following formula works
+    //        `result == camera_projection * camera_inverse_transform * object_transform * vector`;
+    //        otherwise, if those vectors are a transposition of orientation and translation vectors, then that is you tool
+    //        `result == vector * object_transform * camera_inverse_transform * camera_projection`
 
 	// @Todo: cache units, then assign uniforms at once?
 

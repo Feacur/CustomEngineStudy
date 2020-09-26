@@ -12,6 +12,8 @@ vector 3d math representation
 (j * k) = -(k * j) = i
 (k * i) = -(i * k) = j
 
+everything's left-handed
+
 ---- cross product ----
 (i * i) = (j * j) = (k * k) = (i * j * k) =  0 == sin(0)
 
@@ -893,6 +895,11 @@ constexpr inline complex complex_product(complex const & first, complex const & 
 	};
 }
 
+constexpr inline void complex_get_axes(complex const & c, vec2 & x, vec2 & y) {
+	x = c;
+	y = cross_product(1.0f, c);
+}
+
 inline r32 complex_get_radians(complex const & value) {
 	return atan2f(value.y, value.x);
 }
@@ -1139,29 +1146,115 @@ inline r32 quat_get_radians_z(quat const & q) {
 	return atan2f((q.x * q.y + q.z * q.w) * 2, (q.x * q.x + q.w * q.w) - (q.y * q.y + q.z * q.z));
 };
 
+/*
+matrices
+
+> what is majorness?
+  given an array [0, 1, 2, 3], or an array of arrays [[0, 1], [2, 3]], where each two values are a vector
+  row-major would be read as [row, row] and written in a matrix form as
+    |0 1|
+    |2 3|
+  column-major would be read as [column, column] and written in a matrix form as
+    |0 2|
+    |1 3|
+  N.B.: majorness says nothing about whether rows or columns contain orientation and translation! nada!
+
+> what does a `mat4` type consist of?
+  an array of vectors [X, Y, Z, W]; neither rows, nor columns
+  XYZ components are intended to store orientation and scaling axes of a transformation matrix
+  W is intended to represent a position vector
+
+> interoperation with the graphics APIs
+  1) read the spec; there should be descriptions of matrix constructors
+  2) GLSL states that it has a column-major ordering: on load [X, Y, Z, W] are treated as columns;
+     in case those vectors are orientation axes and a translation offset, then the following formula works
+     `result == camera_projection * camera_inverse_transform * object_transform * vector`;
+     otherwise, if those vectors are a transposition of orientation and translation vectors, then that is you tool
+     `result == vector * object_transform * camera_inverse_transform * camera_projection`
+
+* https://en.wikipedia.org/wiki/Matrix_multiplication
+* https://en.wikipedia.org/wiki/Transpose
+* https://en.wikipedia.org/wiki/Matrix_representation
+* https://en.wikipedia.org/wiki/Row-_and_column-major_order
+
+> general math rules
+  transpose(A * B) == transpose(B) * transpose(A)
+  result_x_y == dot_product(row_a_y, column_b_x)
+
+> math proof of transformation matrices (using abstract vectors, irrelevant to the `mat4` type)
+  ```
+  ax - orientation axis_X;   [ax.x ax.y ax.z 0] // `0` somewhat means that's a *direction vector*
+  ay - orientation axis_Y;   [ay.x ay.y ay.z 0]
+  az - orientation axis_Z;   [az.x az.y az.z 0]
+  o  - translation offset;   [o.x  o.y  o.z  1] // `1` somewhat means that's a *position vector*
+  p  - a point to transform; [p.x  p.y  p.z  1]
+  ```
+  
+  what are coordinates of a point:
+  - `x` component is a distance along an axis_X
+  - `y` component is a distance along an axis_Y
+  - `z` component is a distance along an axis_Z
+  
+  then:
+  ```
+  point_transformed = offset + axis_X * point.x + axis_Y * point.y + axis_Z * point.z
+  ``
+  
+  alternatively, per-component:
+  ```
+  point_transformed.x = o.x + ax.x * p.x + ay.x * p.y + az.x * p.z
+  point_transformed.y = o.y + ax.y * p.x + ay.y * p.y + az.y * p.z
+  point_transformed.z = o.z + ax.z * p.x + ay.z * p.y + az.z * p.z
+  point_transformed.w = 1
+  ```
+  
+  which is exactly the same result if you do matrix multiplication
+  [between matrix rows and a column vector]
+  ```
+  |ax.x ay.x az.x o.x|    |p.x|
+  |ax.y ay.y az.y o.y| \/ |p.y|
+  |ax.z ay.z az.z o.z| /\ |p.z|
+  |0    0    0    1  |    |1  |
+  ```
+  
+  alternatively, minding the transposition rule
+  [between a row vector and matrix columns]
+  ```
+                     |ax.x ax.y ax.z 0|
+  |p.x p.y p.z 1| \/ |ay.x ay.y ay.z 0|
+                  /\ |az.x az.y az.z 0|
+                     |o.x  o.y  o.z  1|
+  ```
+*/
+
 //
 // mat2 routines
 //
 
-constexpr inline mat2 mat_transpose(mat2 const & value) {
+constexpr inline mat2 mat_transpose(mat2 const & mat) {
 	return {
-		vec2{value.x.x, value.y.x},
-		vec2{value.x.y, value.y.y}
+		vec2{mat.x.x, mat.y.x},
+		vec2{mat.x.y, mat.y.y}
 	};
 }
 
-constexpr inline vec2 mat_product(mat2 const & mat, vec2 const & v) {
+/*
+This code is a result of expanding the following expression
+
+return mat.x * value.x
+     + mat.y * value.y
+*/
+constexpr inline vec2 mat_transform(mat2 const & mat, vec2 const & value) {
 	return {
-		dot_product(mat.x, v),
-		dot_product(mat.y, v)
+		dot_product({mat.x.x, mat.y.x}, value),
+		dot_product({mat.x.y, mat.y.y}, value),
 	};
 }
 
-constexpr inline mat2 mat_product(mat2 const & mat, mat2 const & value) {
-	mat2 t = mat_transpose(mat);
+constexpr inline mat2 mat_transform(mat2 const & mat, mat2 const & value) {
 	return {
-		mat_product(t, value.x),
-		mat_product(t, value.y)
+		mat_transform(mat, value.x),
+		mat_transform(mat, value.y),
 	};
 }
 
@@ -1176,28 +1269,34 @@ constexpr inline mat2 interpolate(mat2 const & first, mat2 const & second, r32 f
 // mat3 routines
 //
 
-constexpr inline mat3 mat_transpose(mat3 const & value) {
+constexpr inline mat3 mat_transpose(mat3 const & mat) {
 	return {
-		vec3{value.x.x, value.y.x, value.z.x},
-		vec3{value.x.y, value.y.y, value.z.y},
-		vec3{value.x.z, value.y.z, value.z.z}
+		vec3{mat.x.x, mat.y.x, mat.z.x},
+		vec3{mat.x.y, mat.y.y, mat.z.y},
+		vec3{mat.x.z, mat.y.z, mat.z.z}
 	};
 }
 
-constexpr inline vec3 mat_product(mat3 const & mat, vec3 const & v) {
+/*
+This code is a result of expanding the following expression
+
+return mat.x * value.x
+     + mat.y * value.y
+     + mat.z * value.z
+*/
+constexpr inline vec3 mat_transform(mat3 const & mat, vec3 const & value) {
 	return {
-		dot_product(mat.x, v),
-		dot_product(mat.y, v),
-		dot_product(mat.z, v)
+		dot_product({mat.x.x, mat.y.x, mat.z.x}, value),
+		dot_product({mat.x.y, mat.y.y, mat.z.y}, value),
+		dot_product({mat.x.z, mat.y.z, mat.z.z}, value),
 	};
 }
 
-constexpr inline mat3 mat_product(mat3 const & mat, mat3 const & value) {
-	mat3 t = mat_transpose(mat);
+constexpr inline mat3 mat_transform(mat3 const & mat, mat3 const & value) {
 	return {
-		mat_product(t, value.x),
-		mat_product(t, value.y),
-		mat_product(t, value.z)
+		mat_transform(mat, value.x),
+		mat_transform(mat, value.y),
+		mat_transform(mat, value.z),
 	};
 }
 
@@ -1209,20 +1308,7 @@ constexpr inline mat3 interpolate(mat3 const & first, mat3 const & second, r32 f
 	};
 }
 
-constexpr inline mat3 mat_inverse_transform(mat3 const & value) {
-	mat3 t = mat_transpose(value);
-	return {
-		vec3{t.x.xy, 0},
-		vec3{t.y.xy, 0},
-		vec3{
-			-dot_product(value.z.xy, value.x.xy),
-			-dot_product(value.z.xy, value.y.xy),
-			1
-		}
-	};
-}
-
-constexpr inline mat3 mat_position_scale(vec2 const & p, vec2 const & s) {
+constexpr inline mat3 mat_from_position_scale(vec2 const & p, vec2 const & s) {
 	return {
 		vec3{s.x, 0,   0},
 		vec3{0,   s.y, 0},
@@ -1230,35 +1316,63 @@ constexpr inline mat3 mat_position_scale(vec2 const & p, vec2 const & s) {
 	};
 }
 
+inline mat3 mat_from_transformation(vec2 const & position, vec2 const & scale, complex const & rotation) {
+	mat3 mat; // = {};
+	complex_get_axes(rotation, mat.x.xy, mat.y.xy);
+	mat.x.xy *= scale.x; mat.x.z = 0;
+	mat.y.xy *= scale.y; mat.y.z = 0;
+	mat.z = {position, 1};
+	return mat;
+}
+
+constexpr inline mat3 mat_inverse_transform(mat3 const & mat) {
+	return {
+		vec3{mat.x.x, mat.y.x, 0},
+		vec3{mat.x.y, mat.y.y, 0},
+		vec3{
+			-dot_product(mat.z.xy, mat.x.xy),
+			-dot_product(mat.z.xy, mat.y.xy),
+			1
+		}
+	};
+}
+
 //
 // mat4 routines
 //
 
-constexpr inline mat4 mat_transpose(mat4 const & value) {
+constexpr inline mat4 mat_transpose(mat4 const & mat) {
 	return {
-		vec4{value.x.x, value.y.x, value.z.x, value.w.x},
-		vec4{value.x.y, value.y.y, value.z.y, value.w.y},
-		vec4{value.x.z, value.y.z, value.z.z, value.w.z},
-		vec4{value.x.w, value.y.w, value.z.w, value.w.w},
+		vec4{mat.x.x, mat.y.x, mat.z.x, mat.w.x},
+		vec4{mat.x.y, mat.y.y, mat.z.y, mat.w.y},
+		vec4{mat.x.z, mat.y.z, mat.z.z, mat.w.z},
+		vec4{mat.x.w, mat.y.w, mat.z.w, mat.w.w},
 	};
 }
 
-constexpr inline vec4 mat_product(mat4 const & mat, vec4 const & v) {
+/*
+This code is a result of expanding the following expression
+
+return mat.x * value.x
+     + mat.y * value.y
+     + mat.z * value.z
+     + mat.w * value.w
+*/
+constexpr inline vec4 mat_transform(mat4 const & mat, vec4 const & value) {
 	return {
-		dot_product(mat.x, v),
-		dot_product(mat.y, v),
-		dot_product(mat.z, v),
-		dot_product(mat.w, v)
+		dot_product({mat.x.x, mat.y.x, mat.z.x, mat.w.x}, value),
+		dot_product({mat.x.y, mat.y.y, mat.z.y, mat.w.y}, value),
+		dot_product({mat.x.z, mat.y.z, mat.z.z, mat.w.z}, value),
+		dot_product({mat.x.w, mat.y.w, mat.z.w, mat.w.w}, value),
 	};
 }
 
-constexpr inline mat4 mat_product(mat4 const & mat, mat4 const & value) {
-	mat4 t = mat_transpose(mat);
+constexpr inline mat4 mat_transform(mat4 const & mat, mat4 const & value) {
 	return {
-		mat_product(t, value.x),
-		mat_product(t, value.y),
-		mat_product(t, value.z),
-		mat_product(t, value.w)
+		mat_transform(mat, value.x),
+		mat_transform(mat, value.y),
+		mat_transform(mat, value.z),
+		mat_transform(mat, value.w),
 	};
 }
 
@@ -1271,27 +1385,36 @@ constexpr inline mat4 interpolate(mat4 const & first, mat4 const & second, r32 f
 	};
 }
 
-constexpr inline mat4 mat_inverse_transform(mat4 const & value) {
-	mat4 t = mat_transpose(value);
-	return {
-		vec4{t.x.xyz, 0},
-		vec4{t.y.xyz, 0},
-		vec4{t.z.xyz, 0},
-		vec4{
-			-dot_product(value.w.xyz, value.x.xyz),
-			-dot_product(value.w.xyz, value.y.xyz),
-			-dot_product(value.w.xyz, value.z.xyz),
-			1
-		}
-	};
-}
-
-constexpr inline mat4 mat_position_scale(vec3 const & p, vec3 const & s) {
+constexpr inline mat4 mat_from_position_scale(vec3 const & p, vec3 const & s) {
 	return {
 		vec4{s.x, 0,   0,   0},
 		vec4{0,   s.y, 0,   0},
 		vec4{0,   0,   s.z, 0},
 		vec4{p.x, p.y, p.z, 1}
+	};
+}
+
+inline mat4 mat_from_transformation(vec3 const & position, vec3 const & scale, quat const & rotation) {
+	mat4 mat; // = {};
+	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
+	mat.x.xyz *= scale.x; mat.x.w = 0;
+	mat.y.xyz *= scale.y; mat.y.w = 0;
+	mat.z.xyz *= scale.z; mat.z.w = 0;
+	mat.w = {position, 1};
+	return mat;
+}
+
+constexpr inline mat4 mat_inverse_transform(mat4 const & mat) {
+	return {
+		vec4{mat.x.x, mat.y.x, mat.z.x, 0},
+		vec4{mat.x.y, mat.y.y, mat.z.y, 0},
+		vec4{mat.x.z, mat.y.z, mat.z.z, 0},
+		vec4{
+			-dot_product(mat.w.xyz, mat.x.xyz),
+			-dot_product(mat.w.xyz, mat.y.xyz),
+			-dot_product(mat.w.xyz, mat.z.xyz),
+			1
+		}
 	};
 }
 
@@ -1365,51 +1488,27 @@ Perspective projection:
 constexpr inline mat4 mat_persp(vec2 const & scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
-	mat4 result = {};
-	result[0][0] = scale.x;
-	result[1][1] = scale.y;
-	result[2][2] = isinf(fcp) ? 1 : ((fcp - NCP * ncp) * reverse_depth);
-	result[2][3] = 1; // W += 1 * vec4.z
-	// result[3].xy = offset;
-	result[3][2] = isinf(fcp) ? ((NCP - 1) * ncp) : ((NCP - 1) * ncp * fcp * reverse_depth);
-	result[3][3] = 0; // W += 0 * vec4.w
-	return result;
+	float const scale_z = isinf(fcp) ? 1                 : ((fcp - NCP * ncp) * reverse_depth);
+	float const offset  = isinf(fcp) ? ((NCP - 1) * ncp) : ((NCP - 1) * ncp * fcp * reverse_depth);
+	return {
+		vec4{scale.x, 0, 0, 0}, // W += 0 * vec4.x
+		vec4{0, scale.y, 0, 0}, // W += 0 * vec4.y
+		vec4{0, 0, scale_z, 1}, // W += 1 * vec4.z
+		vec4{0, 0, offset,  0}, // W += 0 * vec4.w
+	};
 }
 
 constexpr inline mat4 mat_ortho(vec2 const & scale, r32 ncp, r32 fcp) {
 	constexpr float const NCP = 0;
 	float const reverse_depth = 1 / (fcp - ncp);
-	mat4 result = {};
-	result[0][0] = scale.x;
-	result[1][1] = scale.y;
-	result[2][2] = isinf(fcp) ? 0 : ((1 - NCP) * reverse_depth);
-	result[2][3] = 0; // W += 0 * vec4.z
-	// result[3].xy = offset;
-	result[3][2] = isinf(fcp) ? 0 : ((fcp * NCP - ncp) * reverse_depth);
-	result[3][3] = 1; // W += 1 * vec4.w
-	return result;
-}
-
-//
-// conversions
-//
-
-inline mat3 to_matrix(vec2 const & position, vec2 const & scale, complex const & rotation) {
-	return mat3{
-		vec3{rotation * scale.x, 0},
-		vec3{cross_product(1.0f, rotation) * scale.y, 0},
-		vec3{position, 1}
+	float const scale_z = isinf(fcp) ? 0 : ((1 - NCP) * reverse_depth);
+	float const offset  = isinf(fcp) ? 0 : ((fcp * NCP - ncp) * reverse_depth);
+	return {
+		vec4{scale.x, 0, 0, 0}, // W += 0 * vec4.x
+		vec4{0, scale.y, 0, 0}, // W += 0 * vec4.y
+		vec4{0, 0, scale_z, 0}, // W += 0 * vec4.z
+		vec4{0, 0, offset,  1}, // W += 1 * vec4.w
 	};
-}
-
-inline mat4 to_matrix(vec3 const & position, vec3 const & scale, quat const & rotation) {
-	mat4 mat; // = {};
-	quat_get_axes(rotation, mat.x.xyz, mat.y.xyz, mat.z.xyz);
-	mat.x.xyz *= scale.x; mat.x.w = 0;
-	mat.y.xyz *= scale.y; mat.y.w = 0;
-	mat.z.xyz *= scale.z; mat.z.w = 0;
-	mat.w = {position, 1};
-	return mat;
 }
 
 //
